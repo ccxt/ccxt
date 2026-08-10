@@ -124,7 +124,7 @@ public partial class bydfi : Exchange
                 { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenInterests", false },
-                { "fetchOpenOrder", false },
+                { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
                 { "fetchOption", false },
                 { "fetchOptionChain", false },
@@ -2512,7 +2512,7 @@ public partial class bydfi : Exchange
         }
         object market = this.market(symbol);
         object contractType = "FUTURE";
-        var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsHistory", "contractType", contractType);
+        var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
         contractType = ((IList<object>)contractTypeparametersVariable)[0];
         parameters = ((IList<object>)contractTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
@@ -2702,11 +2702,11 @@ public partial class bydfi : Exchange
         }
         object market = this.market(symbol);
         object contractType = "FUTURE";
-        var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
+        var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "contractType", contractType);
         contractType = ((IList<object>)contractTypeparametersVariable)[0];
         parameters = ((IList<object>)contractTypeparametersVariable)[1];
         object wallet = "W001";
-        var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "wallet", wallet);
+        var walletparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "wallet", wallet);
         wallet = ((IList<object>)walletparametersVariable)[0];
         parameters = ((IList<object>)walletparametersVariable)[1];
         object request = new Dictionary<string, object>() {

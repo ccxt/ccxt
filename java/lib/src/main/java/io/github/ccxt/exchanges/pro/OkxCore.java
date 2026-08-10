@@ -2715,7 +2715,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object stringMsg = this.json(message);
             this.handleErrors(1, "", client.url, ((String)method), new java.util.HashMap<String, Object>() {{}}, stringMsg, message, new java.util.HashMap<String, Object>() {{}}, new java.util.HashMap<String, Object>() {{}});
         }
-        Object orders = this.parseOrders(args, null, null, null);
+        Object orders = this.parseOrders(args, null, null);
         Object first = this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
         client.resolve(first, messageHash);
     }

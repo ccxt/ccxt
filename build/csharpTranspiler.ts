@@ -1065,7 +1065,10 @@ class NewTranspiler {
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
         if (parts.length > 1) {
-            const baseMethods = parts[1]
+            // fetchOrderBook erases to the same object-typed signature as the BaseExchange virtual
+            // and must be emitted as an override to avoid hiding it, warning CS0114, see
+            // https://github.com/ccxt/ccxt/pull/29695
+            const baseMethods = parts[1].replaceAll('public async virtual Task<object> fetchOrderBook(object outcome', 'public async override Task<object> fetchOrderBook(object outcome')
             const fields = [
                 '    public PredictionExchange(object args = null) : base(args) {}',
                 '',

@@ -133,7 +133,7 @@ class bydfi extends bydfi$1["default"] {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
-                'fetchOpenOrder': false,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
@@ -2207,7 +2207,7 @@ class bydfi extends bydfi$1["default"] {
         }
         const market = this.market(symbol);
         let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchPositionsHistory', 'contractType', contractType);
+        [contractType, params] = this.handleOptionAndParams(params, 'fetchPositionHistory', 'contractType', contractType);
         const request = {
             'symbol': market['id'],
             'contractType': contractType,
@@ -2371,9 +2371,9 @@ class bydfi extends bydfi$1["default"] {
         }
         const market = this.market(symbol);
         let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchMarginMode', 'contractType', contractType);
+        [contractType, params] = this.handleOptionAndParams(params, 'setMarginMode', 'contractType', contractType);
         let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'fetchMarginMode', 'wallet', wallet);
+        [wallet, params] = this.handleOptionAndParams(params, 'setMarginMode', 'wallet', wallet);
         const request = {
             'contractType': contractType,
             'symbol': market['id'],

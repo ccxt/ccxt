@@ -134,7 +134,7 @@ abstract class aster extends \ccxt\Exchange {
         return $this->request('v1/premiumIndex', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function fapipublic_get_v3_premiumindex($params = array()) {
         return $this->request('v3/premiumIndex', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
@@ -170,7 +170,7 @@ abstract class aster extends \ccxt\Exchange {
         return $this->request('v1/ticker/24hr', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function fapipublic_get_v3_ticker_24hr($params = array()) {
         return $this->request('v3/ticker/24hr', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
@@ -296,7 +296,7 @@ abstract class aster extends \ccxt\Exchange {
         return $this->request('v2/balance', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function fapiprivate_get_v3_balance($params = array()) {
         return $this->request('v3/balance', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
@@ -794,7 +794,7 @@ abstract class aster extends \ccxt\Exchange {
         return $this->request('v3/klines', 'sapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function sapipublic_get_v3_ticker_24hr($params = array()) {
         return $this->request('v3/ticker/24hr', 'sapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -1124,7 +1124,7 @@ abstract class aster extends \ccxt\Exchange {
         return $this->request('v1/premiumIndex', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function fapiPublicGetV3PremiumIndex($params = array()) {
         return $this->request('v3/premiumIndex', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
@@ -1160,7 +1160,7 @@ abstract class aster extends \ccxt\Exchange {
         return $this->request('v1/ticker/24hr', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function fapiPublicGetV3Ticker24hr($params = array()) {
         return $this->request('v3/ticker/24hr', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
@@ -1286,7 +1286,7 @@ abstract class aster extends \ccxt\Exchange {
         return $this->request('v2/balance', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function fapiPrivateGetV3Balance($params = array()) {
         return $this->request('v3/balance', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
@@ -1784,7 +1784,7 @@ abstract class aster extends \ccxt\Exchange {
         return $this->request('v3/klines', 'sapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function sapiPublicGetV3Ticker24hr($params = array()) {
         return $this->request('v3/ticker/24hr', 'sapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));

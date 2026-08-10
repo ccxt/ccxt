@@ -43,6 +43,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "createLimitOrder", true );
                 put( "createMarketOrder", true );
                 put( "createOrder", true );
+                put( "createOrders", true );
                 put( "createPostOnlyOrder", true );
                 put( "createReduceOnlyOrder", true );
                 put( "createStopLimitOrder", true );
@@ -83,6 +84,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "fetchLiquidations", true );
                 put( "fetchMarginMode", false );
                 put( "fetchMarketLeverageTiers", false );
+                put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMyTrades", true );
                 put( "fetchOHLCV", true );
@@ -102,8 +104,10 @@ public class BitfinexCore extends BitfinexApi
                 put( "fetchPositions", true );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchStatus", true );
+                put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTime", false );
+                put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
                 put( "fetchTradingFees", true );
                 put( "fetchTransactionFees", null );
@@ -2043,7 +2047,7 @@ public class BitfinexCore extends BitfinexApi
             put( "4096", new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly")) );
             put( "5120", new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "postOnly")) );
         }};
-        return this.safeValue(flagValues, flags, null);
+        return this.safeValue(flagValues, flags);
     }
 
     public Object parseTimeInForce(Object orderType)

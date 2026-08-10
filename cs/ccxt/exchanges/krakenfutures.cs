@@ -28,6 +28,7 @@ public partial class krakenfutures : Exchange
                 { "cancelOrders", true },
                 { "createMarketOrder", true },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },

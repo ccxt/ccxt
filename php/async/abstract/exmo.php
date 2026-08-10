@@ -68,7 +68,7 @@ abstract class exmo extends \ccxt\async\Exchange {
         return $this->request('required_amount', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function public_get_payments_providers_crypto_list($params = array()) {
         return $this->request('payments/providers/crypto/list', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -374,7 +374,7 @@ abstract class exmo extends \ccxt\async\Exchange {
         return $this->request('required_amount', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function publicGetPaymentsProvidersCryptoList($params = array()) {
         return $this->request('payments/providers/crypto/list', 'public', 'GET', $params, null, null, array("cost" => 1));

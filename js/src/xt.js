@@ -4320,7 +4320,8 @@ export default class xt extends Exchange {
     }
     async modifyMarginHelper(symbol, amount, addOrReduce, params = {}) {
         const positionSide = this.safeString(params, 'positionSide');
-        this.checkRequiredArgument('setLeverage', positionSide, 'positionSide', ['LONG', 'SHORT']);
+        const methodName = (addOrReduce === 'ADD') ? 'addMargin' : 'reduceMargin';
+        this.checkRequiredArgument(methodName, positionSide, 'positionSide', ['LONG', 'SHORT']);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }

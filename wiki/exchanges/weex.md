@@ -380,12 +380,13 @@ query for balance and get the amount of funds available for trading or funds loc
 
 - https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
 - https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+- https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'spot' or 'swap' (default is 'spot') |
+| params.type | <code>string</code> | No | 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default) |
 
 
 ```javascript
@@ -431,6 +432,7 @@ Create an order on the exchange
 - https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
 - https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
 - https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+- https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -487,6 +489,7 @@ helper method for creating contract orders
 
 - https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
 - https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+- https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -672,6 +675,7 @@ fetches information on multiple closed orders made by the user
 
 - https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
 - https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+- https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -701,6 +705,7 @@ fetches information on multiple canceled orders made by the user
 
 - https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
 - https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+- https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
 
 
 | Param | Type | Required | Description |
@@ -751,7 +756,11 @@ fetches information on multiple closed and canceled orders made by the user
 **Kind**: instance method of [<code>weex</code>](#weex)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract  
+**See**
+
+- https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+- https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -865,7 +874,11 @@ fetch all open positions
 **Kind**: instance method of [<code>weex</code>](#weex)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://www.weex.com/api-doc/contract/Account_API/GetAllPositions  
+**See**
+
+- https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+- https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

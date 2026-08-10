@@ -20,4 +20,4 @@ class ImplicitAPI:
     private_post_cancelorder = privatePostCancelOrder = Entry[_Dict]('cancelOrder', 'private', 'POST', {'cost': 1})
     private_delete_order = privateDeleteOrder = Entry[_Dict]('order', 'private', 'DELETE', {'cost': 1})
     graph_get_ohlcs = graphGetOhlcs = Entry[_List]('ohlcs', 'graph', 'GET', {'cost': 1})
-    graph_get_klines_history = graphGetKlinesHistory = Entry[_List]('klines/history', 'graph', 'GET', {'cost': 1})
+    graph_get_klines_history = graphGetKlinesHistory = Entry[_Dict]('klines/history', 'graph', 'GET', {'cost': 1})

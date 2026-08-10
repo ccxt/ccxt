@@ -1,5 +1,5 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+from typing import Any as PythonAny, Dict, List, Union
 
 _Dict = Dict[str, PythonAny]
 _List = List[PythonAny]
@@ -26,13 +26,13 @@ class ImplicitAPI:
     fapipublic_get_v1_markpriceklines = fapiPublicGetV1MarkPriceKlines = Entry[_List]('v1/markPriceKlines', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_v3_markpriceklines = fapiPublicGetV3MarkPriceKlines = Entry[_List]('v3/markPriceKlines', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_v1_premiumindex = fapiPublicGetV1PremiumIndex = Entry[_Dict]('v1/premiumIndex', 'fapiPublic', 'GET', {'cost': 1})
-    fapipublic_get_v3_premiumindex = fapiPublicGetV3PremiumIndex = Entry[_Dict]('v3/premiumIndex', 'fapiPublic', 'GET', {'cost': 1})
+    fapipublic_get_v3_premiumindex = fapiPublicGetV3PremiumIndex = Entry[Union[_Dict, _List]]('v3/premiumIndex', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_v1_fundingrate = fapiPublicGetV1FundingRate = Entry[_List]('v1/fundingRate', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_v3_fundingrate = fapiPublicGetV3FundingRate = Entry[_List]('v3/fundingRate', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_v1_fundinginfo = fapiPublicGetV1FundingInfo = Entry[_List]('v1/fundingInfo', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_v3_fundinginfo = fapiPublicGetV3FundingInfo = Entry[_List]('v3/fundingInfo', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_v1_ticker_24hr = fapiPublicGetV1Ticker24hr = Entry[_List]('v1/ticker/24hr', 'fapiPublic', 'GET', {'cost': 1})
-    fapipublic_get_v3_ticker_24hr = fapiPublicGetV3Ticker24hr = Entry[_List]('v3/ticker/24hr', 'fapiPublic', 'GET', {'cost': 1})
+    fapipublic_get_v3_ticker_24hr = fapiPublicGetV3Ticker24hr = Entry[Union[_Dict, _List]]('v3/ticker/24hr', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_v1_ticker_price = fapiPublicGetV1TickerPrice = Entry[_List]('v1/ticker/price', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_v3_ticker_price = fapiPublicGetV3TickerPrice = Entry[_List]('v3/ticker/price', 'fapiPublic', 'GET', {'cost': 1})
     fapipublic_get_v1_ticker_bookticker = fapiPublicGetV1TickerBookTicker = Entry[_List]('v1/ticker/bookTicker', 'fapiPublic', 'GET', {'cost': 1})
@@ -53,7 +53,7 @@ class ImplicitAPI:
     fapiprivate_get_v1_allorders = fapiPrivateGetV1AllOrders = Entry[_List]('v1/allOrders', 'fapiPrivate', 'GET', {'cost': 1})
     fapiprivate_get_v3_allorders = fapiPrivateGetV3AllOrders = Entry[_List]('v3/allOrders', 'fapiPrivate', 'GET', {'cost': 1})
     fapiprivate_get_v2_balance = fapiPrivateGetV2Balance = Entry[_List]('v2/balance', 'fapiPrivate', 'GET', {'cost': 1})
-    fapiprivate_get_v3_balance = fapiPrivateGetV3Balance = Entry[_Dict]('v3/balance', 'fapiPrivate', 'GET', {'cost': 1})
+    fapiprivate_get_v3_balance = fapiPrivateGetV3Balance = Entry[_List]('v3/balance', 'fapiPrivate', 'GET', {'cost': 1})
     fapiprivate_get_v3_account = fapiPrivateGetV3Account = Entry[_Dict]('v3/account', 'fapiPrivate', 'GET', {'cost': 1})
     fapiprivate_get_v1_positionmargin_history = fapiPrivateGetV1PositionMarginHistory = Entry[_List]('v1/positionMargin/history', 'fapiPrivate', 'GET', {'cost': 1})
     fapiprivate_get_v3_positionmargin_history = fapiPrivateGetV3PositionMarginHistory = Entry[_List]('v3/positionMargin/history', 'fapiPrivate', 'GET', {'cost': 1})
@@ -136,7 +136,7 @@ class ImplicitAPI:
     sapipublic_get_v3_historicaltrades = sapiPublicGetV3HistoricalTrades = Entry[_List]('v3/historicalTrades', 'sapiPublic', 'GET', {'cost': 20})
     sapipublic_get_v3_aggtrades = sapiPublicGetV3AggTrades = Entry[_List]('v3/aggTrades', 'sapiPublic', 'GET', {'cost': 20})
     sapipublic_get_v3_klines = sapiPublicGetV3Klines = Entry[_List]('v3/klines', 'sapiPublic', 'GET', {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]})
-    sapipublic_get_v3_ticker_24hr = sapiPublicGetV3Ticker24hr = Entry[_List]('v3/ticker/24hr', 'sapiPublic', 'GET', {'cost': 1, 'noSymbol': 40})
+    sapipublic_get_v3_ticker_24hr = sapiPublicGetV3Ticker24hr = Entry[Union[_Dict, _List]]('v3/ticker/24hr', 'sapiPublic', 'GET', {'cost': 1, 'noSymbol': 40})
     sapipublic_get_v3_ticker_price = sapiPublicGetV3TickerPrice = Entry[_List]('v3/ticker/price', 'sapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
     sapipublic_get_v3_ticker_bookticker = sapiPublicGetV3TickerBookTicker = Entry[_List]('v3/ticker/bookTicker', 'sapiPublic', 'GET', {'cost': 1, 'noSymbol': 2})
     sapipublic_get_v3_aster_withdraw_estimatefee = sapiPublicGetV3AsterWithdrawEstimateFee = Entry[_Dict]('v3/aster/withdraw/estimateFee', 'sapiPublic', 'GET', {'cost': 1})

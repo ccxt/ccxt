@@ -192,51 +192,53 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function get_url_by_market_type(?string $symbol = null, $isPrivate = false, ?string $method = null, $params = array()) {
-        return Async\async(function () use ($symbol, $isPrivate, $method, $params) {
-            $accessibility = $isPrivate ? 'private' : 'public';
-            if ($method === null) {
-                $method = '';
-            }
-            $isUsdcSettled = null;
-            $isSpot = null;
-            $type = null;
-            $market = null;
-            $url = $this->urls['api']['ws'];
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $isUsdcSettled = $market['settle'] === 'USDC';
-                $type = $market['type'];
+        return Async\async(self::do_get_url_by_market_type(...))($symbol, $isPrivate, $method, $params);
+    }
+
+    private function do_get_url_by_market_type(?string $symbol = null, $isPrivate = false, ?string $method = null, $params = array()) {
+        $accessibility = $isPrivate ? 'private' : 'public';
+        if ($method === null) {
+            $method = '';
+        }
+        $isUsdcSettled = null;
+        $isSpot = null;
+        $type = null;
+        $market = null;
+        $url = $this->urls['api']['ws'];
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $isUsdcSettled = $market['settle'] === 'USDC';
+            $type = $market['type'];
+        } else {
+            list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
+            $defaultSettle = $this->safe_string($this->options, 'defaultSettle');
+            $defaultSettle = $this->safe_string_2($params, 'settle', 'defaultSettle', $defaultSettle);
+            $isUsdcSettled = ($defaultSettle === 'USDC');
+        }
+        $isSpot = ($type === 'spot');
+        if ($isPrivate) {
+            $unified = Async\await($this->isUnifiedEnabled());
+            $isUnifiedMargin = $this->safe_bool($unified, 0, false);
+            $isUnifiedAccount = $this->safe_bool($unified, 1, false);
+            if ($isUsdcSettled && !$isUnifiedMargin && !$isUnifiedAccount) {
+                $url = $url[$accessibility]['usdc'];
             } else {
-                list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
-                $defaultSettle = $this->safe_string($this->options, 'defaultSettle');
-                $defaultSettle = $this->safe_string_2($params, 'settle', 'defaultSettle', $defaultSettle);
-                $isUsdcSettled = ($defaultSettle === 'USDC');
+                $url = $url[$accessibility]['contract'];
             }
-            $isSpot = ($type === 'spot');
-            if ($isPrivate) {
-                $unified = Async\await($this->isUnifiedEnabled());
-                $isUnifiedMargin = $this->safe_bool($unified, 0, false);
-                $isUnifiedAccount = $this->safe_bool($unified, 1, false);
-                if ($isUsdcSettled && !$isUnifiedMargin && !$isUnifiedAccount) {
-                    $url = $url[$accessibility]['usdc'];
-                } else {
-                    $url = $url[$accessibility]['contract'];
-                }
+        } else {
+            if ($isSpot) {
+                $url = $url[$accessibility]['spot'];
+            } elseif (($type === 'swap') || ($type === 'future')) {
+                $subType = null;
+                list($subType, $params) = $this->handle_sub_type_and_params($method, $market, $params, 'linear');
+                $url = $url[$accessibility][$subType];
             } else {
-                if ($isSpot) {
-                    $url = $url[$accessibility]['spot'];
-                } elseif (($type === 'swap') || ($type === 'future')) {
-                    $subType = null;
-                    list($subType, $params) = $this->handle_sub_type_and_params($method, $market, $params, 'linear');
-                    $url = $url[$accessibility][$subType];
-                } else {
-                    // option
-                    $url = $url[$accessibility]['option'];
-                }
+                // option
+                $url = $url[$accessibility]['option'];
             }
-            $url = $this->implode_hostname($url);
-            return $url;
-        })();
+        }
+        $url = $this->implode_hostname($url);
+        return $url;
     }
 
     public function clean_params(mixed $params) {
@@ -245,253 +247,265 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/order/create-order
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
-             *
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK"
-             * @param {bool} [$params->postOnly] true or false whether the order is post-only
-             * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
-             * @param {string} [$params->positionIdx] *contracts only*  0 for one-way mode, 1 buy $side  of hedged mode, 2 sell $side of hedged mode
-             * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
-             * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
-             * @param {string} [$params->mmp] *option only* market maker protection
-             * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
-             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
-             * @param {float} [$params->stopLossPrice] The $price at which a stop loss order is triggered at
-             * @param {float} [$params->takeProfitPrice] The $price at which a take profit order is triggered at
-             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
-             * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
-             * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-             * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current market $price
-             * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, true);
-            $url = $this->urls['api']['ws']['private']['trade'];
-            Async\await($this->authenticate($url));
-            $requestId = (string) $this->request_id();
-            $request = array(
-                'op' => 'order.create',
-                'reqId' => $requestId,
-                'args' => array(
-                    $orderRequest,
-                ),
-                'header' => array(
-                    'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
-                    'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
-                ),
-            );
-            return Async\await($this->watch($url, $requestId, $request, $requestId, true));
-        })();
+        return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/order/create-order
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+         *
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK"
+         * @param {bool} [$params->postOnly] true or false whether the order is post-only
+         * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
+         * @param {string} [$params->positionIdx] *contracts only*  0 for one-way mode, 1 buy $side  of hedged mode, 2 sell $side of hedged mode
+         * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
+         * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
+         * @param {string} [$params->mmp] *option only* market maker protection
+         * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+         * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+         * @param {float} [$params->stopLossPrice] The $price at which a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] The $price at which a take profit order is triggered at
+         * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+         * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+         * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current market $price
+         * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, true);
+        $url = $this->urls['api']['ws']['private']['trade'];
+        Async\await($this->authenticate($url));
+        $requestId = (string) $this->request_id();
+        $request = array(
+            'op' => 'order.create',
+            'reqId' => $requestId,
+            'args' => array(
+                $orderRequest,
+            ),
+            'header' => array(
+                'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
+                'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
+            ),
+        );
+        return Async\await($this->watch($url, $requestId, $request, $requestId, true));
     }
 
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * edit a trade order
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
-             *
-             * @param {string} $id cancel order $id
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->triggerPrice] The $price that a trigger order is triggered at
-             * @param {float} [$params->stopLossPrice] The $price that a stop loss order is triggered at
-             * @param {float} [$params->takeProfitPrice] The $price that a take profit order is triggered at
-             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice that the attached take profit order will be triggered
-             * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice that the attached stop loss order will be triggered
-             * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-             * @param {string} [$params->triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
-             * @param {string} [$params->slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
-             * @param {string} [$params->tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $orderRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
-            $url = $this->urls['api']['ws']['private']['trade'];
-            Async\await($this->authenticate($url));
-            $requestId = (string) $this->request_id();
-            $request = array(
-                'op' => 'order.amend',
-                'reqId' => $requestId,
-                'args' => array(
-                    $orderRequest,
-                ),
-                'header' => array(
-                    'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
-                    'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
-                ),
-            );
-            return Async\await($this->watch($url, $requestId, $request, $requestId, true));
-        })();
+        return Async\async(self::do_edit_order_ws(...))($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * edit a trade order
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/order/amend-order
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+         *
+         * @param {string} $id cancel order $id
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->triggerPrice] The $price that a trigger order is triggered at
+         * @param {float} [$params->stopLossPrice] The $price that a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] The $price that a take profit order is triggered at
+         * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice that the attached take profit order will be triggered
+         * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+         * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice that the attached stop loss order will be triggered
+         * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+         * @param {string} [$params->triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+         * @param {string} [$params->slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+         * @param {string} [$params->tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $orderRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
+        $url = $this->urls['api']['ws']['private']['trade'];
+        Async\await($this->authenticate($url));
+        $requestId = (string) $this->request_id();
+        $request = array(
+            'op' => 'order.amend',
+            'reqId' => $requestId,
+            'args' => array(
+                $orderRequest,
+            ),
+            'header' => array(
+                'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
+                'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
+            ),
+        );
+        return Async\await($this->watch($url, $requestId, $request, $requestId, true));
     }
 
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/order/cancel-order
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->trigger] *spot only* whether the order is a trigger order
-             * @param {string} [$params->orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
-            }
-            $orderRequest = $this->cancel_order_request($id, $symbol, $params);
-            $url = $this->urls['api']['ws']['private']['trade'];
-            Async\await($this->authenticate($url));
-            $requestId = (string) $this->request_id();
-            if (is_array($orderRequest) && array_key_exists('orderFilter' ?? '', $orderRequest)) {
-                unset($orderRequest['orderFilter']);
-            }
-            $request = array(
-                'op' => 'order.cancel',
-                'reqId' => $requestId,
-                'args' => array(
-                    $orderRequest,
-                ),
-                'header' => array(
-                    'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
-                    'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
-                ),
-            );
-            return Async\await($this->watch($url, $requestId, $request, $requestId, true));
-        })();
+        return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/order/cancel-order
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/trade/guideline#createamendcancel-order
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->trigger] *spot only* whether the order is a trigger order
+         * @param {string} [$params->orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
+        }
+        $orderRequest = $this->cancel_order_request($id, $symbol, $params);
+        $url = $this->urls['api']['ws']['private']['trade'];
+        Async\await($this->authenticate($url));
+        $requestId = (string) $this->request_id();
+        if (is_array($orderRequest) && array_key_exists('orderFilter' ?? '', $orderRequest)) {
+            unset($orderRequest['orderFilter']);
+        }
+        $request = array(
+            'op' => 'order.cancel',
+            'reqId' => $requestId,
+            'args' => array(
+                $orderRequest,
+            ),
+            'header' => array(
+                'X-BAPI-TIMESTAMP' => (string) $this->milliseconds(),
+                'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
+            ),
+        );
+        return Async\await($this->watch($url, $requestId, $request, $requestId, true));
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'ticker:' . $symbol;
-            $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchTicker', $params));
-            $params = $this->clean_params($params);
-            $options = $this->safe_value($this->options, 'watchTicker', array());
-            $topic = $this->safe_string($options, 'name', 'tickers');
-            if (!$market['spot'] && $topic !== 'tickers') {
-                throw new BadRequest($this->id . ' watchTicker() only supports name tickers for contract markets');
-            }
-            $topic .= '.' . $market['id'];
-            $topics = array( $topic );
-            return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $messageHash = 'ticker:' . $symbol;
+        $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchTicker', $params));
+        $params = $this->clean_params($params);
+        $options = $this->safe_value($this->options, 'watchTicker', array());
+        $topic = $this->safe_string($options, 'name', 'tickers');
+        if (!$market['spot'] && $topic !== 'tickers') {
+            throw new BadRequest($this->id . ' watchTicker() only supports name tickers for contract markets');
+        }
+        $topic .= '.' . $market['id'];
+        $topics = array( $topic );
+        return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-$ticker
-             *
-             * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, false);
-            $messageHashes = array();
-            $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTickers', $params));
-            $params = $this->clean_params($params);
-            $options = $this->safe_value($this->options, 'watchTickers', array());
-            $topic = $this->safe_string($options, 'name', 'tickers');
-            $marketIds = $this->market_ids($symbols);
-            $topics = array();
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
-                $topics[] = $topic . '.' . $marketId;
-                $messageHashes[] = 'ticker:' . $symbols[$i];
-            }
-            $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
-            if ($this->newUpdates) {
-                $result = array();
-                $result[$ticker['symbol']] = $ticker;
-                return $result;
-            }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        })();
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-$ticker
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, false);
+        $messageHashes = array();
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTickers', $params));
+        $params = $this->clean_params($params);
+        $options = $this->safe_value($this->options, 'watchTickers', array());
+        $topic = $this->safe_string($options, 'name', 'tickers');
+        $marketIds = $this->market_ids($symbols);
+        $topics = array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $topics[] = $topic . '.' . $marketId;
+            $messageHashes[] = 'ticker:' . $symbols[$i];
+        }
+        $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$ticker['symbol']] = $ticker;
+            return $result;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches a price ticker
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-             *
-             * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, false);
-            $options = $this->safe_value($this->options, 'watchTickers', array());
-            $topic = $this->safe_string($options, 'name', 'tickers');
-            $messageHashes = array();
-            $subMessageHashes = array();
-            $marketIds = $this->market_ids($symbols);
-            $topics = array();
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
-                $symbol = $symbols[$i];
-                $topics[] = $topic . '.' . $marketId;
-                $subMessageHashes[] = 'ticker:' . $symbol;
-                $messageHashes[] = 'unsubscribe:ticker:' . $symbol;
-            }
-            $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTickers', $params));
-            return Async\await($this->un_watch_topics($url, 'ticker', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
-        })();
+        return Async\async(self::do_un_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_un_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches a price ticker
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+         *
+         * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, false);
+        $options = $this->safe_value($this->options, 'watchTickers', array());
+        $topic = $this->safe_string($options, 'name', 'tickers');
+        $messageHashes = array();
+        $subMessageHashes = array();
+        $marketIds = $this->market_ids($symbols);
+        $topics = array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $symbol = $symbols[$i];
+            $topics[] = $topic . '.' . $marketId;
+            $subMessageHashes[] = 'ticker:' . $symbol;
+            $messageHashes[] = 'unsubscribe:ticker:' . $symbol;
+        }
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTickers', $params));
+        return Async\await($this->un_watch_topics($url, 'ticker', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -657,37 +671,39 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches best bid & ask for $symbols
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-             *
-             * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, false);
-            $messageHashes = array();
-            $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchBidsAsks', $params));
-            $params = $this->clean_params($params);
-            $marketIds = $this->market_ids($symbols);
-            $topics = array();
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
-                $topic = 'orderbook.1.' . $marketId;
-                $topics[] = $topic;
-                $messageHashes[] = 'bidask:' . $symbols[$i];
-            }
-            $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
-            if ($this->newUpdates) {
-                return $ticker;
-            }
-            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
-        })();
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * watches best bid & ask for $symbols
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, false);
+        $messageHashes = array();
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchBidsAsks', $params));
+        $params = $this->clean_params($params);
+        $marketIds = $this->market_ids($symbols);
+        $topics = array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $topic = 'orderbook.1.' . $marketId;
+            $topics[] = $topic;
+            $messageHashes[] = 'bidask:' . $symbols[$i];
+        }
+        $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
+        if ($this->newUpdates) {
+            return $ticker;
+        }
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
     public function parse_ws_bid_ask(mixed $orderbook, ?array $market = null) {
@@ -709,122 +725,130 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            $params['callerMethodName'] = 'watchOHLCV';
-            $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-            return $result[$symbol][$timeframe];
-        })();
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        $params['callerMethodName'] = 'watchOHLCV';
+        $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
+        return $result[$symbol][$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
-            /**
-             * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
-             *
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
-            $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
-            $firstSymbol = $marketSymbols[0];
-            $url = Async\await($this->get_url_by_market_type($firstSymbol, false, 'watchOHLCVForSymbols', $params));
-            $rawHashes = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $data = $symbolsAndTimeframes[$i];
-                $market = $this->market($data[0]);
-                $symbolString = $market['symbol'];
-                $unfiedTimeframe = $data[1];
-                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
-                $rawHashes[] = 'kline.' . $timeframeId . '.' . $market['id'];
-                $messageHashes[] = 'ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
-            }
-            list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, $messageHashes, $rawHashes, $params));
-            if ($this->newUpdates) {
-                $limit = $stored->getLimit($symbol, $limit);
-            }
-            $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
-            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
-        })();
+        return Async\async(self::do_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
+        $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
+        $firstSymbol = $marketSymbols[0];
+        $url = Async\await($this->get_url_by_market_type($firstSymbol, false, 'watchOHLCVForSymbols', $params));
+        $rawHashes = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+            $data = $symbolsAndTimeframes[$i];
+            $market = $this->market($data[0]);
+            $symbolString = $market['symbol'];
+            $unfiedTimeframe = $data[1];
+            $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            $rawHashes[] = 'kline.' . $timeframeId . '.' . $market['id'];
+            $messageHashes[] = 'ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
+        }
+        list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, $messageHashes, $rawHashes, $params));
+        if ($this->newUpdates) {
+            $limit = $stored->getLimit($symbol, $limit);
+        }
+        $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+        return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
     public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbolsAndTimeframes, $params) {
-            /**
-             * unWatches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
-             *
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
-            $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
-            $firstSymbol = $marketSymbols[0];
-            $url = Async\await($this->get_url_by_market_type($firstSymbol, false, 'watchOHLCVForSymbols', $params));
-            $rawHashes = array();
-            $subMessageHashes = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $data = $symbolsAndTimeframes[$i];
-                $market = $this->market($data[0]);
-                $symbolString = $market['symbol'];
-                $unfiedTimeframe = $data[1];
-                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
-                $rawHashes[] = 'kline.' . $timeframeId . '.' . $market['id'];
-                $subMessageHashes[] = 'ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
-                $messageHashes[] = 'unsubscribe::ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
-            }
-            $subExtension = array(
-                'symbolsAndTimeframes' => $symbolsAndTimeframes,
-            );
-            return Async\await($this->un_watch_topics($url, 'ohlcv', $symbols, $messageHashes, $subMessageHashes, $rawHashes, $params, $subExtension));
-        })();
+        return Async\async(self::do_un_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $params);
+    }
+
+    private function do_un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()) {
+        /**
+         * unWatches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
+        $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
+        $firstSymbol = $marketSymbols[0];
+        $url = Async\await($this->get_url_by_market_type($firstSymbol, false, 'watchOHLCVForSymbols', $params));
+        $rawHashes = array();
+        $subMessageHashes = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+            $data = $symbolsAndTimeframes[$i];
+            $market = $this->market($data[0]);
+            $symbolString = $market['symbol'];
+            $unfiedTimeframe = $data[1];
+            $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            $rawHashes[] = 'kline.' . $timeframeId . '.' . $market['id'];
+            $subMessageHashes[] = 'ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
+            $messageHashes[] = 'unsubscribe::ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
+        }
+        $subExtension = array(
+            'symbolsAndTimeframes' => $symbolsAndTimeframes,
+        );
+        return Async\await($this->un_watch_topics($url, 'ohlcv', $symbols, $messageHashes, $subMessageHashes, $rawHashes, $params, $subExtension));
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $params) {
-            /**
-             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            $params['callerMethodName'] = 'watchOHLCV';
-            return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
-        })();
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        $params['callerMethodName'] = 'watchOHLCV';
+        return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
     }
 
     public function handle_ohlcv(Client $client, mixed $message) {
@@ -924,99 +948,103 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-             *
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+         *
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        $symbols = $this->market_symbols($symbols);
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchOrderBook', $params));
+        $params = $this->clean_params($params);
+        $market = $this->market($symbols[0]);
+        if ($limit === null) {
+            $limit = 50;
+            if ($market['option']) {
+                $limit = 100;
             }
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        } else {
+            $limits = array(
+                'spot' => array( 1, 50, 200, 1000 ),
+                'option' => array( 25, 100 ),
+                'default' => array( 1, 50, 200, 1000 ),
+            );
+            $selectedLimits = $this->safe_list_2($limits, $market['type'], 'default', array());
+            if (!$this->in_array($limit, $selectedLimits)) {
+                throw new BadRequest($this->id . ' watchOrderBookForSymbols() => for ' . $market['type'] . ' markets $limit can be one of => ' . $this->json($selectedLimits));
             }
-            $symbols = $this->market_symbols($symbols);
-            $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchOrderBook', $params));
-            $params = $this->clean_params($params);
-            $market = $this->market($symbols[0]);
-            if ($limit === null) {
-                $limit = 50;
-                if ($market['option']) {
-                    $limit = 100;
-                }
-            } else {
-                $limits = array(
-                    'spot' => array( 1, 50, 200, 1000 ),
-                    'option' => array( 25, 100 ),
-                    'default' => array( 1, 50, 200, 1000 ),
-                );
-                $selectedLimits = $this->safe_list_2($limits, $market['type'], 'default', array());
-                if (!$this->in_array($limit, $selectedLimits)) {
-                    throw new BadRequest($this->id . ' watchOrderBookForSymbols() => for ' . $market['type'] . ' markets $limit can be one of => ' . $this->json($selectedLimits));
-                }
-            }
-            $topics = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $marketId = $this->market_id($symbol);
-                $topic = 'orderbook.' . (string) $limit . '.' . $marketId;
-                $topics[] = $topic;
-                $messageHash = 'orderbook:' . $symbol;
-                $messageHashes[] = $messageHash;
-            }
-            $orderbook = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
-            return $orderbook->limit();
-        })();
+        }
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $marketId = $this->market_id($symbol);
+            $topic = 'orderbook.' . (string) $limit . '.' . $marketId;
+            $topics[] = $topic;
+            $messageHash = 'orderbook:' . $symbol;
+            $messageHashes[] = $messageHash;
+        }
+        $orderbook = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
+        return $orderbook->limit();
     }
 
     public function un_watch_order_book_for_symbols(array $symbols, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unsubscribe from the orderbook $channel
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->limit] orderbook $limit, default is null
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, false);
-            $channel = 'orderbook.';
-            $limit = $this->safe_integer($params, 'limit');
-            if ($limit !== null) {
-                $params = $this->omit($params, 'limit');
-            } else {
-                $firstMarket = $this->market($symbols[0]);
-                $limit = $firstMarket['spot'] ? 50 : 500;
-            }
-            $channel .= (string) $limit;
-            $subMessageHashes = array();
-            $messageHashes = array();
-            $topics = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $marketId = $market['id'];
-                $topic = $channel . '.' . $marketId;
-                $messageHashes[] = 'unsubscribe:orderbook:' . $symbol;
-                $subMessageHashes[] = 'orderbook:' . $symbol;
-                $topics[] = $topic;
-            }
-            $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchOrderBook', $params));
-            return Async\await($this->un_watch_topics($url, 'orderbook', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
-        })();
+        return Async\async(self::do_un_watch_order_book_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_order_book_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unsubscribe from the orderbook $channel
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->limit] orderbook $limit, default is null
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, false);
+        $channel = 'orderbook.';
+        $limit = $this->safe_integer($params, 'limit');
+        if ($limit !== null) {
+            $params = $this->omit($params, 'limit');
+        } else {
+            $firstMarket = $this->market($symbols[0]);
+            $limit = $firstMarket['spot'] ? 50 : 500;
+        }
+        $channel .= (string) $limit;
+        $subMessageHashes = array();
+        $messageHashes = array();
+        $topics = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $topic = $channel . '.' . $marketId;
+            $messageHashes[] = 'unsubscribe:orderbook:' . $symbol;
+            $subMessageHashes[] = 'orderbook:' . $symbol;
+            $topics[] = $topic;
+        }
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchOrderBook', $params));
+        return Async\await($this->un_watch_topics($url, 'orderbook', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
@@ -1133,78 +1161,82 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a list of $symbols
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
-            }
-            $params = $this->clean_params($params);
-            $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTrades', $params));
-            $topics = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $topic = 'publicTrade.' . $market['id'];
-                $topics[] = $topic;
-                $messageHash = 'trade:' . $symbol;
-                $messageHashes[] = $messageHash;
-            }
-            $trades = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
-            if ($this->newUpdates) {
-                $first = $this->safe_value($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a list of $symbols
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        $params = $this->clean_params($params);
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTrades', $params));
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $topic = 'publicTrade.' . $market['id'];
+            $topics[] = $topic;
+            $messageHash = 'trade:' . $symbol;
+            $messageHashes[] = $messageHash;
+        }
+        $trades = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
+        if ($this->newUpdates) {
+            $first = $this->safe_value($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unsubscribe from the trades channel
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {any} status of the unwatch request
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, false, true);
-            $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'unWatchTradesForSymbols', $params));
-            $messageHashes = array();
-            $topics = array();
-            $subMessageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $topic = 'publicTrade.' . $market['id'];
-                $topics[] = $topic;
-                $messageHash = 'unsubscribe:trade:' . $symbol;
-                $messageHashes[] = $messageHash;
-                $subMessageHashes[] = 'trade:' . $symbol;
-            }
-            return Async\await($this->un_watch_topics($url, 'trades', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
-        })();
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unsubscribe from the trades channel
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, false, true);
+        $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'unWatchTradesForSymbols', $params));
+        $messageHashes = array();
+        $topics = array();
+        $subMessageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $topic = 'publicTrade.' . $market['id'];
+            $topics[] = $topic;
+            $messageHash = 'unsubscribe:trade:' . $symbol;
+            $messageHashes[] = $messageHash;
+            $subMessageHashes[] = 'trade:' . $symbol;
+        }
+        return Async\await($this->un_watch_topics($url, 'trades', $symbols, $messageHashes, $subMessageHashes, $topics, $params));
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
@@ -1345,89 +1377,93 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->unifiedMargin] use unified margin account
-             * @param {boolean} [$params->executionFast] use fast execution
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $method = 'watchMyTrades';
-            $messageHash = 'myTrades';
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $messageHash .= ':' . $symbol;
-            }
-            $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
-            Async\await($this->authenticate($url));
-            $topicByMarket = array(
-                'spot' => 'ticketInfo',
-                'unified' => 'execution',
-                'usdc' => 'user.openapi.perp.trade',
-            );
-            $topic = $this->safe_value($topicByMarket, $this->get_private_type($url));
-            $executionFast = false;
-            list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
-            if ($executionFast) {
-                $topic = 'execution.fast';
-            }
-            $trades = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->unifiedMargin] use unified margin account
+         * @param {boolean} [$params->executionFast] use fast execution
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $method = 'watchMyTrades';
+        $messageHash = 'myTrades';
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+            $messageHash .= ':' . $symbol;
+        }
+        $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
+        Async\await($this->authenticate($url));
+        $topicByMarket = array(
+            'spot' => 'ticketInfo',
+            'unified' => 'execution',
+            'usdc' => 'user.openapi.perp.trade',
+        );
+        $topic = $this->safe_value($topicByMarket, $this->get_private_type($url));
+        $executionFast = false;
+        list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
+        if ($executionFast) {
+            $topic = 'execution.fast';
+        }
+        $trades = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on multiple trades made by the user
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->unifiedMargin] use unified margin account
-             * @param {boolean} [$params->executionFast] use fast execution
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $method = 'watchMyTrades';
-            $messageHash = 'unsubscribe:myTrades';
-            $subHash = 'myTrades';
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol !== null) {
-                throw new NotSupported($this->id . ' unWatchMyTrades() does not support a $symbol parameter, you must unwatch all my trades');
-            }
-            $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
-            Async\await($this->authenticate($url));
-            $topicByMarket = array(
-                'spot' => 'ticketInfo',
-                'unified' => 'execution',
-                'usdc' => 'user.openapi.perp.trade',
-            );
-            $topic = $this->safe_value($topicByMarket, $this->get_private_type($url));
-            $executionFast = false;
-            list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
-            if ($executionFast) {
-                $topic = 'execution.fast';
-            }
-            return Async\await($this->un_watch_topics($url, 'myTrades', array(), array( $messageHash ), array( $subHash ), array( $topic ), $params));
-        })();
+        return Async\async(self::do_un_watch_my_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_my_trades(?string $symbol = null, $params = array()) {
+        /**
+         * unWatches information on multiple trades made by the user
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->unifiedMargin] use unified margin account
+         * @param {boolean} [$params->executionFast] use fast execution
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $method = 'watchMyTrades';
+        $messageHash = 'unsubscribe:myTrades';
+        $subHash = 'myTrades';
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol !== null) {
+            throw new NotSupported($this->id . ' unWatchMyTrades() does not support a $symbol parameter, you must unwatch all my trades');
+        }
+        $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
+        Async\await($this->authenticate($url));
+        $topicByMarket = array(
+            'spot' => 'ticketInfo',
+            'unified' => 'execution',
+            'usdc' => 'user.openapi.perp.trade',
+        );
+        $topic = $this->safe_value($topicByMarket, $this->get_private_type($url));
+        $executionFast = false;
+        list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
+        if ($executionFast) {
+            $topic = 'execution.fast';
+        }
+        return Async\await($this->un_watch_topics($url, 'myTrades', array(), array( $messageHash ), array( $subHash ), array( $topic ), $params));
     }
 
     public function handle_my_trades(Client $client, mixed $message) {
@@ -1578,47 +1614,49 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
-             *
-             * watch all open positions
-             * @param {string[]} [$symbols] list of unified market $symbols
-             * @param {int} [$since] the earliest time in ms to fetch positions for
-             * @param {int} [$limit] the maximum number of positions to retrieve
-             * @param {array} $params extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $method = 'watchPositions';
-            $messageHash = '';
-            if (($symbols !== null) && !$this->is_empty($symbols)) {
-                $symbols = $this->market_symbols($symbols);
-                $messageHash = '::' . implode(',', $symbols);
-            }
-            $firstSymbol = $this->safe_string($symbols, 0);
-            $url = Async\await($this->get_url_by_market_type($firstSymbol, true, $method, $params));
-            $messageHash = 'positions' . $messageHash;
-            $client = $this->client($url);
-            Async\await($this->authenticate($url));
-            $this->set_positions_cache($client, $symbols);
-            $cache = $this->positions;
-            $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-            if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
-                $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
-                return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
-            }
-            $topics = array( 'position' );
-            $newPositions = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
-            if ($this->newUpdates) {
-                return $newPositions;
-            }
-            return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
+         *
+         * watch all open positions
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {int} [$since] the earliest time in ms to fetch positions for
+         * @param {int} [$limit] the maximum number of positions to retrieve
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $method = 'watchPositions';
+        $messageHash = '';
+        if (($symbols !== null) && !$this->is_empty($symbols)) {
+            $symbols = $this->market_symbols($symbols);
+            $messageHash = '::' . implode(',', $symbols);
+        }
+        $firstSymbol = $this->safe_string($symbols, 0);
+        $url = Async\await($this->get_url_by_market_type($firstSymbol, true, $method, $params));
+        $messageHash = 'positions' . $messageHash;
+        $client = $this->client($url);
+        Async\await($this->authenticate($url));
+        $this->set_positions_cache($client, $symbols);
+        $cache = $this->positions;
+        $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
+        $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
+        if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
+            $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
+            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+        }
+        $topics = array( 'position' );
+        $newPositions = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
+        if ($this->newUpdates) {
+            return $newPositions;
+        }
+        return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
     }
 
     public function set_positions_cache(Client $client, ?array $symbols = null) {
@@ -1638,29 +1676,31 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function load_positions_snapshot(Client $client, mixed $messageHash) {
-        return Async\async(function () use ($client, $messageHash) {
-            // one ws channel gives $positions for all types, for snapshot must load all $positions
-            $fetchFunctions = array(
-                $this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'linear' )),
-                $this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'inverse' )),
-            );
-            $promises = Async\await(Promise\all($fetchFunctions));
-            $this->positions = new ArrayCacheBySymbolBySide();
-            $cache = $this->positions;
-            for ($i = 0; $i < count($promises); $i++) {
-                $positions = $promises[$i];
-                for ($ii = 0; $ii < count($positions); $ii++) {
-                    $position = $positions[$ii];
-                    $cache->append($position);
-                }
+        return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
+    }
+
+    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
+        // one ws channel gives $positions for all types, for snapshot must load all $positions
+        $fetchFunctions = array(
+            $this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'linear' )),
+            $this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'inverse' )),
+        );
+        $promises = Async\await(Promise\all($fetchFunctions));
+        $this->positions = new ArrayCacheBySymbolBySide();
+        $cache = $this->positions;
+        for ($i = 0; $i < count($promises); $i++) {
+            $positions = $promises[$i];
+            for ($ii = 0; $ii < count($positions); $ii++) {
+                $position = $positions[$ii];
+                $cache->append($position);
             }
-            // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
-                $future = $client->futures[$messageHash];
-                $future->resolve($cache);
-                $client->resolve($cache, 'position');
-            }
-        })();
+        }
+        // don't remove the $future from the .futures $cache
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            $future = $client->futures[$messageHash];
+            $future->resolve($cache);
+            $client->resolve($cache, 'position');
+        }
     }
 
     public function handle_positions(mixed $client, mixed $message) {
@@ -1744,63 +1784,67 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function un_watch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches all open positions
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
-             *
-             * @param {string[]} [$symbols] list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} status of the unwatch request
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $method = 'watchPositions';
-            $messageHash = 'unsubscribe:positions';
-            $subHash = 'positions';
-            if (($symbols !== null) && !$this->is_empty($symbols)) {
-                throw new NotSupported($this->id . ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders');
-            }
-            $url = Async\await($this->get_url_by_market_type(null, true, $method, $params));
-            Async\await($this->authenticate($url));
-            $topics = array( 'position' );
-            return Async\await($this->un_watch_topics($url, 'positions', $symbols, array( $messageHash ), array( $subHash ), $topics, $params));
-        })();
+        return Async\async(self::do_un_watch_positions(...))($symbols, $params);
+    }
+
+    private function do_un_watch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches all open positions
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} status of the unwatch request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $method = 'watchPositions';
+        $messageHash = 'unsubscribe:positions';
+        $subHash = 'positions';
+        if (($symbols !== null) && !$this->is_empty($symbols)) {
+            throw new NotSupported($this->id . ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders');
+        }
+        $url = Async\await($this->get_url_by_market_type(null, true, $method, $params));
+        Async\await($this->authenticate($url));
+        $topics = array( 'position' );
+        return Async\await($this->un_watch_topics($url, 'positions', $symbols, array( $messageHash ), array( $subHash ), $topics, $params));
     }
 
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watch the public liquidations of a trading pair
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
-             *
-             * @param {string} $symbol unified CCXT $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch liquidations for
-             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
-             * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
-             * @param {string} [$params->method] exchange specific $method, supported => liquidation, allLiquidation
-             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchLiquidations', $params));
-            $params = $this->clean_params($params);
-            $method = null;
-            list($method, $params) = $this->handle_option_and_params($params, 'watchLiquidations', 'method', 'allLiquidation');
-            $messageHash = 'liquidations::' . $symbol;
-            $topic = $method . '.' . $market['id'];
-            $newLiquidation = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));
-            if ($this->newUpdates) {
-                return $newLiquidation;
-            }
-            return $this->filter_by_symbols_since_limit($this->liquidations, array( $symbol ), $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_liquidations(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watch the public liquidations of a trading pair
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
+         *
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+         * @param {string} [$params->method] exchange specific $method, supported => liquidation, allLiquidation
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchLiquidations', $params));
+        $params = $this->clean_params($params);
+        $method = null;
+        list($method, $params) = $this->handle_option_and_params($params, 'watchLiquidations', 'method', 'allLiquidation');
+        $messageHash = 'liquidations::' . $symbol;
+        $topic = $method . '.' . $market['id'];
+        $newLiquidation = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));
+        if ($this->newUpdates) {
+            return $newLiquidation;
+        }
+        return $this->filter_by_symbols_since_limit($this->liquidations, array( $symbol ), $since, $limit, true);
     }
 
     public function handle_liquidation(Client $client, mixed $message) {
@@ -1903,74 +1947,78 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
-             *
-             * @param {string} $symbol unified market $symbol of the market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $method = 'watchOrders';
-            $messageHash = 'orders';
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $messageHash .= ':' . $symbol;
-            }
-            $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
-            Async\await($this->authenticate($url));
-            $topicsByMarket = array(
-                'spot' => array( 'order', 'stopOrder' ),
-                'unified' => array( 'order' ),
-                'usdc' => array( 'user.openapi.perp.order' ),
-            );
-            $topics = $this->safe_value($topicsByMarket, $this->get_private_type($url));
-            $orders = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
+         *
+         * @param {string} $symbol unified market $symbol of the market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $method = 'watchOrders';
+        $messageHash = 'orders';
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+            $messageHash .= ':' . $symbol;
+        }
+        $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
+        Async\await($this->authenticate($url));
+        $topicsByMarket = array(
+            'spot' => array( 'order', 'stopOrder' ),
+            'unified' => array( 'order' ),
+            'usdc' => array( 'user.openapi.perp.order' ),
+        );
+        $topics = $this->safe_value($topicsByMarket, $this->get_private_type($url));
+        $orders = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on multiple orders made by the user
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->unifiedMargin] use unified margin account
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $method = 'watchOrders';
-            $messageHash = 'unsubscribe:orders';
-            $subHash = 'orders';
-            if ($symbol !== null) {
-                throw new NotSupported($this->id . ' unWatchOrders() does not support a $symbol parameter, you must unwatch all orders');
-            }
-            $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
-            Async\await($this->authenticate($url));
-            $topicsByMarket = array(
-                'spot' => array( 'order', 'stopOrder' ),
-                'unified' => array( 'order' ),
-                'usdc' => array( 'user.openapi.perp.order' ),
-            );
-            $topics = $this->safe_value($topicsByMarket, $this->get_private_type($url));
-            return Async\await($this->un_watch_topics($url, 'orders', array(), array( $messageHash ), array( $subHash ), $topics, $params));
-        })();
+        return Async\async(self::do_un_watch_orders(...))($symbol, $params);
+    }
+
+    private function do_un_watch_orders(?string $symbol = null, $params = array()) {
+        /**
+         * unWatches information on multiple orders made by the user
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->unifiedMargin] use unified margin account
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $method = 'watchOrders';
+        $messageHash = 'unsubscribe:orders';
+        $subHash = 'orders';
+        if ($symbol !== null) {
+            throw new NotSupported($this->id . ' unWatchOrders() does not support a $symbol parameter, you must unwatch all orders');
+        }
+        $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
+        Async\await($this->authenticate($url));
+        $topicsByMarket = array(
+            'spot' => array( 'order', 'stopOrder' ),
+            'unified' => array( 'order' ),
+            'usdc' => array( 'user.openapi.perp.order' ),
+        );
+        $topics = $this->safe_value($topicsByMarket, $this->get_private_type($url));
+        return Async\await($this->un_watch_topics($url, 'orders', array(), array( $messageHash ), array( $subHash ), $topics, $params));
     }
 
     public function handle_order_ws(Client $client, mixed $message) {
@@ -2121,64 +2169,66 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function watch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * watch balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_watch_balance(...))($params);
+    }
+
+    private function do_watch_balance($params = array()) {
+        /**
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $method = 'watchBalance';
+        $messageHash = 'balances';
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params);
+        $unified = Async\await($this->isUnifiedEnabled());
+        $isUnifiedMargin = $this->safe_bool($unified, 0, false);
+        $isUnifiedAccount = $this->safe_bool($unified, 1, false);
+        $url = Async\await($this->get_url_by_market_type(null, true, $method, $params));
+        Async\await($this->authenticate($url));
+        $topicByMarket = array(
+            'spot' => 'outboundAccountInfo',
+            'unified' => 'wallet',
+        );
+        if ($isUnifiedAccount) {
+            // $unified account
+            if ($subType === 'inverse') {
+                $messageHash .= ':contract';
+            } else {
+                $messageHash .= ':unified';
             }
-            $method = 'watchBalance';
-            $messageHash = 'balances';
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
-            $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params);
-            $unified = Async\await($this->isUnifiedEnabled());
-            $isUnifiedMargin = $this->safe_bool($unified, 0, false);
-            $isUnifiedAccount = $this->safe_bool($unified, 1, false);
-            $url = Async\await($this->get_url_by_market_type(null, true, $method, $params));
-            Async\await($this->authenticate($url));
-            $topicByMarket = array(
-                'spot' => 'outboundAccountInfo',
-                'unified' => 'wallet',
-            );
-            if ($isUnifiedAccount) {
-                // $unified account
-                if ($subType === 'inverse') {
-                    $messageHash .= ':contract';
-                } else {
+        }
+        if (!$isUnifiedMargin && !$isUnifiedAccount) {
+            // normal account using v5
+            if ($type === 'spot') {
+                $messageHash .= ':spot';
+            } else {
+                $messageHash .= ':contract';
+            }
+        }
+        if ($isUnifiedMargin) {
+            // $unified margin account using v5
+            if ($type === 'spot') {
+                $messageHash .= ':spot';
+            } else {
+                if ($subType === 'linear') {
                     $messageHash .= ':unified';
-                }
-            }
-            if (!$isUnifiedMargin && !$isUnifiedAccount) {
-                // normal account using v5
-                if ($type === 'spot') {
-                    $messageHash .= ':spot';
                 } else {
                     $messageHash .= ':contract';
                 }
             }
-            if ($isUnifiedMargin) {
-                // $unified margin account using v5
-                if ($type === 'spot') {
-                    $messageHash .= ':spot';
-                } else {
-                    if ($subType === 'linear') {
-                        $messageHash .= ':unified';
-                    } else {
-                        $messageHash .= ':contract';
-                    }
-                }
-            }
-            $topics = array( $this->safe_value($topicByMarket, $this->get_private_type($url)) );
-            return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
-        })();
+        }
+        $topics = array( $this->safe_value($topicByMarket, $this->get_private_type($url)) );
+        return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
     }
 
     public function handle_balance(Client $client, mixed $message) {
@@ -2435,61 +2485,67 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function watch_topics(mixed $url, mixed $messageHashes, mixed $topics, $params = array()) {
-        return Async\async(function () use ($url, $messageHashes, $topics, $params) {
-            $request = array(
-                'op' => 'subscribe',
-                'req_id' => $this->request_id(),
-                'args' => $topics,
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
-        })();
+        return Async\async(self::do_watch_topics(...))($url, $messageHashes, $topics, $params);
+    }
+
+    private function do_watch_topics(mixed $url, mixed $messageHashes, mixed $topics, $params = array()) {
+        $request = array(
+            'op' => 'subscribe',
+            'req_id' => $this->request_id(),
+            'args' => $topics,
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
     }
 
     public function un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, mixed $topics, $params = array(), $subExtension = array()) {
-        return Async\async(function () use ($url, $topic, $symbols, $messageHashes, $subMessageHashes, $topics, $params, $subExtension) {
-            $reqId = $this->request_id();
-            $request = array(
-                'op' => 'unsubscribe',
-                'req_id' => $reqId,
-                'args' => $topics,
-            );
-            $subscription = array(
-                'id' => $reqId,
-                'topic' => $topic,
-                'messageHashes' => $messageHashes,
-                'subMessageHashes' => $subMessageHashes,
-                'symbols' => $symbols,
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $this->extend($subscription, $subExtension)));
-        })();
+        return Async\async(self::do_un_watch_topics(...))($url, $topic, $symbols, $messageHashes, $subMessageHashes, $topics, $params, $subExtension);
+    }
+
+    private function do_un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, mixed $topics, $params = array(), $subExtension = array()) {
+        $reqId = $this->request_id();
+        $request = array(
+            'op' => 'unsubscribe',
+            'req_id' => $reqId,
+            'args' => $topics,
+        );
+        $subscription = array(
+            'id' => $reqId,
+            'topic' => $topic,
+            'messageHashes' => $messageHashes,
+            'subMessageHashes' => $subMessageHashes,
+            'symbols' => $symbols,
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $this->extend($subscription, $subExtension)));
     }
 
     public function authenticate(mixed $url, $params = array()) {
-        return Async\async(function () use ($url, $params) {
-            $this->check_required_credentials();
-            $messageHash = 'authenticated';
-            $client = $this->client($url);
-            $future = $client->reusableFuture($messageHash);
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
-                $expiresInt = $this->milliseconds() + 10000;
-                $expires = $this->number_to_string($expiresInt);
-                $path = 'GET/realtime';
-                $auth = $path . $expires;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'hex');
-                $request = array(
-                    'op' => 'auth',
-                    'args' => array(
-                        $this->apiKey, $expires, $signature,
-                    ),
-                );
-                $message = $this->extend($request, $params);
-                $this->watch($url, $messageHash, $message, $messageHash);
-            }
-            return Async\await($future);
-        })();
+        return Async\async(self::do_authenticate(...))($url, $params);
+    }
+
+    private function do_authenticate(mixed $url, $params = array()) {
+        $this->check_required_credentials();
+        $messageHash = 'authenticated';
+        $client = $this->client($url);
+        $future = $client->reusableFuture($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
+            $expiresInt = $this->milliseconds() + 10000;
+            $expires = $this->number_to_string($expiresInt);
+            $path = 'GET/realtime';
+            $auth = $path . $expires;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'hex');
+            $request = array(
+                'op' => 'auth',
+                'args' => array(
+                    $this->apiKey, $expires, $signature,
+                ),
+            );
+            $message = $this->extend($request, $params);
+            $this->watch($url, $messageHash, $message, $messageHash);
+        }
+        return Async\await($future);
     }
 
     public function handle_error_message(Client $client, mixed $message): ?bool {

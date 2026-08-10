@@ -2714,7 +2714,7 @@ func (this *BitmexCore) EditOrder(id any, symbol any, typeVar any, side any, opt
 			var triggerDirection any = this.SafeString(params, "triggerDirection")
 			var triggerAbove any = (IsTrue((IsEqual(triggerDirection, "ascending"))) || IsTrue((IsEqual(triggerDirection, "above"))))
 			if IsTrue(IsTrue((IsEqual(typeVar, "limit"))) || IsTrue((IsEqual(typeVar, "market")))) {
-				this.CheckRequiredArgument("createOrder", triggerDirection, "triggerDirection", []any{"above", "below"})
+				this.CheckRequiredArgument("editOrder", triggerDirection, "triggerDirection", []any{"above", "below"})
 			}
 			var orderType any = nil
 			if IsTrue(IsEqual(typeVar, "limit")) {

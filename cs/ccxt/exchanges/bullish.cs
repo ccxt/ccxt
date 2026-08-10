@@ -20,7 +20,7 @@ public partial class bullish : Exchange
                 { "margin", false },
                 { "swap", true },
                 { "future", true },
-                { "option", false },
+                { "option", true },
                 { "addMargin", false },
                 { "borrowMargin", false },
                 { "cancelAllOrders", true },
@@ -1093,7 +1093,7 @@ public partial class bullish : Exchange
         }
         object maxLimit = 100;
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
@@ -2525,7 +2525,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object tradingAccountId = null;
-        var tradingAccountIdparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "tradingAccountId");
+        var tradingAccountIdparametersVariable = this.handleOptionAndParams(parameters, "loadAccount", "tradingAccountId");
         tradingAccountId = ((IList<object>)tradingAccountIdparametersVariable)[0];
         parameters = ((IList<object>)tradingAccountIdparametersVariable)[1];
         if (isTrue(isEqual(tradingAccountId, null)))

@@ -32,7 +32,7 @@ abstract class ndax extends \ccxt\Exchange {
         return $this->request('EnableXP2FA', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function public_get_getl2snapshot($params = array()) {
         return $this->request('GetL2Snapshot', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -656,7 +656,7 @@ abstract class ndax extends \ccxt\Exchange {
         return $this->request('EnableXP2FA', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function publicGetGetL2Snapshot($params = array()) {
         return $this->request('GetL2Snapshot', 'public', 'GET', $params, null, null, array("cost" => 1));

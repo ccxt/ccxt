@@ -39,6 +39,7 @@ public class ExmoCore extends ExmoApi
                 put( "createMarketBuyOrder", true );
                 put( "createMarketBuyOrderWithCost", true );
                 put( "createMarketOrderWithCost", true );
+                put( "createMarketSellOrderWithCost", true );
                 put( "createOrder", true );
                 put( "createStopLimitOrder", true );
                 put( "createStopMarketOrder", true );
@@ -2582,7 +2583,7 @@ public class ExmoCore extends ExmoApi
                 (this.loadMarkets()).join();
             }
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrders", parameters);
+            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchCanceledOrders", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))

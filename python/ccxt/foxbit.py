@@ -52,6 +52,8 @@ class foxbit(Exchange, ImplicitAPI):
                 'createMarketBuyOrder': True,
                 'createMarketSellOrder': True,
                 'createOrder': True,
+                'createOrders': True,
+                'editOrder': True,
                 'fecthOrderBook': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
@@ -66,7 +68,10 @@ class foxbit(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchOrdersByStatus': True,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -1939,6 +1944,8 @@ class foxbit(Exchange, ImplicitAPI):
             bodyToSignature = body
         headers = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': self.get_ccxt_version(),
         }
         if urlPath == 'private':
             self.check_required_credentials()

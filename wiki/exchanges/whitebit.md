@@ -1403,6 +1403,8 @@ watch balance and get the amount of funds available for trading or funds locked 
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>str</code> | No | spot or contract if not provided this.options['defaultType'] is used |
+| params.fetchBalanceSnapshot | <code>bool</code> | No | whether to fetch the initial balance snapshot over REST, default is true |
+| params.awaitBalanceSnapshot | <code>bool</code> | No | whether to wait for the balance snapshot before providing updates, default is true |
 
 
 ```javascript

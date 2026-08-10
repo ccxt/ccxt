@@ -45,7 +45,7 @@ class ImplicitAPI:
     private_get_api_v1_futures_order = privateGetApiV1FuturesOrder = Entry[_Dict]('api/v1/futures/order', 'private', 'GET', {'cost': 1.67})
     private_get_api_v1_futures_positions = privateGetApiV1FuturesPositions = Entry[_List]('api/v1/futures/positions', 'private', 'GET', {'cost': 8.35})
     private_get_api_v1_futures_historypositions = privateGetApiV1FuturesHistoryPositions = Entry[_List]('api/v1/futures/historyPositions', 'private', 'GET', {'cost': 5})
-    private_get_api_v1_futures_balance = privateGetApiV1FuturesBalance = Entry[_Dict]('api/v1/futures/balance', 'private', 'GET', {'cost': 5})
+    private_get_api_v1_futures_balance = privateGetApiV1FuturesBalance = Entry[_List]('api/v1/futures/balance', 'private', 'GET', {'cost': 5})
     private_get_api_v1_futures_usertrades = privateGetApiV1FuturesUserTrades = Entry[_List]('api/v1/futures/userTrades', 'private', 'GET', {'cost': 8.35})
     private_get_api_v1_futures_balanceflow = privateGetApiV1FuturesBalanceFlow = Entry[_List]('api/v1/futures/balanceFlow', 'private', 'GET', {'cost': 5})
     private_get_api_v1_futures_commissionrate = privateGetApiV1FuturesCommissionRate = Entry[_Dict]('api/v1/futures/commissionRate', 'private', 'GET', {'cost': 5})

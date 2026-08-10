@@ -163,9 +163,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         object messageHashes = new List<object>() {};
         object productIds = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object marketId = this.marketId(getValue((IList<string>)(symbols), i));
+            object marketId = this.marketId(getValue(symbols, i));
             object symbol = this.symbol(marketId);
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));

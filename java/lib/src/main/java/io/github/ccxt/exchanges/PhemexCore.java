@@ -92,6 +92,7 @@ public class PhemexCore extends PhemexApi
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
                 put( "fetchPositionADLRank", true );
+                put( "fetchPositionHistory", true );
                 put( "fetchPositions", true );
                 put( "fetchPositionsADLRank", true );
                 put( "fetchPositionsRisk", false );

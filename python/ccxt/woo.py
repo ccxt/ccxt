@@ -70,6 +70,7 @@ class woo(Exchange, ImplicitAPI):
                 'createTrailingAmountOrder': True,
                 'createTrailingPercentOrder': True,
                 'createTriggerOrder': True,
+                'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': False,
@@ -125,7 +126,7 @@ class woo(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
+                'reduceMargin': True,
                 'sandbox': True,
                 'setLeverage': True,
                 'setMargin': False,
@@ -1520,10 +1521,8 @@ class woo(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://docs.woox.io/#edit-order
-        https://docs.woox.io/#edit-order-by-client_order_id
-        https://docs.woox.io/#edit-algo-order
-        https://docs.woox.io/#edit-algo-order-by-client_order_id
+        https://developer.woox.io/api-reference/endpoint/trading/edit_order
+        https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -1532,6 +1531,8 @@ class woo(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id of the order to edit, used instead of the id argument
+        :param boolean [params.trigger]: whether the order is a trigger/algo order, set to True to edit an algo order without passing trigger parameters
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
         :param float [params.takeProfitPrice]: price to trigger take-profit orders
@@ -1571,35 +1572,38 @@ class woo(Exchange, ImplicitAPI):
             elif isTrailingPercentOrder:
                 convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
                 request['callbackRate'] = convertedTrailingPercent
-        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
-        isConditional = isTrailing or (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
+        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop'])
+        isConditional = isTrigger or isTrailing or (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
         response = None
-        if isByClientOrder:
-            request['client_order_id'] = clientOrderIdExchangeSpecific
-            if isConditional:
-                response = self.v3PrivatePutAlgoOrderClientClientOrderId(self.extend(request, params))
+        if isConditional:
+            if isByClientOrder:
+                request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific
             else:
-                response = self.v3PrivatePutOrderClientClientOrderId(self.extend(request, params))
+                request['algoOrderId'] = id
+            response = self.v3PrivatePutTradeAlgoOrder(self.extend(request, params))
         else:
-            request['oid'] = id
-            if isConditional:
-                response = self.v3PrivatePutAlgoOrderOid(self.extend(request, params))
+            if isByClientOrder:
+                request['clientOrderId'] = clientOrderIdExchangeSpecific
             else:
-                response = self.v3PrivatePutOrderOid(self.extend(request, params))
+                request['orderId'] = id
+            response = self.v3PrivatePutTradeOrder(self.extend(request, params))
         #
         #     {
-        #         "code": 0,
-        #         "data": {
-        #             "status": "string",
-        #             "success": True
-        #         },
-        #         "message": "string",
         #         "success": True,
-        #         "timestamp": 0
+        #         "data": {
+        #             "status": "EDIT_SENT"
+        #         },
+        #         "timestamp": 1786038156772
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        order = self.extend(response, data)
+        if isByClientOrder:
+            order['clientOrderId'] = clientOrderIdExchangeSpecific
+        else:
+            order['orderId'] = id
+        return self.parse_order(order, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -2165,6 +2169,7 @@ class woo(Exchange, ImplicitAPI):
             statuses = {
                 'NEW': 'open',
                 'FILLED': 'closed',
+                'EDIT_SENT': 'open',
                 'CANCEL_SENT': 'canceled',
                 'CANCEL_ALL_SENT': 'canceled',
                 'CANCELLED': 'canceled',
@@ -3725,7 +3730,7 @@ class woo(Exchange, ImplicitAPI):
         elif self.safe_bool(market, 'swap'):
             request['symbol'] = self.safe_string(market, 'id')
             marginMode = None
-            marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params, 'cross')
+            marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
             request['marginMode'] = self.encode_margin_mode(marginMode)
             return self.v3PrivatePutFuturesLeverage(self.extend(request, params))
         else:
@@ -3830,13 +3835,20 @@ class woo(Exchange, ImplicitAPI):
 
         https://developer.woox.io/api-reference/endpoint/futures/get_positions
 
-        :param str[] [symbols]: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.markets is None:
             self.load_markets()
-        response = self.v3PrivateGetFuturesPositions(params)
+        symbols = self.market_symbols(symbols)
+        request = {}
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        response = self.v3PrivateGetFuturesPositions(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -4259,14 +4271,20 @@ class woo(Exchange, ImplicitAPI):
 
         https://developer.woox.io/api-reference/endpoint/futures/get_positions
 
-        :param str[] [symbols]: a list of unified market symbols
+        :param str[] [symbols]: a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
         """
         if self.markets is None:
             self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
-        response = self.v3PrivateGetFuturesPositions(params)
+        request = {}
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        response = self.v3PrivateGetFuturesPositions(self.extend(request, params))
         #
         #     {
         #         "success": True,

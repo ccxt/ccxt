@@ -188,9 +188,9 @@ public class BtcturkApi extends Exchange
      * Calls the graphGetKlinesHistory endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  graphGetKlinesHistory (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  graphGetKlinesHistory (Object... optionalArgs)
     {
         return this.callAsync ("graphGetKlinesHistory", optionalArgs);
     }

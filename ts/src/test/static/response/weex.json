@@ -2935,6 +2935,1215 @@
                     }
                 }
             }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetch time",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "serverTime": 1786304644759
+                },
+                "parsedResponse": 1786304644759
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetch status",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {},
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {}
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch swap tickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "ETH/USDT:USDT",
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSDT",
+                        "priceChange": "2.68",
+                        "priceChangePercent": "0.001396",
+                        "lastPrice": "1921.64",
+                        "openPrice": "1918.96",
+                        "highPrice": "1926.69",
+                        "lowPrice": "1911.49",
+                        "volume": "104876.696",
+                        "quoteVolume": "201284681.38817",
+                        "openTime": 1786217400000,
+                        "closeTime": 1786303800000,
+                        "markPrice": "1921.65",
+                        "indexPrice": "1922.22"
+                    },
+                    {
+                        "symbol": "BTCUSDT",
+                        "priceChange": "178.7",
+                        "priceChangePercent": "0.002749",
+                        "lastPrice": "65171.6",
+                        "openPrice": "64992.9",
+                        "highPrice": "65279.9",
+                        "lowPrice": "64699.8",
+                        "volume": "5721.1094",
+                        "quoteVolume": "371858606.05768",
+                        "openTime": 1786217400000,
+                        "closeTime": 1786303800000,
+                        "markPrice": "65171.7",
+                        "indexPrice": "65190.349"
+                    }
+                ],
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1786303800000,
+                        "datetime": "2026-08-09T19:30:00.000Z",
+                        "high": 1926.69,
+                        "low": 1911.49,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 1919.250787497825,
+                        "open": 1918.96,
+                        "close": 1921.64,
+                        "last": 1921.64,
+                        "previousClose": null,
+                        "change": 2.68,
+                        "percentage": 0.1396,
+                        "average": 1920.3,
+                        "baseVolume": 104876.696,
+                        "quoteVolume": 201284681.38817,
+                        "markPrice": 1921.65,
+                        "indexPrice": 1922.22,
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "priceChange": "2.68",
+                            "priceChangePercent": "0.001396",
+                            "lastPrice": "1921.64",
+                            "openPrice": "1918.96",
+                            "highPrice": "1926.69",
+                            "lowPrice": "1911.49",
+                            "volume": "104876.696",
+                            "quoteVolume": "201284681.38817",
+                            "openTime": 1786217400000,
+                            "closeTime": 1786303800000,
+                            "markPrice": "1921.65",
+                            "indexPrice": "1922.22"
+                        }
+                    },
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1786303800000,
+                        "datetime": "2026-08-09T19:30:00.000Z",
+                        "high": 65279.9,
+                        "low": 64699.8,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 64997.63945392829,
+                        "open": 64992.9,
+                        "close": 65171.6,
+                        "last": 65171.6,
+                        "previousClose": null,
+                        "change": 178.7,
+                        "percentage": 0.2749,
+                        "average": 65082.2,
+                        "baseVolume": 5721.1094,
+                        "quoteVolume": 371858606.05768,
+                        "markPrice": 65171.7,
+                        "indexPrice": 65190.349,
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "priceChange": "178.7",
+                            "priceChangePercent": "0.002749",
+                            "lastPrice": "65171.6",
+                            "openPrice": "64992.9",
+                            "highPrice": "65279.9",
+                            "lowPrice": "64699.8",
+                            "volume": "5721.1094",
+                            "quoteVolume": "371858606.05768",
+                            "openTime": 1786217400000,
+                            "closeTime": 1786303800000,
+                            "markPrice": "65171.7",
+                            "indexPrice": "65190.349"
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "fetch swap bids asks",
+                "method": "fetchBidsAsks",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSDT",
+                        "bidPrice": "1921.65",
+                        "bidQty": "47.064",
+                        "askPrice": "1921.66",
+                        "askQty": "47.309",
+                        "time": 1786304650042
+                    }
+                ],
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1786304650042,
+                        "datetime": "2026-08-09T19:44:10.042Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 1921.65,
+                        "bidVolume": 47.064,
+                        "ask": 1921.66,
+                        "askVolume": 47.309,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "bidPrice": "1921.65",
+                            "bidQty": "47.064",
+                            "askPrice": "1921.66",
+                            "askQty": "47.309",
+                            "time": 1786304650042
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSDT",
+                        "markPrice": "1921.65",
+                        "indexPrice": "1922.22",
+                        "forecastFundingRate": "0.00010000",
+                        "lastFundingRate": "0.00007959",
+                        "interestRate": "0.001",
+                        "nextFundingTime": 1786320000000,
+                        "time": 1786304651223,
+                        "collectCycle": 480
+                    }
+                ],
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "markPrice": "1921.65",
+                            "indexPrice": "1922.22",
+                            "forecastFundingRate": "0.00010000",
+                            "lastFundingRate": "0.00007959",
+                            "interestRate": "0.001",
+                            "nextFundingTime": 1786320000000,
+                            "time": 1786304651223,
+                            "collectCycle": 480
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "markPrice": 1921.65,
+                        "indexPrice": 1922.22,
+                        "interestRate": 0.001,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1786304651223,
+                        "datetime": "2026-08-09T19:44:11.223Z",
+                        "fundingRate": 0.00007959,
+                        "fundingTimestamp": 1786304651223,
+                        "fundingDatetime": "2026-08-09T19:44:11.223Z",
+                        "nextFundingRate": 0.0001,
+                        "nextFundingTimestamp": 1786320000000,
+                        "nextFundingDatetime": "2026-08-10T00:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetch mark ohlcv",
+                "method": "fetchMarkOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    [
+                        1786304580000,
+                        "1921.45",
+                        "1921.65",
+                        "1921.45",
+                        "1921.65",
+                        "0",
+                        1786304640000,
+                        "0",
+                        0,
+                        "0",
+                        "0"
+                    ],
+                    [
+                        1786304640000,
+                        "1921.65",
+                        "1921.65",
+                        "1921.65",
+                        "1921.65",
+                        "0",
+                        1786304700000,
+                        "0",
+                        0,
+                        "0",
+                        "0"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1786304580000,
+                        1921.45,
+                        1921.65,
+                        1921.45,
+                        1921.65,
+                        0
+                    ],
+                    [
+                        1786304640000,
+                        1921.65,
+                        1921.65,
+                        1921.65,
+                        1921.65,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "fetch index ohlcv",
+                "method": "fetchIndexOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    [
+                        1786304580000,
+                        "1922.11",
+                        "1922.2325",
+                        "1922.11",
+                        "1922.22",
+                        "0",
+                        1786304640000,
+                        "0",
+                        0,
+                        "0",
+                        "0"
+                    ],
+                    [
+                        1786304640000,
+                        "1922.22",
+                        "1922.22",
+                        "1922.22",
+                        "1922.22",
+                        "0",
+                        1786304700000,
+                        "0",
+                        0,
+                        "0",
+                        "0"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1786304580000,
+                        1922.11,
+                        1922.2325,
+                        1922.11,
+                        1922.22,
+                        0
+                    ],
+                    [
+                        1786304640000,
+                        1922.22,
+                        1922.22,
+                        1922.22,
+                        1922.22,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "coinName": "USDT",
+                        "status": "Successful",
+                        "toType": "",
+                        "toSymbol": "",
+                        "fromType": "",
+                        "fromSymbol": "",
+                        "amount": "20.00000000",
+                        "tradeTime": "1775605824252"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "coinName": "USDT",
+                            "status": "Successful",
+                            "toType": "",
+                            "toSymbol": "",
+                            "fromType": "",
+                            "fromSymbol": "",
+                            "amount": "20.00000000",
+                            "tradeTime": "1775605824252"
+                        },
+                        "id": null,
+                        "timestamp": 1775605824252,
+                        "datetime": "2026-04-07T23:50:24.252Z",
+                        "currency": "USDT",
+                        "amount": 20,
+                        "fromAccount": null,
+                        "toAccount": null,
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch spot orders",
+                "method": "fetchOrders",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "DOGEUSDT",
+                        "orderId": "736806838401500126",
+                        "clientOrderId": "e93fcb1423fc4b4982fd02eb3bc4955c",
+                        "price": "0.09365",
+                        "origQty": "300.0",
+                        "executedQty": "300.0",
+                        "cummulativeQuoteQty": "28.095",
+                        "status": "FILLED",
+                        "timeInForce": "IOC",
+                        "type": "MARKET",
+                        "side": "BUY",
+                        "time": 1775668439484,
+                        "updateTime": 1775668439498,
+                        "isWorking": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "736806838401500126",
+                        "clientOrderId": "e93fcb1423fc4b4982fd02eb3bc4955c",
+                        "symbol": "DOGE/USDT",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "amount": 300,
+                        "price": 0.09365,
+                        "triggerPrice": null,
+                        "cost": 28.095,
+                        "filled": 300,
+                        "remaining": 0,
+                        "timestamp": 1775668439484,
+                        "datetime": "2026-04-08T17:13:59.484Z",
+                        "fee": null,
+                        "status": "closed",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1775668439498,
+                        "average": 0.09365,
+                        "trades": [],
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "info": {
+                            "symbol": "DOGEUSDT",
+                            "orderId": "736806838401500126",
+                            "clientOrderId": "e93fcb1423fc4b4982fd02eb3bc4955c",
+                            "price": "0.09365",
+                            "origQty": "300.0",
+                            "executedQty": "300.0",
+                            "cummulativeQuoteQty": "28.095",
+                            "status": "FILLED",
+                            "timeInForce": "IOC",
+                            "type": "MARKET",
+                            "side": "BUY",
+                            "time": 1775668439484,
+                            "updateTime": 1775668439498,
+                            "isWorking": false
+                        },
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed swap orders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "avgPrice": "0.09213",
+                        "clientOrderId": "56046f53-dd8f-43d4-b845-0f62a9b98c7c",
+                        "cumQuote": "9.213",
+                        "executedQty": "100",
+                        "orderId": "737163324445163880",
+                        "origQty": "100",
+                        "price": "0.00000",
+                        "reduceOnly": false,
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "status": "FILLED",
+                        "stopPrice": "0",
+                        "symbol": "DOGEUSDT",
+                        "time": "1775753432380",
+                        "timeInForce": "IOC",
+                        "type": "MARKET",
+                        "updateTime": "1775753432380",
+                        "workingType": "UNKNOWN_PRICE_TYPE"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "737163324445163880",
+                        "clientOrderId": "56046f53-dd8f-43d4-b845-0f62a9b98c7c",
+                        "symbol": "DOGE/USDT:USDT",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "amount": 100,
+                        "price": 0.09213,
+                        "triggerPrice": null,
+                        "cost": 9.213,
+                        "filled": 100,
+                        "remaining": 0,
+                        "timestamp": 1775753432380,
+                        "datetime": "2026-04-09T16:50:32.380Z",
+                        "fee": null,
+                        "status": "closed",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1775753432380,
+                        "average": 0.09213,
+                        "trades": [],
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "info": {
+                            "avgPrice": "0.09213",
+                            "clientOrderId": "56046f53-dd8f-43d4-b845-0f62a9b98c7c",
+                            "cumQuote": "9.213",
+                            "executedQty": "100",
+                            "orderId": "737163324445163880",
+                            "origQty": "100",
+                            "price": "0.00000",
+                            "reduceOnly": false,
+                            "side": "BUY",
+                            "positionSide": "LONG",
+                            "status": "FILLED",
+                            "stopPrice": "0",
+                            "symbol": "DOGEUSDT",
+                            "time": "1775753432380",
+                            "timeInForce": "IOC",
+                            "type": "MARKET",
+                            "updateTime": "1775753432380",
+                            "workingType": "UNKNOWN_PRICE_TYPE"
+                        },
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetch canceled swap orders",
+                "method": "fetchCanceledOrders",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "avgPrice": "0.00000",
+                        "clientOrderId": "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
+                        "cumQuote": "0",
+                        "executedQty": "0",
+                        "orderId": "737074389744353640",
+                        "origQty": "100",
+                        "price": "0.00000",
+                        "reduceOnly": true,
+                        "side": "SELL",
+                        "positionSide": "LONG",
+                        "status": "CANCELED",
+                        "stopPrice": "1.00000",
+                        "symbol": "DOGEUSDT",
+                        "time": "1775732228695",
+                        "timeInForce": "IOC",
+                        "type": "TAKE_PROFIT_MARKET",
+                        "updateTime": "1775732228695",
+                        "workingType": "CONTRACT_PRICE"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "737074389744353640",
+                        "clientOrderId": "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
+                        "symbol": "DOGE/USDT:USDT",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "reduceOnly": true,
+                        "side": "sell",
+                        "amount": 100,
+                        "price": null,
+                        "triggerPrice": 1,
+                        "cost": 0,
+                        "filled": 0,
+                        "remaining": 100,
+                        "timestamp": 1775732228695,
+                        "datetime": "2026-04-09T10:57:08.695Z",
+                        "fee": null,
+                        "status": "canceled",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1775732228695,
+                        "average": null,
+                        "trades": [],
+                        "stopLossPrice": null,
+                        "takeProfitPrice": 1,
+                        "info": {
+                            "avgPrice": "0.00000",
+                            "clientOrderId": "7bd80776-0c3f-4ed9-ab9c-a616d66fac5e",
+                            "cumQuote": "0",
+                            "executedQty": "0",
+                            "orderId": "737074389744353640",
+                            "origQty": "100",
+                            "price": "0.00000",
+                            "reduceOnly": true,
+                            "side": "SELL",
+                            "positionSide": "LONG",
+                            "status": "CANCELED",
+                            "stopPrice": "1.00000",
+                            "symbol": "DOGEUSDT",
+                            "time": "1775732228695",
+                            "timeInForce": "IOC",
+                            "type": "TAKE_PROFIT_MARKET",
+                            "updateTime": "1775732228695",
+                            "workingType": "CONTRACT_PRICE"
+                        },
+                        "fees": [],
+                        "stopPrice": 1
+                    }
+                ]
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetch swap order trades",
+                "method": "fetchOrderTrades",
+                "input": [
+                    "737191855946465640",
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "id": "737191855967437160",
+                        "orderId": "737191855946465640",
+                        "symbol": "DOGEUSDT",
+                        "buyer": true,
+                        "commission": "0.00745680",
+                        "commissionAsset": "USDT",
+                        "maker": false,
+                        "price": "0.09321",
+                        "qty": "100",
+                        "quoteQty": "9.32100",
+                        "realizedPnl": "0",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "time": "1775760234825"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "737191855967437160",
+                            "orderId": "737191855946465640",
+                            "symbol": "DOGEUSDT",
+                            "buyer": true,
+                            "commission": "0.00745680",
+                            "commissionAsset": "USDT",
+                            "maker": false,
+                            "price": "0.09321",
+                            "qty": "100",
+                            "quoteQty": "9.32100",
+                            "realizedPnl": "0",
+                            "side": "BUY",
+                            "positionSide": "LONG",
+                            "time": "1775760234825"
+                        },
+                        "id": "737191855967437160",
+                        "order": "737191855946465640",
+                        "timestamp": 1775760234825,
+                        "datetime": "2026-04-09T18:43:54.825Z",
+                        "symbol": "DOGE/USDT:USDT",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 0.09321,
+                        "amount": 100,
+                        "cost": 9.321,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.0074568
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.0074568
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchPositionsForSymbol": [
+            {
+                "description": "fetch positions for symbol",
+                "method": "fetchPositionsForSymbol",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "id": "749422759074857895",
+                        "asset": "USDT",
+                        "symbol": "ETHUSDT",
+                        "side": "LONG",
+                        "marginType": "CROSSED",
+                        "separatedMode": "COMBINED",
+                        "separatedOpenOrderId": "0",
+                        "leverage": "20.00",
+                        "size": "0.036",
+                        "openValue": "82.06416",
+                        "openFee": "0.06565132",
+                        "fundingFee": "0",
+                        "marginSize": "4.107",
+                        "isolatedMargin": "0",
+                        "isAutoAppendIsolatedMargin": false,
+                        "cumOpenSize": "0.036",
+                        "cumOpenValue": "82.06416",
+                        "cumOpenFee": "0.06565132",
+                        "cumCloseSize": "0",
+                        "cumCloseValue": "0",
+                        "cumCloseFee": "0",
+                        "cumFundingFee": "0",
+                        "cumLiquidateFee": "0",
+                        "createdMatchSequenceId": "14770315288",
+                        "updatedMatchSequenceId": "14770315288",
+                        "createdTime": "1778676309365",
+                        "updatedTime": "1778676309365",
+                        "unrealizePnl": "0.06012",
+                        "liquidatePrice": "2019.83"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "symbol": "ETH/USDT:USDT",
+                        "id": "749422759074857895",
+                        "timestamp": 1778676309365,
+                        "datetime": "2026-05-13T12:45:09.365Z",
+                        "contracts": 0.036,
+                        "contractSize": 0.001,
+                        "side": "long",
+                        "notional": 82.06416,
+                        "leverage": 20,
+                        "unrealizedPnl": 0.06012,
+                        "realizedPnl": null,
+                        "collateral": null,
+                        "entryPrice": 2279.56,
+                        "markPrice": null,
+                        "liquidationPrice": 2019.83,
+                        "marginMode": "cross",
+                        "hedged": false,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": 4.107,
+                        "initialMarginPercentage": null,
+                        "marginRatio": null,
+                        "lastUpdateTimestamp": 1778676309365,
+                        "lastPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "percentage": 1.46,
+                        "info": {
+                            "id": "749422759074857895",
+                            "asset": "USDT",
+                            "symbol": "ETHUSDT",
+                            "side": "LONG",
+                            "marginType": "CROSSED",
+                            "separatedMode": "COMBINED",
+                            "separatedOpenOrderId": "0",
+                            "leverage": "20.00",
+                            "size": "0.036",
+                            "openValue": "82.06416",
+                            "openFee": "0.06565132",
+                            "fundingFee": "0",
+                            "marginSize": "4.107",
+                            "isolatedMargin": "0",
+                            "isAutoAppendIsolatedMargin": false,
+                            "cumOpenSize": "0.036",
+                            "cumOpenValue": "82.06416",
+                            "cumOpenFee": "0.06565132",
+                            "cumCloseSize": "0",
+                            "cumCloseValue": "0",
+                            "cumCloseFee": "0",
+                            "cumFundingFee": "0",
+                            "cumLiquidateFee": "0",
+                            "createdMatchSequenceId": "14770315288",
+                            "updatedMatchSequenceId": "14770315288",
+                            "createdTime": "1778676309365",
+                            "updatedTime": "1778676309365",
+                            "unrealizePnl": "0.06012",
+                            "liquidatePrice": "2019.83"
+                        }
+                    }
+                ]
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set margin mode to cross",
+                "method": "setMarginMode",
+                "input": [
+                    "cross",
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "msg": "success",
+                    "requestTime": 1764505776347
+                },
+                "parsedResponse": {
+                    "code": "200",
+                    "msg": "success",
+                    "requestTime": 1764505776347
+                }
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set position mode to one-way",
+                "method": "setPositionMode",
+                "input": [
+                    false,
+                    "DOGE/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "msg": "success",
+                    "requestTime": 1764505776347
+                },
+                "parsedResponse": {
+                    "code": "200",
+                    "msg": "success",
+                    "requestTime": 1764505776347
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set cross leverage",
+                "method": "setLeverage",
+                "input": [
+                    11,
+                    "DOGE/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "symbol": "DOGEUSDT",
+                    "marginType": "CROSSED",
+                    "crossLeverage": "11",
+                    "isolatedLongLeverage": "0",
+                    "isolatedShortLeverage": "0"
+                },
+                "parsedResponse": {
+                    "symbol": "DOGEUSDT",
+                    "marginType": "CROSSED",
+                    "crossLeverage": "11",
+                    "isolatedLongLeverage": "0",
+                    "isolatedShortLeverage": "0"
+                }
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin",
+                "method": "reduceMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    3,
+                    {
+                        "positionId": "737255283637617000"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "msg": "success",
+                    "requestTime": 1764505776347
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200",
+                        "msg": "success",
+                        "requestTime": 1764505776347
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "reduce",
+                    "marginMode": "isolated",
+                    "amount": 3,
+                    "total": null,
+                    "code": "USDT",
+                    "status": "ok",
+                    "timestamp": 1764505776347,
+                    "datetime": "2025-11-30T12:29:36.347Z"
+                }
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all swap orders",
+                "method": "cancelAllOrders",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "orderId": "737191914192765288",
+                        "success": true,
+                        "errorCode": "",
+                        "errorMessage": ""
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "737191914192765288",
+                        "clientOrderId": null,
+                        "symbol": "DOGE/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "amount": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fee": null,
+                        "status": "canceled",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "average": null,
+                        "trades": [],
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "info": {
+                            "orderId": "737191914192765288",
+                            "success": true,
+                            "errorCode": "",
+                            "errorMessage": ""
+                        },
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel swap orders by ids",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "737191914192765288"
+                    ],
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "orderList": [
+                        {
+                            "orderId": "737191914192765288",
+                            "origClientOrderId": "",
+                            "success": true,
+                            "errorCode": "",
+                            "errorMessage": ""
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "737191914192765288",
+                        "clientOrderId": null,
+                        "symbol": "DOGE/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "amount": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fee": null,
+                        "status": "canceled",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "average": null,
+                        "trades": [],
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "info": {
+                            "orderId": "737191914192765288",
+                            "origClientOrderId": "",
+                            "success": true,
+                            "errorCode": "",
+                            "errorMessage": ""
+                        },
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "create swap market order with take profit and stop loss",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100,
+                    null,
+                    0.2,
+                    0.02
+                ],
+                "httpResponse": {
+                    "orderId": "737191855984215401",
+                    "clientOrderId": "b-WEEX111125-a0c63bf17ecb4e5c959a5b",
+                    "success": true,
+                    "errorCode": "",
+                    "errorMessage": ""
+                },
+                "parsedResponse": {
+                    "id": "737191855984215401",
+                    "clientOrderId": "b-WEEX111125-a0c63bf17ecb4e5c959a5b",
+                    "symbol": "DOGE/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fee": null,
+                    "status": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "average": null,
+                    "trades": [],
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "info": {
+                        "orderId": "737191855984215401",
+                        "clientOrderId": "b-WEEX111125-a0c63bf17ecb4e5c959a5b",
+                        "success": true,
+                        "errorCode": "",
+                        "errorMessage": ""
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "createStopLossOrder": [
+            {
+                "description": "create stop loss order",
+                "method": "createStopLossOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "sell",
+                    100,
+                    0.01,
+                    0.01
+                ],
+                "httpResponse": {
+                    "orderId": "737191855984215402",
+                    "clientOrderId": "b-WEEX111125-c2e85dg39gee6g7e171c7d",
+                    "success": true,
+                    "errorCode": "",
+                    "errorMessage": ""
+                },
+                "parsedResponse": {
+                    "id": "737191855984215402",
+                    "clientOrderId": "b-WEEX111125-c2e85dg39gee6g7e171c7d",
+                    "symbol": "DOGE/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fee": null,
+                    "status": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "average": null,
+                    "trades": [],
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "info": {
+                        "orderId": "737191855984215402",
+                        "clientOrderId": "b-WEEX111125-c2e85dg39gee6g7e171c7d",
+                        "success": true,
+                        "errorCode": "",
+                        "errorMessage": ""
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "createTakeProfitOrder": [
+            {
+                "description": "create take profit order",
+                "method": "createTakeProfitOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "sell",
+                    100,
+                    0.2,
+                    0.18
+                ],
+                "httpResponse": {
+                    "orderId": "737191855984215403",
+                    "clientOrderId": "b-WEEX111125-d3f96eh4ahff7h8f282d8e",
+                    "success": true,
+                    "errorCode": "",
+                    "errorMessage": ""
+                },
+                "parsedResponse": {
+                    "id": "737191855984215403",
+                    "clientOrderId": "b-WEEX111125-d3f96eh4ahff7h8f282d8e",
+                    "symbol": "DOGE/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fee": null,
+                    "status": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "average": null,
+                    "trades": [],
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "info": {
+                        "orderId": "737191855984215403",
+                        "clientOrderId": "b-WEEX111125-d3f96eh4ahff7h8f282d8e",
+                        "success": true,
+                        "errorCode": "",
+                        "errorMessage": ""
+                    },
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
         ]
-  }
+    }
 }

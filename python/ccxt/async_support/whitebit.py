@@ -49,7 +49,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'createConvertTrade': True,
                 'createDepositAddress': True,
                 'createMarketBuyOrderWithCost': True,
-                'createMarketOrderWithCost': False,
+                'createMarketOrderWithCost': True,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -60,6 +60,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchClosedOrders': True,
@@ -508,7 +509,6 @@ class whitebit(Exchange, ImplicitAPI):
         margin = isCollateral and not swap
         contract = False
         amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec')))
-        contractSize = amountPrecision
         linear = None
         inverse = None
         if swap:
@@ -547,7 +547,7 @@ class whitebit(Exchange, ImplicitAPI):
             'inverse': inverse,
             'taker': self.parse_number(taker),
             'maker': self.parse_number(maker),
-            'contractSize': None if isSpot else contractSize,
+            'contractSize': None if isSpot else self.parse_number('1'),  # perpetual amounts are denominated in base currency units
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
@@ -2193,10 +2193,7 @@ class whitebit(Exchange, ImplicitAPI):
         isBiggerThanZero = (timeout > 0)
         request = {
             'market': market['id'],
-            # 'timeout': self.number_to_string(timeout / 1000) if (timeout > 0) else null,
         }
-        if timeout is None:
-            raise ExchangeError(self.id + ' cancelAllOrdersAfter() missing timeout')
         if isBiggerThanZero:
             request['timeout'] = self.number_to_string(timeout / 1000)
         else:

@@ -19,7 +19,7 @@ func TestFetchLeverageTiers(exchange ccxt.ICoreExchange, skippedProperties any, 
 		//       {},
 		//     ],
 		// };
-		Assert(exchange.IsDictionary(tiers), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dict. "), exchange.Json(tiers)))
+		AssertDictionaryResponse(exchange, method, tiers, symbol)
 		var tierKeys any = ObjectKeys(tiers)
 		AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol)
 		for i := 0; IsLessThan(i, GetArrayLength(tierKeys)); i++ {

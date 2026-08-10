@@ -1090,7 +1090,7 @@ public class NadoCore extends NadoApi
                 ((java.util.List<Object>)productIds).add(this.parseToInt(Helpers.GetValue(market, "id")));
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
+            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);

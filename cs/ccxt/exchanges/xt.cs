@@ -4913,7 +4913,8 @@ public partial class xt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object positionSide = this.safeString(parameters, "positionSide");
-        this.checkRequiredArgument("setLeverage", positionSide, "positionSide", new List<object>() {"LONG", "SHORT"});
+        object methodName = ((bool) isTrue((isEqual(addOrReduce, "ADD")))) ? "addMargin" : "reduceMargin";
+        this.checkRequiredArgument(methodName, positionSide, "positionSide", new List<object>() {"LONG", "SHORT"});
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();

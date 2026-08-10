@@ -534,7 +534,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             }
             Object market = this.market(symbol);
             Object aggLevel = null;
-            var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
+            var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
             aggLevel = ((java.util.List<Object>) aggLevelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) aggLevelparametersVariable).get(1);
             Object messageHash = Helpers.add("orderbook:", symbol);
@@ -579,7 +579,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             }
             Object market = this.market(symbol);
             Object aggLevel = null;
-            var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
+            var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
             aggLevel = ((java.util.List<Object>) aggLevelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) aggLevelparametersVariable).get(1);
             Object subMessageHash = Helpers.add("orderbook:", symbol);

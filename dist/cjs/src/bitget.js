@@ -2038,9 +2038,27 @@ class bitget extends bitget$1["default"] {
             const firstData = this.safeDict(data, 0, {});
             const isBorrowable = this.safeBool(firstData, 'isBorrowable');
             if (fetchMargins && isBorrowable !== undefined) {
-                const keysList = Object.keys(this.indexBy(data, 'symbol'));
-                this.options['crossMarginPairsData'] = keysList;
-                this.options['isolatedMarginPairsData'] = keysList;
+                // cross and isolated availability are per-symbol - a coin can be listed by
+                // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
+                // maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
+                // fail with bitget error 50001 "coin does not support cross"
+                const crossKeys = [];
+                const isolatedKeys = [];
+                for (let j = 0; j < data.length; j++) {
+                    const entry = this.safeDict(data, j, {});
+                    const entrySymbol = this.safeString(entry, 'symbol');
+                    const entryBorrowable = this.safeBool(entry, 'isBorrowable', true);
+                    if (entryBorrowable && this.safeBool(entry, 'isCrossBorrowable', true)) {
+                        crossKeys.push(entrySymbol);
+                    }
+                    const isolatedBase = this.safeBool(entry, 'isIsolatedBaseBorrowable', true);
+                    const isolatedQuote = this.safeBool2(entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', true);
+                    if (entryBorrowable && (isolatedBase || isolatedQuote)) {
+                        isolatedKeys.push(entrySymbol);
+                    }
+                }
+                this.options['crossMarginPairsData'] = crossKeys;
+                this.options['isolatedMarginPairsData'] = isolatedKeys;
             }
             else {
                 markets = this.arrayConcat(markets, data);
@@ -9416,7 +9434,7 @@ class bitget extends bitget$1["default"] {
         if (uta) {
             if (productType === 'SPOT') {
                 let marginMode = undefined;
-                [marginMode, params] = this.handleMarginModeAndParams('fetchTrades', params);
+                [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
                 }

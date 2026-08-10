@@ -364,7 +364,7 @@ public partial class blofin : ccxt.blofin
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object symbolsList = (IList<string>)(symbols);
+        object symbolsList = symbols;
         object firstMarket = this.market(getValue(symbolsList, 0));
         object channel = "tickers";
         object marketType = null;

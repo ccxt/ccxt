@@ -209,6 +209,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -299,6 +300,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -326,6 +328,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

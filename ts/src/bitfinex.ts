@@ -39,6 +39,7 @@ export default class bitfinex extends Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -79,6 +80,7 @@ export default class bitfinex extends Exchange {
                 'fetchLiquidations': true,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -98,8 +100,10 @@ export default class bitfinex extends Exchange {
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
@@ -179,7 +183,7 @@ export default class bitfinex extends Exchange {
                         'conf/pub:fees': { 'cost': 2.7 } as Endpoint<List>,
                         'platform/status': { 'cost': 8 } as Endpoint<List>, // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
                         'tickers': { 'cost': 2.7 } as Endpoint<List>, // 90 requests a minute = 1.5 requests per second => ( 1000 / rateLimit ) / 1.5 = 2.666666666
-                        'ticker/{symbol}': { 'cost': 2.7 } as Endpoint<Dict>,
+                        'ticker/{symbol}': { 'cost': 2.7 } as Endpoint<List>,
                         'tickers/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'trades/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'book/{symbol}/{precision}': { 'cost': 1 } as Endpoint<List>, // 240 requests a minute

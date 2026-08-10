@@ -59,9 +59,9 @@ func (this *BybitCore) Describe() any {
 			"fetchAllGreeks":                       true,
 			"fetchBalance":                         true,
 			"fetchBidsAsks":                        "emulated",
-			"fetchBorrowInterest":                  false,
+			"fetchBorrowInterest":                  true,
 			"fetchBorrowRateHistories":             false,
-			"fetchBorrowRateHistory":               false,
+			"fetchBorrowRateHistory":               true,
 			"fetchCanceledAndClosedOrders":         true,
 			"fetchCanceledOrders":                  true,
 			"fetchClosedOrder":                     true,
@@ -110,7 +110,7 @@ func (this *BybitCore) Describe() any {
 			"fetchOptionChain":                     true,
 			"fetchOrder":                           true,
 			"fetchOrderBook":                       true,
-			"fetchOrders":                          false,
+			"fetchOrders":                          true,
 			"fetchOrderTrades":                     true,
 			"fetchPosition":                        true,
 			"fetchPositionADLRank":                 true,
@@ -11930,7 +11930,7 @@ func (this *BybitCore) FetchConvertTrade(id any, optionalArgs ...any) <-chan any
 		enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 		var isUnifiedAccount any = (IsTrue(enableUnifiedMargin) || IsTrue(enableUnifiedAccount))
 		var accountTypeDefault any = Ternary(IsTrue(isUnifiedAccount), "eb_convert_uta", "eb_convert_spot")
-		accountTypeparamsVariable := this.HandleOptionAndParams(params, "fetchConvertQuote", "accountType", accountTypeDefault)
+		accountTypeparamsVariable := this.HandleOptionAndParams(params, "fetchConvertTrade", "accountType", accountTypeDefault)
 		accountType = GetValue(accountTypeparamsVariable, 0)
 		params = GetValue(accountTypeparamsVariable, 1)
 		var request any = map[string]any{

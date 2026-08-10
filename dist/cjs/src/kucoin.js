@@ -82,7 +82,7 @@ class kucoin extends kucoin$1["default"] {
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
@@ -4994,7 +4994,7 @@ class kucoin extends kucoin$1["default"] {
         let useSync = false;
         [useSync, params] = this.handleOptionAndParams(params, 'cancelOrder', 'sync', false);
         let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
         const tradeType = this.safeString(params, 'tradeType'); // keep it for backward compatibility
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
         if (hf || useSync || isMarginOrder) {
@@ -5204,10 +5204,10 @@ class kucoin extends kucoin$1["default"] {
         const market = this.market(symbol);
         request['symbol'] = market['id'];
         let accountMode = 'unified';
-        [accountMode, params] = this.handleOptionAndParams(params, 'fetchOrder', 'accountMode', accountMode);
+        [accountMode, params] = this.handleOptionAndParams(params, 'cancelOrder', 'accountMode', accountMode);
         request['accountMode'] = accountMode;
         let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchOrder', params);
+        [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
         const isUnified = (accountMode === 'unified');
         const tradeType = this.handleTradeType(market['contract'], marginMode, isUnified, params);
         request['tradeType'] = tradeType;
@@ -5260,7 +5260,7 @@ class kucoin extends kucoin$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        [marketType, params] = this.handleMarketTypeAndParams('cancelOrder', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         if ((marketType === 'spot') || (marketType === 'margin')) {
             return await this.cancelAllSpotOrders(symbol, params);
         }
@@ -10976,7 +10976,7 @@ class kucoin extends kucoin$1["default"] {
             [accountMode, params] = this.handleOptionAndParams(params, 'cancelOrders', 'accountMode', accountMode);
             request['accountMode'] = accountMode;
             let marginMode = undefined;
-            [marginMode, params] = this.handleMarginModeAndParams('fetchOrder', params);
+            [marginMode, params] = this.handleMarginModeAndParams('cancelOrders', params);
             const isUnified = (accountMode === 'unified');
             const tradeType = this.handleTradeType(isContractMarket, marginMode, isUnified, params);
             request['tradeType'] = tradeType;

@@ -120,7 +120,7 @@ class ImplicitAPI:
     data_public_get_positions = dataPublicGetPositions = Entry[_Dict]('positions', ['data', 'public'], 'GET', {'cost': 1})
     data_public_get_revisions = dataPublicGetRevisions = Entry[_List]('revisions', ['data', 'public'], 'GET', {'cost': 1})
     data_public_get_traded = dataPublicGetTraded = Entry[_Dict]('traded', ['data', 'public'], 'GET', {'cost': 1})
-    data_public_get_trades = dataPublicGetTrades = Entry[_Dict]('trades', ['data', 'public'], 'GET', {'cost': 1})
+    data_public_get_trades = dataPublicGetTrades = Entry[_List]('trades', ['data', 'public'], 'GET', {'cost': 1})
     data_public_get_v1_accounting_snapshot = dataPublicGetV1AccountingSnapshot = Entry[_Dict]('v1/accounting/snapshot', ['data', 'public'], 'GET', {'cost': 1})
     data_public_get_v1_activity_combos = dataPublicGetV1ActivityCombos = Entry[_Dict]('v1/activity/combos', ['data', 'public'], 'GET', {'cost': 1})
     data_public_get_v1_builders_leaderboard = dataPublicGetV1BuildersLeaderboard = Entry[_List]('v1/builders/leaderboard', ['data', 'public'], 'GET', {'cost': 1})

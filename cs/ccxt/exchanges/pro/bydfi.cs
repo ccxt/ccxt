@@ -660,7 +660,7 @@ public partial class bydfi : ccxt.bydfi
         {
             symbols = new List<object>() {symbol};
         }
-        return await this.watchOrdersForSymbols((IList<string>)(symbols), since, limit, parameters);
+        return await this.watchOrdersForSymbols(symbols, since, limit, parameters);
     }
 
     /**

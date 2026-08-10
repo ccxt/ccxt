@@ -41,7 +41,7 @@ public class KrakenCore extends KrakenApi
                 put( "cancelOrders", true );
                 put( "createDepositAddress", true );
                 put( "createMarketBuyOrderWithCost", true );
-                put( "createMarketOrderWithCost", false );
+                put( "createMarketOrderWithCost", true );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
                 put( "createOrders", true );

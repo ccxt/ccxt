@@ -4276,7 +4276,8 @@ class xt extends Exchange {
 
     public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()): array {
         $positionSide = $this->safe_string($params, 'positionSide');
-        $this->check_required_argument('setLeverage', $positionSide, 'positionSide', array( 'LONG', 'SHORT' ));
+        $methodName = ($addOrReduce === 'ADD') ? 'addMargin' : 'reduceMargin';
+        $this->check_required_argument($methodName, $positionSide, 'positionSide', array( 'LONG', 'SHORT' ));
         if ($this->markets === null) {
             $this->load_markets();
         }

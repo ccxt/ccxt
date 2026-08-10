@@ -3287,9 +3287,30 @@ public partial class bitget : Exchange
             object isBorrowable = this.safeBool(firstData, "isBorrowable");
             if (isTrue(isTrue(fetchMargins) && isTrue(!isEqual(isBorrowable, null))))
             {
-                object keysList = new List<object>(((IDictionary<string,object>)this.indexBy(data, "symbol")).Keys);
-                ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = keysList;
-                ((IDictionary<string,object>)this.options)["isolatedMarginPairsData"] = keysList;
+                // cross and isolated availability are per-symbol - a coin can be listed by
+                // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
+                // maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
+                // fail with bitget error 50001 "coin does not support cross"
+                object crossKeys = new List<object>() {};
+                object isolatedKeys = new List<object>() {};
+                for (object j = 0; isLessThan(j, getArrayLength(data)); postFixIncrement(ref j))
+                {
+                    object entry = this.safeDict(data, j, new Dictionary<string, object>() {});
+                    object entrySymbol = this.safeString(entry, "symbol");
+                    object entryBorrowable = this.safeBool(entry, "isBorrowable", true);
+                    if (isTrue(isTrue(entryBorrowable) && isTrue(this.safeBool(entry, "isCrossBorrowable", true))))
+                    {
+                        ((IList<object>)crossKeys).Add(entrySymbol);
+                    }
+                    object isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
+                    object isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
+                    if (isTrue(isTrue(entryBorrowable) && isTrue((isTrue(isolatedBase) || isTrue(isolatedQuote)))))
+                    {
+                        ((IList<object>)isolatedKeys).Add(entrySymbol);
+                    }
+                }
+                ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = crossKeys;
+                ((IDictionary<string,object>)this.options)["isolatedMarginPairsData"] = isolatedKeys;
             } else
             {
                 markets = this.arrayConcat(markets, data);
@@ -11311,7 +11332,7 @@ public partial class bitget : Exchange
             if (isTrue(isEqual(productType, "SPOT")))
             {
                 object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchTrades", parameters);
+                var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
                 marginMode = ((IList<object>)marginModeparametersVariable)[0];
                 parameters = ((IList<object>)marginModeparametersVariable)[1];
                 if (isTrue(!isEqual(marginMode, null)))

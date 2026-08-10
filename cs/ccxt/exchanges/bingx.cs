@@ -54,6 +54,7 @@ public partial class bingx : Exchange
                 { "fetchBorrowRateHistory", false },
                 { "fetchBorrowRates", false },
                 { "fetchBorrowRatesPerSymbol", false },
+                { "fetchCanceledAndClosedOrders", true },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
@@ -92,7 +93,7 @@ public partial class bingx : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", true },
-                { "fetchPositionHistory", false },
+                { "fetchPositionHistory", true },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchPositionsHistory", true },
@@ -113,6 +114,7 @@ public partial class bingx : Exchange
                 { "setMarginMode", true },
                 { "setPositionMode", true },
                 { "transfer", true },
+                { "withdraw", true },
             } },
             { "hostname", "bingx.com" },
             { "urls", new Dictionary<string, object>() {
@@ -5236,13 +5238,13 @@ public partial class bingx : Exchange
         object subType = null;
         object standard = null;
         object response = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchClosedOrders", market, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "standard", false);
+        var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "standard", false);
         standard = ((IList<object>)standardparametersVariable)[0];
         parameters = ((IList<object>)standardparametersVariable)[1];
         if (isTrue(standard))

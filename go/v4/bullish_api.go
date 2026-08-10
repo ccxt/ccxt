@@ -177,7 +177,7 @@ func (this *BullishCore) PrivateGetV1TradesClientOrderIdClientOrderId(args ...an
 	return this.callEndpointAsync("privateGetV1TradesClientOrderIdClientOrderId", args...)
 }
 
-// PrivateGetV1AccountsAsset returns a channel that yields a JSON object.
+// PrivateGetV1AccountsAsset returns a channel that yields a JSON array.
 func (this *BullishCore) PrivateGetV1AccountsAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AccountsAsset", args...)
 }

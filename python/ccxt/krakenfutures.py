@@ -51,6 +51,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,

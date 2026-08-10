@@ -77,7 +77,7 @@ func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioSummary(ar
 	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioSummary", args...)
 }
 
-// V1PrivateGetPortfoliosPortfolioBalances returns a channel that yields a JSON object.
+// V1PrivateGetPortfoliosPortfolioBalances returns a channel that yields a JSON array.
 func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioBalances", args...)
 }

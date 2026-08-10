@@ -1,4 +1,4 @@
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     publicGetAuth(params?: {}): Promise<Dict>;
@@ -27,7 +27,7 @@ interface Exchange {
     publicGetGetIndexPrice(params?: {}): Promise<Dict>;
     publicGetGetIndexPriceNames(params?: {}): Promise<Dict>;
     publicGetGetInstrument(params?: {}): Promise<Dict>;
-    publicGetGetInstruments(params?: {}): Promise<List>;
+    publicGetGetInstruments(params?: {}): Promise<Dict>;
     publicGetGetLastSettlementsByCurrency(params?: {}): Promise<Dict>;
     publicGetGetLastSettlementsByInstrument(params?: {}): Promise<Dict>;
     publicGetGetLastTradesByCurrency(params?: {}): Promise<Dict>;

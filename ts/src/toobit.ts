@@ -150,7 +150,7 @@ export default class toobit extends Exchange {
                         'api/v1/futures/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
                         'api/v1/futures/positions': { 'cost': 5 * 1.67 } as Endpoint<List>,
                         'api/v1/futures/historyPositions': { 'cost': 5 } as Endpoint<List>,
-                        'api/v1/futures/balance': { 'cost': 5 } as Endpoint<Dict>,
+                        'api/v1/futures/balance': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/futures/userTrades': { 'cost': 5 * 1.67 } as Endpoint<List>,
                         'api/v1/futures/balanceFlow': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/futures/commissionRate': { 'cost': 5 } as Endpoint<Dict>,
@@ -2247,7 +2247,7 @@ export default class toobit extends Exchange {
             request['limit'] = limit;
         }
         let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         let response: Dict | List = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, params));
@@ -2594,7 +2594,7 @@ export default class toobit extends Exchange {
             request['limit'] = limit;
         }
         let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountBalanceFlow (this.extend (request, params));

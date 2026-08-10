@@ -4088,7 +4088,8 @@ class xt(Exchange, ImplicitAPI):
 
     async def modify_margin_helper(self, symbol: str, amount: Any, addOrReduce: Any, params={}) -> MarginModification:
         positionSide = self.safe_string(params, 'positionSide')
-        self.check_required_argument('setLeverage', positionSide, 'positionSide', ['LONG', 'SHORT'])
+        methodName = 'addMargin' if (addOrReduce == 'ADD') else 'reduceMargin'
+        self.check_required_argument(methodName, positionSide, 'positionSide', ['LONG', 'SHORT'])
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)

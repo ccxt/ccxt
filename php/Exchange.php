@@ -2189,8 +2189,7 @@ class BaseExchange {
         //     return strlen(str) * -1;
         // }
         // default strings like '0.0001'
-        $parts = explode('.', preg_replace('/0+$/', '', $str));
-        return (count($parts) > 1) ? strlen($parts[1]) : 0;
+        return static::precisionFromString($str);
     }
 
     public function __call($function, $params) {
@@ -2262,12 +2261,18 @@ class BaseExchange {
     }
 
     public static function precisionFromString($x) {
-        $parts = explode('.', preg_replace('/0+$/', '', $x));
-        if (count($parts) > 1) {
-            return strlen($parts[1]);
-        } else {
+        // equivalent to explode('.', preg_replace('/0+$/', '', $x)) but without the intermediate allocations
+        $str = (string) $x;
+        $dot = strpos($str, '.');
+        if ($dot === false) {
             return 0;
         }
+        // malformed input with more than one dot keeps the legacy explode() semantics
+        $secondDot = strpos($str, '.', $dot + 1);
+        if ($secondDot !== false) {
+            return $secondDot - $dot - 1;
+        }
+        return strlen(rtrim($str, '0')) - $dot - 1;
     }
 
     public static function decimal_to_precision($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
@@ -2315,8 +2320,11 @@ class BaseExchange {
         }
 
         if ($countingMode === TICK_SIZE) {
-            $precisionDigitsString = static::decimal_to_precision($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES);
-            $newNumPrecisionDigits = static::precisionFromString($precisionDigitsString);
+            // inlined equivalent of
+            //     precisionFromString(decimal_to_precision($numPrecisionDigits, ROUND, 100, DECIMAL_PLACES))
+            // (that call resolves to number_format(round($tick, 14), 14) because of the min(14, ...) clamp)
+            $tickString = number_format(round($numPrecisionDigits, 14, PHP_ROUND_HALF_UP), 14, '.', '');
+            $newNumPrecisionDigits = strlen(rtrim($tickString, '0')) - strpos($tickString, '.') - 1;
 
             if ($roundingMode === TRUNCATE) {
                 $xStr = static::number_to_string($x);
@@ -2343,11 +2351,16 @@ class BaseExchange {
                 }
                 return static::decimal_to_precision($x, ROUND, $newNumPrecisionDigits, DECIMAL_PLACES, $paddingMode);
             }
-            $missing = fmod($x, $numPrecisionDigits);
-            $missing = floatval(static::decimal_to_precision($missing, ROUND, 8, DECIMAL_PLACES));
+            // inlined equivalent of
+            //     floatval(decimal_to_precision(fmod($x, $numPrecisionDigits), ROUND, 8, DECIMAL_PLACES))
+            $missing = round(fmod($x, $numPrecisionDigits), 8, PHP_ROUND_HALF_UP);
             // See: https://github.com/ccxt/ccxt/pull/6486
-            $fpError = static::decimal_to_precision($missing / $numPrecisionDigits, ROUND, max($newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING);
-            if (static::precisionFromString($fpError) !== 0) {
+            // the original tested precisionFromString(decimal_to_precision($missing / $tick, ROUND,
+            // max($newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING)) !== 0, which is just asking
+            // whether the rounded quotient still has a fractional part
+            $fpDigits = ($newNumPrecisionDigits > 8) ? $newNumPrecisionDigits : 8;
+            $fpError = round($missing / $numPrecisionDigits, $fpDigits, PHP_ROUND_HALF_UP);
+            if ($fpError != (int) $fpError) {
                 if ($roundingMode === ROUND) {
                     if ($x > 0) {
                         if ($missing >= $numPrecisionDigits / 2) {
@@ -2494,33 +2507,36 @@ class BaseExchange {
                 }
             }
         }
-        if (($result === '-0') || ($result === '-0.' . str_repeat('0', max(strlen($result) - 3, 0)))) {
-            $result = substr($result, 1);
+        if (($result !== '') && ($result[0] === '-')) {
+            if (($result === '-0') || ($result === '-0.' . str_repeat('0', max(strlen($result) - 3, 0)))) {
+                $result = substr($result, 1);
+            }
         }
         return $result;
     }
 
     public static function number_to_string($x) {
         // avoids scientific notation for too large and too small numbers
+        if (is_string($x)) {
+            return $x;
+        }
         if ($x === null) {
             return null;
         }
-        $type = gettype($x);
         $s = (string) $x;
-        if (($type !== 'integer') && ($type !== 'double')) {
+        if (!is_float($x) && !is_int($x)) {
             return $s;
         }
-        if (strpos($x, 'E') === false) {
+        // fast path: nothing to expand without scientific notation
+        // note: strpos() is called on $s, not on $x, to avoid coercing the float a second time
+        $exponentIndex = strpos($s, 'E');
+        if ($exponentIndex === false) {
             return $s;
         }
-        $splitted = explode('E', $s);
-        $number = rtrim(rtrim($splitted[0], '0'), '.');
-        $exp = (int) $splitted[1];
-        $len_after_dot = 0;
-        if (strpos($number, '.') !== false) {
-            $splitted = explode('.', $number);
-            $len_after_dot = strlen($splitted[1]);
-        }
+        $number = rtrim(rtrim(substr($s, 0, $exponentIndex), '0'), '.');
+        $exp = (int) substr($s, $exponentIndex + 1);
+        $dotIndex = strpos($number, '.');
+        $len_after_dot = ($dotIndex === false) ? 0 : (strlen($number) - $dotIndex - 1);
         $number = str_replace(array('.', '-'), '', $number);
         $sign = ($x < 0) ? '-' : '';
         if ($exp > 0) {
@@ -2540,6 +2556,11 @@ class BaseExchange {
         // PHP version of this function does nothing, as most of its
         // dependencies are lightweight and don't eat a lot
         return true;
+    }
+
+    // returns the version of the ccxt library, e.g. "4.5.54"
+    public function get_ccxt_version() {
+        return static::VERSION;
     }
 
     public function check_required_dependencies() {
@@ -2939,6 +2960,7 @@ class BaseExchange {
                 'swap' => null,
                 'future' => null,
                 'option' => null,
+                'index' => null,
                 'addMargin' => null,
                 'borrowCrossMargin' => null,
                 'borrowIsolatedMargin' => null,

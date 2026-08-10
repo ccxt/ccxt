@@ -2514,7 +2514,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
             //  -----------------------------------------------------------------------------
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex()));
+            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit()));
             (Helpers.promiseAll(promises)).join();
             Object successMessage = Helpers.add(Helpers.add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
             dump(Helpers.add("[INFO]", successMessage));
@@ -3469,6 +3469,34 @@ public class TestMain extends BaseTest
             clientOrderId = Helpers.GetValue(request, "newClientOrderId");
             Assert(((String)clientOrderId).startsWith(((String)id)), Helpers.add(Helpers.add(Helpers.add("weex - newClientOrderId: ", clientOrderId), " for swap order does not start with id: "), id));
             return null;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> testFoxbit()
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Exchange exchange = ((Exchange)this.initOfflineExchange("foxbit"));
+            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
+            Object id = "ccxt";
+            try
+            {
+                (exchange.createOrder("BTC/BRL", "limit", "buy", 1, 20000)).join();
+            } catch(Exception e)
+            {
+                // we expect an error here, we're only interested in the headers
+                reqHeaders = ((Helpers.isTrue(exchange.last_request_headers))) ? exchange.last_request_headers : new java.util.HashMap<String, Object>() {{}};
+            }
+            Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "X-FB-CLIENT"), id), Helpers.add(Helpers.add("foxbit - id: ", id), " not in headers."));
+            Object version = exchange.getCcxtVersion();
+            Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "X-FB-CLIENT-VERSION"), version), Helpers.add(Helpers.add("foxbit - version: ", version), " not in headers."));
+            if (!Helpers.isTrue(isSync()))
+            {
+                (close(exchange)).join();
+            }
+            return true;
         });
 
     }

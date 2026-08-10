@@ -27,7 +27,7 @@ export default class bullish extends Exchange {
                 'margin': false,
                 'swap': true,
                 'future': true,
-                'option': false,
+                'option': true,
                 'addMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': true,
@@ -192,7 +192,7 @@ export default class bullish extends Exchange {
                         'v1/history/trades': { 'cost': 5 } as Endpoint<List>,
                         'v1/trades/{tradeId}': { 'cost': 5 } as Endpoint<Dict>,
                         'v1/trades/client-order-id/{clientOrderId}': { 'cost': 1 } as Endpoint<List>,
-                        'v1/accounts/asset': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/accounts/asset': { 'cost': 1 } as Endpoint<List>,
                         'v1/accounts/asset/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/users/logout': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/users/hmac/login': { 'cost': 1 } as Endpoint<Dict>,
@@ -960,7 +960,7 @@ export default class bullish extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             params = this.handlePaginationParams ('fetchTrades', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
@@ -2244,7 +2244,7 @@ export default class bullish extends Exchange {
 
     async loadAccount (params = {}) {
         let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'loadAccount', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (params);
             const accounts = this.toArray (response);

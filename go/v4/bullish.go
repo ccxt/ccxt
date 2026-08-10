@@ -27,7 +27,7 @@ func (this *BullishCore) Describe() any {
 			"margin":                         false,
 			"swap":                           true,
 			"future":                         true,
-			"option":                         false,
+			"option":                         true,
 			"addMargin":                      false,
 			"borrowMargin":                   false,
 			"cancelAllOrders":                true,
@@ -1149,7 +1149,7 @@ func (this *BullishCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		}
 		var maxLimit any = 100
 		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
@@ -2880,7 +2880,7 @@ func (this *BullishCore) LoadAccount(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var tradingAccountId any = nil
-		tradingAccountIdparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "tradingAccountId")
+		tradingAccountIdparamsVariable := this.HandleOptionAndParams(params, "loadAccount", "tradingAccountId")
 		tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
 		params = GetValue(tradingAccountIdparamsVariable, 1)
 		if IsTrue(IsEqual(tradingAccountId, nil)) {

@@ -37,7 +37,7 @@ export default class whitebit extends Exchange {
                 'createConvertTrade': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': false,
+                'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -48,6 +48,7 @@ export default class whitebit extends Exchange {
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
@@ -499,7 +500,6 @@ export default class whitebit extends Exchange {
         const margin = isCollateral && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'stockPrec')));
-        const contractSize = amountPrecision;
         let linear: Bool = undefined;
         let inverse: Bool = undefined;
         if (swap) {
@@ -539,7 +539,7 @@ export default class whitebit extends Exchange {
             'inverse': inverse,
             'taker': this.parseNumber (taker),
             'maker': this.parseNumber (maker),
-            'contractSize': isSpot ? undefined : contractSize,
+            'contractSize': isSpot ? undefined : this.parseNumber ('1'), // perpetual amounts are denominated in base currency units
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -2325,11 +2325,7 @@ export default class whitebit extends Exchange {
         const isBiggerThanZero = (timeout > 0);
         const request: Dict = {
             'market': market['id'],
-            // 'timeout': (timeout > 0) ? this.numberToString (timeout / 1000) : null,
         };
-        if (timeout === undefined) {
-            throw new ExchangeError (this.id + ' cancelAllOrdersAfter() missing timeout');
-        }
         if (isBiggerThanZero) {
             request['timeout'] = this.numberToString (timeout / 1000);
         } else {

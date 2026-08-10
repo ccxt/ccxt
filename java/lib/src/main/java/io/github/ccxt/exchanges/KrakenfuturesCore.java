@@ -40,6 +40,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 put( "cancelOrders", true );
                 put( "createMarketOrder", true );
                 put( "createOrder", true );
+                put( "createOrders", true );
                 put( "createPostOnlyOrder", true );
                 put( "createReduceOnlyOrder", true );
                 put( "createStopLimitOrder", true );

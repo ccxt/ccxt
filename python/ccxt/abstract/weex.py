@@ -1,5 +1,5 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+from typing import Any as PythonAny, Dict, List, Union
 
 _Dict = Dict[str, PythonAny]
 _List = List[PythonAny]
@@ -11,7 +11,7 @@ class ImplicitAPI:
     public_get_api_v3_ping = publicGetApiV3Ping = Entry[_Dict]('api/v3/ping', 'public', 'GET', {'cost': 5})
     public_get_api_v3_apitradingsymbols = publicGetApiV3ApiTradingSymbols = Entry[_List]('api/v3/apiTradingSymbols', 'public', 'GET', {'cost': 25})
     public_get_api_v3_market_ticker_price = publicGetApiV3MarketTickerPrice = Entry[_List]('api/v3/market/ticker/price', 'public', 'GET', {'cost': 20})
-    public_get_api_v3_market_ticker_24hr = publicGetApiV3MarketTicker24hr = Entry[_List]('api/v3/market/ticker/24hr', 'public', 'GET', {'cost': 10})
+    public_get_api_v3_market_ticker_24hr = publicGetApiV3MarketTicker24hr = Entry[Union[_Dict, _List]]('api/v3/market/ticker/24hr', 'public', 'GET', {'cost': 10})
     public_get_api_v3_market_trades = publicGetApiV3MarketTrades = Entry[_List]('api/v3/market/trades', 'public', 'GET', {'cost': 125})
     public_get_api_v3_market_klines = publicGetApiV3MarketKlines = Entry[_List]('api/v3/market/klines', 'public', 'GET', {'cost': 10})
     public_get_api_v3_market_depth = publicGetApiV3MarketDepth = Entry[_Dict]('api/v3/market/depth', 'public', 'GET', {'cost': 25})
@@ -53,7 +53,7 @@ class ImplicitAPI:
     contract_get_capi_v3_market_premiumindex = contractGetCapiV3MarketPremiumIndex = Entry[_List]('capi/v3/market/premiumIndex', 'contract', 'GET', {'cost': 5})
     contract_get_capi_v3_market_fundingrate = contractGetCapiV3MarketFundingRate = Entry[_List]('capi/v3/market/fundingRate', 'contract', 'GET', {'cost': 25})
     contract_get_capi_v3_market_apitradingsymbols = contractGetCapiV3MarketApiTradingSymbols = Entry[_List]('capi/v3/market/apiTradingSymbols', 'contract', 'GET', {'cost': 25})
-    contractprivate_get_capi_v3_account_balance = contractPrivateGetCapiV3AccountBalance = Entry[_Dict]('capi/v3/account/balance', 'contractPrivate', 'GET', {'cost': 10})
+    contractprivate_get_capi_v3_account_balance = contractPrivateGetCapiV3AccountBalance = Entry[_List]('capi/v3/account/balance', 'contractPrivate', 'GET', {'cost': 10})
     contractprivate_get_capi_v3_account_commissionrate = contractPrivateGetCapiV3AccountCommissionRate = Entry[_Dict]('capi/v3/account/commissionRate', 'contractPrivate', 'GET', {'cost': 10})
     contractprivate_get_capi_v3_account_accountconfig = contractPrivateGetCapiV3AccountAccountConfig = Entry[_Dict]('capi/v3/account/accountConfig', 'contractPrivate', 'GET', {'cost': 10})
     contractprivate_get_capi_v3_account_symbolconfig = contractPrivateGetCapiV3AccountSymbolConfig = Entry[_List]('capi/v3/account/symbolConfig', 'contractPrivate', 'GET', {'cost': 10})
@@ -65,6 +65,9 @@ class ImplicitAPI:
     contractprivate_get_capi_v3_usertrades = contractPrivateGetCapiV3UserTrades = Entry[_List]('capi/v3/userTrades', 'contractPrivate', 'GET', {'cost': 5})
     contractprivate_get_capi_v3_openalgoorders = contractPrivateGetCapiV3OpenAlgoOrders = Entry[_List]('capi/v3/openAlgoOrders', 'contractPrivate', 'GET', {'cost': 3})
     contractprivate_get_capi_v3_allalgoorders = contractPrivateGetCapiV3AllAlgoOrders = Entry[_Dict]('capi/v3/allAlgoOrders', 'contractPrivate', 'GET', {'cost': 10})
+    contractprivate_get_capi_v3_sim_balance = contractPrivateGetCapiV3SimBalance = Entry[_List]('capi/v3/sim/balance', 'contractPrivate', 'GET', {'cost': 10})
+    contractprivate_get_capi_v3_sim_position_allposition = contractPrivateGetCapiV3SimPositionAllPosition = Entry[_List]('capi/v3/sim/position/allPosition', 'contractPrivate', 'GET', {'cost': 15})
+    contractprivate_get_capi_v3_sim_order_history = contractPrivateGetCapiV3SimOrderHistory = Entry[_List]('capi/v3/sim/order/history', 'contractPrivate', 'GET', {'cost': 10})
     contractprivate_post_capi_v3_account_income = contractPrivatePostCapiV3AccountIncome = Entry[_Dict]('capi/v3/account/income', 'contractPrivate', 'POST', {'cost': 5})
     contractprivate_post_capi_v3_account_margintype = contractPrivatePostCapiV3AccountMarginType = Entry[_Dict]('capi/v3/account/marginType', 'contractPrivate', 'POST', {'cost': 50})
     contractprivate_post_capi_v3_account_leverage = contractPrivatePostCapiV3AccountLeverage = Entry[_Dict]('capi/v3/account/leverage', 'contractPrivate', 'POST', {'cost': 20})
@@ -76,6 +79,7 @@ class ImplicitAPI:
     contractprivate_post_capi_v3_algoorder = contractPrivatePostCapiV3AlgoOrder = Entry[_Dict]('capi/v3/algoOrder', 'contractPrivate', 'POST', {'cost': 5})
     contractprivate_post_capi_v3_placetpslorder = contractPrivatePostCapiV3PlaceTpSlOrder = Entry[_List]('capi/v3/placeTpSlOrder', 'contractPrivate', 'POST', {'cost': 5})
     contractprivate_post_capi_v3_modifytpslorder = contractPrivatePostCapiV3ModifyTpSlOrder = Entry[_Dict]('capi/v3/modifyTpSlOrder', 'contractPrivate', 'POST', {'cost': 5})
+    contractprivate_post_capi_v3_sim_order = contractPrivatePostCapiV3SimOrder = Entry[_Dict]('capi/v3/sim/order', 'contractPrivate', 'POST', {'cost': 5})
     contractprivate_delete_capi_v3_order = contractPrivateDeleteCapiV3Order = Entry[_Dict]('capi/v3/order', 'contractPrivate', 'DELETE', {'cost': 3})
     contractprivate_delete_capi_v3_batchorders = contractPrivateDeleteCapiV3BatchOrders = Entry[_Dict]('capi/v3/batchOrders', 'contractPrivate', 'DELETE', {'cost': 10})
     contractprivate_delete_capi_v3_allopenorders = contractPrivateDeleteCapiV3AllOpenOrders = Entry[_List]('capi/v3/allOpenOrders', 'contractPrivate', 'DELETE', {'cost': 10})

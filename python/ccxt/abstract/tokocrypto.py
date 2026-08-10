@@ -11,7 +11,7 @@ class ImplicitAPI:
     binance_get_trades = binanceGetTrades = Entry[_List]('trades', 'binance', 'GET', {'cost': 1})
     binance_get_aggtrades = binanceGetAggTrades = Entry[_List]('aggTrades', 'binance', 'GET', {'cost': 1})
     binance_get_historicaltrades = binanceGetHistoricalTrades = Entry[_List]('historicalTrades', 'binance', 'GET', {'cost': 5})
-    binance_get_klines = binanceGetKlines = Entry[_Dict]('klines', 'binance', 'GET', {'cost': 1})
+    binance_get_klines = binanceGetKlines = Entry[_List]('klines', 'binance', 'GET', {'cost': 1})
     binance_get_ticker_24hr = binanceGetTicker24hr = Entry[_List]('ticker/24hr', 'binance', 'GET', {'cost': 1, 'noSymbol': 40})
     binance_get_ticker_price = binanceGetTickerPrice = Entry[_Dict]('ticker/price', 'binance', 'GET', {'cost': 1, 'noSymbol': 2})
     binance_get_ticker_bookticker = binanceGetTickerBookTicker = Entry[_List]('ticker/bookTicker', 'binance', 'GET', {'cost': 1, 'noSymbol': 2})

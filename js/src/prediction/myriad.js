@@ -50,6 +50,7 @@ export default class myriad extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'createMarketBuyOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'editOrder': true,

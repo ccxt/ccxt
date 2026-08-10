@@ -543,7 +543,7 @@ public partial class poloniex : ccxt.poloniex
         }
         object watchOrderBookOptions = this.safeValue(this.options, "watchOrderBook");
         object name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
-        var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
+        var nameparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "name", name);
         name = ((IList<object>)nameparametersVariable)[0];
         parameters = ((IList<object>)nameparametersVariable)[1];
         object orderbook = await this.subscribe(name, name, false, new List<object>() {symbol}, parameters);

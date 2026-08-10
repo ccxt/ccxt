@@ -2232,7 +2232,7 @@ export default class toobit extends Exchange {
             request['limit'] = limit;
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         let response = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotOpenOrders(this.extend(request, params));
@@ -2577,7 +2577,7 @@ export default class toobit extends Exchange {
             request['limit'] = limit;
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', undefined, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountBalanceFlow(this.extend(request, params));

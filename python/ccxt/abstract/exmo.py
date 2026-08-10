@@ -1,5 +1,5 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+from typing import Any as PythonAny, Dict, List, Union
 
 _Dict = Dict[str, PythonAny]
 _List = List[PythonAny]
@@ -15,7 +15,7 @@ class ImplicitAPI:
     public_get_trades = publicGetTrades = Entry[_Dict]('trades', 'public', 'GET', {'cost': 1})
     public_get_candles_history = publicGetCandlesHistory = Entry[_Dict]('candles_history', 'public', 'GET', {'cost': 1})
     public_get_required_amount = publicGetRequiredAmount = Entry[_Dict]('required_amount', 'public', 'GET', {'cost': 1})
-    public_get_payments_providers_crypto_list = publicGetPaymentsProvidersCryptoList = Entry[_Dict]('payments/providers/crypto/list', 'public', 'GET', {'cost': 1})
+    public_get_payments_providers_crypto_list = publicGetPaymentsProvidersCryptoList = Entry[Union[_Dict, _List]]('payments/providers/crypto/list', 'public', 'GET', {'cost': 1})
     private_post_user_info = privatePostUserInfo = Entry[_Dict]('user_info', 'private', 'POST', {'cost': 1})
     private_post_order_create = privatePostOrderCreate = Entry[_Dict]('order_create', 'private', 'POST', {'cost': 1})
     private_post_order_cancel = privatePostOrderCancel = Entry[_Dict]('order_cancel', 'private', 'POST', {'cost': 1})

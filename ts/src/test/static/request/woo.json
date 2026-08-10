@@ -278,8 +278,7 @@
                 "description": "Fetch Balances",
                 "method": "fetchBalance",
                 "url": "https://api.woox.io/v3/asset/balances",
-                "input": [
-                ]
+                "input": []
             }
         ],
         "fetchPosition": [
@@ -296,12 +295,18 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
-                "url": "https://api.woox.io/v3/futures/positions",
+                "url": "https://api.woox.io/v3/futures/positions?symbol=PERP_LTC_USDT",
                 "input": [
                     [
                         "LTC/USDT:USDT"
                     ]
                 ]
+            },
+            {
+                "description": "Fetch all positions without symbols",
+                "method": "fetchPositions",
+                "url": "https://api.woox.io/v3/futures/positions",
+                "input": []
             }
         ],
         "setLeverage": [
@@ -363,7 +368,7 @@
             {
                 "description": "Swap edit trailingPercent order",
                 "method": "editOrder",
-                "url": "https://api.staging.woox.io/v3/algo/order/1111779",
+                "url": "https://api.staging.woox.io/v3/trade/algoOrder",
                 "input": [
                     "1111779",
                     "BTC/USDT:USDT",
@@ -375,12 +380,12 @@
                         "trailingPercent": "4"
                     }
                 ],
-                "output": "{\"callbackRate\":\"0.04\",\"quantity\":\"0.0001\"}"
+                "output": "{\"algoOrderId\":\"1111779\",\"callbackRate\":\"0.04\",\"quantity\":\"0.0001\"}"
             },
             {
                 "description": "Swap edit trailingAmount order",
                 "method": "editOrder",
-                "url": "https://api.staging.woox.io/v3/algo/order/1111778",
+                "url": "https://api.staging.woox.io/v3/trade/algoOrder",
                 "input": [
                     "1111778",
                     "BTC/USDT:USDT",
@@ -393,7 +398,72 @@
                         "trailingTriggerPrice": "51000"
                     }
                 ],
-                "output": "{\"activatedPrice\":\"51000\",\"callbackValue\":\"1000\",\"quantity\":\"0.0001\"}"
+                "output": "{\"activatedPrice\":\"51000\",\"algoOrderId\":\"1111778\",\"callbackValue\":\"1000\",\"quantity\":\"0.0001\"}"
+            },
+            {
+                "description": "Spot edit plain limit order by orderId",
+                "method": "editOrder",
+                "url": "https://api.woox.io/v3/trade/order",
+                "input": [
+                    "81982150318",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    55
+                ],
+                "output": "{\"orderId\":\"81982150318\",\"price\":\"55\",\"quantity\":\"0.1\"}"
+            },
+            {
+                "description": "Spot edit plain limit order by clientOrderId",
+                "method": "editOrder",
+                "url": "https://api.woox.io/v3/trade/order",
+                "input": [
+                    "81982150318",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    55,
+                    {
+                        "clientOrderId": "555001"
+                    }
+                ],
+                "output": "{\"clientOrderId\":\"555001\",\"price\":\"55\",\"quantity\":\"0.1\"}"
+            },
+            {
+                "description": "Swap edit stop order triggerPrice by algoOrderId",
+                "method": "editOrder",
+                "url": "https://api.woox.io/v3/trade/algoOrder",
+                "input": [
+                    "1111777",
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "triggerPrice": "60000"
+                    }
+                ],
+                "output": "{\"algoOrderId\":\"1111777\",\"quantity\":\"0.0001\",\"triggerPrice\":\"60000\"}"
+            },
+            {
+                "description": "Swap edit algo order quantity only, forced via params.trigger",
+                "method": "editOrder",
+                "url": "https://api.woox.io/v3/trade/algoOrder",
+                "input": [
+                    "1111776",
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.0002,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"algoOrderId\":\"1111776\",\"quantity\":\"0.0002\"}"
             }
         ],
         "fetchDepositAddress": [
@@ -886,10 +956,28 @@
             {
                 "description": "linear swap fetch position ADL rank",
                 "method": "fetchPositionADLRank",
-                "url": "https://api.woox.io/v3/futures/positions",
+                "url": "https://api.woox.io/v3/futures/positions?symbol=PERP_BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            }
+        ],
+        "fetchPositionsADLRank": [
+            {
+                "description": "Fetch ADL rank for a single symbol, filtered server-side",
+                "method": "fetchPositionsADLRank",
+                "url": "https://api.woox.io/v3/futures/positions?symbol=PERP_BTC_USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "Fetch ADL rank for all symbols",
+                "method": "fetchPositionsADLRank",
+                "url": "https://api.woox.io/v3/futures/positions",
+                "input": []
             }
         ]
     }

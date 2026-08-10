@@ -2736,7 +2736,7 @@ public class BitmexCore extends BitmexApi
                 Object triggerAbove = (Helpers.isTrue((Helpers.isEqual(triggerDirection, "ascending"))) || Helpers.isTrue((Helpers.isEqual(triggerDirection, "above"))));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "limit"))) || Helpers.isTrue((Helpers.isEqual(type, "market")))))
                 {
-                    this.checkRequiredArgument("createOrder", triggerDirection, "triggerDirection", new java.util.ArrayList<Object>(java.util.Arrays.asList("above", "below")));
+                    this.checkRequiredArgument("editOrder", triggerDirection, "triggerDirection", new java.util.ArrayList<Object>(java.util.Arrays.asList("above", "below")));
                 }
                 Object orderType = null;
                 if (Helpers.isTrue(Helpers.isEqual(type, "limit")))

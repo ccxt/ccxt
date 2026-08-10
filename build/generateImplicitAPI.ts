@@ -792,21 +792,35 @@ function createImplicitMethodsCSharp(){
         const methodNames = storedCamelCaseMethods[exchange];
 
         const methods =  methodNames.map(method=> {
-            // Signature stays Task<object>: Task<T> is reified/invariant, and a
-            // hard is-T filter in callAsync silently dropped real JSON bodies
-            // whenever the declared leaf shape disagreed with the fixture
-            // (STATIC_RESPONSE emptied balances/tickers). Shape is documented
-            // on <returns>; callers that want Task<T> can call callAsync<T>
-            // directly. (Java keeps a typed Future via erasure — different.)
+            // The declared shape lands on the signature, because callAsync is
+            // generic and JsonHelper.Deserialize builds exactly the runtime
+            // types spelled in CSHARP_RETURN_TYPES (Dictionary<string, object>
+            // for a JSON object, List<object> for a JSON array) — the narrowing
+            // is a fact about the decoded body, not a hint.
+            //
+            // Task<T> is invariant, so `Task<Dictionary<string, object>> is
+            // Task<object>` is false: every reflective/dynamic await site has
+            // to normalize through Exchange.AsTaskOfObject (callDynamically,
+            // callDynamicallyAsync, PromiseAll, spawn, and the test harness's
+            // callExchangeMethodDynamically all do). And callAsync<T> never
+            // answers default(T) for a non-null body it could not narrow — a
+            // silent null there is what emptied parseBalance/parseTicker
+            // results under STATIC_RESPONSE; it raises instead, naming the
+            // endpoint and both shapes.
+            //
+            // A union shape has no honest narrowing (the least upper bound of
+            // Dict/List/string is object itself), so those endpoints keep
+            // object and say so in the doc comment.
+            const returns = csharpReturnType (exchange, method);
             const shape = isUnionShape (exchange, method)
                 ? `${proseReturnShape (exchange, method)}, so this endpoint keeps object`
                 : proseReturnShape (exchange, method);
             return [
                 `${IDEN}/// <summary>Calls the ${method} endpoint.</summary>`,
-                `${IDEN}/// <returns>${shape} (runtime type: ${csharpReturnType (exchange, method)})</returns>`,
-                `${IDEN}public async Task<object> ${method} (object parameters = null)`,
+                `${IDEN}/// <returns>${shape}</returns>`,
+                `${IDEN}public async Task<${returns}> ${method} (object parameters = null)`,
                 `${IDEN}{`,
-                `${IDEN}${IDEN}return await this.callAsync ("${method}",parameters);`,
+                `${IDEN}${IDEN}return await this.callAsync<${returns}> ("${method}",parameters);`,
                 `${IDEN}}`,
                 ``,
             ].join('\n')

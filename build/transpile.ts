@@ -225,6 +225,32 @@ class Transpiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in their own namespace/subfolder in every language
     isPrediction = false;
+    // Awaiting async-PHP methods are always emitted as a hybrid pair instead of one method
+    // whose whole body sits inside `Async\async(function () use (...) { ... })()`:
+    //
+    //     public function fetch_time($params = array()): PromiseInterface {
+    //         return Async\async(self::do_fetch_time(...))($params);
+    //     }
+    //     private function do_fetch_time($params) {
+    //         $response = Async\await($this->publicGetTime($params));
+    //         ...
+    //     }
+    //
+    // Naming: `do_<method>` + `private` (not `_impl` / leading underscore). PSR-12 forbids
+    // underscore prefixes as a visibility marker; CCXT PHP is snake_case; `do_*` is the
+    // usual "public facade, do the work" helper shape in PHP frameworks. `private` keeps
+    // the body non-overridable (stubs and bodies are always emitted as a pair).
+    //
+    // Async\async() stays on the public edge, so public signatures still return
+    // PromiseInterface and Promise\all() still overlaps; only the closure, its `use (...)`
+    // capture list and one indentation level go away. `self::` (not `$this->`) is required:
+    // a subclass override that does `Async\await(parent::fetch_time($params))` would
+    // otherwise late-bind straight back into its own do_* body and recurse forever.
+    //
+    // set by transpileJavaScriptToPHP() whenever it leaves an awaiting body flat; read back
+    // immediately by transpileJavaScriptToPythonAndPHP() so the caller splits exactly the
+    // same set of methods that previously got a nested closure
+    phpAsyncBodyWasFlattened = false;
 
     baseMethodsList!: any[];
 
@@ -731,7 +757,9 @@ class Transpiler {
             // the `?? ''` on the key preserves the pre-php-8.5 implicit null-to-'' offset
             // coercion - unified code checks `key in obj` with nullable keys (silent in js),
             // and php 8.5 deprecates a literal null key in array_key_exists
-            [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array($2) && array_key_exists($1 ?? \'\', $2))' ],
+            // [^\)\n] - never cross a line: legit (x in y) expressions are single-line, and a
+            // paren inside a preceding comment must not arm this rule across the boundary
+            [ /\(([^\s\(]+)\sin\s([^\)\n]+)\)/g, '(is_array($2) && array_key_exists($1 ?? \'\', $2))' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode($2, $1)' ],
             [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
             [ /Math\.(max|min)\s*\(/g, '$1(' ],
@@ -1175,6 +1203,7 @@ class Transpiler {
                 features[feature] = value
             }
         }
+        this.autoSetExchangeHas (code, features);
         let keys = Object.keys (features)
         keys.sort ((a, b) => a.localeCompare (b))
         const allKeys = Object.keys (sortingOrder).concat (keys)
@@ -1187,6 +1216,64 @@ class Transpiler {
             return false
         }
         return code.replace (capabilitiesObjectRegex, result)
+    }
+
+    autoSetExchangeHas (code: string, features: dict) {
+        // check unified methods and autofill the .has tree
+        const baseExchange = this.getBaseClass ()
+        const defaultDescribe = baseExchange.describe ();
+        const defaultHas = defaultDescribe.has;
+        const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin', 'sandbox', 'CORS', 'WS' ];
+        const derivedMethods = [
+            // ohlcv-related
+            'fetchMarkOHLCV',
+            'fetchPremiumOHLCV',
+            'fetchPremiumIndexOHLCV',
+            'fetchIndexOHLCV',
+            // order-related
+            'createTrailingAmountOrder',
+            'createTrailingAmountOrderWs',
+            'createTrailingPercentOrder',
+            'createTrailingPercentOrderWs',
+            'createMarketOrderWithCost',
+            'createMarketOrderWithCostWs',
+            'createLimitOrder',
+            'createMarketOrder',
+            'createLimitBuyOrder',
+            'createMarketBuyOrder',
+            'createMarketBuyOrderWithCost',
+            'createMarketBuyOrderWithCostWs',
+            'createMarketSellOrder',
+            'createLimitSellOrder',
+            'createMarketSellOrderWithCost',
+            'createMarketSellOrderWithCostWs',
+            'createTriggerOrder',
+            'createTriggerOrderWs',
+            'createStopLossOrder',
+            'createStopLossOrderWs',
+            'createTakeProfitOrder',
+            'createTakeProfitOrderWs',
+            'createOrderWithTakeProfitAndStopLoss',
+            'createOrderWithTakeProfitAndStopLossWs',
+            'createPostOnlyOrder',
+            'createPostOnlyOrderWs',
+            'createReduceOnlyOrder',
+            'createReduceOnlyOrderWs',
+            'createStopOrder',
+            'createStopOrderWs',
+            'createStopLimitOrder',
+            'createStopLimitOrderWs',
+            'createStopMarketOrder',
+            'createStopMarketOrderWs',
+        ];
+        for (const methodName of Object.keys (defaultHas)) {
+            // if code contains unified method definition, then it should be true
+            if (code.includes ('\n    async ' + methodName + ' (')) {
+                if (!(methodName in features) || (!features[methodName].startsWith ('true,') && !features[methodName].startsWith ('\'emulated\','))) {
+                    features[methodName] = 'true,';
+                }
+            }
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -1391,6 +1478,54 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
+    // splits a rendered PHP parameter list into its individual parameters, ignoring
+    // commas nested inside defaults like `array(1, 2)` or `'a,b'`
+    splitPHPParameterList (phpArgs: string) {
+        const parts: string[] = []
+        let depth = 0
+        let quote = ''
+        let current = ''
+        for (let i = 0; i < phpArgs.length; i++) {
+            const char = phpArgs[i]
+            if (quote) {
+                if ((char === quote) && (phpArgs[i - 1] !== '\\')) {
+                    quote = ''
+                }
+            } else if ((char === "'") || (char === '"')) {
+                quote = char
+            } else if ((char === '(') || (char === '[')) {
+                depth++
+            } else if ((char === ')') || (char === ']')) {
+                depth--
+            } else if ((char === ',') && (depth === 0)) {
+                parts.push (current)
+                current = ''
+                continue
+            }
+            current += char
+        }
+        if (current.trim ().length) {
+            parts.push (current)
+        }
+        return parts
+    }
+
+    // turns a rendered PHP parameter list (`string $symbol, $params = array()`) into the
+    // argument expressions used to forward it to another method (`$symbol, $params`),
+    // preserving by-reference and variadic markers
+    phpParameterForwardingList (phpArgs: string) {
+        if (!phpArgs || !phpArgs.trim ().length) {
+            return ''
+        }
+        return this.splitPHPParameterList (phpArgs).map ((part) => {
+            const match = part.match (/(\.\.\.)?\s*&?\s*(\$\w+)/)
+            if (!match) {
+                throw new Error ('phpParameterForwardingList: could not parse PHP parameter "' + part + '"')
+            }
+            return (match[1] || '') + match[2]
+        }).join (', ')
+    }
+
     transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
 
         // match all local variables (let, const or var)
@@ -1458,10 +1593,18 @@ class Transpiler {
         // the variable only gets its "$" from phpVariablesRegexes below, so handle it here.
         const noSpaceBeforeDynamicNewParen = [ /new (\$[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])*) \(/g, 'new $1(' ]
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
-        // indent async php
+        // indent async php — awaiting bodies stay flat here on purpose: the caller
+        // (transpileMethodsToAllLanguages) emits a thin public stub
+        // `return Async\async(self::do_<name>(...))($args);` and re-homes this flat
+        // body into `private function do_<name> (...)`. Async\async() stays on the
+        // public edge, so the method still returns a PromiseInterface and Promise\all
+        // still overlaps, but the `function () use (...)` closure and its extra
+        // indentation level disappear from every awaiting method.
+        if (async) {
+            this.phpAsyncBodyWasFlattened = false
+        }
         if (async && js.indexOf (' await ') > -1) {
-            const closure = variables && variables.length ? ' use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
-            phpBody = '        return Async\\async(function ()' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        })();'
+            this.phpAsyncBodyWasFlattened = true
         }
         phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
@@ -1486,15 +1629,18 @@ class Transpiler {
 
         let phpAsyncBody  = ''
         let phpBody = ''
+        let phpAsyncBodyIsFlatAwait = false
 
         if (this.buildPHP) {
             // transpile JS → Async PHP
             phpAsyncBody = this.transpileJavaScriptToPHP (args, true)
+            // read the flag before the sync pass below clobbers nothing but keeps intent obvious
+            phpAsyncBodyIsFlatAwait = this.phpAsyncBodyWasFlattened
             // transpile JS -> Sync PHP
             phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
         }
 
-        return { python3Body, python2Body, phpBody, phpAsyncBody }
+        return { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait }
     }
 
     //-----------------------------------------------------------------------------
@@ -2122,7 +2268,7 @@ class Transpiler {
             let js = lines.slice (1, -1).join ("\n")
 
             // transpile everything
-            let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
             if (this.buildPython) {
                 // compile the final Python code for the method signature
@@ -2153,7 +2299,23 @@ class Transpiler {
                 php.push ('    ' + '}')
 
                 phpAsync.push ('');
-                phpAsync.push (asyncPhpSignature);
+                if (phpAsyncBodyIsFlatAwait) {
+                    // hybrid async: thin public stub keeps the PromiseInterface contract and the
+                    // Async\async() edge; the flat body moves into a private `do_<name>` helper
+                    // (PSR-12 / snake_case; no closure, no `use (...)`, one indent level less).
+                    const forwardedArgs = this.phpParameterForwardingList (phpArgs)
+                    const doMethod = 'do_' + method
+                    phpAsync.push (asyncPhpSignature);
+                    phpAsync.push ('        return Async\\async(self::' + doMethod + '(...))(' + forwardedArgs + ');');
+                    phpAsync.push ('    ' + '}')
+                    phpAsync.push ('');
+                    // the body helper is intentionally untyped on the return: after
+                    // `Async\await(...)` it yields the resolved value, not a promise, so the
+                    // public method's `: PromiseInterface` must not be repeated here.
+                    phpAsync.push ('    ' + 'private function ' + doMethod + '(' + phpArgs + ') {');
+                } else {
+                    phpAsync.push (asyncPhpSignature);
+                }
                 phpAsync.push (phpAsyncBody);
                 phpAsync.push ('    ' + '}')
             }

@@ -2087,11 +2087,21 @@ public partial class binance : PredictionExchange
         object outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
         object failedOrders = this.safeList(response, "failed", new List<object>() {});
         object failedOrdersLength = getArrayLength(failedOrders);
-        for (object i = 0; isLessThan(i, failedOrdersLength); postFixIncrement(ref i))
+        if (isTrue(isGreaterThan(failedOrdersLength, 0)))
         {
-            object failedOrder = getValue(failedOrders, i);
-            object error = this.safeString(failedOrder, "reason");
-            throw new OrderNotFound ((string)add(add(add(add(this.id, " cancelOrders() failed for "), this.safeString(failedOrder, "orderId")), ": "), error)) ;
+            object failedDetails = "";
+            for (object i = 0; isLessThan(i, failedOrdersLength); postFixIncrement(ref i))
+            {
+                object failedOrder = getValue(failedOrders, i);
+                object failedOrderId = this.safeString(failedOrder, "orderId");
+                object failedReason = this.safeString(failedOrder, "reason");
+                if (isTrue(isGreaterThan(i, 0)))
+                {
+                    failedDetails = add(failedDetails, ", ");
+                }
+                failedDetails = add(add(add(failedDetails, failedOrderId), ": "), failedReason);
+            }
+            throw new OrderNotFound ((string)add(add(this.id, " cancelOrders() failed for "), failedDetails)) ;
         }
         object orders = new List<object>() {};
         object canceledOrdersLength = getArrayLength(canceledOrders);

@@ -227,6 +227,7 @@ import hyperliquidPrediction from './src/prediction/hyperliquid.js';
 import kalshiPrediction from './src/prediction/kalshi.js';
 import limitlessPrediction from './src/prediction/limitless.js';
 import myriadPrediction from './src/prediction/myriad.js';
+import opinionPrediction from './src/prediction/opinion.js';
 import polymarketPrediction from './src/prediction/polymarket.js';
 const exchanges = {
     'alpaca': alpaca,
@@ -421,6 +422,7 @@ const prediction = {
     'kalshi': kalshiPrediction,
     'limitless': limitlessPrediction,
     'myriad': myriadPrediction,
+    'opinion': opinionPrediction,
     'polymarket': polymarketPrediction,
 };
 prediction.exchanges = Object.keys(prediction);

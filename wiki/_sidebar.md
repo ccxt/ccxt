@@ -111,4 +111,5 @@
 	- [kalshi](exchanges/prediction/kalshi.md)
 	- [limitless](exchanges/prediction/limitless.md)
 	- [myriad](exchanges/prediction/myriad.md)
+	- [opinion](exchanges/prediction/opinion.md)
 	- [polymarket](exchanges/prediction/polymarket.md)

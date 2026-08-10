@@ -40,7 +40,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "createConvertTrade", true );
                 put( "createDepositAddress", true );
                 put( "createMarketBuyOrderWithCost", true );
-                put( "createMarketOrderWithCost", false );
+                put( "createMarketOrderWithCost", true );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
                 put( "createPostOnlyOrder", true );
@@ -51,6 +51,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "editOrder", true );
                 put( "fetchAccounts", true );
                 put( "fetchBalance", true );
+                put( "fetchBorrowInterest", true );
                 put( "fetchBorrowRateHistories", false );
                 put( "fetchBorrowRateHistory", false );
                 put( "fetchClosedOrders", true );
@@ -733,7 +734,6 @@ public class WhitebitCore extends WhitebitApi
         Object margin = Helpers.isTrue(isCollateral) && !Helpers.isTrue(swap);
         Object contract = false;
         Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
-        Object contractSize = amountPrecision;
         Object linear = null;
         Object inverse = null;
         if (Helpers.isTrue(swap))
@@ -784,7 +784,7 @@ public class WhitebitCore extends WhitebitApi
             put( "inverse", finalInverse );
             put( "taker", WhitebitCore.this.parseNumber(taker) );
             put( "maker", WhitebitCore.this.parseNumber(maker) );
-            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : contractSize );
+            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : WhitebitCore.this.parseNumber("1") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
@@ -2914,10 +2914,6 @@ public class WhitebitCore extends WhitebitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
-            {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
-            }
             if (Helpers.isTrue(isBiggerThanZero))
             {
                 Helpers.addElementToObject(request, "timeout", this.numberToString(Helpers.divide(timeout, 1000)));

@@ -226,7 +226,7 @@ export default class extended extends Exchange {
                         'post': {
                             'user/order': { 'cost': 1 } as Endpoint<Dict>,
                             'user/order/massCancel': { 'cost': 1 } as Endpoint<Dict>,
-                            'user/deadmanswitch': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/deadmanswitch': { 'cost': 1 } as Endpoint<string>,
                             'user/bridge/quote': { 'cost': 1 } as Endpoint<Dict>,
                             'user/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
                             'user/transfer': { 'cost': 1 } as Endpoint<Dict>,

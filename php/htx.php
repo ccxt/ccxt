@@ -109,7 +109,7 @@ class htx extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
-                'fetchStatus' => false, // none of `summary.json` endpoint work atm. revise in near future
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,

@@ -1095,7 +1095,7 @@ public class CryptomusCore extends CryptomusApi
             //         ]
             //     }
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseOrders(result, market, null, null);
+            return this.parseOrders(result, market, null);
         });
 
     }

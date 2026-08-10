@@ -80,7 +80,7 @@ func (this *KucoinCore) Describe() any {
 			"fetchL3OrderBook":                     true,
 			"fetchLedger":                          true,
 			"fetchLeverage":                        true,
-			"fetchLeverageTiers":                   false,
+			"fetchLeverageTiers":                   true,
 			"fetchMarginAdjustmentHistory":         false,
 			"fetchMarginMode":                      true,
 			"fetchMarketLeverageTiers":             true,
@@ -6083,7 +6083,7 @@ func (this *KucoinCore) CancelSpotOrder(id any, optionalArgs ...any) <-chan any 
 		useSync = GetValue(useSyncparamsVariable, 0)
 		params = GetValue(useSyncparamsVariable, 1)
 		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
+		marginModeparamsVariable := this.HandleMarginModeAndParams("cancelOrder", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
 		var tradeType any = this.SafeString(params, "tradeType") // keep it for backward compatibility
@@ -6328,12 +6328,12 @@ func (this *KucoinCore) CancelUtaOrder(id any, optionalArgs ...any) <-chan any {
 		var market any = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 		var accountMode any = "unified"
-		accountModeparamsVariable := this.HandleOptionAndParams(params, "fetchOrder", "accountMode", accountMode)
+		accountModeparamsVariable := this.HandleOptionAndParams(params, "cancelOrder", "accountMode", accountMode)
 		accountMode = GetValue(accountModeparamsVariable, 0)
 		params = GetValue(accountModeparamsVariable, 1)
 		AddElementToObject(request, "accountMode", accountMode)
 		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrder", params)
+		marginModeparamsVariable := this.HandleMarginModeAndParams("cancelOrder", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
 		var isUnified any = (IsEqual(accountMode, "unified"))
@@ -6414,7 +6414,7 @@ func (this *KucoinCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params)
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(IsTrue((IsEqual(marketType, "spot"))) || IsTrue((IsEqual(marketType, "margin")))) {
@@ -13360,7 +13360,7 @@ func (this *KucoinCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 			params = GetValue(accountModeparamsVariable, 1)
 			AddElementToObject(request, "accountMode", accountMode)
 			var marginMode any = nil
-			marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrder", params)
+			marginModeparamsVariable := this.HandleMarginModeAndParams("cancelOrders", params)
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
 			var isUnified any = (IsEqual(accountMode, "unified"))

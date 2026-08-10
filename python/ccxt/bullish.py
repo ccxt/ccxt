@@ -44,7 +44,7 @@ class bullish(Exchange, ImplicitAPI):
                 'margin': False,
                 'swap': True,
                 'future': True,
-                'option': False,
+                'option': True,
                 'addMargin': False,
                 'borrowMargin': False,
                 'cancelAllOrders': True,
@@ -963,7 +963,7 @@ class bullish(Exchange, ImplicitAPI):
             self.load_markets()
         maxLimit = 100
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
             params = self.handle_pagination_params('fetchTrades', since, params)
             return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params, maxLimit)
@@ -2160,7 +2160,7 @@ class bullish(Exchange, ImplicitAPI):
 
     def load_account(self, params={}):
         tradingAccountId = None
-        tradingAccountId, params = self.handle_option_and_params(params, 'fetchMyTrades', 'tradingAccountId')
+        tradingAccountId, params = self.handle_option_and_params(params, 'loadAccount', 'tradingAccountId')
         if tradingAccountId is None:
             response = self.privateGetV1AccountsTradingAccounts(params)
             accounts = self.to_array(response)

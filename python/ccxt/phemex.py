@@ -103,6 +103,7 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPositionADLRank': True,
+                'fetchPositionHistory': True,
                 'fetchPositions': True,
                 'fetchPositionsADLRank': True,
                 'fetchPositionsRisk': False,

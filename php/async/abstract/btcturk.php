@@ -98,7 +98,7 @@ abstract class btcturk extends \ccxt\async\Exchange {
         return $this->request('ohlcs', 'graph', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function graph_get_klines_history($params = array()) {
         return $this->request('klines/history', 'graph', 'GET', $params, null, null, array("cost" => 1));
@@ -194,7 +194,7 @@ abstract class btcturk extends \ccxt\async\Exchange {
         return $this->request('ohlcs', 'graph', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function graphGetKlinesHistory($params = array()) {
         return $this->request('klines/history', 'graph', 'GET', $params, null, null, array("cost" => 1));

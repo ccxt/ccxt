@@ -572,11 +572,14 @@ public partial class mudrex : Exchange
             if (isTrue(isTrue((data is IDictionary<string, object>)) && !isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
             {
                 items = this.safeList(data, "items", new List<object>() {});
-                if (!isTrue(getArrayLength(items)))
+                // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                object itemsLength = getArrayLength(items);
+                if (!isTrue(itemsLength))
                 {
                     items = this.safeList(data, "results", new List<object>() {});
+                    itemsLength = getArrayLength(items);
                 }
-                if (isTrue(!isTrue(getArrayLength(items)) && isTrue((inOp(data, "symbol")))))
+                if (isTrue(!isTrue(itemsLength) && isTrue((inOp(data, "symbol")))))
                 {
                     items = new List<object>() {data};
                 }
@@ -584,21 +587,23 @@ public partial class mudrex : Exchange
             {
                 items = this.toArray(data);
             }
-            if (!isTrue(getArrayLength(items)))
+            object numItems = getArrayLength(items);
+            if (!isTrue(numItems))
             {
                 paging = false;
                 break;
             }
-            for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
+            for (object i = 0; isLessThan(i, numItems); postFixIncrement(ref i))
             {
                 ((IList<object>)aggregated).Add(getValue(items, i));
             }
-            if (isTrue(isLessThan(getArrayLength(items), pageLimit)))
+            if (isTrue(isLessThan(numItems, pageLimit)))
             {
                 paging = false;
             } else
             {
-                offset = add(offset, pageLimit);
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = this.sum(offset, pageLimit);
             }
         }
         object result = new List<object>() {};

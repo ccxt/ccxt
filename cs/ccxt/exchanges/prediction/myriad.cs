@@ -25,6 +25,7 @@ public partial class myriad : PredictionExchange
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
+                { "createMarketBuyOrderWithCost", true },
                 { "createOrder", true },
                 { "createOrders", true },
                 { "editOrder", true },

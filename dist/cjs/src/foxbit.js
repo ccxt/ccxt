@@ -41,6 +41,8 @@ class foxbit extends foxbit$1["default"] {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'createOrder': true,
+                'createOrders': true,
+                'editOrder': true,
                 'fecthOrderBook': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
@@ -55,7 +57,10 @@ class foxbit extends foxbit$1["default"] {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -2039,6 +2044,8 @@ class foxbit extends foxbit$1["default"] {
         }
         headers = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': this.getCcxtVersion(),
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials();
