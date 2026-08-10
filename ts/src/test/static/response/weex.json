@@ -4144,6 +4144,199 @@
                     "stopPrice": null
                 }
             }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "fetch last prices",
+                "method": "fetchLastPrices",
+                "input": [
+                    [
+                        "ETH/USDT",
+                        "DOGE/USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "DOGEUSDT",
+                        "price": "0.07009"
+                    },
+                    {
+                        "symbol": "ETHUSDT",
+                        "price": "1928.25"
+                    }
+                ],
+                "parsedResponse": {
+                    "DOGE/USDT": {
+                        "symbol": "DOGE/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "price": 0.07009,
+                        "side": null,
+                        "info": {
+                            "symbol": "DOGEUSDT",
+                            "price": "0.07009"
+                        }
+                    },
+                    "ETH/USDT": {
+                        "symbol": "ETH/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "price": 1928.25,
+                        "side": null,
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "price": "1928.25"
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchMarkPrice": [
+            {
+                "description": "fetch mark price",
+                "method": "fetchMarkPrice",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "symbol": "ETHUSDT",
+                    "price": "1927.49",
+                    "time": 1786347734132
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "timestamp": 1786347734132,
+                    "datetime": "2026-08-10T07:42:14.132Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "markPrice": 1927.49,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "ETHUSDT",
+                        "price": "1927.49",
+                        "time": 1786347734132,
+                        "markPrice": "1927.49"
+                    }
+                }
+            },
+            {
+                "description": "fetch index price via priceType param",
+                "method": "fetchMarkPrice",
+                "input": [
+                    "ETH/USDT:USDT",
+                    {
+                        "priceType": "INDEX"
+                    }
+                ],
+                "httpResponse": {
+                    "symbol": "ETHUSDT",
+                    "price": "1927.135",
+                    "time": 1786349116246
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "timestamp": 1786349116246,
+                    "datetime": "2026-08-10T08:05:16.246Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "previousClose": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "indexPrice": 1927.135,
+                    "info": {
+                        "symbol": "ETHUSDT",
+                        "price": "1927.135",
+                        "time": 1786349116246,
+                        "indexPrice": "1927.135"
+                    }
+                }
+            }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "fetch mark prices",
+                "method": "fetchMarkPrices",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETHUSDT",
+                        "markPrice": "1927.53",
+                        "indexPrice": "1927.9325",
+                        "forecastFundingRate": "0.00003861",
+                        "lastFundingRate": "0.00004879",
+                        "interestRate": "0.001",
+                        "nextFundingTime": 1786348800000,
+                        "time": 1786347735202,
+                        "collectCycle": 480
+                    }
+                ],
+                "parsedResponse": {
+                    "ETH/USDT:USDT": {
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1786347735202,
+                        "datetime": "2026-08-10T07:42:15.202Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": 1927.53,
+                        "indexPrice": 1927.9325,
+                        "info": {
+                            "symbol": "ETHUSDT",
+                            "markPrice": "1927.53",
+                            "indexPrice": "1927.9325",
+                            "forecastFundingRate": "0.00003861",
+                            "lastFundingRate": "0.00004879",
+                            "interestRate": "0.001",
+                            "nextFundingTime": 1786348800000,
+                            "time": 1786347735202,
+                            "collectCycle": 480
+                        }
+                    }
+                }
+            }
         ]
     }
 }
