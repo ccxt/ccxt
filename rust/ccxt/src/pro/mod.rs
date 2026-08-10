@@ -3,6 +3,7 @@
 
 pub mod cache;
 pub mod order_book;
+pub mod ws_client;
 #[cfg(feature = "transpiled-ws")]
 pub mod alpaca;
 #[cfg(feature = "transpiled-ws")]

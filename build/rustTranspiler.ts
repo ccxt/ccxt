@@ -6153,7 +6153,7 @@ impl std::ops::DerefMut for ${coreName} {
         // transpiled exchanges (e.g. `pro/cache.rs`, `pro/order_book.rs`).
         // Filter them out of `names` (the existence check below is the
         // sole source of their `pub mod` lines) so we don't get dups.
-        const HAND_WRITTEN_SIBLINGS = new Set(['cache', 'order_book']);
+        const HAND_WRITTEN_SIBLINGS = new Set(['cache', 'order_book', 'ws_client']);
         const baseNames = names.filter(
             n => !n.endsWith('_api')
               && !n.endsWith('_typed')
