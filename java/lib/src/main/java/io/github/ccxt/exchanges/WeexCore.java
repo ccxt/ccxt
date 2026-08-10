@@ -1377,6 +1377,10 @@ public class WeexCore extends WeexApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
@@ -1395,7 +1399,16 @@ public class WeexCore extends WeexApi
             {
                 response = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
             }
-            return this.parseTickers(response, symbols);
+            Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            {
+                Object rawTicker = Helpers.GetValue(response, i);
+                // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
+                Object marketId = this.safeString(rawTicker, "symbol");
+                Object tickerMarket = this.safeMarket(marketId, null, null, marketType);
+                ((java.util.List<Object>)results).add(this.parseTicker(rawTicker, tickerMarket));
+            }
+            return this.filterByArrayTickers(results, "symbol", symbols);
         });
 
     }
@@ -1444,8 +1457,9 @@ public class WeexCore extends WeexApi
         Object marketId = this.safeString(ticker, "symbol");
         Object markPrice = this.safeString(ticker, "markPrice");
         Object marketType = "spot";
-        if (Helpers.isTrue(!Helpers.isEqual(markPrice, null)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(markPrice, null))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue(Helpers.GetValue(market, "contract"))))))
         {
+            // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = "swap";
         }
         market = this.safeMarket(marketId, market, null, marketType);
