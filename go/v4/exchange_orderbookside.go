@@ -1,6 +1,7 @@
 package ccxt
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -65,6 +66,22 @@ type OrderBookSide struct {
 	Length int          `json:"-"`    // current Length
 	Side   bool         `json:"-"`    // false is asks, true is bids
 	Mutex  sync.RWMutex `json:"-"`    // protects concurrent access
+}
+
+// MarshalJSON emits the side as a plain array of price levels instead of the
+// default struct shape {"data":[...]}, which leaked into serialized orderbooks,
+// see https://github.com/ccxt/ccxt/issues/29586
+// promoted via embedding into CountedOrderBookSide and IndexedOrderBookSide
+func (obs *OrderBookSide) MarshalJSON() ([]byte, error) {
+	if obs == nil {
+		return []byte("[]"), nil
+	}
+	obs.Mutex.RLock()
+	defer obs.Mutex.RUnlock()
+	if obs.Data == nil {
+		return []byte("[]"), nil
+	}
+	return json.Marshal(obs.Data)
 }
 
 func (obs *OrderBookSide) GetValue(key string, defaultValue any) any {
@@ -813,8 +830,64 @@ func (obs *IndexedOrderBookSide) String() string {
 func (obs *IndexedOrderBookSide) GetData() [][]any {
 	return obs.Data
 }
+
+// MarshalJSON emits the side as a plain array of price levels, the promoted
+// method from the embedded OrderBookSide would see a nil receiver because the
+// embedded pointer is never set for indexed sides and the data lives in the
+// shadowing Data field, see https://github.com/ccxt/ccxt/issues/29586
+func (obs *IndexedOrderBookSide) MarshalJSON() ([]byte, error) {
+	if obs == nil {
+		return []byte("[]"), nil
+	}
+	obs.Mutex.RLock()
+	defer obs.Mutex.RUnlock()
+	if obs.Data == nil {
+		return []byte("[]"), nil
+	}
+	return json.Marshal(obs.Data)
+}
 func (obs *IndexedOrderBookSide) GetDataCopy() [][]any {
-	return obs.OrderBookSide.GetDataCopy()
+	// data lives in the shadowing Data field guarded by the shadowing Mutex,
+	// the embedded OrderBookSide pointer is nil for indexed sides, so delegating
+	// upward always returned an empty copy, see https://github.com/ccxt/ccxt/issues/29586
+	if obs == nil {
+		return [][]any{}
+	}
+
+	obs.Mutex.RLock()
+	defer obs.Mutex.RUnlock()
+
+	if obs.Data == nil {
+		return [][]any{}
+	}
+
+	out := make([][]any, len(obs.Data))
+
+	for i, slice := range obs.Data {
+		if slice == nil {
+			out[i] = []any{}
+			continue
+		}
+
+		newSlice := make([]any, len(slice))
+		for j, val := range slice {
+			switch v := val.(type) {
+			case map[string]any:
+				newMap := make(map[string]any, len(v))
+				for key, value := range v {
+					newMap[key] = value
+				}
+				newSlice[j] = newMap
+			case []any:
+				newSlice[j] = append([]any{}, v...)
+			default:
+				newSlice[j] = v
+			}
+		}
+		out[i] = newSlice
+	}
+
+	return out
 }
 func (obs *IndexedOrderBookSide) Len() int {
 	return obs.Length

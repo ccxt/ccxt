@@ -32,9 +32,11 @@ func NewIOrderBook(v any) IOrderBook {
 
 func NewOrderBookFromWs(v any) OrderBook {
 	switch t := v.(type) {
-	case *WsOrderBook:
-		ob := t.ToMap()
-		return NewOrderBook(ob)
+	case OrderBookInterface:
+		// covers *WsOrderBook and all embedding types (*CountedOrderBook, *IndexedOrderBook);
+		// a concrete *WsOrderBook case never matches embedding types and silently produced
+		// empty books with timestamp 0, see https://github.com/ccxt/ccxt/issues/29586
+		return NewOrderBook(t.ToMap())
 	case map[string]any:
 		return NewOrderBook(t)
 	default:
