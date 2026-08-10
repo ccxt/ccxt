@@ -214,7 +214,10 @@ const exec = (bin, ...args) => {
         const psSpawn = ps.spawn (bin, args)
 
         psSpawn.stdout.on ('data', data => { output += data.toString () })
-        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString ().trim (); })
+        // do not trim per chunk, trimming eats the newline at every pipe chunk boundary
+        // and glues consecutive warning lines together in the WS WARN block, see
+        // https://github.com/ccxt/ccxt/pull/29726
+        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); })
 
         psSpawn.on ('exit', code => {
             const result = generateResultFromOutput (output, stderr, code)
