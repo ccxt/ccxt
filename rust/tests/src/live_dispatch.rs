@@ -58,19 +58,28 @@ use ccxt::exchanges::{
 // Prediction-market venue Cores (Deref through PredictionExchange → Exchange).
 use ccxt::prediction::{
     kalshi::KalshiCore, limitless::LimitlessCore,
-    myriad::MyriadCore, polymarket::PolymarketCore,
+    myriad::MyriadCore, opinion::OpinionCore, polymarket::PolymarketCore,
 };
 use ccxt::prediction::hyperliquid::HyperliquidCore as PredHyperliquidCore;
+use ccxt::prediction::binance::BinanceCore as PredBinanceCore;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-/// When set (by `--prediction`), `build_core` resolves the `hyperliquid` id to
-/// its prediction-market Core instead of the regular exchange of the same id.
+/// When set (by `--prediction`), `build_core` resolves the `hyperliquid` and
+/// `binance` ids to their prediction-market Cores instead of the regular
+/// exchanges of the same id.
 static PREDICTION_MODE: AtomicBool = AtomicBool::new(false);
 
 /// Enable prediction-mode id resolution. Call once from `main` when the
 /// `--prediction` flag is present.
 pub fn set_prediction_mode(on: bool) {
     PREDICTION_MODE.store(on, Ordering::Relaxed);
+}
+
+/// Whether `--prediction` mode is active. Read by `registry::exchange_snapshot`
+/// so the describe()-snapshot for a collision id (`binance` / `hyperliquid`)
+/// comes from the prediction Core, not the regular exchange of the same id.
+pub fn is_prediction_mode() -> bool {
+    PREDICTION_MODE.load(Ordering::Relaxed)
 }
 use crate::registry::for_each_core;
 use indexmap::IndexMap as HashMap;
@@ -512,10 +521,12 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
             });
         }
     }; }
-    // In prediction mode, `hyperliquid` resolves to the prediction Core; this
-    // arm runs before for_each_core! so it wins over the regular hyperliquid.
+    // In prediction mode, `hyperliquid` and `binance` resolve to their
+    // prediction Cores; these arms run before for_each_core! so they win over
+    // the regular exchanges of the same id.
     if PREDICTION_MODE.load(Ordering::Relaxed) {
         arm!(hyperliquid, PredHyperliquidCore);
+        arm!(binance, PredBinanceCore);
     }
     for_each_core!(arm);
     None

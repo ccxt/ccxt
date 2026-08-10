@@ -56,8 +56,12 @@ use ccxt::exchanges::{
 // Prediction-market venue Cores (Deref through PredictionExchange → Exchange).
 use ccxt::prediction::{
     kalshi::KalshiCore, limitless::LimitlessCore,
-    myriad::MyriadCore, polymarket::PolymarketCore,
+    myriad::MyriadCore, opinion::OpinionCore, polymarket::PolymarketCore,
 };
+// Aliases for the prediction Cores whose ids collide with a regular exchange —
+// used by `exchange_snapshot`'s prediction-mode override.
+use ccxt::prediction::binance::BinanceCore as PredBinanceCore;
+use ccxt::prediction::hyperliquid::HyperliquidCore as PredHyperliquidCore;
 // call_dynamic is an ExchangeBase trait method now (review #1).
 use ccxt::exchange_generated::ExchangeBase;
 use indexmap::IndexMap as HashMap;
@@ -181,6 +185,7 @@ macro_rules! for_each_core {
         $cb!(kalshi, KalshiCore);
         $cb!(limitless, LimitlessCore);
         $cb!(myriad, MyriadCore);
+        $cb!(opinion, OpinionCore);
         $cb!(polymarket, PolymarketCore);
     };
 }
@@ -261,6 +266,15 @@ pub fn exchange_snapshot(id: &str, cfg: Value) -> Value {
             return ex.to_value();
         }
     }; }
+    // In prediction mode, `binance` / `hyperliquid` snapshot from their
+    // prediction Cores (mirrors build_core). Without this the snapshot's
+    // `options` key carries the regular exchange's describe (e.g. binance's
+    // `recvWindow: 10000`), which then merges into the prediction Core and
+    // leaks into signed requests — failing the static prediction request tests.
+    if crate::live_dispatch::is_prediction_mode() {
+        arm!(binance, PredBinanceCore);
+        arm!(hyperliquid, PredHyperliquidCore);
+    }
     for_each_core!(arm);
     Value::Null
 }
