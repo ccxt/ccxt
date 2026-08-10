@@ -23,7 +23,7 @@ async def test_fetch_leverage_tiers(exchange, skipped_properties, symbol):
     #       {},
     #     ],
     # };
-    assert exchange.is_dictionary(tiers), exchange.id + ' ' + method + ' ' + symbol + ' must return a dict. ' + exchange.json(tiers)
+    test_shared_methods.assert_dictionary_response(exchange, method, tiers, symbol)
     tier_keys = list(tiers.keys())
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, tier_keys, symbol)
     for i in range(0, len(tier_keys)):

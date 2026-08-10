@@ -529,6 +529,20 @@ def concat(a=None, b=None):
         return result
 
 
+def assert_dictionary_response(exchange, method, response, hint=None):
+    # php cannot distinguish an empty dict from an empty list, both are a plain array
+    # there, so an empty array response is shape indeterminate and accepted, observed
+    # as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+    is_empty_array_response = False
+    if isinstance(response, list):
+        response_length = len(response)
+        is_empty_array_response = (response_length == 0)
+    hint_text = ''
+    if hint is not None:
+        hint_text = ' ' + hint
+    assert exchange.is_dictionary(response) or is_empty_array_response, exchange.id + ' ' + method + hint_text + ' must return a dict. ' + exchange.json(response)
+
+
 def assert_non_emtpy_array(exchange, skipped_properties, method, entry, hint=None):
     log_text = log_template(exchange, method, entry)
     if hint is not None:
