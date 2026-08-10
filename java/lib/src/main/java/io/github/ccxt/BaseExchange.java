@@ -829,6 +829,11 @@ public class BaseExchange {
         return String.valueOf(exc);
     }
 
+    public Object isDictionary(Object value)
+    {
+        return Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value));
+    }
+
     public Object ethGetAddressFromPrivateKey(Object privateKey) {
         try {
             String cleanKey = (String) this.remove0xPrefix(privateKey);
