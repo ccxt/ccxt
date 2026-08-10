@@ -2724,7 +2724,11 @@ class binance extends \ccxt\async\binance {
             }
             $tickerMarketId = $this->safe_string($ticker, 's');
             $tickerMarketsByIdList = $this->safe_value($this->markets_by_id, $tickerMarketId);
-            $tickerMarketById = $this->safe_value($tickerMarketsByIdList, 0);
+            $numTickerMarkets = ($tickerMarketsByIdList === null) ? 0 : count($tickerMarketsByIdList);
+            // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
+            // blind first pick, the stream url decides; only a unique match, like an
+            // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
+            $tickerMarketById = ($numTickerMarkets === 1) ? $this->safe_value($tickerMarketsByIdList, 0) : null;
             $isSpot = $this->is_spot_url($client);
             $tickerFallbackType = $isSpot ? 'spot' : 'contract';
             $tickerMarketType = ($tickerMarketById !== null) ? $tickerMarketById['type'] : $tickerFallbackType;
