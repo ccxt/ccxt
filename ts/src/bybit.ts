@@ -8775,11 +8775,6 @@ export default class bybit extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'getLeverageTiersPaginated', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor ('getLeverageTiersPaginated', symbol, undefined, undefined, params, 'nextPageCursor', 'cursor', undefined, 100);
-        }
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('getLeverageTiersPaginated', market, params, 'linear');
         const request: Dict = {
@@ -8807,7 +8802,7 @@ export default class bybit extends Exchange {
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.paginationCalls] the maximum number of paginated risk-limit requests to make while sweeping the whole symbol universe, default 200
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
@@ -8823,7 +8818,36 @@ export default class bybit extends Exchange {
             }
             symbol = market['symbol'];
         }
-        const data = await this.getLeverageTiersPaginated (symbol, this.extend ({ 'paginate': true, 'paginationCalls': 50 }, params));
+        let maxCalls: Int = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, 'fetchLeverageTiers', 'paginationCalls', 200);
+        let data: List = [];
+        let cursor: Str = undefined;
+        let i = 0;
+        while (i < maxCalls) {
+            let request: Dict = {};
+            if (cursor !== undefined) {
+                request['cursor'] = cursor;
+            }
+            request = this.extend (request, params);
+            const page = await this.getLeverageTiersPaginated (symbol, request);
+            const pageLength = page.length;
+            if (pageLength === 0) {
+                cursor = undefined;
+                break;
+            }
+            data = this.arrayConcat (data, page);
+            const last = this.safeDict (page, pageLength - 1, {});
+            const info = this.safeDict (last, 'info', {});
+            cursor = this.safeString (info, 'nextPageCursor');
+            i += 1;
+            if ((cursor === undefined) || (cursor === '')) {
+                cursor = undefined;
+                break;
+            }
+        }
+        if (cursor !== undefined) {
+            throw new ExchangeError (this.id + ' fetchLeverageTiers() reached the pagination limit of ' + maxCalls.toString () + ' calls while bybit still had more risk-limit data left to fetch; pass a higher params["paginationCalls"] to sweep the full symbol universe');
+        }
         symbols = this.marketSymbols (symbols);
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
