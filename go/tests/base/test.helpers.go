@@ -30,10 +30,14 @@ type bookSnapshot struct {
 	Outcome   interface{}
 	OutcomeId interface{}
 	Market    interface{}
-	at        time.Time
 }
 
-func newBookSnapshot(book ccxt.OrderBookInterface, at time.Time) bookSnapshot {
+type bookSnapshotEntry struct {
+	snap bookSnapshot
+	at   time.Time
+}
+
+func newBookSnapshot(book ccxt.OrderBookInterface) bookSnapshot {
 	// one ToMap call captures the whole book, both sides copied lock
 	// correct back to back together with the scalars
 	m := book.ToMap()
@@ -49,12 +53,11 @@ func newBookSnapshot(book ccxt.OrderBookInterface, at time.Time) bookSnapshot {
 		Outcome:   m["outcome"],
 		OutcomeId: m["outcomeId"],
 		Market:    m["market"],
-		at:        at,
 	}
 }
 
 var bookSnapshotMutex sync.Mutex
-var bookSnapshots = map[interface{}]bookSnapshot{}
+var bookSnapshots = map[interface{}]bookSnapshotEntry{}
 
 // one assertion cycle over a book completes well within the ttl, while
 // consecutive watch loop iterations are network spaced and get a fresh view
@@ -73,35 +76,35 @@ func snapshotOrderBook(collection interface{}, key interface{}, value interface{
 	now := time.Now()
 	bookSnapshotMutex.Lock()
 	defer bookSnapshotMutex.Unlock()
-	for cached, snap := range bookSnapshots {
-		if now.Sub(snap.at) > bookSnapshotPrune {
+	for cached, entry := range bookSnapshots {
+		if now.Sub(entry.at) > bookSnapshotPrune {
 			delete(bookSnapshots, cached)
 		}
 	}
-	snap, found := bookSnapshots[collection]
-	if !found || now.Sub(snap.at) > bookSnapshotTtl {
-		snap = newBookSnapshot(book, now)
-		bookSnapshots[collection] = snap
+	entry, found := bookSnapshots[collection]
+	if !found || now.Sub(entry.at) > bookSnapshotTtl {
+		entry = bookSnapshotEntry{snap: newBookSnapshot(book), at: now}
+		bookSnapshots[collection] = entry
 	}
 	switch k {
 	case "asks":
-		return snap.Asks
+		return entry.snap.Asks
 	case "bids":
-		return snap.Bids
+		return entry.snap.Bids
 	case "timestamp":
-		return snap.Timestamp
+		return entry.snap.Timestamp
 	case "datetime":
-		return snap.Datetime
+		return entry.snap.Datetime
 	case "nonce":
-		return snap.Nonce
+		return entry.snap.Nonce
 	case "symbol":
-		return snap.Symbol
+		return entry.snap.Symbol
 	case "outcome":
-		return snap.Outcome
+		return entry.snap.Outcome
 	case "outcomeId":
-		return snap.OutcomeId
+		return entry.snap.OutcomeId
 	case "market":
-		return snap.Market
+		return entry.snap.Market
 	}
 	return value
 }
