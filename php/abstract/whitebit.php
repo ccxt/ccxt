@@ -500,7 +500,7 @@ abstract class whitebit extends \ccxt\Exchange {
         return $this->request('order/conditional-cancel', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function v4_private_post_orders($params = array()) {
         return $this->request('orders', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -1166,7 +1166,7 @@ abstract class whitebit extends \ccxt\Exchange {
         return $this->request('order/conditional-cancel', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function v4PrivatePostOrders($params = array()) {
         return $this->request('orders', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
