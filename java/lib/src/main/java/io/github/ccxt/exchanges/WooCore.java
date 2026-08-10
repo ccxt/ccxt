@@ -620,8 +620,8 @@ public class WooCore extends WooApi
                     put( "ZRX", "ZRX" );
                 }} );
                 put( "networks", new java.util.HashMap<String, Object>() {{
-                    put( "TRX", "TRON" );
-                    put( "TRC20", "TRON" );
+                    put( "TRX", "TRX" );
+                    put( "TRC20", "TRX" );
                     put( "ERC20", "ETH" );
                     put( "BEP20", "BSC" );
                     put( "ARBITRUM", "Arbitrum" );
@@ -2611,7 +2611,7 @@ public class WooCore extends WooApi
         Object orderType = this.safeStringLower(order, "type");
         Object status = this.safeValue2(order, "status", "algoStatus");
         Object side = this.safeStringLower(order, "side");
-        Object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
+        Object filled = this.safeString2(order, "executed", "totalExecutedQuantity");
         Object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
         // const remaining = Precise.stringSub (cost, filled);
         Object fee = this.safeNumber(order, "totalFee");
@@ -2629,8 +2629,15 @@ public class WooCore extends WooApi
                 lastUpdateTimestamp = this.safeInteger(order, "updatedTime"); // regular orders
             }
         }
+        Object postOnly = null;
+        if (Helpers.isTrue(!Helpers.isEqual(orderType, null)))
+        {
+            postOnly = (Helpers.isEqual(orderType, "post_only"));
+        }
         final Object finalTimestamp = timestamp;
         final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
+        final Object finalOrderType = orderType;
+        final Object finalPostOnly = postOnly;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
@@ -2640,9 +2647,9 @@ public class WooCore extends WooApi
             put( "lastUpdateTimestamp", finalLastUpdateTimestamp );
             put( "status", WooCore.this.parseOrderStatus(status) );
             put( "symbol", symbol );
-            put( "type", orderType );
-            put( "timeInForce", WooCore.this.parseTimeInForce(orderType) );
-            put( "postOnly", null );
+            put( "type", finalOrderType );
+            put( "timeInForce", WooCore.this.parseTimeInForce(finalOrderType) );
+            put( "postOnly", finalPostOnly );
             put( "reduceOnly", WooCore.this.safeBool(order, "reduceOnly") );
             put( "side", side );
             put( "price", price );
@@ -3199,7 +3206,9 @@ public class WooCore extends WooApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return this.parseDepositAddress(data, currency);
+            return this.parseDepositAddress(this.extend(data, new java.util.HashMap<String, Object>() {{
+                put( "network", WooCore.this.safeString(request, "network") );
+            }}), currency);
         });
 
     }
@@ -3226,10 +3235,11 @@ public class WooCore extends WooApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object address = this.safeString(depositEntry, "address");
         this.checkAddress(address);
+        Object networkId = this.safeString(depositEntry, "network");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositEntry );
             put( "currency", WooCore.this.safeString(currency, "code") );
-            put( "network", null );
+            put( "network", WooCore.this.networkIdToCode(networkId, WooCore.this.safeString(currency, "code")) );
             put( "address", address );
             put( "tag", WooCore.this.safeString(depositEntry, "extra") );
         }};
