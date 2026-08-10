@@ -3835,13 +3835,20 @@ class woo(Exchange, ImplicitAPI):
 
         https://developer.woox.io/api-reference/endpoint/futures/get_positions
 
-        :param str[] [symbols]: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.markets is None:
             self.load_markets()
-        response = self.v3PrivateGetFuturesPositions(params)
+        symbols = self.market_symbols(symbols)
+        request = {}
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        response = self.v3PrivateGetFuturesPositions(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -4264,14 +4271,20 @@ class woo(Exchange, ImplicitAPI):
 
         https://developer.woox.io/api-reference/endpoint/futures/get_positions
 
-        :param str[] [symbols]: a list of unified market symbols
+        :param str[] [symbols]: a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
         """
         if self.markets is None:
             self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
-        response = self.v3PrivateGetFuturesPositions(params)
+        request = {}
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        response = self.v3PrivateGetFuturesPositions(self.extend(request, params))
         #
         #     {
         #         "success": True,
