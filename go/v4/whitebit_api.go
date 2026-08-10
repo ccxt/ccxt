@@ -417,7 +417,7 @@ func (this *WhitebitCore) V4PrivatePostOrderConditionalCancel(args ...any) <-cha
 	return this.callEndpointAsync("v4PrivatePostOrderConditionalCancel", args...)
 }
 
-// V4PrivatePostOrders returns a channel that yields a JSON object.
+// V4PrivatePostOrders returns a channel that yields a JSON array.
 func (this *WhitebitCore) V4PrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostOrders", args...)
 }

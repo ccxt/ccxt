@@ -165,6 +165,101 @@ func (this *Weex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error
 
 /**
  * @method
+ * @name weex#fetchLastPrices
+ * @description fetches the last price for multiple markets
+ * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of lastprice structures
+ */
+func (this *Weex) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
+
+	opts := FetchLastPricesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchLastPrices(symbols, params)
+	if IsError(res) {
+		return LastPrices{}, CreateReturnError(res)
+	}
+	return NewLastPrices(res), nil
+}
+
+/**
+ * @method
+ * @name weex#fetchMarkPrice
+ * @description fetches mark price for the market
+ * @see https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+ * @param {string} symbol unified symbol of the market to fetch the mark price for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Weex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
+
+	opts := FetchMarkPriceOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchMarkPrice(symbol, params)
+	if IsError(res) {
+		return Ticker{}, CreateReturnError(res)
+	}
+	return NewTicker(res), nil
+}
+
+/**
+ * @method
+ * @name weex#fetchMarkPrices
+ * @description fetches mark prices for multiple markets
+ * @see https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Weex) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
+
+	opts := FetchMarkPricesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchMarkPrices(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+
+/**
+ * @method
  * @name weex#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetDepthData // spot
@@ -1710,9 +1805,6 @@ func (this *Weex) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolate
 func (this *Weex) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
-func (this *Weex) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
-	return this.exchangeTyped.FetchLastPrices(options...)
-}
 func (this *Weex) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
 	return this.exchangeTyped.FetchLedgerEntry(id, options...)
 }
@@ -1736,12 +1828,6 @@ func (this *Weex) FetchMarketLeverageTiers(symbol string, options ...FetchMarket
 }
 func (this *Weex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Weex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchMarkPrice(symbol, options...)
-}
-func (this *Weex) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchMarkPrices(options...)
 }
 func (this *Weex) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.FetchMyLiquidations(options...)
