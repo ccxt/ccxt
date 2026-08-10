@@ -94,15 +94,17 @@ public partial class BaseExchange
 
     void rejectFutures(WebSocketClient urlClient, object error)
     {
-        foreach (var KeyValue in urlClient.subscriptions)
+        // futures are keyed by messageHash while subscriptions are keyed by
+        // subscribeHash, the previous per key lookup only matched when the two
+        // strings were equal and left consumers hanging otherwise, mirror the js
+        // Client.reset behavior instead and reject every pending future, see
+        // https://github.com/ccxt/ccxt/issues/23490 and https://github.com/ccxt/ccxt/issues/21565
+        foreach (var KeyValue in urlClient.futures)
         {
-            urlClient.subscriptions.Remove(KeyValue.Key);
-            Future existingFuture = null;
-            if (urlClient.futures.TryGetValue(KeyValue.Key, out existingFuture))
-            {
-                existingFuture.reject(error);
-            }
+            KeyValue.Value.reject(error);
         }
+        urlClient.futures.Clear();
+        urlClient.subscriptions.Clear();
     }
 
     public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
@@ -238,19 +240,21 @@ public partial class BaseExchange
             return await existingFuture;
         }
         var future = client.future(messageHash);
-        object clientSubscription = null;
-        bool clientSubscriptionExists = (client.subscriptions as ConcurrentDictionary<string, object>).TryGetValue(subscribeHash, out clientSubscription);
-        if (!clientSubscriptionExists)
-        {
-            (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true);
-        }
+        // TryGetValue followed by TryAdd is not atomic and dotnet runs watch calls on
+        // real threads, so two concurrent calls for the same hash could both observe a
+        // missing subscription and both send, duplicating subscribe messages upstream,
+        // see https://github.com/ccxt/ccxt/issues/23490 - claim the hash atomically
+        // like watchMultiple already does and send only when this call won the claim,
+        // js stores null subscribe hashes under a literal undefined key, mirror that
+        var subscriptionClaimKey = subscribeHash ?? "undefined";
+        bool subscriptionClaimed = (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscriptionClaimKey, subscription ?? true);
         if (!client.startedConnecting)
         {
             // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
             backoffDelay = this.calculateWsBackoffDelay(url);
         }
         var connected = client.connect(backoffDelay);
-        if (!clientSubscriptionExists)
+        if (subscriptionClaimed)
         {
             await connected;
             if (message != null)
@@ -261,7 +265,7 @@ public partial class BaseExchange
                 }
                 catch (Exception ex)
                 {
-                    client.subscriptions.Remove(subscribeHash);
+                    client.subscriptions.Remove(subscriptionClaimKey);
                     future.reject(ex);
                     // future.SetException(ex); check this out
                 }
