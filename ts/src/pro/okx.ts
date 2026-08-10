@@ -1716,28 +1716,7 @@ export default class okx extends okxRest {
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const balance = this.parseTradingBalance (message);
-        const cachedBalance = this.omit (this.balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' ]);
-        const cachedCodes = Object.keys (cachedBalance);
-        let balanceChanged = cachedCodes.length === 0;
-        const balanceAccounts = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' ]);
-        const balanceCodes = Object.keys (balanceAccounts);
-        const accountKeys = [ 'free', 'used', 'total', 'debt' ];
-        for (let i = 0; i < balanceCodes.length; i++) {
-            const code = balanceCodes[i];
-            const cachedAccount = this.safeDict (this.balance, code);
-            const account = this.safeDict (balance, code, {});
-            if (cachedAccount === undefined) {
-                balanceChanged = true;
-            } else {
-                for (let j = 0; j < accountKeys.length; j++) {
-                    const key = accountKeys[j];
-                    if (this.safeString (cachedAccount, key) !== this.safeString (account, key)) {
-                        balanceChanged = true;
-                        break;
-                    }
-                }
-            }
-        }
+        const balanceChanged = this.isBalanceChanged (this.balance, balance);
         const newBalance = this.deepExtend (this.balance, balance);
         this.balance = this.safeBalance (newBalance);
         if (balanceChanged) {
