@@ -1324,6 +1324,10 @@ public partial class weex : Exchange
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true);
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
@@ -1342,7 +1346,16 @@ public partial class weex : Exchange
         {
             response = new List<object>() {response};
         }
-        return this.parseTickers(response, symbols);
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object rawTicker = getValue(response, i);
+            // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
+            object marketId = this.safeString(rawTicker, "symbol");
+            object tickerMarket = this.safeMarket(marketId, null, null, marketType);
+            ((IList<object>)results).Add(this.parseTicker(rawTicker, tickerMarket));
+        }
+        return this.filterByArrayTickers(results, "symbol", symbols);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -1388,8 +1401,9 @@ public partial class weex : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object markPrice = this.safeString(ticker, "markPrice");
         object marketType = "spot";
-        if (isTrue(!isEqual(markPrice, null)))
+        if (isTrue(isTrue((!isEqual(markPrice, null))) || isTrue((isTrue((!isEqual(market, null))) && isTrue(getValue(market, "contract"))))))
         {
+            // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = "swap";
         }
         market = this.safeMarket(marketId, market, null, marketType);
