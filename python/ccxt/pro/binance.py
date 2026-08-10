@@ -2409,7 +2409,11 @@ class binance(ccxt.async_support.binance):
                 continue
             tickerMarketId = self.safe_string(ticker, 's')
             tickerMarketsByIdList = self.safe_value(self.markets_by_id, tickerMarketId)
-            tickerMarketById = self.safe_value(tickerMarketsByIdList, 0)
+            numTickerMarkets = 0 if (tickerMarketsByIdList is None) else len(tickerMarketsByIdList)
+            # an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
+            # blind first pick, the stream url decides; only a unique match, like an
+            # option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
+            tickerMarketById = self.safe_value(tickerMarketsByIdList, 0) if (numTickerMarkets == 1) else None
             isSpot = self.is_spot_url(client)
             tickerFallbackType = 'spot' if isSpot else 'contract'
             tickerMarketType = tickerMarketById['type'] if (tickerMarketById is not None) else tickerFallbackType
