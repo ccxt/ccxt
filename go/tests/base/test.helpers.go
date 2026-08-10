@@ -9,37 +9,36 @@ import (
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
-// snapshotOrderBookSide returns immutable copies of live orderbook sides so
-// that assertions in generated test code never iterate data a ws goroutine is
-// concurrently mutating. In js, python and php the runtime cannot mutate the
-// book during a synchronous assertion, Go can, so the test lane snapshots at
-// this boundary. Both sides are copied back to back as one pair and cached
-// briefly per book, so cross-side invariants like bids[0][0] < asks[0][0]
-// compare one consistent moment instead of two, GetDataCopy holds each side
-// read lock for the whole copy.
-type bookPairSnapshot struct {
-	asks [][]any
-	bids [][]any
+// snapshotOrderBook serves reads of a live orderbook from one consistent
+// frozen view so that assertions in generated test code never see data a ws
+// goroutine is concurrently mutating, and never mix two moments across keys.
+// In js, python and php the runtime cannot mutate the book during a
+// synchronous assertion, Go can, so the test lane snapshots at this boundary.
+// The snapshot is the book structure itself as emitted by ToMap, asks, bids,
+// timestamp, datetime, nonce, symbol and the prediction identity keys when
+// present, ToMap copies both sides lock correct back to back. Cached briefly
+// per book, so one assertion cycle sees one moment and the next watch loop
+// iteration gets a fresh view.
+type bookSnapshot struct {
+	book map[string]interface{}
 	at   time.Time
 }
 
 var bookSnapshotMutex sync.Mutex
-var bookSnapshots = map[interface{}]bookPairSnapshot{}
+var bookSnapshots = map[interface{}]bookSnapshot{}
 
 // one assertion cycle over a book completes well within the ttl, while
-// consecutive watch loop iterations are network spaced and get a fresh pair
+// consecutive watch loop iterations are network spaced and get a fresh view
 const bookSnapshotTtl = 50 * time.Millisecond
 const bookSnapshotPrune = time.Second
 
-func snapshotOrderBookSide(collection interface{}, key interface{}, value interface{}) interface{} {
-	if _, isBook := collection.(ccxt.OrderBookInterface); !isBook {
+func snapshotOrderBook(collection interface{}, key interface{}, value interface{}) interface{} {
+	book, isBook := collection.(ccxt.OrderBookInterface)
+	if !isBook {
 		return value
 	}
 	k, isString := key.(string)
-	if !isString || (k != "asks" && k != "bids") {
-		return value
-	}
-	if _, isSide := value.(ccxt.IOrderBookSide); !isSide {
+	if !isString {
 		return value
 	}
 	now := time.Now()
@@ -52,25 +51,17 @@ func snapshotOrderBookSide(collection interface{}, key interface{}, value interf
 	}
 	snap, found := bookSnapshots[collection]
 	if !found || now.Sub(snap.at) > bookSnapshotTtl {
-		asksCopy := [][]any{}
-		if side, ok := ccxt.GetValue(collection, "asks").(ccxt.IOrderBookSide); ok {
-			asksCopy = side.GetDataCopy()
-		}
-		bidsCopy := [][]any{}
-		if side, ok := ccxt.GetValue(collection, "bids").(ccxt.IOrderBookSide); ok {
-			bidsCopy = side.GetDataCopy()
-		}
-		snap = bookPairSnapshot{asks: asksCopy, bids: bidsCopy, at: now}
+		snap = bookSnapshot{book: book.ToMap(), at: now}
 		bookSnapshots[collection] = snap
 	}
-	if k == "asks" {
-		return snap.asks
+	if frozen, present := snap.book[k]; present {
+		return frozen
 	}
-	return snap.bids
+	return value
 }
 
 func SafeValue(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
-	return snapshotOrderBookSide(obj, key, ccxt.SafeValue(obj, key, defaultValue))
+	return snapshotOrderBook(obj, key, ccxt.SafeValue(obj, key, defaultValue))
 }
 
 func Add(a interface{}, b interface{}) interface{} {
@@ -90,7 +81,7 @@ func IsInteger(value interface{}) bool {
 }
 
 func GetValue(collection interface{}, key interface{}) interface{} {
-	return snapshotOrderBookSide(collection, key, ccxt.GetValue(collection, key))
+	return snapshotOrderBook(collection, key, ccxt.GetValue(collection, key))
 }
 
 func Multiply(a, b interface{}) interface{} {
