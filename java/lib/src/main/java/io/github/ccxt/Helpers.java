@@ -444,6 +444,11 @@ public class Helpers {
         }
     }
 
+    public Object isDictionary(Object value)
+    {
+        return Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value));
+    }
+
     public static int getArrayLength(Object value) {
         if (value == null) return 0;
 

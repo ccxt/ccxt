@@ -4367,10 +4367,6 @@ public Object describe()
         return defaultValue;
     }
 
-    public Object isDictionary(Object value)
-    {
-        return Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value));
-    }
 
     public Object safeList2(Object dictionaryOrList, Object key1, Object key2, Object... optionalArgs)
     {

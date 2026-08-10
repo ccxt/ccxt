@@ -1073,6 +1073,10 @@ class BaseExchange(object):
         return str(uuid.uuid5(uuid.UUID(namespace), name))
 
     @staticmethod
+    def is_dictionary(self, value: Any):
+        return(value is not None) and isinstance(value, dict)
+
+    @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
         # the native pythonic .capitalize() method lowercases all other characters
         # which is an unwanted behaviour, therefore we use this custom implementation
@@ -3135,9 +3139,6 @@ class BaseExchange(object):
         if isinstance(value, list):
             return value
         return defaultValue
-
-    def is_dictionary(self, value: Any):
-        return(value is not None) and isinstance(value, dict)
 
     def safe_list_2(self, dictionaryOrList: Any, key1: NullableIndexType, key2: str, defaultValue: List[Any] = None):
         """

@@ -686,6 +686,21 @@ class BaseExchange {
         return $dictionary;  // wrapper for go
     }
 
+    public function is_dictionary(mixed $value) {
+        if ($value === null) {
+            return false;
+        }
+        if (is_array($value)) {
+            if (count($value) === 0) {
+                return true;
+            }
+        }
+        if (array_keys($value) !== array_keys(array_keys($value))) {
+            return true;
+        }
+        return false;
+    }
+
     public static function truncate($number, $precision = 0) {
         $decimal_precision = pow(10, $precision);
         return floor(floatval($number * $decimal_precision)) / $decimal_precision;
@@ -3419,10 +3434,6 @@ class BaseExchange {
             return $value;
         }
         return $defaultValue;
-    }
-
-    public function is_dictionary(mixed $value) {
-        return ($value !== null) && (gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)));
     }
 
     public function safe_list_2(mixed $dictionaryOrList, int|string|null $key1, string $key2, ?array $defaultValue = null) {
