@@ -427,7 +427,7 @@
                         "id": "USDT",
                         "numericId": null,
                         "code": "USDT",
-                        "precision": 1e-08,
+                        "precision": 1e-8,
                         "type": "crypto",
                         "name": "USDT",
                         "active": null,
@@ -461,7 +461,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1.5,
-                                "precision": 1e-08,
+                                "precision": 1e-8,
                                 "isDefault": true,
                                 "limits": {
                                     "withdraw": {
@@ -499,7 +499,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1,
-                                "precision": 1e-08,
+                                "precision": 1e-8,
                                 "isDefault": false,
                                 "limits": {
                                     "withdraw": {
@@ -537,7 +537,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.05,
-                                "precision": 1e-08,
+                                "precision": 1e-8,
                                 "isDefault": false,
                                 "limits": {
                                     "withdraw": {
@@ -575,7 +575,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.1,
-                                "precision": 1e-08,
+                                "precision": 1e-8,
                                 "isDefault": false,
                                 "limits": {
                                     "withdraw": {
@@ -613,7 +613,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.5,
-                                "precision": 1e-08,
+                                "precision": 1e-8,
                                 "isDefault": false,
                                 "limits": {
                                     "withdraw": {
@@ -651,7 +651,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.2,
-                                "precision": 1e-08,
+                                "precision": 1e-8,
                                 "isDefault": false,
                                 "limits": {
                                     "withdraw": {
@@ -689,7 +689,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.15,
-                                "precision": 1e-08,
+                                "precision": 1e-8,
                                 "isDefault": false,
                                 "limits": {
                                     "withdraw": {
@@ -727,7 +727,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.9,
-                                "precision": 1e-08,
+                                "precision": 1e-8,
                                 "isDefault": false,
                                 "limits": {
                                     "withdraw": {
@@ -765,7 +765,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.15,
-                                "precision": 1e-08,
+                                "precision": 1e-8,
                                 "isDefault": false,
                                 "limits": {
                                     "withdraw": {
@@ -803,7 +803,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.11,
-                                "precision": 1e-08,
+                                "precision": 1e-8,
                                 "isDefault": false,
                                 "limits": {
                                     "withdraw": {
@@ -841,7 +841,7 @@
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.15,
-                                "precision": 1e-08,
+                                "precision": 1e-8,
                                 "isDefault": false,
                                 "limits": {
                                     "withdraw": {
@@ -2279,7 +2279,7 @@
                             "markPrice": "2079.26"
                         },
                         "symbol": "ETH/USDT:USDT",
-                        "fundingRate": 1.031e-05,
+                        "fundingRate": 0.00001031,
                         "timestamp": 1775577600000,
                         "datetime": "2026-04-07T16:00:00.000Z"
                     }
@@ -2325,10 +2325,10 @@
                     "estimatedSettlePrice": null,
                     "timestamp": 1775597392681,
                     "datetime": "2026-04-07T21:29:52.681Z",
-                    "fundingRate": 1.031e-05,
+                    "fundingRate": 0.00001031,
                     "fundingTimestamp": 1775597392681,
                     "fundingDatetime": "2026-04-07T21:29:52.681Z",
-                    "nextFundingRate": 5.46e-05,
+                    "nextFundingRate": 0.0000546,
                     "nextFundingTimestamp": 1775606400000,
                     "nextFundingDatetime": "2026-04-08T00:00:00.000Z",
                     "previousFundingRate": null,
@@ -3180,7 +3180,7 @@
                         "estimatedSettlePrice": null,
                         "timestamp": 1786304651223,
                         "datetime": "2026-08-09T19:44:11.223Z",
-                        "fundingRate": 7.959e-05,
+                        "fundingRate": 0.00007959,
                         "fundingTimestamp": 1786304651223,
                         "fundingDatetime": "2026-08-09T19:44:11.223Z",
                         "nextFundingRate": 0.0001,
@@ -4228,7 +4228,8 @@
                     "info": {
                         "symbol": "ETHUSDT",
                         "price": "1927.49",
-                        "time": 1786347734132
+                        "time": 1786347734132,
+                        "markPrice": "1927.49"
                     }
                 }
             }
