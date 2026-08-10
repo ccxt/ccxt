@@ -155,6 +155,11 @@ pub mod shared {
     pub fn assert_structure<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_non_emtpy_array<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_non_empty_array<E: AsValue>(_e: E, _args: &[Value]) {}
+    // `assertDictionaryResponse(exchange, method, response, hint?)` — a structural
+    // "response must be a dict" check master added to several fetch* tests. Stubbed
+    // no-op like the sibling structural assertions above; the static request/response
+    // suites assert URL/body, not this shape.
+    pub fn assert_dictionary_response<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_round_minute_timestamp<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_fee_structure<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_valid_currency_id_and_code<E: AsValue>(_e: E, _args: &[Value]) {}
