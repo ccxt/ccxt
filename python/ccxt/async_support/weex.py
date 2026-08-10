@@ -1180,7 +1180,7 @@ class weex(Exchange, ImplicitAPI):
             response = [response]
         return self.parse_tickers(response, symbols)
 
-    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
 
@@ -1192,6 +1192,8 @@ class weex(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot' or 'swap', default is 'spot'(used if symbols are not provided)
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         market = self.get_market_from_symbols(symbols)
         marketType = None
@@ -1203,7 +1205,14 @@ class weex(Exchange, ImplicitAPI):
             response = await self.contractGetCapiV3MarketTickerBookTicker(params)
         if not isinstance(response, list):
             response = [response]
-        return self.parse_tickers(response, symbols)
+        results = []
+        for i in range(0, len(response)):
+            rawTicker = response[i]
+            # book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
+            marketId = self.safe_string(rawTicker, 'symbol')
+            tickerMarket = self.safe_market(marketId, None, None, marketType)
+            results.append(self.parse_ticker(rawTicker, tickerMarket))
+        return self.filter_by_array_tickers(results, 'symbol', symbols)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -1247,7 +1256,8 @@ class weex(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         markPrice = self.safe_string(ticker, 'markPrice')
         marketType = 'spot'
-        if markPrice is not None:
+        if (markPrice is not None) or ((market is not None) and market['contract']):
+            # 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap'
         market = self.safe_market(marketId, market, None, marketType)
         timestamp = self.safe_integer_2(ticker, 'closeTime', 'time')
