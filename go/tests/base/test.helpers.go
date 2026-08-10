@@ -4,26 +4,69 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
-// snapshotOrderBookSide returns an immutable copy of a live orderbook side so
+// snapshotOrderBookSide returns immutable copies of live orderbook sides so
 // that assertions in generated test code never iterate data a ws goroutine is
-// concurrently mutating; GetDataCopy holds the side read lock for the whole
-// copy. In js, python and php the runtime cannot mutate the book during a
-// synchronous assertion, Go can, so the test lane snapshots at this boundary.
+// concurrently mutating. In js, python and php the runtime cannot mutate the
+// book during a synchronous assertion, Go can, so the test lane snapshots at
+// this boundary. Both sides are copied back to back as one pair and cached
+// briefly per book, so cross-side invariants like bids[0][0] < asks[0][0]
+// compare one consistent moment instead of two, GetDataCopy holds each side
+// read lock for the whole copy.
+type bookPairSnapshot struct {
+	asks [][]any
+	bids [][]any
+	at   time.Time
+}
+
+var bookSnapshotMutex sync.Mutex
+var bookSnapshots = map[interface{}]bookPairSnapshot{}
+
+// one assertion cycle over a book completes well within the ttl, while
+// consecutive watch loop iterations are network spaced and get a fresh pair
+const bookSnapshotTtl = 50 * time.Millisecond
+const bookSnapshotPrune = time.Second
+
 func snapshotOrderBookSide(collection interface{}, key interface{}, value interface{}) interface{} {
 	if _, isBook := collection.(ccxt.OrderBookInterface); !isBook {
 		return value
 	}
-	if k, isString := key.(string); !isString || (k != "asks" && k != "bids") {
+	k, isString := key.(string)
+	if !isString || (k != "asks" && k != "bids") {
 		return value
 	}
-	if side, isSide := value.(ccxt.IOrderBookSide); isSide {
-		return side.GetDataCopy()
+	if _, isSide := value.(ccxt.IOrderBookSide); !isSide {
+		return value
 	}
-	return value
+	now := time.Now()
+	bookSnapshotMutex.Lock()
+	defer bookSnapshotMutex.Unlock()
+	for cached, snap := range bookSnapshots {
+		if now.Sub(snap.at) > bookSnapshotPrune {
+			delete(bookSnapshots, cached)
+		}
+	}
+	snap, found := bookSnapshots[collection]
+	if !found || now.Sub(snap.at) > bookSnapshotTtl {
+		asksCopy := [][]any{}
+		if side, ok := ccxt.GetValue(collection, "asks").(ccxt.IOrderBookSide); ok {
+			asksCopy = side.GetDataCopy()
+		}
+		bidsCopy := [][]any{}
+		if side, ok := ccxt.GetValue(collection, "bids").(ccxt.IOrderBookSide); ok {
+			bidsCopy = side.GetDataCopy()
+		}
+		snap = bookPairSnapshot{asks: asksCopy, bids: bidsCopy, at: now}
+		bookSnapshots[collection] = snap
+	}
+	if k == "asks" {
+		return snap.asks
+	}
+	return snap.bids
 }
 
 func SafeValue(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
