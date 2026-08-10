@@ -265,6 +265,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Same as the build job: the self-hosted runners don't ship a Rust
+      # toolchain, so `npm run buildRust` (cargo) below needs rustup installed
+      # first. No-op on GitHub-hosted VMs / reruns where cargo already exists.
+      - name: Install Rust toolchain
+        run: |
+          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal --component clippy
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          "$HOME/.cargo/bin/cargo" --version || cargo --version
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
