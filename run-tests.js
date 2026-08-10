@@ -198,7 +198,12 @@ const exec = (bin, ...args) => {
             }
             // check stderr
             if (stderr.length > 0) {
-                warnings.push (stderr)
+                // push only the stderr residue that the warning regex did not already
+                // extract, otherwise every [TEST_WARNING] line displays twice
+                const residue = stderr.split ('\n').filter (line => line.length && !line.match (/\[TEST_WARNING\]/i)).join ('\n')
+                if (residue.length) {
+                    warnings.push (residue)
+                }
             }
 
             return {
@@ -406,7 +411,7 @@ const testExchange = async (exchange) => {
     if (failed) {
         logMessage = 'FAIL'.red;
     } else if (hasWarnings) {
-        logMessage = ('WARN: ' + (warnings.length ? warnings.join (' ') : '')).yellow;
+        logMessage = ('WARN: ' + (warnings.length ? '\n' + warnings.join ('\n') : '')).yellow;
     } else {
         logMessage = 'OK'.green;
     }
