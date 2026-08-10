@@ -1,0 +1,695 @@
+{
+    "exchange": "insightx",
+    "asyncOnly": true,
+    "skipKeys": [],
+    "outputType": "json",
+    "options": {
+        "loadAllOutcomes": true
+    },
+    "methods": {
+        "fetchEvent": [
+            {
+                "description": "fetchEvent resolved market by raw market id",
+                "method": "fetchEvent",
+                "input": [
+                    "80358378"
+                ],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": {
+                        "id": 80358378,
+                        "event_id": 7851979,
+                        "title": "Bitcoin above $65,000 on Aug 6?",
+                        "description": "Bitcoin above $65,000 on Aug 6?",
+                        "rules": "This market will resolve to \"Yes\" if the Binance 1 minute candle for BTC/USDT 12:00 in the ET timezone (noon) on the date specified in the title has a final \"Close\" price higher than the price specified in the title. Otherwise, this market will resolve to \"No\". The resolution source for this market is Binance, specifically the BTC/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/BTC_USDT with \"1m\" and \"Candles\" selected on the top bar. Please note that this market is about the price according to Binance BTC/USDT, not according to other exchanges or trading pairs. Price precision is determined by the number of decimal places in the source.",
+                        "banner": "",
+                        "image_url": "https://universal-storage-2025.s3.ap-southeast-1.amazonaws.com/insightx/2026-08-06/19c8fa94f36045779c1cd65f56e6a957.webp",
+                        "outcome0_name": "Yes",
+                        "outcome1_name": "No",
+                        "outcome_prices": "",
+                        "end_time": 1786046340,
+                        "settle_time": 1786072002,
+                        "winner_idx": 2,
+                        "status": 3,
+                        "total_volume": 9505360,
+                        "total_volume0": 9495360,
+                        "total_volume1": 10000,
+                        "category": "",
+                        "tags": "Crypto",
+                        "source": "insightx",
+                        "creator_uid": 5,
+                        "created_at": 1786003177,
+                        "updated_at": 1786072002,
+                        "identifier": "user_market_1786003177784",
+                        "settlement_price0": "0",
+                        "settlement_price1": "1",
+                        "group_item_title": "",
+                        "poly_clob_token_ids": ""
+                    }
+                },
+                "parsedResponse": {
+                    "id": "7851979",
+                    "event": "INSIGHTX_EVENT_7851979",
+                    "slug": null,
+                    "title": "Bitcoin above $65,000 on Aug 6?",
+                    "description": "Bitcoin above $65,000 on Aug 6?",
+                    "category": null,
+                    "tags": [
+                        "Crypto"
+                    ],
+                    "markets": [
+                        {
+                            "id": "80358378",
+                            "market": "INSIGHTX_EVENT_7851979_USER_MARKET_1786003177784",
+                            "event": "INSIGHTX_EVENT_7851979",
+                            "marketType": "binary",
+                            "executionModel": "clob",
+                            "title": "Bitcoin above $65,000 on Aug 6?",
+                            "description": "Bitcoin above $65,000 on Aug 6?",
+                            "outcomes": [
+                                {
+                                    "outcome": "INSIGHTX_EVENT_7851979_USER_MARKET_1786003177784:YES",
+                                    "outcomeId": "80358378:1",
+                                    "label": "Yes",
+                                    "market": "INSIGHTX_EVENT_7851979_USER_MARKET_1786003177784",
+                                    "marketId": "80358378",
+                                    "event": "INSIGHTX_EVENT_7851979",
+                                    "price": null,
+                                    "active": false,
+                                    "winner": false,
+                                    "settleFraction": 0,
+                                    "precision": {
+                                        "amount": null,
+                                        "price": 0.0001
+                                    },
+                                    "info": {
+                                        "outcome_idx": 1,
+                                        "source_token_id": null
+                                    }
+                                },
+                                {
+                                    "outcome": "INSIGHTX_EVENT_7851979_USER_MARKET_1786003177784:NO",
+                                    "outcomeId": "80358378:2",
+                                    "label": "No",
+                                    "market": "INSIGHTX_EVENT_7851979_USER_MARKET_1786003177784",
+                                    "marketId": "80358378",
+                                    "event": "INSIGHTX_EVENT_7851979",
+                                    "price": null,
+                                    "active": false,
+                                    "winner": true,
+                                    "settleFraction": 1,
+                                    "precision": {
+                                        "amount": null,
+                                        "price": 0.0001
+                                    },
+                                    "info": {
+                                        "outcome_idx": 2,
+                                        "source_token_id": null
+                                    }
+                                }
+                            ],
+                            "collateral": null,
+                            "active": false,
+                            "closed": true,
+                            "resolved": true,
+                            "resolvedOutcome": "INSIGHTX_EVENT_7851979_USER_MARKET_1786003177784:NO",
+                            "created": 1786003177000,
+                            "createdDatetime": "2026-08-06T07:59:37.000Z",
+                            "end": 1786046340000,
+                            "endDatetime": "2026-08-06T19:59:00.000Z",
+                            "volume": 9505360,
+                            "liquidity": null,
+                            "tickSize": 0.0001,
+                            "resolutionSource": null,
+                            "image": "https://universal-storage-2025.s3.ap-southeast-1.amazonaws.com/insightx/2026-08-06/19c8fa94f36045779c1cd65f56e6a957.webp",
+                            "base": "80358378",
+                            "quote": null,
+                            "settle": null,
+                            "baseId": "80358378",
+                            "quoteId": null,
+                            "settleId": null,
+                            "type": "prediction",
+                            "spot": false,
+                            "margin": false,
+                            "swap": false,
+                            "future": false,
+                            "option": false,
+                            "prediction": true,
+                            "contract": false,
+                            "linear": null,
+                            "inverse": null,
+                            "contractSize": null,
+                            "expiry": 1786046340000,
+                            "expiryDatetime": "2026-08-06T19:59:00.000Z",
+                            "strike": null,
+                            "optionType": null,
+                            "percentage": true,
+                            "tierBased": false,
+                            "precision": {
+                                "amount": null,
+                                "price": 0.0001
+                            },
+                            "limits": {
+                                "leverage": {
+                                    "min": 1,
+                                    "max": 1
+                                },
+                                "amount": {
+                                    "min": null,
+                                    "max": null
+                                },
+                                "price": {
+                                    "min": 0.0001,
+                                    "max": 0.9999
+                                },
+                                "cost": {
+                                    "min": null,
+                                    "max": null
+                                }
+                            },
+                            "info": {
+                                "id": 80358378,
+                                "event_id": 7851979,
+                                "title": "Bitcoin above $65,000 on Aug 6?",
+                                "description": "Bitcoin above $65,000 on Aug 6?",
+                                "rules": "This market will resolve to \"Yes\" if the Binance 1 minute candle for BTC/USDT 12:00 in the ET timezone (noon) on the date specified in the title has a final \"Close\" price higher than the price specified in the title. Otherwise, this market will resolve to \"No\". The resolution source for this market is Binance, specifically the BTC/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/BTC_USDT with \"1m\" and \"Candles\" selected on the top bar. Please note that this market is about the price according to Binance BTC/USDT, not according to other exchanges or trading pairs. Price precision is determined by the number of decimal places in the source.",
+                                "banner": "",
+                                "image_url": "https://universal-storage-2025.s3.ap-southeast-1.amazonaws.com/insightx/2026-08-06/19c8fa94f36045779c1cd65f56e6a957.webp",
+                                "outcome0_name": "Yes",
+                                "outcome1_name": "No",
+                                "outcome_prices": "",
+                                "end_time": 1786046340,
+                                "settle_time": 1786072002,
+                                "winner_idx": 2,
+                                "status": 3,
+                                "total_volume": 9505360,
+                                "total_volume0": 9495360,
+                                "total_volume1": 10000,
+                                "category": "",
+                                "tags": "Crypto",
+                                "source": "insightx",
+                                "creator_uid": 5,
+                                "created_at": 1786003177,
+                                "updated_at": 1786072002,
+                                "identifier": "user_market_1786003177784",
+                                "settlement_price0": "0",
+                                "settlement_price1": "1",
+                                "group_item_title": "",
+                                "poly_clob_token_ids": ""
+                            }
+                        }
+                    ],
+                    "active": false,
+                    "resolved": true,
+                    "volume": 9505360,
+                    "liquidity": null,
+                    "created": 1786003177000,
+                    "createdDatetime": "2026-08-06T07:59:37.000Z",
+                    "end": 1786046340000,
+                    "endDatetime": "2026-08-06T19:59:00.000Z",
+                    "image": "https://universal-storage-2025.s3.ap-southeast-1.amazonaws.com/insightx/2026-08-06/19c8fa94f36045779c1cd65f56e6a957.webp",
+                    "url": null,
+                    "info": {
+                        "markets": [
+                            {
+                                "id": 80358378,
+                                "event_id": 7851979,
+                                "title": "Bitcoin above $65,000 on Aug 6?",
+                                "description": "Bitcoin above $65,000 on Aug 6?",
+                                "rules": "This market will resolve to \"Yes\" if the Binance 1 minute candle for BTC/USDT 12:00 in the ET timezone (noon) on the date specified in the title has a final \"Close\" price higher than the price specified in the title. Otherwise, this market will resolve to \"No\". The resolution source for this market is Binance, specifically the BTC/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/BTC_USDT with \"1m\" and \"Candles\" selected on the top bar. Please note that this market is about the price according to Binance BTC/USDT, not according to other exchanges or trading pairs. Price precision is determined by the number of decimal places in the source.",
+                                "banner": "",
+                                "image_url": "https://universal-storage-2025.s3.ap-southeast-1.amazonaws.com/insightx/2026-08-06/19c8fa94f36045779c1cd65f56e6a957.webp",
+                                "outcome0_name": "Yes",
+                                "outcome1_name": "No",
+                                "outcome_prices": "",
+                                "end_time": 1786046340,
+                                "settle_time": 1786072002,
+                                "winner_idx": 2,
+                                "status": 3,
+                                "total_volume": 9505360,
+                                "total_volume0": 9495360,
+                                "total_volume1": 10000,
+                                "category": "",
+                                "tags": "Crypto",
+                                "source": "insightx",
+                                "creator_uid": 5,
+                                "created_at": 1786003177,
+                                "updated_at": 1786072002,
+                                "identifier": "user_market_1786003177784",
+                                "settlement_price0": "0",
+                                "settlement_price1": "1",
+                                "group_item_title": "",
+                                "poly_clob_token_ids": ""
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents active listing grouped by event id",
+                "method": "fetchEvents",
+                "input": [
+                    {
+                        "limit": 2,
+                        "marketStatus": 1
+                    }
+                ],
+                "httpResponse": {
+                    "errno": 0,
+                    "errmsg": "no error",
+                    "data": {
+                        "list": [
+                            {
+                                "id": 80372995,
+                                "event_id": 9156636,
+                                "title": "Will the highest temperature in Manila be 34°C or higher on August 10?",
+                                "description": "This market will resolve based on the highest temperature recorded in the 'Daily Observations' table on Weather Underground, not the figure displayed in the 'Day High & Low' summary section; in the event of any discrepancy between the two, the Daily Observations table shall be the primary resolution source not the Day High & Low section.\n\nThis market will resolve to the temperature range that contains the highest temperature recorded at the Ninoy Aquino International Airport Station in degrees Celsius on 10 Aug '26.\n\nThe resolution source for this market will be information from Wunderground, specifically the highest temperature recorded for all times on this day for the Ninoy Aquino International Airport Station, available here: https://www.wunderground.com/history/daily/ph/manila/RPLL.\n\nTo toggle between Fahrenheit and Celsius, click the gear icon next to the search bar and switch the Temperature setting between °F and °C.\n\nThis market can not resolve until the first data point for the following date has been published on the resolution source.\n\nThe resolution source for this market measures temperatures to whole degrees Celsius (eg, 9°C). Thus, this is the level of precision that will be used when resolving the market.\n\nRevisions to temperatures recorded within this market's timeframe will be considered until the first datapoint for the following date has been published, after which any alterations will not be considered.",
+                                "rules": "",
+                                "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                "outcome0_name": "Yes",
+                                "outcome1_name": "No",
+                                "outcome_prices": "[0.0025,0.9975]",
+                                "end_time": 1786363200,
+                                "settle_time": 0,
+                                "winner_idx": 0,
+                                "status": 1,
+                                "total_volume": 4534,
+                                "total_volume0": 0,
+                                "total_volume1": 0,
+                                "category": "",
+                                "tags": "",
+                                "source": "polymarket",
+                                "creator_uid": 0,
+                                "created_at": 1786344847,
+                                "updated_at": 1786345026,
+                                "identifier": "highest-temperature-in-manila-on-august-10-2026-34corhigher",
+                                "source_market_id": "3414887",
+                                "group_item_title": "34°C or higher",
+                                "poly_clob_token_ids": "62601896975578109067229660909567155545107729648924520053536274002574087081763,88199341690975216479302994732143106162404952742628378269342933061310232814171"
+                            },
+                            {
+                                "id": 80372994,
+                                "event_id": 9156636,
+                                "title": "Will the highest temperature in Manila be 31°C on August 10?",
+                                "description": "This market will resolve based on the highest temperature recorded in the 'Daily Observations' table on Weather Underground, not the figure displayed in the 'Day High & Low' summary section; in the event of any discrepancy between the two, the Daily Observations table shall be the primary resolution source not the Day High & Low section.\n\nThis market will resolve to the temperature range that contains the highest temperature recorded at the Ninoy Aquino International Airport Station in degrees Celsius on 10 Aug '26.\n\nThe resolution source for this market will be information from Wunderground, specifically the highest temperature recorded for all times on this day for the Ninoy Aquino International Airport Station, available here: https://www.wunderground.com/history/daily/ph/manila/RPLL.\n\nTo toggle between Fahrenheit and Celsius, click the gear icon next to the search bar and switch the Temperature setting between °F and °C.\n\nThis market can not resolve until the first data point for the following date has been published on the resolution source.\n\nThe resolution source for this market measures temperatures to whole degrees Celsius (eg, 9°C). Thus, this is the level of precision that will be used when resolving the market.\n\nRevisions to temperatures recorded within this market's timeframe will be considered until the first datapoint for the following date has been published, after which any alterations will not be considered.",
+                                "rules": "",
+                                "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                "outcome0_name": "Yes",
+                                "outcome1_name": "No",
+                                "outcome_prices": "[0.0005,0.9995]",
+                                "end_time": 1786363200,
+                                "settle_time": 0,
+                                "winner_idx": 0,
+                                "status": 1,
+                                "total_volume": 5257,
+                                "total_volume0": 0,
+                                "total_volume1": 0,
+                                "category": "",
+                                "tags": "",
+                                "source": "polymarket",
+                                "creator_uid": 0,
+                                "created_at": 1786344847,
+                                "updated_at": 1786345026,
+                                "identifier": "highest-temperature-in-manila-on-august-10-2026-31c",
+                                "source_market_id": "3414884",
+                                "group_item_title": "31°C",
+                                "poly_clob_token_ids": "14899631349455575529818701831299485367688009427228888886901869159487692463456,66895448919850005227066827684103881233766127000739336687903559786188940422063"
+                            }
+                        ],
+                        "total": 26601,
+                        "page": 1,
+                        "size": 2
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "9156636",
+                        "event": "INSIGHTX_EVENT_9156636",
+                        "slug": null,
+                        "title": "Will the highest temperature in Manila be 34°C or higher on August 10?",
+                        "description": "This market will resolve based on the highest temperature recorded in the 'Daily Observations' table on Weather Underground, not the figure displayed in the 'Day High & Low' summary section; in the event of any discrepancy between the two, the Daily Observations table shall be the primary resolution source not the Day High & Low section.\n\nThis market will resolve to the temperature range that contains the highest temperature recorded at the Ninoy Aquino International Airport Station in degrees Celsius on 10 Aug '26.\n\nThe resolution source for this market will be information from Wunderground, specifically the highest temperature recorded for all times on this day for the Ninoy Aquino International Airport Station, available here: https://www.wunderground.com/history/daily/ph/manila/RPLL.\n\nTo toggle between Fahrenheit and Celsius, click the gear icon next to the search bar and switch the Temperature setting between °F and °C.\n\nThis market can not resolve until the first data point for the following date has been published on the resolution source.\n\nThe resolution source for this market measures temperatures to whole degrees Celsius (eg, 9°C). Thus, this is the level of precision that will be used when resolving the market.\n\nRevisions to temperatures recorded within this market's timeframe will be considered until the first datapoint for the following date has been published, after which any alterations will not be considered.",
+                        "category": null,
+                        "tags": [],
+                        "markets": [
+                            {
+                                "id": "80372995",
+                                "market": "INSIGHTX_EVENT_9156636_HIGHEST_TEMPERATURE_MANILA_AUGUST_10_2026_34CORUP",
+                                "event": "INSIGHTX_EVENT_9156636",
+                                "marketType": "binary",
+                                "executionModel": "clob",
+                                "title": "Will the highest temperature in Manila be 34°C or higher on August 10?",
+                                "description": "This market will resolve based on the highest temperature recorded in the 'Daily Observations' table on Weather Underground, not the figure displayed in the 'Day High & Low' summary section; in the event of any discrepancy between the two, the Daily Observations table shall be the primary resolution source not the Day High & Low section.\n\nThis market will resolve to the temperature range that contains the highest temperature recorded at the Ninoy Aquino International Airport Station in degrees Celsius on 10 Aug '26.\n\nThe resolution source for this market will be information from Wunderground, specifically the highest temperature recorded for all times on this day for the Ninoy Aquino International Airport Station, available here: https://www.wunderground.com/history/daily/ph/manila/RPLL.\n\nTo toggle between Fahrenheit and Celsius, click the gear icon next to the search bar and switch the Temperature setting between °F and °C.\n\nThis market can not resolve until the first data point for the following date has been published on the resolution source.\n\nThe resolution source for this market measures temperatures to whole degrees Celsius (eg, 9°C). Thus, this is the level of precision that will be used when resolving the market.\n\nRevisions to temperatures recorded within this market's timeframe will be considered until the first datapoint for the following date has been published, after which any alterations will not be considered.",
+                                "outcomes": [
+                                    {
+                                        "outcome": "INSIGHTX_EVENT_9156636_HIGHEST_TEMPERATURE_MANILA_AUGUST_10_2026_34CORUP:YES",
+                                        "outcomeId": "80372995:1",
+                                        "label": "Yes",
+                                        "market": "INSIGHTX_EVENT_9156636_HIGHEST_TEMPERATURE_MANILA_AUGUST_10_2026_34CORUP",
+                                        "marketId": "80372995",
+                                        "event": "INSIGHTX_EVENT_9156636",
+                                        "price": 0.0025,
+                                        "active": true,
+                                        "winner": null,
+                                        "settleFraction": null,
+                                        "precision": {
+                                            "amount": null,
+                                            "price": 0.0001
+                                        },
+                                        "info": {
+                                            "outcome_idx": 1,
+                                            "source_token_id": "62601896975578109067229660909567155545107729648924520053536274002574087081763"
+                                        }
+                                    },
+                                    {
+                                        "outcome": "INSIGHTX_EVENT_9156636_HIGHEST_TEMPERATURE_MANILA_AUGUST_10_2026_34CORUP:NO",
+                                        "outcomeId": "80372995:2",
+                                        "label": "No",
+                                        "market": "INSIGHTX_EVENT_9156636_HIGHEST_TEMPERATURE_MANILA_AUGUST_10_2026_34CORUP",
+                                        "marketId": "80372995",
+                                        "event": "INSIGHTX_EVENT_9156636",
+                                        "price": 0.9975,
+                                        "active": true,
+                                        "winner": null,
+                                        "settleFraction": null,
+                                        "precision": {
+                                            "amount": null,
+                                            "price": 0.0001
+                                        },
+                                        "info": {
+                                            "outcome_idx": 2,
+                                            "source_token_id": "88199341690975216479302994732143106162404952742628378269342933061310232814171"
+                                        }
+                                    }
+                                ],
+                                "collateral": null,
+                                "active": true,
+                                "closed": false,
+                                "resolved": false,
+                                "resolvedOutcome": null,
+                                "created": 1786344847000,
+                                "createdDatetime": "2026-08-10T06:54:07.000Z",
+                                "end": 1786363200000,
+                                "endDatetime": "2026-08-10T12:00:00.000Z",
+                                "volume": 4534,
+                                "liquidity": null,
+                                "tickSize": 0.0001,
+                                "resolutionSource": null,
+                                "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                "base": "80372995",
+                                "quote": null,
+                                "settle": null,
+                                "baseId": "80372995",
+                                "quoteId": null,
+                                "settleId": null,
+                                "type": "prediction",
+                                "spot": false,
+                                "margin": false,
+                                "swap": false,
+                                "future": false,
+                                "option": false,
+                                "prediction": true,
+                                "contract": false,
+                                "linear": null,
+                                "inverse": null,
+                                "contractSize": null,
+                                "expiry": 1786363200000,
+                                "expiryDatetime": "2026-08-10T12:00:00.000Z",
+                                "strike": null,
+                                "optionType": null,
+                                "percentage": true,
+                                "tierBased": false,
+                                "precision": {
+                                    "amount": null,
+                                    "price": 0.0001
+                                },
+                                "limits": {
+                                    "leverage": {
+                                        "min": 1,
+                                        "max": 1
+                                    },
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "price": {
+                                        "min": 0.0001,
+                                        "max": 0.9999
+                                    },
+                                    "cost": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "id": 80372995,
+                                    "event_id": 9156636,
+                                    "title": "Will the highest temperature in Manila be 34°C or higher on August 10?",
+                                    "description": "This market will resolve based on the highest temperature recorded in the 'Daily Observations' table on Weather Underground, not the figure displayed in the 'Day High & Low' summary section; in the event of any discrepancy between the two, the Daily Observations table shall be the primary resolution source not the Day High & Low section.\n\nThis market will resolve to the temperature range that contains the highest temperature recorded at the Ninoy Aquino International Airport Station in degrees Celsius on 10 Aug '26.\n\nThe resolution source for this market will be information from Wunderground, specifically the highest temperature recorded for all times on this day for the Ninoy Aquino International Airport Station, available here: https://www.wunderground.com/history/daily/ph/manila/RPLL.\n\nTo toggle between Fahrenheit and Celsius, click the gear icon next to the search bar and switch the Temperature setting between °F and °C.\n\nThis market can not resolve until the first data point for the following date has been published on the resolution source.\n\nThe resolution source for this market measures temperatures to whole degrees Celsius (eg, 9°C). Thus, this is the level of precision that will be used when resolving the market.\n\nRevisions to temperatures recorded within this market's timeframe will be considered until the first datapoint for the following date has been published, after which any alterations will not be considered.",
+                                    "rules": "",
+                                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                    "outcome0_name": "Yes",
+                                    "outcome1_name": "No",
+                                    "outcome_prices": "[0.0025,0.9975]",
+                                    "end_time": 1786363200,
+                                    "settle_time": 0,
+                                    "winner_idx": 0,
+                                    "status": 1,
+                                    "total_volume": 4534,
+                                    "total_volume0": 0,
+                                    "total_volume1": 0,
+                                    "category": "",
+                                    "tags": "",
+                                    "source": "polymarket",
+                                    "creator_uid": 0,
+                                    "created_at": 1786344847,
+                                    "updated_at": 1786345026,
+                                    "identifier": "highest-temperature-in-manila-on-august-10-2026-34corhigher",
+                                    "source_market_id": "3414887",
+                                    "group_item_title": "34°C or higher",
+                                    "poly_clob_token_ids": "62601896975578109067229660909567155545107729648924520053536274002574087081763,88199341690975216479302994732143106162404952742628378269342933061310232814171"
+                                }
+                            },
+                            {
+                                "id": "80372994",
+                                "market": "INSIGHTX_EVENT_9156636_HIGHEST_TEMPERATURE_MANILA_AUGUST_10_2026_31C",
+                                "event": "INSIGHTX_EVENT_9156636",
+                                "marketType": "binary",
+                                "executionModel": "clob",
+                                "title": "Will the highest temperature in Manila be 31°C on August 10?",
+                                "description": "This market will resolve based on the highest temperature recorded in the 'Daily Observations' table on Weather Underground, not the figure displayed in the 'Day High & Low' summary section; in the event of any discrepancy between the two, the Daily Observations table shall be the primary resolution source not the Day High & Low section.\n\nThis market will resolve to the temperature range that contains the highest temperature recorded at the Ninoy Aquino International Airport Station in degrees Celsius on 10 Aug '26.\n\nThe resolution source for this market will be information from Wunderground, specifically the highest temperature recorded for all times on this day for the Ninoy Aquino International Airport Station, available here: https://www.wunderground.com/history/daily/ph/manila/RPLL.\n\nTo toggle between Fahrenheit and Celsius, click the gear icon next to the search bar and switch the Temperature setting between °F and °C.\n\nThis market can not resolve until the first data point for the following date has been published on the resolution source.\n\nThe resolution source for this market measures temperatures to whole degrees Celsius (eg, 9°C). Thus, this is the level of precision that will be used when resolving the market.\n\nRevisions to temperatures recorded within this market's timeframe will be considered until the first datapoint for the following date has been published, after which any alterations will not be considered.",
+                                "outcomes": [
+                                    {
+                                        "outcome": "INSIGHTX_EVENT_9156636_HIGHEST_TEMPERATURE_MANILA_AUGUST_10_2026_31C:YES",
+                                        "outcomeId": "80372994:1",
+                                        "label": "Yes",
+                                        "market": "INSIGHTX_EVENT_9156636_HIGHEST_TEMPERATURE_MANILA_AUGUST_10_2026_31C",
+                                        "marketId": "80372994",
+                                        "event": "INSIGHTX_EVENT_9156636",
+                                        "price": 0.0005,
+                                        "active": true,
+                                        "winner": null,
+                                        "settleFraction": null,
+                                        "precision": {
+                                            "amount": null,
+                                            "price": 0.0001
+                                        },
+                                        "info": {
+                                            "outcome_idx": 1,
+                                            "source_token_id": "14899631349455575529818701831299485367688009427228888886901869159487692463456"
+                                        }
+                                    },
+                                    {
+                                        "outcome": "INSIGHTX_EVENT_9156636_HIGHEST_TEMPERATURE_MANILA_AUGUST_10_2026_31C:NO",
+                                        "outcomeId": "80372994:2",
+                                        "label": "No",
+                                        "market": "INSIGHTX_EVENT_9156636_HIGHEST_TEMPERATURE_MANILA_AUGUST_10_2026_31C",
+                                        "marketId": "80372994",
+                                        "event": "INSIGHTX_EVENT_9156636",
+                                        "price": 0.9995,
+                                        "active": true,
+                                        "winner": null,
+                                        "settleFraction": null,
+                                        "precision": {
+                                            "amount": null,
+                                            "price": 0.0001
+                                        },
+                                        "info": {
+                                            "outcome_idx": 2,
+                                            "source_token_id": "66895448919850005227066827684103881233766127000739336687903559786188940422063"
+                                        }
+                                    }
+                                ],
+                                "collateral": null,
+                                "active": true,
+                                "closed": false,
+                                "resolved": false,
+                                "resolvedOutcome": null,
+                                "created": 1786344847000,
+                                "createdDatetime": "2026-08-10T06:54:07.000Z",
+                                "end": 1786363200000,
+                                "endDatetime": "2026-08-10T12:00:00.000Z",
+                                "volume": 5257,
+                                "liquidity": null,
+                                "tickSize": 0.0001,
+                                "resolutionSource": null,
+                                "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                "base": "80372994",
+                                "quote": null,
+                                "settle": null,
+                                "baseId": "80372994",
+                                "quoteId": null,
+                                "settleId": null,
+                                "type": "prediction",
+                                "spot": false,
+                                "margin": false,
+                                "swap": false,
+                                "future": false,
+                                "option": false,
+                                "prediction": true,
+                                "contract": false,
+                                "linear": null,
+                                "inverse": null,
+                                "contractSize": null,
+                                "expiry": 1786363200000,
+                                "expiryDatetime": "2026-08-10T12:00:00.000Z",
+                                "strike": null,
+                                "optionType": null,
+                                "percentage": true,
+                                "tierBased": false,
+                                "precision": {
+                                    "amount": null,
+                                    "price": 0.0001
+                                },
+                                "limits": {
+                                    "leverage": {
+                                        "min": 1,
+                                        "max": 1
+                                    },
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "price": {
+                                        "min": 0.0001,
+                                        "max": 0.9999
+                                    },
+                                    "cost": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "id": 80372994,
+                                    "event_id": 9156636,
+                                    "title": "Will the highest temperature in Manila be 31°C on August 10?",
+                                    "description": "This market will resolve based on the highest temperature recorded in the 'Daily Observations' table on Weather Underground, not the figure displayed in the 'Day High & Low' summary section; in the event of any discrepancy between the two, the Daily Observations table shall be the primary resolution source not the Day High & Low section.\n\nThis market will resolve to the temperature range that contains the highest temperature recorded at the Ninoy Aquino International Airport Station in degrees Celsius on 10 Aug '26.\n\nThe resolution source for this market will be information from Wunderground, specifically the highest temperature recorded for all times on this day for the Ninoy Aquino International Airport Station, available here: https://www.wunderground.com/history/daily/ph/manila/RPLL.\n\nTo toggle between Fahrenheit and Celsius, click the gear icon next to the search bar and switch the Temperature setting between °F and °C.\n\nThis market can not resolve until the first data point for the following date has been published on the resolution source.\n\nThe resolution source for this market measures temperatures to whole degrees Celsius (eg, 9°C). Thus, this is the level of precision that will be used when resolving the market.\n\nRevisions to temperatures recorded within this market's timeframe will be considered until the first datapoint for the following date has been published, after which any alterations will not be considered.",
+                                    "rules": "",
+                                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                    "outcome0_name": "Yes",
+                                    "outcome1_name": "No",
+                                    "outcome_prices": "[0.0005,0.9995]",
+                                    "end_time": 1786363200,
+                                    "settle_time": 0,
+                                    "winner_idx": 0,
+                                    "status": 1,
+                                    "total_volume": 5257,
+                                    "total_volume0": 0,
+                                    "total_volume1": 0,
+                                    "category": "",
+                                    "tags": "",
+                                    "source": "polymarket",
+                                    "creator_uid": 0,
+                                    "created_at": 1786344847,
+                                    "updated_at": 1786345026,
+                                    "identifier": "highest-temperature-in-manila-on-august-10-2026-31c",
+                                    "source_market_id": "3414884",
+                                    "group_item_title": "31°C",
+                                    "poly_clob_token_ids": "14899631349455575529818701831299485367688009427228888886901869159487692463456,66895448919850005227066827684103881233766127000739336687903559786188940422063"
+                                }
+                            }
+                        ],
+                        "active": true,
+                        "resolved": false,
+                        "volume": 9791,
+                        "liquidity": null,
+                        "created": 1786344847000,
+                        "createdDatetime": "2026-08-10T06:54:07.000Z",
+                        "end": 1786363200000,
+                        "endDatetime": "2026-08-10T12:00:00.000Z",
+                        "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                        "url": null,
+                        "info": {
+                            "markets": [
+                                {
+                                    "id": 80372995,
+                                    "event_id": 9156636,
+                                    "title": "Will the highest temperature in Manila be 34°C or higher on August 10?",
+                                    "description": "This market will resolve based on the highest temperature recorded in the 'Daily Observations' table on Weather Underground, not the figure displayed in the 'Day High & Low' summary section; in the event of any discrepancy between the two, the Daily Observations table shall be the primary resolution source not the Day High & Low section.\n\nThis market will resolve to the temperature range that contains the highest temperature recorded at the Ninoy Aquino International Airport Station in degrees Celsius on 10 Aug '26.\n\nThe resolution source for this market will be information from Wunderground, specifically the highest temperature recorded for all times on this day for the Ninoy Aquino International Airport Station, available here: https://www.wunderground.com/history/daily/ph/manila/RPLL.\n\nTo toggle between Fahrenheit and Celsius, click the gear icon next to the search bar and switch the Temperature setting between °F and °C.\n\nThis market can not resolve until the first data point for the following date has been published on the resolution source.\n\nThe resolution source for this market measures temperatures to whole degrees Celsius (eg, 9°C). Thus, this is the level of precision that will be used when resolving the market.\n\nRevisions to temperatures recorded within this market's timeframe will be considered until the first datapoint for the following date has been published, after which any alterations will not be considered.",
+                                    "rules": "",
+                                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                    "outcome0_name": "Yes",
+                                    "outcome1_name": "No",
+                                    "outcome_prices": "[0.0025,0.9975]",
+                                    "end_time": 1786363200,
+                                    "settle_time": 0,
+                                    "winner_idx": 0,
+                                    "status": 1,
+                                    "total_volume": 4534,
+                                    "total_volume0": 0,
+                                    "total_volume1": 0,
+                                    "category": "",
+                                    "tags": "",
+                                    "source": "polymarket",
+                                    "creator_uid": 0,
+                                    "created_at": 1786344847,
+                                    "updated_at": 1786345026,
+                                    "identifier": "highest-temperature-in-manila-on-august-10-2026-34corhigher",
+                                    "source_market_id": "3414887",
+                                    "group_item_title": "34°C or higher",
+                                    "poly_clob_token_ids": "62601896975578109067229660909567155545107729648924520053536274002574087081763,88199341690975216479302994732143106162404952742628378269342933061310232814171"
+                                },
+                                {
+                                    "id": 80372994,
+                                    "event_id": 9156636,
+                                    "title": "Will the highest temperature in Manila be 31°C on August 10?",
+                                    "description": "This market will resolve based on the highest temperature recorded in the 'Daily Observations' table on Weather Underground, not the figure displayed in the 'Day High & Low' summary section; in the event of any discrepancy between the two, the Daily Observations table shall be the primary resolution source not the Day High & Low section.\n\nThis market will resolve to the temperature range that contains the highest temperature recorded at the Ninoy Aquino International Airport Station in degrees Celsius on 10 Aug '26.\n\nThe resolution source for this market will be information from Wunderground, specifically the highest temperature recorded for all times on this day for the Ninoy Aquino International Airport Station, available here: https://www.wunderground.com/history/daily/ph/manila/RPLL.\n\nTo toggle between Fahrenheit and Celsius, click the gear icon next to the search bar and switch the Temperature setting between °F and °C.\n\nThis market can not resolve until the first data point for the following date has been published on the resolution source.\n\nThe resolution source for this market measures temperatures to whole degrees Celsius (eg, 9°C). Thus, this is the level of precision that will be used when resolving the market.\n\nRevisions to temperatures recorded within this market's timeframe will be considered until the first datapoint for the following date has been published, after which any alterations will not be considered.",
+                                    "rules": "",
+                                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/manila-1586e292d0.jpg",
+                                    "outcome0_name": "Yes",
+                                    "outcome1_name": "No",
+                                    "outcome_prices": "[0.0005,0.9995]",
+                                    "end_time": 1786363200,
+                                    "settle_time": 0,
+                                    "winner_idx": 0,
+                                    "status": 1,
+                                    "total_volume": 5257,
+                                    "total_volume0": 0,
+                                    "total_volume1": 0,
+                                    "category": "",
+                                    "tags": "",
+                                    "source": "polymarket",
+                                    "creator_uid": 0,
+                                    "created_at": 1786344847,
+                                    "updated_at": 1786345026,
+                                    "identifier": "highest-temperature-in-manila-on-august-10-2026-31c",
+                                    "source_market_id": "3414884",
+                                    "group_item_title": "31°C",
+                                    "poly_clob_token_ids": "14899631349455575529818701831299485367688009427228888886901869159487692463456,66895448919850005227066827684103881233766127000739336687903559786188940422063"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ]
+  }
+}

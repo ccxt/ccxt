@@ -230,6 +230,7 @@ import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
 
 import hyperliquidPrediction from  './src/prediction/hyperliquid.js'
+import insightxPrediction from  './src/prediction/insightx.js'
 import kalshiPrediction from  './src/prediction/kalshi.js'
 import limitlessPrediction from  './src/prediction/limitless.js'
 import myriadPrediction from  './src/prediction/myriad.js'
@@ -427,6 +428,7 @@ pro['Exchange'] = Exchange // now the same for rest and ts
 
 const prediction = {
     'hyperliquid':            hyperliquidPrediction,
+    'insightx':               insightxPrediction,
     'kalshi':                 kalshiPrediction,
     'limitless':              limitlessPrediction,
     'myriad':                 myriadPrediction,

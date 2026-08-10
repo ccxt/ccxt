@@ -1,0 +1,47 @@
+{
+    "exchange": "insightx",
+    "asyncOnly": true,
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets active listing with a bounded result",
+                "method": "fetchMarkets",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/markets?page=1&size=2&status=1",
+                "input": [
+                    {
+                        "limit": 2,
+                        "marketStatus": 1
+                    }
+                ]
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents active listing grouped by event id",
+                "method": "fetchEvents",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/markets?page=1&size=2&status=1",
+                "input": [
+                    {
+                        "limit": 2,
+                        "marketStatus": 1
+                    }
+                ]
+            }
+        ],
+        "fetchEvent": [
+            {
+                "description": "fetchEvent direct market lookup by raw market id",
+                "method": "fetchEvent",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/market?market_id=80358378",
+                "input": [
+                    "80358378"
+                ]
+            }
+        ]
+    },
+    "options": {
+        "loadAllOutcomes": true
+    }
+}

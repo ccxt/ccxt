@@ -1,0 +1,699 @@
+[
+    {
+        "id": "9151820",
+        "event": "INSIGHTX_EVENT_9151820",
+        "slug": null,
+        "title": "Will Disguised Win the Shortest Game in LCS 2026 Summer Split?",
+        "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+        "category": null,
+        "tags": [],
+        "markets": [
+            {
+                "id": "80372897",
+                "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                "event": "INSIGHTX_EVENT_9151820",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "title": "Will Disguised Win the Shortest Game in LCS 2026 Summer Split?",
+                "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                "outcomes": [
+                    {
+                        "outcome": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259:YES",
+                        "outcomeId": "80372897:1",
+                        "label": "Yes",
+                        "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                        "marketId": "80372897",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "price": 0.006,
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.0001
+                        },
+                        "info": {
+                            "outcome_idx": 1,
+                            "source_token_id": "94877565943332102033870853384879039422131324606970572358578648123651311723249"
+                        }
+                    },
+                    {
+                        "outcome": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259:NO",
+                        "outcomeId": "80372897:2",
+                        "label": "No",
+                        "market": "INSIGHTX_EVENT_9151820_DISGUISED_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626259",
+                        "marketId": "80372897",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "price": 0.994,
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.0001
+                        },
+                        "info": {
+                            "outcome_idx": 2,
+                            "source_token_id": "108338864080599973424551164240666046802907981957267012626299455805497739403724"
+                        }
+                    }
+                ],
+                "collateral": null,
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "resolvedOutcome": null,
+                "created": 1786343407000,
+                "createdDatetime": "2026-08-10T06:30:07.000Z",
+                "end": 0,
+                "endDatetime": "1970-01-01T00:00:00.000Z",
+                "volume": 3928,
+                "liquidity": null,
+                "tickSize": 0.0001,
+                "resolutionSource": null,
+                "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-disguised-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626259-ZkNtZ25zx-eq.png",
+                "base": "80372897",
+                "quote": null,
+                "settle": null,
+                "baseId": "80372897",
+                "quoteId": null,
+                "settleId": null,
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "contract": false,
+                "linear": null,
+                "inverse": null,
+                "contractSize": null,
+                "expiry": 0,
+                "expiryDatetime": "1970-01-01T00:00:00.000Z",
+                "strike": null,
+                "optionType": null,
+                "percentage": true,
+                "tierBased": false,
+                "precision": {
+                    "amount": null,
+                    "price": 0.0001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "price": {
+                        "min": 0.0001,
+                        "max": 0.9999
+                    },
+                    "cost": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": 80372897,
+                    "event_id": 9151820,
+                    "title": "Will Disguised Win the Shortest Game in LCS 2026 Summer Split?",
+                    "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                    "rules": "",
+                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-disguised-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626259-ZkNtZ25zx-eq.png",
+                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-disguised-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626259-ZkNtZ25zx-eq.png",
+                    "outcome0_name": "Yes",
+                    "outcome1_name": "No",
+                    "outcome_prices": "[0.006,0.994]",
+                    "end_time": 0,
+                    "settle_time": 0,
+                    "winner_idx": 0,
+                    "status": 1,
+                    "total_volume": 3928,
+                    "total_volume0": 0,
+                    "total_volume1": 0,
+                    "category": "",
+                    "tags": "",
+                    "source": "polymarket",
+                    "creator_uid": 0,
+                    "created_at": 1786343407,
+                    "updated_at": 1786345207,
+                    "identifier": "will-disguised-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626259",
+                    "source_market_id": "3249267",
+                    "group_item_title": "Disguised",
+                    "poly_clob_token_ids": "94877565943332102033870853384879039422131324606970572358578648123651311723249,108338864080599973424551164240666046802907981957267012626299455805497739403724"
+                }
+            },
+            {
+                "id": "80372896",
+                "market": "INSIGHTX_EVENT_9151820_TEAM_LIQUID_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626258",
+                "event": "INSIGHTX_EVENT_9151820",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "title": "Will Team Liquid Win the Shortest Game in LCS 2026 Summer Split?",
+                "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                "outcomes": [
+                    {
+                        "outcome": "INSIGHTX_EVENT_9151820_TEAM_LIQUID_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626258:YES",
+                        "outcomeId": "80372896:1",
+                        "label": "Yes",
+                        "market": "INSIGHTX_EVENT_9151820_TEAM_LIQUID_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626258",
+                        "marketId": "80372896",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "price": 0.047,
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.0001
+                        },
+                        "info": {
+                            "outcome_idx": 1,
+                            "source_token_id": "80509627532022338745535569346056599889212030613764026341964521607421938870528"
+                        }
+                    },
+                    {
+                        "outcome": "INSIGHTX_EVENT_9151820_TEAM_LIQUID_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626258:NO",
+                        "outcomeId": "80372896:2",
+                        "label": "No",
+                        "market": "INSIGHTX_EVENT_9151820_TEAM_LIQUID_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626258",
+                        "marketId": "80372896",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "price": 0.953,
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.0001
+                        },
+                        "info": {
+                            "outcome_idx": 2,
+                            "source_token_id": "80836462741529371741082807135463310946502248574066528116618895028238792022438"
+                        }
+                    }
+                ],
+                "collateral": null,
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "resolvedOutcome": null,
+                "created": 1786343407000,
+                "createdDatetime": "2026-08-10T06:30:07.000Z",
+                "end": 0,
+                "endDatetime": "1970-01-01T00:00:00.000Z",
+                "volume": 28166,
+                "liquidity": null,
+                "tickSize": 0.0001,
+                "resolutionSource": null,
+                "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-team-liquid-win-the-shortest-game-in-lcs-2026-summer-split-2026073015362625-8VRKKxKG3Ctl.png",
+                "base": "80372896",
+                "quote": null,
+                "settle": null,
+                "baseId": "80372896",
+                "quoteId": null,
+                "settleId": null,
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "contract": false,
+                "linear": null,
+                "inverse": null,
+                "contractSize": null,
+                "expiry": 0,
+                "expiryDatetime": "1970-01-01T00:00:00.000Z",
+                "strike": null,
+                "optionType": null,
+                "percentage": true,
+                "tierBased": false,
+                "precision": {
+                    "amount": null,
+                    "price": 0.0001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "price": {
+                        "min": 0.0001,
+                        "max": 0.9999
+                    },
+                    "cost": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": 80372896,
+                    "event_id": 9151820,
+                    "title": "Will Team Liquid Win the Shortest Game in LCS 2026 Summer Split?",
+                    "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                    "rules": "",
+                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-team-liquid-win-the-shortest-game-in-lcs-2026-summer-split-2026073015362625-8VRKKxKG3Ctl.png",
+                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-team-liquid-win-the-shortest-game-in-lcs-2026-summer-split-2026073015362625-8VRKKxKG3Ctl.png",
+                    "outcome0_name": "Yes",
+                    "outcome1_name": "No",
+                    "outcome_prices": "[0.047,0.953]",
+                    "end_time": 0,
+                    "settle_time": 0,
+                    "winner_idx": 0,
+                    "status": 1,
+                    "total_volume": 28166,
+                    "total_volume0": 0,
+                    "total_volume1": 0,
+                    "category": "",
+                    "tags": "",
+                    "source": "polymarket",
+                    "creator_uid": 0,
+                    "created_at": 1786343407,
+                    "updated_at": 1786345207,
+                    "identifier": "will-team-liquid-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626258",
+                    "source_market_id": "3249266",
+                    "group_item_title": "Team Liquid",
+                    "poly_clob_token_ids": "80509627532022338745535569346056599889212030613764026341964521607421938870528,80836462741529371741082807135463310946502248574066528116618895028238792022438"
+                }
+            },
+            {
+                "id": "80372895",
+                "market": "INSIGHTX_EVENT_9151820_SHOPIFY_REBELLION_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626257",
+                "event": "INSIGHTX_EVENT_9151820",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "title": "Will Shopify Rebellion Win the Shortest Game in LCS 2026 Summer Split?",
+                "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                "outcomes": [
+                    {
+                        "outcome": "INSIGHTX_EVENT_9151820_SHOPIFY_REBELLION_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626257:YES",
+                        "outcomeId": "80372895:1",
+                        "label": "Yes",
+                        "market": "INSIGHTX_EVENT_9151820_SHOPIFY_REBELLION_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626257",
+                        "marketId": "80372895",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "price": 0.007,
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.0001
+                        },
+                        "info": {
+                            "outcome_idx": 1,
+                            "source_token_id": "5526349847470352300958151819622645591112834058686352901632752863310272100564"
+                        }
+                    },
+                    {
+                        "outcome": "INSIGHTX_EVENT_9151820_SHOPIFY_REBELLION_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626257:NO",
+                        "outcomeId": "80372895:2",
+                        "label": "No",
+                        "market": "INSIGHTX_EVENT_9151820_SHOPIFY_REBELLION_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626257",
+                        "marketId": "80372895",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "price": 0.993,
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.0001
+                        },
+                        "info": {
+                            "outcome_idx": 2,
+                            "source_token_id": "50272266805169704349940892575647913533298332995866327400748119133586359522216"
+                        }
+                    }
+                ],
+                "collateral": null,
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "resolvedOutcome": null,
+                "created": 1786343407000,
+                "createdDatetime": "2026-08-10T06:30:07.000Z",
+                "end": 0,
+                "endDatetime": "1970-01-01T00:00:00.000Z",
+                "volume": 3969,
+                "liquidity": null,
+                "tickSize": 0.0001,
+                "resolutionSource": null,
+                "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-shopify-rebellion-win-the-shortest-game-in-lcs-2026-summer-split-2026073015-Di0by4eeBSF3.png",
+                "base": "80372895",
+                "quote": null,
+                "settle": null,
+                "baseId": "80372895",
+                "quoteId": null,
+                "settleId": null,
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "contract": false,
+                "linear": null,
+                "inverse": null,
+                "contractSize": null,
+                "expiry": 0,
+                "expiryDatetime": "1970-01-01T00:00:00.000Z",
+                "strike": null,
+                "optionType": null,
+                "percentage": true,
+                "tierBased": false,
+                "precision": {
+                    "amount": null,
+                    "price": 0.0001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "price": {
+                        "min": 0.0001,
+                        "max": 0.9999
+                    },
+                    "cost": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": 80372895,
+                    "event_id": 9151820,
+                    "title": "Will Shopify Rebellion Win the Shortest Game in LCS 2026 Summer Split?",
+                    "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                    "rules": "",
+                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-shopify-rebellion-win-the-shortest-game-in-lcs-2026-summer-split-2026073015-Di0by4eeBSF3.png",
+                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-shopify-rebellion-win-the-shortest-game-in-lcs-2026-summer-split-2026073015-Di0by4eeBSF3.png",
+                    "outcome0_name": "Yes",
+                    "outcome1_name": "No",
+                    "outcome_prices": "[0.007,0.993]",
+                    "end_time": 0,
+                    "settle_time": 0,
+                    "winner_idx": 0,
+                    "status": 1,
+                    "total_volume": 3969,
+                    "total_volume0": 0,
+                    "total_volume1": 0,
+                    "category": "",
+                    "tags": "",
+                    "source": "polymarket",
+                    "creator_uid": 0,
+                    "created_at": 1786343407,
+                    "updated_at": 1786345207,
+                    "identifier": "will-shopify-rebellion-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626257",
+                    "source_market_id": "3249265",
+                    "group_item_title": "Shopify Rebellion",
+                    "poly_clob_token_ids": "5526349847470352300958151819622645591112834058686352901632752863310272100564,50272266805169704349940892575647913533298332995866327400748119133586359522216"
+                }
+            },
+            {
+                "id": "80372894",
+                "market": "INSIGHTX_EVENT_9151820_LYON_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626255",
+                "event": "INSIGHTX_EVENT_9151820",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "title": "Will LYON Win the Shortest Game in LCS 2026 Summer Split?",
+                "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                "outcomes": [
+                    {
+                        "outcome": "INSIGHTX_EVENT_9151820_LYON_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626255:YES",
+                        "outcomeId": "80372894:1",
+                        "label": "Yes",
+                        "market": "INSIGHTX_EVENT_9151820_LYON_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626255",
+                        "marketId": "80372894",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "price": 0.845,
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.0001
+                        },
+                        "info": {
+                            "outcome_idx": 1,
+                            "source_token_id": "108471811211335188637366797937090559605565068275530959821307401842443702009624"
+                        }
+                    },
+                    {
+                        "outcome": "INSIGHTX_EVENT_9151820_LYON_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626255:NO",
+                        "outcomeId": "80372894:2",
+                        "label": "No",
+                        "market": "INSIGHTX_EVENT_9151820_LYON_WIN_SHORTEST_GAME_LCS_2026_SUMMER_SPLIT_20260730153626255",
+                        "marketId": "80372894",
+                        "event": "INSIGHTX_EVENT_9151820",
+                        "price": 0.155,
+                        "active": true,
+                        "winner": null,
+                        "settleFraction": null,
+                        "precision": {
+                            "amount": null,
+                            "price": 0.0001
+                        },
+                        "info": {
+                            "outcome_idx": 2,
+                            "source_token_id": "42924130435739185347238433400572853487233313063544774773506126787325643615212"
+                        }
+                    }
+                ],
+                "collateral": null,
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "resolvedOutcome": null,
+                "created": 1786343407000,
+                "createdDatetime": "2026-08-10T06:30:07.000Z",
+                "end": 0,
+                "endDatetime": "1970-01-01T00:00:00.000Z",
+                "volume": 5529,
+                "liquidity": null,
+                "tickSize": 0.0001,
+                "resolutionSource": null,
+                "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-lyon-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626255-DT_IqzF29V9S.png",
+                "base": "80372894",
+                "quote": null,
+                "settle": null,
+                "baseId": "80372894",
+                "quoteId": null,
+                "settleId": null,
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "contract": false,
+                "linear": null,
+                "inverse": null,
+                "contractSize": null,
+                "expiry": 0,
+                "expiryDatetime": "1970-01-01T00:00:00.000Z",
+                "strike": null,
+                "optionType": null,
+                "percentage": true,
+                "tierBased": false,
+                "precision": {
+                    "amount": null,
+                    "price": 0.0001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "price": {
+                        "min": 0.0001,
+                        "max": 0.9999
+                    },
+                    "cost": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "id": 80372894,
+                    "event_id": 9151820,
+                    "title": "Will LYON Win the Shortest Game in LCS 2026 Summer Split?",
+                    "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                    "rules": "",
+                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-lyon-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626255-DT_IqzF29V9S.png",
+                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-lyon-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626255-DT_IqzF29V9S.png",
+                    "outcome0_name": "Yes",
+                    "outcome1_name": "No",
+                    "outcome_prices": "[0.845,0.155]",
+                    "end_time": 0,
+                    "settle_time": 0,
+                    "winner_idx": 0,
+                    "status": 1,
+                    "total_volume": 5529,
+                    "total_volume0": 0,
+                    "total_volume1": 0,
+                    "category": "",
+                    "tags": "",
+                    "source": "polymarket",
+                    "creator_uid": 0,
+                    "created_at": 1786343407,
+                    "updated_at": 1786345207,
+                    "identifier": "will-lyon-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626255",
+                    "source_market_id": "3249263",
+                    "group_item_title": "LYON",
+                    "poly_clob_token_ids": "108471811211335188637366797937090559605565068275530959821307401842443702009624,42924130435739185347238433400572853487233313063544774773506126787325643615212"
+                }
+            }
+        ],
+        "active": true,
+        "resolved": false,
+        "volume": 41592,
+        "liquidity": null,
+        "created": 1786343407000,
+        "createdDatetime": "2026-08-10T06:30:07.000Z",
+        "end": 0,
+        "endDatetime": "1970-01-01T00:00:00.000Z",
+        "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-disguised-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626259-ZkNtZ25zx-eq.png",
+        "url": null,
+        "info": {
+            "markets": [
+                {
+                    "id": 80372897,
+                    "event_id": 9151820,
+                    "title": "Will Disguised Win the Shortest Game in LCS 2026 Summer Split?",
+                    "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                    "rules": "",
+                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-disguised-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626259-ZkNtZ25zx-eq.png",
+                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-disguised-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626259-ZkNtZ25zx-eq.png",
+                    "outcome0_name": "Yes",
+                    "outcome1_name": "No",
+                    "outcome_prices": "[0.006,0.994]",
+                    "end_time": 0,
+                    "settle_time": 0,
+                    "winner_idx": 0,
+                    "status": 1,
+                    "total_volume": 3928,
+                    "total_volume0": 0,
+                    "total_volume1": 0,
+                    "category": "",
+                    "tags": "",
+                    "source": "polymarket",
+                    "creator_uid": 0,
+                    "created_at": 1786343407,
+                    "updated_at": 1786345207,
+                    "identifier": "will-disguised-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626259",
+                    "source_market_id": "3249267",
+                    "group_item_title": "Disguised",
+                    "poly_clob_token_ids": "94877565943332102033870853384879039422131324606970572358578648123651311723249,108338864080599973424551164240666046802907981957267012626299455805497739403724"
+                },
+                {
+                    "id": 80372896,
+                    "event_id": 9151820,
+                    "title": "Will Team Liquid Win the Shortest Game in LCS 2026 Summer Split?",
+                    "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                    "rules": "",
+                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-team-liquid-win-the-shortest-game-in-lcs-2026-summer-split-2026073015362625-8VRKKxKG3Ctl.png",
+                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-team-liquid-win-the-shortest-game-in-lcs-2026-summer-split-2026073015362625-8VRKKxKG3Ctl.png",
+                    "outcome0_name": "Yes",
+                    "outcome1_name": "No",
+                    "outcome_prices": "[0.047,0.953]",
+                    "end_time": 0,
+                    "settle_time": 0,
+                    "winner_idx": 0,
+                    "status": 1,
+                    "total_volume": 28166,
+                    "total_volume0": 0,
+                    "total_volume1": 0,
+                    "category": "",
+                    "tags": "",
+                    "source": "polymarket",
+                    "creator_uid": 0,
+                    "created_at": 1786343407,
+                    "updated_at": 1786345207,
+                    "identifier": "will-team-liquid-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626258",
+                    "source_market_id": "3249266",
+                    "group_item_title": "Team Liquid",
+                    "poly_clob_token_ids": "80509627532022338745535569346056599889212030613764026341964521607421938870528,80836462741529371741082807135463310946502248574066528116618895028238792022438"
+                },
+                {
+                    "id": 80372895,
+                    "event_id": 9151820,
+                    "title": "Will Shopify Rebellion Win the Shortest Game in LCS 2026 Summer Split?",
+                    "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                    "rules": "",
+                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-shopify-rebellion-win-the-shortest-game-in-lcs-2026-summer-split-2026073015-Di0by4eeBSF3.png",
+                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-shopify-rebellion-win-the-shortest-game-in-lcs-2026-summer-split-2026073015-Di0by4eeBSF3.png",
+                    "outcome0_name": "Yes",
+                    "outcome1_name": "No",
+                    "outcome_prices": "[0.007,0.993]",
+                    "end_time": 0,
+                    "settle_time": 0,
+                    "winner_idx": 0,
+                    "status": 1,
+                    "total_volume": 3969,
+                    "total_volume0": 0,
+                    "total_volume1": 0,
+                    "category": "",
+                    "tags": "",
+                    "source": "polymarket",
+                    "creator_uid": 0,
+                    "created_at": 1786343407,
+                    "updated_at": 1786345207,
+                    "identifier": "will-shopify-rebellion-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626257",
+                    "source_market_id": "3249265",
+                    "group_item_title": "Shopify Rebellion",
+                    "poly_clob_token_ids": "5526349847470352300958151819622645591112834058686352901632752863310272100564,50272266805169704349940892575647913533298332995866327400748119133586359522216"
+                },
+                {
+                    "id": 80372894,
+                    "event_id": 9151820,
+                    "title": "Will LYON Win the Shortest Game in LCS 2026 Summer Split?",
+                    "description": "This market will resolve to the team that wins the single shortest game played during the 2026 LCS (League Championship Series) Summer Split regular season, running through September 6, 2026. Playoff games are excluded.\n\n\"Shortest\" is determined by the in-game duration of each completed game, as recorded on the official post-game result and logged by the resolution source (the clock running from game start to the destruction of the losing team's Nexus / game end).\n\nAll completed regular-season games count. Seeding games (matches played solely to determine seeding or draw position) and playoff games do not count toward this market.\n\nA game that is remade or restarted before completion does not count; only a completed, officially recorded game counts.\n\nThis market resolves to the team that won the game with the lowest recorded in-game duration across the qualifying games. If the two shortest games share the identical recorded duration, the market resolves to the team that won the game that occurred earlier in the schedule.\n\nIf the 2026 LCS Summer Split regular season is cancelled, or is not completed such that final game-duration data is not available by September 20, 2026, 11:59 PM ET, this market will resolve to \"Other\".\n\nThe primary resolution source for this market will be Leaguepedia (https://lol.fandom.com/wiki/LCS/2026_Season/Summer_Season); a consensus of credible reporting may also be used.",
+                    "rules": "",
+                    "banner": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-lyon-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626255-DT_IqzF29V9S.png",
+                    "image_url": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-lyon-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626255-DT_IqzF29V9S.png",
+                    "outcome0_name": "Yes",
+                    "outcome1_name": "No",
+                    "outcome_prices": "[0.845,0.155]",
+                    "end_time": 0,
+                    "settle_time": 0,
+                    "winner_idx": 0,
+                    "status": 1,
+                    "total_volume": 5529,
+                    "total_volume0": 0,
+                    "total_volume1": 0,
+                    "category": "",
+                    "tags": "",
+                    "source": "polymarket",
+                    "creator_uid": 0,
+                    "created_at": 1786343407,
+                    "updated_at": 1786345207,
+                    "identifier": "will-lyon-win-the-shortest-game-in-lcs-2026-summer-split-20260730153626255",
+                    "source_market_id": "3249263",
+                    "group_item_title": "LYON",
+                    "poly_clob_token_ids": "108471811211335188637366797937090559605565068275530959821307401842443702009624,42924130435739185347238433400572853487233313063544774773506126787325643615212"
+                }
+            ]
+        }
+    }
+]
