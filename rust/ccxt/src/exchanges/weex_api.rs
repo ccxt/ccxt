@@ -312,6 +312,21 @@ impl WeexCore {
         self.call_method(Value::Str("contract_private_get_capi_v3_all_algo_orders".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3SimBalance` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_sim_balance(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_sim_balance".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3SimPositionAllPosition` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_sim_position_all_position(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_sim_position_all_position".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3SimOrderHistory` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_sim_order_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_sim_order_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `contractPrivatePostCapiV3AccountIncome` implicit endpoint.
     pub async fn contract_private_post_capi_v3_account_income(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_private_post_capi_v3_account_income".to_string()), optional_args).await
@@ -365,6 +380,11 @@ impl WeexCore {
     /// Auto-generated wrapper for the `contractPrivatePostCapiV3ModifyTpSlOrder` implicit endpoint.
     pub async fn contract_private_post_capi_v3_modify_tp_sl_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_private_post_capi_v3_modify_tp_sl_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivatePostCapiV3SimOrder` implicit endpoint.
+    pub async fn contract_private_post_capi_v3_sim_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_capi_v3_sim_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `contractPrivateDeleteCapiV3Order` implicit endpoint.

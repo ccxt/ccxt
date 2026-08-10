@@ -205,7 +205,7 @@ impl crate::exchange::DerivedExchange for ExtendedCore {
 
 impl crate::exchange_generated::ExchangeBase for ExtendedCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -486,16 +486,289 @@ impl ExtendedCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("info/markets".to_string()), Value::Str("info/assets".to_string()), Value::Str("info/assets/{asset}/price".to_string()), Value::Str("info/markets/{market}/stats".to_string()), Value::Str("info/markets/{market}/orderbook".to_string()), Value::Str("info/markets/{market}/trades".to_string()), Value::Str("info/candles/{market}/{candleType}".to_string()), Value::Str("info/{market}/funding".to_string()), Value::Str("info/{market}/open-interests".to_string()), Value::Str("info/builder/dashboard".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info/markets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/assets/{asset}/price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/markets/{market}/stats".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/markets/{market}/orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/markets/{market}/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/candles/{market}/{candleType}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/{market}/funding".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/{market}/open-interests".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/builder/dashboard".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("user/accounts".to_string()), Value::Str("user/account/info".to_string()), Value::Str("user/balance".to_string()), Value::Str("user/spot/balances".to_string()), Value::Str("user/assetOperations".to_string()), Value::Str("user/positions".to_string()), Value::Str("user/positions/history".to_string()), Value::Str("user/orders".to_string()), Value::Str("user/orders/history".to_string()), Value::Str("user/orders/{id}".to_string()), Value::Str("user/orders/external/{externalId}".to_string()), Value::Str("user/trades".to_string()), Value::Str("user/funding/history".to_string()), Value::Str("user/rebates/stats".to_string()), Value::Str("user/leverage".to_string()), Value::Str("user/fees".to_string()), Value::Str("user/bridge/config".to_string()), Value::Str("user/bridge/quote".to_string()), Value::Str("user/affiliate".to_string()), Value::Str("user/referrals/status".to_string()), Value::Str("user/referrals/links".to_string()), Value::Str("user/referrals/dashboard".to_string()), Value::Str("user/rewards/earned".to_string()), Value::Str("user/rewards/leaderboard/stats".to_string()), Value::Str("portfolio/charts/equities".to_string()), Value::Str("portfolio/charts/pnl".to_string()), Value::Str("vault/public/performance".to_string()), Value::Str("vault/public/summary".to_string()), Value::Str("builder/trades".to_string())]));
-        m.insert("post".to_string(), Value::List(vec![Value::Str("user/order".to_string()), Value::Str("user/order/massCancel".to_string()), Value::Str("user/deadmanswitch".to_string()), Value::Str("user/bridge/quote".to_string()), Value::Str("user/withdrawal".to_string()), Value::Str("user/transfer".to_string()), Value::Str("user/referrals/use".to_string()), Value::Str("user/referrals".to_string())]));
-        m.insert("put".to_string(), Value::List(vec![Value::Str("user/referrals".to_string())]));
-        m.insert("patch".to_string(), Value::List(vec![Value::Str("user/leverage".to_string())]));
-        m.insert("delete".to_string(), Value::List(vec![Value::Str("user/order/{id}".to_string()), Value::Str("user/order".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("user/accounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/account/info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/spot/balances".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/assetOperations".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/positions/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/orders/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/orders/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/orders/external/{externalId}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/funding/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/rebates/stats".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/fees".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/bridge/config".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/bridge/quote".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/affiliate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/referrals/status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/referrals/links".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/referrals/dashboard".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/rewards/earned".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/rewards/leaderboard/stats".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("portfolio/charts/equities".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("portfolio/charts/pnl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("vault/public/performance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("vault/public/summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("builder/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("user/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/order/massCancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/deadmanswitch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/bridge/quote".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/referrals/use".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/referrals".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("put".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("user/referrals".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("patch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("user/leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("delete".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("user/order/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
     m
@@ -631,8 +904,8 @@ impl ExtendedCore {
         let mut keys: Value = object_keys(&input);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_633: bool = true;
-            while { if !__for_first_633 { i = add(&i, &Value::Int(1)); } __for_first_633 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_636: bool = true;
+            while { if !__for_first_636 { i = add(&i, &Value::Int(1)); } __for_first_636 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut item: Value = get_value(&input, &key);
@@ -1115,8 +1388,8 @@ impl ExtendedCore {
             let mut marketIds: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_634: bool = true;
-                while { if !__for_first_634 { i = add(&i, &Value::Int(1)); } __for_first_634 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_637: bool = true;
+                while { if !__for_first_637 { i = add(&i, &Value::Int(1)); } __for_first_637 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut marketIds, get_value(&market, &Value::Str("id".to_string())));
             }
@@ -1149,8 +1422,8 @@ impl ExtendedCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_635: bool = true;
-            while { if !__for_first_635 { i = add(&i, &Value::Int(1)); } __for_first_635 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_638: bool = true;
+            while { if !__for_first_638 { i = add(&i, &Value::Int(1)); } __for_first_638 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut marketData: Value = get_value(&data, &i);
             let mut marketData: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(marketData.clone(), "name", &[]);
@@ -1425,8 +1698,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_636: bool = true;
-            while { if !__for_first_636 { i = add(&i, &Value::Int(1)); } __for_first_636 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_639: bool = true;
+            while { if !__for_first_639 { i = add(&i, &Value::Int(1)); } __for_first_639 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -1521,8 +1794,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_637: bool = true;
-            while { if !__for_first_637 { i = add(&i, &Value::Int(1)); } __for_first_637 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_640: bool = true;
+            while { if !__for_first_640 { i = add(&i, &Value::Int(1)); } __for_first_640 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -1583,8 +1856,8 @@ impl ExtendedCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_638: bool = true;
-            while { if !__for_first_638 { i = add(&i, &Value::Int(1)); } __for_first_638 = false; is_less_than(&i, &get_array_length(&histories)) } {
+            let mut __for_first_641: bool = true;
+            while { if !__for_first_641 { i = add(&i, &Value::Int(1)); } __for_first_641 = false; is_less_than(&i, &get_array_length(&histories)) } {
             append_to_array(&mut result, self.parse_funding_history(get_value(&histories, &i), &[market.clone()]));
         }
         }
@@ -1825,8 +2098,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_639: bool = true;
-            while { if !__for_first_639 { i = add(&i, &Value::Int(1)); } __for_first_639 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_642: bool = true;
+            while { if !__for_first_642 { i = add(&i, &Value::Int(1)); } __for_first_642 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -2019,8 +2292,8 @@ impl ExtendedCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_640: bool = true;
-            while { if !__for_first_640 { i = add(&i, &Value::Int(1)); } __for_first_640 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_643: bool = true;
+            while { if !__for_first_643 { i = add(&i, &Value::Int(1)); } __for_first_643 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2192,8 +2465,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_641: bool = true;
-            while { if !__for_first_641 { i = add(&i, &Value::Int(1)); } __for_first_641 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_644: bool = true;
+            while { if !__for_first_644 { i = add(&i, &Value::Int(1)); } __for_first_644 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -2339,8 +2612,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_642: bool = true;
-            while { if !__for_first_642 { i = add(&i, &Value::Int(1)); } __for_first_642 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_645: bool = true;
+            while { if !__for_first_645 { i = add(&i, &Value::Int(1)); } __for_first_645 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -2549,8 +2822,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_643: bool = true;
-            while { if !__for_first_643 { i = add(&i, &Value::Int(1)); } __for_first_643 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_646: bool = true;
+            while { if !__for_first_646 { i = add(&i, &Value::Int(1)); } __for_first_646 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -2889,8 +3162,8 @@ impl ExtendedCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_644: bool = true;
-            while { if !__for_first_644 { i = add(&i, &Value::Int(1)); } __for_first_644 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_647: bool = true;
+            while { if !__for_first_647 { i = add(&i, &Value::Int(1)); } __for_first_647 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut fee: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3201,8 +3474,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_645: bool = true;
-            while { if !__for_first_645 { i = add(&i, &Value::Int(1)); } __for_first_645 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_648: bool = true;
+            while { if !__for_first_648 { i = add(&i, &Value::Int(1)); } __for_first_648 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {
@@ -4267,8 +4540,8 @@ impl ExtendedCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_646: bool = true;
-            while { if !__for_first_646 { i = add(&i, &Value::Int(1)); } __for_first_646 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_649: bool = true;
+            while { if !__for_first_649 { i = add(&i, &Value::Int(1)); } __for_first_649 = false; is_less_than(&i, &dataLength) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             if is_true(&(!is_equal(&cursor, &Value::Null))) && is_true(&(is_equal(&i, &subtract(&dataLength, &Value::Int(1))))) {

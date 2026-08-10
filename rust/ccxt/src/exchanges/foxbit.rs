@@ -181,7 +181,7 @@ impl crate::exchange::DerivedExchange for FoxbitCore {
 
 impl crate::exchange_generated::ExchangeBase for FoxbitCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -271,6 +271,8 @@ impl FoxbitCore {
         m.insert("createMarketBuyOrder".to_string(), Value::Bool(true));
         m.insert("createMarketSellOrder".to_string(), Value::Bool(true));
         m.insert("createOrder".to_string(), Value::Bool(true));
+        m.insert("createOrders".to_string(), Value::Bool(true));
+        m.insert("editOrder".to_string(), Value::Bool(true));
         m.insert("fecthOrderBook".to_string(), Value::Bool(true));
         m.insert("fetchBalance".to_string(), Value::Bool(true));
         m.insert("fetchCanceledOrders".to_string(), Value::Bool(true));
@@ -285,7 +287,10 @@ impl FoxbitCore {
         m.insert("fetchOHLCV".to_string(), Value::Bool(true));
         m.insert("fetchOpenOrders".to_string(), Value::Bool(true));
         m.insert("fetchOrder".to_string(), Value::Bool(true));
+        m.insert("fetchOrderBook".to_string(), Value::Bool(true));
         m.insert("fetchOrders".to_string(), Value::Bool(true));
+        m.insert("fetchOrdersByStatus".to_string(), Value::Bool(true));
+        m.insert("fetchStatus".to_string(), Value::Bool(true));
         m.insert("fetchTicker".to_string(), Value::Bool(true));
         m.insert("fetchTickers".to_string(), Value::Bool(true));
         m.insert("fetchTrades".to_string(), Value::Bool(true));
@@ -385,13 +390,41 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currencies".to_string(), Value::Int(5));
-        m.insert("markets".to_string(), Value::Int(5));
-        m.insert("markets/ticker/24hr".to_string(), Value::Int(60));
-        m.insert("markets/{market}/orderbook".to_string(), Value::Int(6));
-        m.insert("markets/{market}/candlesticks".to_string(), Value::Int(12));
-        m.insert("markets/{market}/trades/history".to_string(), Value::Int(12));
-        m.insert("markets/{market}/ticker/24hr".to_string(), Value::Int(15));
+        m.insert("currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("markets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("markets/ticker/24hr".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("markets/{market}/orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(6));
+    m
+}));
+        m.insert("markets/{market}/candlesticks".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("markets/{market}/trades/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("markets/{market}/ticker/24hr".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(15));
+    m
+}));
     m
 }));
     m
@@ -400,28 +433,84 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("accounts".to_string(), Value::Int(2));
-        m.insert("accounts/{symbol}/transactions".to_string(), Value::Int(60));
-        m.insert("orders".to_string(), Value::Int(2));
-        m.insert("orders/by-order-id/{id}".to_string(), Value::Int(2));
-        m.insert("trades".to_string(), Value::Int(6));
-        m.insert("deposits/address".to_string(), Value::Int(10));
-        m.insert("deposits".to_string(), Value::Int(10));
-        m.insert("withdrawals".to_string(), Value::Int(10));
-        m.insert("me/fees/trading".to_string(), Value::Int(60));
+        m.insert("accounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("accounts/{symbol}/transactions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("orders/by-order-id/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(6));
+    m
+}));
+        m.insert("deposits/address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("deposits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("withdrawals".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("me/fees/trading".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("orders".to_string(), Value::Int(2));
-        m.insert("orders/batch".to_string(), Value::Float(7.5));
-        m.insert("orders/cancel-replace".to_string(), Value::Int(3));
-        m.insert("withdrawals".to_string(), Value::Int(10));
+        m.insert("orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("orders/batch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(7.5));
+    m
+}));
+        m.insert("orders/cancel-replace".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("withdrawals".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
         m.insert("put".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("orders/cancel".to_string(), Value::Int(2));
+        m.insert("orders/cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -434,7 +523,11 @@ impl FoxbitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), Value::Int(30));
+        m.insert("status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
     m
 }));
     m
@@ -694,8 +787,8 @@ impl FoxbitCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_647: bool = true;
-            while { if !__for_first_647 { j = add(&j, &Value::Int(1)); } __for_first_647 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_650: bool = true;
+            while { if !__for_first_650 { j = add(&j, &Value::Int(1)); } __for_first_650 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut network: Value = get_value(&networks, &j);
             let mut network: Value = get_value(&networks, &j);
             let mut networkId: Value = self.safe_string_k(network.clone(), "code", &[]);
@@ -1042,8 +1135,8 @@ impl FoxbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_648: bool = true;
-            while { if !__for_first_648 { i = add(&i, &Value::Int(1)); } __for_first_648 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_651: bool = true;
+            while { if !__for_first_651 { i = add(&i, &Value::Int(1)); } __for_first_651 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "market_symbol", &[]);
@@ -1208,7 +1301,7 @@ impl FoxbitCore {
         }
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v3_public_get_markets_market_candlesticks(&[__ws_arg_3]).await;
-        return self.parse_ohlc_vs(response.clone(), &[market.clone(), interval.clone(), since.clone(), limit.clone()]);
+        return self.parse_ohlc_vs(self.to_array(response.clone()), &[market.clone(), interval.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1248,8 +1341,8 @@ impl FoxbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_649: bool = true;
-            while { if !__for_first_649 { i = add(&i, &Value::Int(1)); } __for_first_649 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+            let mut __for_first_652: bool = true;
+            while { if !__for_first_652 { i = add(&i, &Value::Int(1)); } __for_first_652 = false; is_less_than(&i, &get_array_length(&accounts)) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
             let mut currencyId: Value = self.safe_string_k(account.clone(), "currency_symbol", &[]);
@@ -1475,8 +1568,8 @@ impl FoxbitCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_650: bool = true;
-            while { if !__for_first_650 { i = add(&i, &Value::Int(1)); } __for_first_650 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_653: bool = true;
+            while { if !__for_first_653 { i = add(&i, &Value::Int(1)); } __for_first_653 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             let mut market: Value = self.market(symbol.clone());
@@ -2061,7 +2154,7 @@ impl FoxbitCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), self.safe_string(statusMap.clone(), statusRaw.clone(), &[statusRaw.clone()]));
-        m.insert("updated".to_string(), self.safe_string_k(attributes.clone(), "updatedAt", &[]));
+        m.insert("updated".to_string(), self.parse8601(self.safe_string_k(attributes.clone(), "updatedAt", &[])));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
         m.insert("info".to_string(), response.clone());
@@ -2139,7 +2232,20 @@ impl FoxbitCore {
         }
         let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v3_private_post_orders_cancel_replace(&[__ws_arg_15]).await;
-        return self.parse_order(get_value(&response, &Value::Str("create".to_string())), &[market.clone()]);
+        // {
+        //     "cancel": {
+        //         "id": 123456789
+        //     },
+        //     "create": {
+        //         "id": 1234567890,
+        //         "client_order_id": "451637946501"
+        //     }
+        // }
+        let mut created: Value = self.safe_dict_k(response.clone(), "create", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        return self.parse_order(created.clone(), &[market.clone()]);
 
     Value::Null
 }
@@ -2713,8 +2819,8 @@ impl FoxbitCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_651: bool = true;
-                while { if !__for_first_651 { i = add(&i, &Value::Int(1)); } __for_first_651 = false; is_less_than(&i, &get_array_length(&paramKeys)) } {
+                let mut __for_first_654: bool = true;
+                while { if !__for_first_654 { i = add(&i, &Value::Int(1)); } __for_first_654 = false; is_less_than(&i, &get_array_length(&paramKeys)) } {
                 let mut key: Value = get_value(&paramKeys, &i);
                 let mut key: Value = get_value(&paramKeys, &i);
                 let mut value: Value = self.safe_string(params.clone(), key.clone(), &[]);
@@ -2737,6 +2843,8 @@ impl FoxbitCore {
         headers = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
+                m.insert("X-FB-CLIENT".to_string(), Value::Str("ccxt".to_string()));
+                m.insert("X-FB-CLIENT-VERSION".to_string(), self.get_ccxt_version());
             m
         });
         if is_equal(&urlPath, &Value::Str("private".to_string())) {
@@ -2771,8 +2879,8 @@ impl FoxbitCore {
         if is_true(&details) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_652: bool = true;
-                while { if !__for_first_652 { i = add(&i, &Value::Int(1)); } __for_first_652 = false; is_less_than(&i, &get_array_length(&details)) } {
+                let mut __for_first_655: bool = true;
+                while { if !__for_first_655 { i = add(&i, &Value::Int(1)); } __for_first_655 = false; is_less_than(&i, &get_array_length(&details)) } {
                 detailsString = add(&add(&detailsString, &get_value(&details, &i)), &Value::Str(" ".to_string()));
             }
             }

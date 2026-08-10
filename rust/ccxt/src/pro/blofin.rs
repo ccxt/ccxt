@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BlofinCore {
 
 impl crate::exchange_generated::ExchangeBase for BlofinCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -476,8 +476,8 @@ impl BlofinCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_182: bool = true;
-            while { if !__for_first_182 { i = add(&i, &Value::Int(1)); } __for_first_182 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_180: bool = true;
+            while { if !__for_first_180 { i = add(&i, &Value::Int(1)); } __for_first_180 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawTrade: Value = get_value(&data, &i);
             let mut rawTrade: Value = get_value(&data, &i);
             let mut trade: Value = self.parse_ws_trade(rawTrade.clone(), &[]);
@@ -510,7 +510,7 @@ impl BlofinCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -533,7 +533,7 @@ impl BlofinCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -679,8 +679,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_183: bool = true;
-            while { if !__for_first_183 { i = add(&i, &Value::Int(1)); } __for_first_183 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_181: bool = true;
+            while { if !__for_first_181 { i = add(&i, &Value::Int(1)); } __for_first_181 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = self.parse_ws_ticker(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             let mut messageHash: Value = add(&add(&channelName, &Value::Str(":".to_string())), &symbol);
@@ -726,8 +726,8 @@ impl BlofinCore {
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_184: bool = true;
-            while { if !__for_first_184 { i = add(&i, &Value::Int(1)); } __for_first_184 = false; is_less_than(&i, &get_array_length(&symbolsList)) } {
+            let mut __for_first_182: bool = true;
+            while { if !__for_first_182 { i = add(&i, &Value::Int(1)); } __for_first_182 = false; is_less_than(&i, &get_array_length(&symbolsList)) } {
             let mut market: Value = self.market(get_value(&symbolsList, &i));
             append_to_array(&mut messageHashes, add(&Value::Str("bidask:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
             append_to_array(&mut args, Value::Map({
@@ -758,8 +758,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_185: bool = true;
-            while { if !__for_first_185 { i = add(&i, &Value::Int(1)); } __for_first_185 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_183: bool = true;
+            while { if !__for_first_183 { i = add(&i, &Value::Int(1)); } __for_first_183 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = self.parse_ws_bid_ask(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             let mut messageHash: Value = add(&Value::Str("bidask:".to_string()), &symbol);
@@ -889,8 +889,8 @@ impl BlofinCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_186: bool = true;
-            while { if !__for_first_186 { i = add(&i, &Value::Int(1)); } __for_first_186 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_184: bool = true;
+            while { if !__for_first_184 { i = add(&i, &Value::Int(1)); } __for_first_184 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut candle: Value = get_value(&data, &i);
             let mut candle: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_ohlcv(candle.clone(), &[market.clone()]);
@@ -1051,8 +1051,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_187: bool = true;
-            while { if !__for_first_187 { i = add(&i, &Value::Int(1)); } __for_first_187 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_185: bool = true;
+            while { if !__for_first_185 { i = add(&i, &Value::Int(1)); } __for_first_185 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut order: Value = self.parse_ws_order(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&order, &Value::Str("symbol".to_string()));
             let mut messageHash: Value = add(&add(&channelName, &Value::Str(":".to_string())), &symbol);
@@ -1121,8 +1121,8 @@ impl BlofinCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_188: bool = true;
-            while { if !__for_first_188 { i = add(&i, &Value::Int(1)); } __for_first_188 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_186: bool = true;
+            while { if !__for_first_186 { i = add(&i, &Value::Int(1)); } __for_first_186 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut position: Value = self.parse_ws_position(get_value(&data, &i), &[]);
             append_to_array(&mut newPositions, position.clone());
             cache.append(position.clone());
@@ -1236,8 +1236,8 @@ impl BlofinCore {
         if is_greater_than(&symbolsLength, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_189: bool = true;
-                while { if !__for_first_189 { i = add(&i, &Value::Int(1)); } __for_first_189 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_187: bool = true;
+                while { if !__for_first_187 { i = add(&i, &Value::Int(1)); } __for_first_187 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut current: Value = get_value(&symbols, &i);
                 let mut current: Value = get_value(&symbols, &i);
                 let mut market: Value = Value::Null;

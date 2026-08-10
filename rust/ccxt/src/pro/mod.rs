@@ -124,6 +124,8 @@ pub mod mudrex;
 #[cfg(feature = "transpiled-ws")]
 pub mod myokx;
 #[cfg(feature = "transpiled-ws")]
+pub mod nado;
+#[cfg(feature = "transpiled-ws")]
 pub mod ndax;
 #[cfg(feature = "transpiled-ws")]
 pub mod okx;

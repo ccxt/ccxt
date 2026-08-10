@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for HashkeyCore {
 
 impl crate::exchange_generated::ExchangeBase for HashkeyCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -479,8 +479,8 @@ impl HashkeyCore {
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_375: bool = true;
-            while { if !__for_first_375 { i = add(&i, &Value::Int(1)); } __for_first_375 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_373: bool = true;
+            while { if !__for_first_373 { i = add(&i, &Value::Int(1)); } __for_first_373 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut candle: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -637,8 +637,8 @@ impl HashkeyCore {
             data = self.sort_by(data.clone(), Value::Str("t".to_string()), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_376: bool = true;
-                while { if !__for_first_376 { i = add(&i, &Value::Int(1)); } __for_first_376 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_374: bool = true;
+                while { if !__for_first_374 { i = add(&i, &Value::Int(1)); } __for_first_374 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut trade: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                 let mut parsed: Value = self.parse_ws_trade(trade.clone(), &[market.clone()]);
                 stored.append(parsed.clone());
@@ -657,7 +657,7 @@ impl HashkeyCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1036,8 +1036,8 @@ impl HashkeyCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_377: bool = true;
-                while { if !__for_first_377 { i = add(&i, &Value::Int(1)); } __for_first_377 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_375: bool = true;
+                while { if !__for_first_375 { i = add(&i, &Value::Int(1)); } __for_first_375 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, add(&add(&messageHash, &Value::Str(":".to_string())), &symbol));
@@ -1241,7 +1241,9 @@ impl HashkeyCore {
         let mut account: Value = self.account();
         add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balanceUpdate.clone(), "f", &[]));
         add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balanceUpdate.clone(), "l", &[]));
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
+        if is_true(&(!is_equal(&type_var, &Value::Null))) && is_true(&(!is_equal(&code, &Value::Null))) {
+            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
+        }
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance.clone(), &type_var, __be_tmp); };
         let mut messageHash: Value = add(&Value::Str("balance:".to_string()), &type_var);
         client.resolve(&[get_value(&self.balance, &type_var), messageHash.clone()]);

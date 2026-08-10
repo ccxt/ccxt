@@ -181,7 +181,7 @@ impl crate::exchange::DerivedExchange for LbankCore {
 
 impl crate::exchange_generated::ExchangeBase for LbankCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -294,10 +294,11 @@ impl LbankCore {
         m.insert("fetchDepositAddress".to_string(), Value::Bool(true));
         m.insert("fetchDepositAddresses".to_string(), Value::Bool(false));
         m.insert("fetchDepositAddressesByNetwork".to_string(), Value::Bool(false));
+        m.insert("fetchDeposits".to_string(), Value::Bool(true));
         m.insert("fetchDepositWithdrawFee".to_string(), Value::Str("emulated".to_string()));
         m.insert("fetchDepositWithdrawFees".to_string(), Value::Bool(true));
         m.insert("fetchFundingHistory".to_string(), Value::Bool(false));
-        m.insert("fetchFundingRate".to_string(), Value::Bool(false));
+        m.insert("fetchFundingRate".to_string(), Value::Bool(true));
         m.insert("fetchFundingRateHistory".to_string(), Value::Bool(false));
         m.insert("fetchFundingRates".to_string(), Value::Bool(true));
         m.insert("fetchIndexOHLCV".to_string(), Value::Bool(false));
@@ -324,8 +325,10 @@ impl LbankCore {
         m.insert("fetchTickers".to_string(), Value::Bool(true));
         m.insert("fetchTime".to_string(), Value::Bool(true));
         m.insert("fetchTrades".to_string(), Value::Bool(true));
+        m.insert("fetchTradingFee".to_string(), Value::Bool(true));
         m.insert("fetchTradingFees".to_string(), Value::Bool(true));
         m.insert("fetchTransactionFees".to_string(), Value::Bool(true));
+        m.insert("fetchWithdrawals".to_string(), Value::Bool(true));
         m.insert("reduceMargin".to_string(), Value::Bool(false));
         m.insert("setLeverage".to_string(), Value::Bool(false));
         m.insert("setMarginMode".to_string(), Value::Bool(false));
@@ -373,28 +376,100 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currencyPairs".to_string(), Value::Float(2.5));
-        m.insert("accuracy".to_string(), Value::Float(2.5));
-        m.insert("usdToCny".to_string(), Value::Float(2.5));
-        m.insert("assetConfigs".to_string(), Value::Float(2.5));
-        m.insert("withdrawConfigs".to_string(), multiply(&Value::Float(2.5), &Value::Float(1.5)));
-        m.insert("timestamp".to_string(), Value::Float(2.5));
-        m.insert("ticker/24hr".to_string(), Value::Float(2.5));
-        m.insert("ticker".to_string(), Value::Float(2.5));
-        m.insert("depth".to_string(), Value::Float(2.5));
-        m.insert("incrDepth".to_string(), Value::Float(2.5));
-        m.insert("trades".to_string(), Value::Float(2.5));
-        m.insert("kline".to_string(), Value::Float(2.5));
-        m.insert("supplement/system_ping".to_string(), Value::Float(2.5));
-        m.insert("supplement/incrDepth".to_string(), Value::Float(2.5));
-        m.insert("supplement/trades".to_string(), Value::Float(2.5));
-        m.insert("supplement/ticker/price".to_string(), Value::Float(2.5));
-        m.insert("supplement/ticker/bookTicker".to_string(), Value::Float(2.5));
+        m.insert("currencyPairs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("accuracy".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("usdToCny".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("assetConfigs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("withdrawConfigs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), multiply(&Value::Float(2.5), &Value::Float(1.5)));
+    m
+}));
+        m.insert("timestamp".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("ticker/24hr".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("incrDepth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/system_ping".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/incrDepth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/ticker/price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/ticker/bookTicker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("supplement/system_status".to_string(), Value::Float(2.5));
+        m.insert("supplement/system_status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
     m
 }));
     m
@@ -403,42 +478,186 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("user_info".to_string(), Value::Float(2.5));
-        m.insert("subscribe/get_key".to_string(), Value::Float(2.5));
-        m.insert("subscribe/refresh_key".to_string(), Value::Float(2.5));
-        m.insert("subscribe/destroy_key".to_string(), Value::Float(2.5));
-        m.insert("get_deposit_address".to_string(), Value::Float(2.5));
-        m.insert("deposit_history".to_string(), Value::Float(2.5));
-        m.insert("create_order".to_string(), Value::Int(1));
-        m.insert("batch_create_order".to_string(), Value::Int(1));
-        m.insert("cancel_order".to_string(), Value::Int(1));
-        m.insert("cancel_clientOrders".to_string(), Value::Int(1));
-        m.insert("orders_info".to_string(), Value::Float(2.5));
-        m.insert("orders_info_history".to_string(), Value::Float(2.5));
-        m.insert("order_transaction_detail".to_string(), Value::Float(2.5));
-        m.insert("transaction_history".to_string(), Value::Float(2.5));
-        m.insert("orders_info_no_deal".to_string(), Value::Float(2.5));
-        m.insert("withdraw".to_string(), Value::Float(2.5));
-        m.insert("withdrawCancel".to_string(), Value::Float(2.5));
-        m.insert("withdraws".to_string(), Value::Float(2.5));
-        m.insert("supplement/user_info".to_string(), Value::Float(2.5));
-        m.insert("supplement/withdraw".to_string(), Value::Float(2.5));
-        m.insert("supplement/deposit_history".to_string(), Value::Float(2.5));
-        m.insert("supplement/withdraws".to_string(), Value::Float(2.5));
-        m.insert("supplement/get_deposit_address".to_string(), Value::Float(2.5));
-        m.insert("supplement/asset_detail".to_string(), Value::Float(2.5));
-        m.insert("supplement/customer_trade_fee".to_string(), Value::Float(2.5));
-        m.insert("supplement/api_Restrictions".to_string(), Value::Float(2.5));
-        m.insert("supplement/system_ping".to_string(), Value::Float(2.5));
-        m.insert("supplement/create_order_test".to_string(), Value::Int(1));
-        m.insert("supplement/create_order".to_string(), Value::Int(1));
-        m.insert("supplement/cancel_order".to_string(), Value::Int(1));
-        m.insert("supplement/cancel_order_by_symbol".to_string(), Value::Int(1));
-        m.insert("supplement/orders_info".to_string(), Value::Float(2.5));
-        m.insert("supplement/orders_info_no_deal".to_string(), Value::Float(2.5));
-        m.insert("supplement/orders_info_history".to_string(), Value::Float(2.5));
-        m.insert("supplement/user_info_account".to_string(), Value::Float(2.5));
-        m.insert("supplement/transaction_history".to_string(), Value::Float(2.5));
+        m.insert("user_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("subscribe/get_key".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("subscribe/refresh_key".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("subscribe/destroy_key".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("get_deposit_address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("deposit_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("create_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("batch_create_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cancel_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cancel_clientOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("orders_info_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("order_transaction_detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("transaction_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("orders_info_no_deal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("withdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("withdrawCancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("withdraws".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/user_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/withdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/deposit_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/withdraws".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/get_deposit_address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/asset_detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/customer_trade_fee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/api_Restrictions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/system_ping".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/create_order_test".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("supplement/create_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("supplement/cancel_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("supplement/cancel_order_by_symbol".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("supplement/orders_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/orders_info_no_deal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/orders_info_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/user_info_account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("supplement/transaction_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
     m
 }));
     m
@@ -451,10 +670,26 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cfd/openApi/v1/pub/getTime".to_string(), Value::Float(2.5));
-        m.insert("cfd/openApi/v1/pub/instrument".to_string(), Value::Float(2.5));
-        m.insert("cfd/openApi/v1/pub/marketData".to_string(), Value::Float(2.5));
-        m.insert("cfd/openApi/v1/pub/marketOrder".to_string(), Value::Float(2.5));
+        m.insert("cfd/openApi/v1/pub/getTime".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("cfd/openApi/v1/pub/instrument".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("cfd/openApi/v1/pub/marketData".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
+        m.insert("cfd/openApi/v1/pub/marketOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.5));
+    m
+}));
     m
 }));
     m
@@ -763,8 +998,8 @@ impl LbankCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_875: bool = true;
-            while { if !__for_first_875 { j = add(&j, &Value::Int(1)); } __for_first_875 = false; is_less_than(&j, &get_array_length(&networksRaw)) } {
+            let mut __for_first_878: bool = true;
+            while { if !__for_first_878 { j = add(&j, &Value::Int(1)); } __for_first_878 = false; is_less_than(&j, &get_array_length(&networksRaw)) } {
             let mut networkEntry: Value = get_value(&networksRaw, &j);
             let mut networkEntry: Value = get_value(&networksRaw, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain", &[]);
@@ -885,8 +1120,8 @@ impl LbankCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_876: bool = true;
-            while { if !__for_first_876 { i = add(&i, &Value::Int(1)); } __for_first_876 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_879: bool = true;
+            while { if !__for_first_879 { i = add(&i, &Value::Int(1)); } __for_first_879 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1010,8 +1245,8 @@ impl LbankCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_877: bool = true;
-            while { if !__for_first_877 { i = add(&i, &Value::Int(1)); } __for_first_877 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_880: bool = true;
+            while { if !__for_first_880 { i = add(&i, &Value::Int(1)); } __for_first_880 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1765,8 +2000,8 @@ impl LbankCore {
             let mut currencies: Value = object_keys(&free);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_878: bool = true;
-                while { if !__for_first_878 { i = add(&i, &Value::Int(1)); } __for_first_878 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+                let mut __for_first_881: bool = true;
+                while { if !__for_first_881 { i = add(&i, &Value::Int(1)); } __for_first_881 = false; is_less_than(&i, &get_array_length(&currencies)) } {
                 let mut currencyId: Value = get_value(&currencies, &i);
                 let mut currencyId: Value = get_value(&currencies, &i);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1785,8 +2020,8 @@ impl LbankCore {
         if !is_equal(&balances, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_879: bool = true;
-                while { if !__for_first_879 { i = add(&i, &Value::Int(1)); } __for_first_879 = false; is_less_than(&i, &get_array_length(&balances)) } {
+                let mut __for_first_882: bool = true;
+                while { if !__for_first_882 { i = add(&i, &Value::Int(1)); } __for_first_882 = false; is_less_than(&i, &get_array_length(&balances)) } {
                 let mut item: Value = get_value(&balances, &i);
                 let mut item: Value = get_value(&balances, &i);
                 let mut currencyId: Value = self.safe_string_k(item.clone(), "asset", &[]);
@@ -1806,8 +2041,8 @@ impl LbankCore {
         if is_equal(&isArray, &Value::Bool(true)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_880: bool = true;
-                while { if !__for_first_880 { i = add(&i, &Value::Int(1)); } __for_first_880 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_883: bool = true;
+                while { if !__for_first_883 { i = add(&i, &Value::Int(1)); } __for_first_883 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut item: Value = get_value(&data, &i);
                 let mut item: Value = get_value(&data, &i);
                 let mut currencyId: Value = self.safe_string_k(item.clone(), "coin", &[]);
@@ -1822,7 +2057,7 @@ impl LbankCore {
             }
             return self.safe_balance(result.clone());
         }
-        return Value::Null;
+        return self.safe_balance(result.clone());
 
     Value::Null
 }
@@ -2114,8 +2349,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_881: bool = true;
-            while { if !__for_first_881 { i = add(&i, &Value::Int(1)); } __for_first_881 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_884: bool = true;
+            while { if !__for_first_884 { i = add(&i, &Value::Int(1)); } __for_first_884 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
             add_element_to_object(&mut result, &symbol, fee.clone());
@@ -3490,8 +3725,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_883: bool = true;
-            while { if !__for_first_883 { i = add(&i, &Value::Int(1)); } __for_first_883 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_886: bool = true;
+            while { if !__for_first_886 { i = add(&i, &Value::Int(1)); } __for_first_886 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
@@ -3505,8 +3740,8 @@ impl LbankCore {
             }
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_882: bool = true;
-                while { if !__for_first_882 { j = add(&j, &Value::Int(1)); } __for_first_882 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+                let mut __for_first_885: bool = true;
+                while { if !__for_first_885 { j = add(&j, &Value::Int(1)); } __for_first_885 = false; is_less_than(&j, &get_array_length(&networkList)) } {
                 let mut networkEntry: Value = get_value(&networkList, &j);
                 let mut networkEntry: Value = get_value(&networkList, &j);
                 let mut fee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
@@ -3586,8 +3821,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_884: bool = true;
-            while { if !__for_first_884 { i = add(&i, &Value::Int(1)); } __for_first_884 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_887: bool = true;
+            while { if !__for_first_887 { i = add(&i, &Value::Int(1)); } __for_first_887 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut item: Value = get_value(&result, &i);
             let mut item: Value = get_value(&result, &i);
             let mut canWithdraw: Value = self.safe_value_k(item.clone(), "canWithDraw", &[]);
@@ -3785,8 +4020,8 @@ impl LbankCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_885: bool = true;
-            while { if !__for_first_885 { i = add(&i, &Value::Int(1)); } __for_first_885 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_888: bool = true;
+            while { if !__for_first_888 { i = add(&i, &Value::Int(1)); } __for_first_888 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut fee: Value = get_value(&response, &i);
             let mut fee: Value = get_value(&response, &i);
             let mut canWithdraw: Value = self.safe_value_k(fee.clone(), "canWithDraw", &[]);
@@ -3872,8 +4107,8 @@ impl LbankCore {
         let mut networkList: Value = self.safe_value_k(fee.clone(), "networkList", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_886: bool = true;
-            while { if !__for_first_886 { j = add(&j, &Value::Int(1)); } __for_first_886 = false; is_less_than(&j, &get_array_length(&networkList)) } {
+            let mut __for_first_889: bool = true;
+            while { if !__for_first_889 { j = add(&j, &Value::Int(1)); } __for_first_889 = false; is_less_than(&j, &get_array_length(&networkList)) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "name", &[]), code.clone()]);
@@ -4010,8 +4245,8 @@ impl LbankCore {
         let mut pem: Value = Value::Str("-----BEGIN PRIVATE KEY-----\n".to_string()); // eslint-disable-line
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_887: bool = true;
-            while { if !__for_first_887 { i = add(&i, &Value::Int(1)); } __for_first_887 = false; is_less_than(&i, &numLines) } {
+            let mut __for_first_890: bool = true;
+            while { if !__for_first_890 { i = add(&i, &Value::Int(1)); } __for_first_890 = false; is_less_than(&i, &numLines) } {
             let mut start: Value = multiply(&i, &lineLength);
             let mut end: Value = self.sum(&[start.clone(), lineLength.clone()]);
             pem = add(&pem, &add(&slice(&self.secret, &start, &end), &Value::Str("\n".to_string()))); // eslint-disable-line

@@ -177,7 +177,7 @@ impl crate::exchange::DerivedExchange for ZebpayCore {
 
 impl crate::exchange_generated::ExchangeBase for ZebpayCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -287,10 +287,13 @@ impl ZebpayCore {
         m.insert("fetchOrderBook".to_string(), Value::Bool(true));
         m.insert("fetchOrderTrades".to_string(), Value::Bool(true));
         m.insert("fetchPositions".to_string(), Value::Bool(true));
+        m.insert("fetchStatus".to_string(), Value::Bool(true));
         m.insert("fetchTicker".to_string(), Value::Bool(true));
         m.insert("fetchTickers".to_string(), Value::Bool(true));
+        m.insert("fetchTime".to_string(), Value::Bool(true));
         m.insert("fetchTrades".to_string(), Value::Bool(true));
         m.insert("fetchTradingFee".to_string(), Value::Bool(true));
+        m.insert("fetchTradingFees".to_string(), Value::Bool(true));
         m.insert("reduceMargin".to_string(), Value::Bool(true));
         m.insert("repayCrossMargin".to_string(), Value::Bool(false));
         m.insert("repayIsolatedMargin".to_string(), Value::Bool(false));
@@ -339,16 +342,56 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/system/time".to_string(), Value::Int(10));
-        m.insert("v2/system/status".to_string(), Value::Int(10));
-        m.insert("v2/market/orderbook".to_string(), Value::Int(10));
-        m.insert("v2/market/trades".to_string(), Value::Int(10));
-        m.insert("v2/market/ticker".to_string(), Value::Int(10));
-        m.insert("v2/market/allTickers".to_string(), Value::Int(10));
-        m.insert("v2/ex/exchangeInfo".to_string(), Value::Int(10));
-        m.insert("v2/ex/currencies".to_string(), Value::Int(10));
-        m.insert("v2/market/klines".to_string(), Value::Int(10));
-        m.insert("v2/ex/tradefees".to_string(), Value::Int(10));
+        m.insert("v2/system/time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/system/status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/market/orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/market/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/market/ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/market/allTickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/ex/exchangeInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/ex/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/market/klines".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/ex/tradefees".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
     m
@@ -357,19 +400,55 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v1/system/time".to_string(), Value::Int(10));
-        m.insert("v1/system/status".to_string(), Value::Int(10));
-        m.insert("v1/exchange/tradefee".to_string(), Value::Int(10));
-        m.insert("v1/exchange/tradefees".to_string(), Value::Int(10));
-        m.insert("v1/market/orderBook".to_string(), Value::Int(10));
-        m.insert("v1/market/ticker24Hr".to_string(), Value::Int(10));
-        m.insert("v1/market/markets".to_string(), Value::Int(10));
-        m.insert("v1/market/aggTrade".to_string(), Value::Int(10));
+        m.insert("v1/system/time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/system/status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/exchange/tradefee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/exchange/tradefees".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/market/orderBook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/market/ticker24Hr".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/market/markets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/market/aggTrade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v1/market/klines".to_string(), Value::Int(10));
+        m.insert("v1/market/klines".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
     m
@@ -382,23 +461,59 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/ex/orders".to_string(), Value::Int(10));
+        m.insert("v2/ex/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/ex/orders".to_string(), Value::Int(10));
-        m.insert("v2/account/balance".to_string(), Value::Int(10));
-        m.insert("v2/ex/tradefee".to_string(), Value::Int(10));
-        m.insert("v2/ex/order".to_string(), Value::Int(10));
-        m.insert("v2/ex/order/fills".to_string(), Value::Int(10));
+        m.insert("v2/ex/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/account/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/ex/tradefee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/ex/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/ex/order/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/ex/order".to_string(), Value::Int(10));
-        m.insert("v2/ex/orders".to_string(), Value::Int(10));
-        m.insert("v2/ex/orders/cancelAll".to_string(), Value::Int(10));
+        m.insert("v2/ex/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/ex/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/ex/orders/cancelAll".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
     m
@@ -407,28 +522,84 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v1/wallet/balance".to_string(), Value::Int(10));
-        m.insert("v1/trade/order".to_string(), Value::Int(10));
-        m.insert("v1/trade/order/open-orders".to_string(), Value::Int(10));
-        m.insert("v1/trade/userLeverages".to_string(), Value::Int(10));
-        m.insert("v1/trade/userLeverage".to_string(), Value::Int(10));
-        m.insert("v1/trade/positions".to_string(), Value::Int(10));
-        m.insert("v1/trade/history".to_string(), Value::Int(10));
+        m.insert("v1/wallet/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trade/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trade/order/open-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trade/userLeverages".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trade/userLeverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trade/positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trade/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v1/trade/order".to_string(), Value::Int(10));
-        m.insert("v1/trade/order/addTPSL".to_string(), Value::Int(10));
-        m.insert("v1/trade/addMargin".to_string(), Value::Int(10));
-        m.insert("v1/trade/reduceMargin".to_string(), Value::Int(10));
-        m.insert("v1/trade/position/close".to_string(), Value::Int(10));
-        m.insert("v1/trade/update/userLeverage".to_string(), Value::Int(10));
+        m.insert("v1/trade/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trade/order/addTPSL".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trade/addMargin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trade/reduceMargin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trade/position/close".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trade/update/userLeverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v1/trade/order".to_string(), Value::Int(10));
+        m.insert("v1/trade/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
     m
@@ -635,8 +806,8 @@ impl ZebpayCore {
         let mut types: Value = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[defaultMarkets.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1104: bool = true;
-            while { if !__for_first_1104 { i = add(&i, &Value::Int(1)); } __for_first_1104 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut __for_first_1109: bool = true;
+            while { if !__for_first_1109 { i = add(&i, &Value::Int(1)); } __for_first_1109 = false; is_less_than(&i, &get_array_length(&types)) } {
             let mut type_var: Value = get_value(&types, &i);
             let mut type_var: Value = get_value(&types, &i);
             if is_equal(&type_var, &Value::Str("spot".to_string())) {
@@ -724,8 +895,8 @@ impl ZebpayCore {
         let mut withdraw: Value = Value::Bool(false);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1105: bool = true;
-            while { if !__for_first_1105 { j = add(&j, &Value::Int(1)); } __for_first_1105 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_1110: bool = true;
+            while { if !__for_first_1110 { j = add(&j, &Value::Int(1)); } __for_first_1110 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
@@ -935,8 +1106,8 @@ impl ZebpayCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1106: bool = true;
-            while { if !__for_first_1106 { i = add(&i, &Value::Int(1)); } __for_first_1106 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_1111: bool = true;
+            while { if !__for_first_1111 { i = add(&i, &Value::Int(1)); } __for_first_1111 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
             let mut symbol: Value = get_value(&fee, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {
@@ -2222,8 +2393,8 @@ impl ZebpayCore {
         let mut markets: Value = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1107: bool = true;
-            while { if !__for_first_1107 { i = add(&i, &Value::Int(1)); } __for_first_1107 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_1112: bool = true;
+            while { if !__for_first_1112 { i = add(&i, &Value::Int(1)); } __for_first_1112 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -2327,8 +2498,8 @@ impl ZebpayCore {
         let mut markets: Value = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1108: bool = true;
-            while { if !__for_first_1108 { i = add(&i, &Value::Int(1)); } __for_first_1108 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_1113: bool = true;
+            while { if !__for_first_1113 { i = add(&i, &Value::Int(1)); } __for_first_1113 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -2396,8 +2567,8 @@ impl ZebpayCore {
         let mut currencyList: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1109: bool = true;
-            while { if !__for_first_1109 { i = add(&i, &Value::Int(1)); } __for_first_1109 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
+            let mut __for_first_1114: bool = true;
+            while { if !__for_first_1114 { i = add(&i, &Value::Int(1)); } __for_first_1114 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
             let mut entry: Value = get_value(&currencyList, &i);
             let mut entry: Value = get_value(&currencyList, &i);
             let mut account: Value = self.account();

@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for PhemexCore {
 
 impl crate::exchange_generated::ExchangeBase for PhemexCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -419,8 +419,9 @@ impl PhemexCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
-        market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market.clone()]);
+        market = marketResolved.clone();
+        let mut symbol: Value = get_value(&marketResolved, &Value::Str("symbol".to_string()));
         let mut timestamp: Value = self.safe_integer_product(ticker.clone(), Value::Str("timestamp".to_string()), Value::Float(0.000001), &[]);
         let mut lastString: Value = self.from_ep(self.safe_string_k(ticker.clone(), "close", &[]), &[market.clone()]);
         let mut last: Value = self.parse_number(lastString.clone(), &[]);
@@ -485,8 +486,9 @@ impl PhemexCore {
         //    ]
         //
         let mut marketId: Value = self.safe_string(ticker.clone(), Value::Int(0), &[]);
-        market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market.clone()]);
+        market = marketResolved.clone();
+        let mut symbol: Value = get_value(&marketResolved, &Value::Str("symbol".to_string()));
         let mut lastString: Value = self.from_ep(self.safe_string(ticker.clone(), Value::Int(4), &[]), &[market.clone()]);
         let mut last: Value = self.parse_number(lastString.clone(), &[]);
         let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string(ticker.clone(), Value::Int(6), &[]), &[market.clone()]), &[]);
@@ -616,16 +618,16 @@ impl PhemexCore {
             let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_571: bool = true;
-                while { if !__for_first_571 { i = add(&i, &Value::Int(1)); } __for_first_571 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_585: bool = true;
+                while { if !__for_first_585 { i = add(&i, &Value::Int(1)); } __for_first_585 = false; is_less_than(&i, &get_array_length(&data)) } {
                 append_to_array(&mut tickers, self.parse_perpetual_ticker(get_value(&data, &i), &[]));
             }
             }
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { i = add(&i, &Value::Int(1)); } __for_first_572 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_586: bool = true;
+            while { if !__for_first_586 { i = add(&i, &Value::Int(1)); } __for_first_586 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = get_value(&tickers, &i);
             let mut ticker: Value = get_value(&tickers, &i);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
@@ -714,8 +716,8 @@ impl PhemexCore {
         add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), message.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_573: bool = true;
-            while { if !__for_first_573 { i = add(&i, &Value::Int(1)); } __for_first_573 = false; is_less_than(&i, &get_array_length(&message)) } {
+            let mut __for_first_587: bool = true;
+            while { if !__for_first_587 { i = add(&i, &Value::Int(1)); } __for_first_587 = false; is_less_than(&i, &get_array_length(&message)) } {
             let mut balance: Value = get_value(&message, &i);
             let mut balance: Value = get_value(&message, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -743,7 +745,9 @@ impl PhemexCore {
             }
             add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
             add_element_to_object(&mut account, &Value::Str("total".to_string()), total.clone());
-            add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            }
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         }
         }
@@ -793,8 +797,8 @@ impl PhemexCore {
         let mut parsed: Value = self.parse_trades(trades.clone(), &[market.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_574: bool = true;
-            while { if !__for_first_574 { i = add(&i, &Value::Int(1)); } __for_first_574 = false; is_less_than(&i, &get_array_length(&parsed)) } {
+            let mut __for_first_588: bool = true;
+            while { if !__for_first_588 { i = add(&i, &Value::Int(1)); } __for_first_588 = false; is_less_than(&i, &get_array_length(&parsed)) } {
             stored.append(get_value(&parsed, &i));
         }
         }
@@ -847,7 +851,7 @@ impl PhemexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
-            let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
+            let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
             if is_equal(&stored, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                 stored = ArrayCacheByTimestamp::new(limit.clone());
@@ -855,8 +859,8 @@ impl PhemexCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_575: bool = true;
-                while { if !__for_first_575 { i = add(&i, &Value::Int(1)); } __for_first_575 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+                let mut __for_first_589: bool = true;
+                while { if !__for_first_589 { i = add(&i, &Value::Int(1)); } __for_first_589 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
                 let mut candle: Value = get_value(&ohlcvs, &i);
                 let mut candle: Value = get_value(&ohlcvs, &i);
                 stored.append(candle.clone());
@@ -946,8 +950,8 @@ impl PhemexCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_576: bool = true;
-            while { if !__for_first_576 { i = add(&i, &Value::Int(1)); } __for_first_576 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_590: bool = true;
+            while { if !__for_first_590 { i = add(&i, &Value::Int(1)); } __for_first_590 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             append_to_array(&mut messageHashes, add(&Value::Str("ticker:".to_string()), &get_value(&symbols, &i)));
         }
         }
@@ -1033,7 +1037,7 @@ impl PhemexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1128,8 +1132,8 @@ impl PhemexCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_577: bool = true;
-            while { if !__for_first_577 { i = add(&i, &Value::Int(1)); } __for_first_577 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_591: bool = true;
+            while { if !__for_first_591 { i = add(&i, &Value::Int(1)); } __for_first_591 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.custom_handle_delta(bookside.clone(), get_value(&deltas, &i), &[market.clone()]);
         }
         }
@@ -1376,8 +1380,8 @@ impl PhemexCore {
         let mut type_var: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_578: bool = true;
-            while { if !__for_first_578 { i = add(&i, &Value::Int(1)); } __for_first_578 = false; is_less_than(&i, &get_array_length(&message)) } {
+            let mut __for_first_592: bool = true;
+            while { if !__for_first_592 { i = add(&i, &Value::Int(1)); } __for_first_592 = false; is_less_than(&i, &get_array_length(&message)) } {
             let mut rawTrade: Value = get_value(&message, &i);
             let mut rawTrade: Value = get_value(&message, &i);
             let mut marketId: Value = self.safe_string_k(rawTrade.clone(), "symbol", &[]);
@@ -1388,14 +1392,16 @@ impl PhemexCore {
             if is_equal(&type_var, &Value::Null) {
                 type_var = ternary(is_true(&(is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string())))), Value::Str("perpetual".to_string()), get_value(&market, &Value::Str("type".to_string())));
             }
-            add_element_to_object(&mut marketIds, &symbol, Value::Bool(true));
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut marketIds, &symbol, Value::Bool(true));
+            }
         }
         }
         let mut keys: Value = object_keys(&marketIds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_579: bool = true;
-            while { if !__for_first_579 { i = add(&i, &Value::Int(1)); } __for_first_579 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_593: bool = true;
+            while { if !__for_first_593 { i = add(&i, &Value::Int(1)); } __for_first_593 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut market: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&keys, &i);
             let mut hash: Value = add(&add(&channel, &Value::Str(":".to_string())), &market);
@@ -1626,8 +1632,8 @@ impl PhemexCore {
             trades = self.safe_value_k(message.clone(), "fills", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_580: bool = true;
-                while { if !__for_first_580 { i = add(&i, &Value::Int(1)); } __for_first_580 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                let mut __for_first_594: bool = true;
+                while { if !__for_first_594 { i = add(&i, &Value::Int(1)); } __for_first_594 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 let mut rawOrder: Value = get_value(&orders, &i);
                 let mut rawOrder: Value = get_value(&orders, &i);
                 let mut parsedOrder: Value = self.parse_order(rawOrder.clone(), &[]);
@@ -1641,8 +1647,8 @@ impl PhemexCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_581: bool = true;
-                while { if !__for_first_581 { i = add(&i, &Value::Int(1)); } __for_first_581 = false; is_less_than(&i, &get_array_length(&message)) } {
+                let mut __for_first_595: bool = true;
+                while { if !__for_first_595 { i = add(&i, &Value::Int(1)); } __for_first_595 = false; is_less_than(&i, &get_array_length(&message)) } {
                 let mut update: Value = get_value(&message, &i);
                 let mut update: Value = get_value(&message, &i);
                 let mut action: Value = self.safe_string_k(update.clone(), "action", &[]);
@@ -1668,8 +1674,8 @@ impl PhemexCore {
         let mut stored: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_582: bool = true;
-            while { if !__for_first_582 { i = add(&i, &Value::Int(1)); } __for_first_582 = false; is_less_than(&i, &get_array_length(&parsedOrders)) } {
+            let mut __for_first_596: bool = true;
+            while { if !__for_first_596 { i = add(&i, &Value::Int(1)); } __for_first_596 = false; is_less_than(&i, &get_array_length(&parsedOrders)) } {
             let mut parsed: Value = get_value(&parsedOrders, &i);
             let mut parsed: Value = get_value(&parsedOrders, &i);
             stored.append(parsed.clone());
@@ -1685,8 +1691,8 @@ impl PhemexCore {
         let mut keys: Value = object_keys(&marketIds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_583: bool = true;
-            while { if !__for_first_583 { i = add(&i, &Value::Int(1)); } __for_first_583 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_597: bool = true;
+            while { if !__for_first_597 { i = add(&i, &Value::Int(1)); } __for_first_597 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut currentMessageHash: Value = add(&add(&Value::Str("orders".to_string()), &Value::Str(":".to_string())), &get_value(&keys, &i));
             client.resolve(&[self.orders.clone(), currentMessageHash.clone()]);
         }
@@ -1826,8 +1832,9 @@ impl PhemexCore {
             clientOrderId = Value::Null;
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-        market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market.clone()]);
+        market = marketResolved.clone();
+        let mut symbol: Value = get_value(&marketResolved, &Value::Str("symbol".to_string()));
         let mut status: Value = self.parent.parse_order_status(self.safe_string_k(order.clone(), "ordStatus", &[]));
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
         let mut type_var: Value = self.parent.parse_order_type(self.safe_string_k(order.clone(), "ordType", &[]));
@@ -1970,9 +1977,9 @@ impl PhemexCore {
         //       }
         //     ]
         // }
-        let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
+        let mut id: Value = self.safe_string_k(message.clone(), "id", &[Value::Str("".to_string())]);
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &id))) {
-            let mut method: Value = get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &id);
+            let mut method: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), id.clone(), &[]);
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &id);
             if !is_equal(&method, &Value::Bool(true)) {
                 method.call(&[client.clone(), message.clone()]);

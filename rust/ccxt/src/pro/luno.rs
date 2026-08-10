@@ -259,7 +259,7 @@ impl crate::exchange::DerivedExchange for LunoCore {
 
 impl crate::exchange_generated::ExchangeBase for LunoCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -413,8 +413,8 @@ impl LunoCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_487: bool = true;
-            while { if !__for_first_487 { i = add(&i, &Value::Int(1)); } __for_first_487 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_485: bool = true;
+            while { if !__for_first_485 { i = add(&i, &Value::Int(1)); } __for_first_485 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut trade: Value = self.parse_trade(rawTrade.clone(), &[market.clone()]);
@@ -427,13 +427,25 @@ impl LunoCore {
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        //
+        // watchTrades (public)
+        //
+        //     {
+        //       "base": "69.00000000",
+        //       "counter": "113.6499000000000000",
+        //       "maker_order_id": "BXEEU4S2BWF5WRB",
+        //       "taker_order_id": "BXKNCSF7JDHXY3H",
+        //       "order_id": "BXEEU4S2BWF5WRB"
+        //     }
+        //
+        let mut symbol: Value = ternary(is_true(&(is_equal(&market, &Value::Null))), Value::Null, get_value(&market, &Value::Str("symbol".to_string())));
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), symbol.clone());
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Null);
@@ -457,7 +469,7 @@ impl LunoCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -581,8 +593,8 @@ impl LunoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { i = add(&i, &Value::Int(1)); } __for_first_488 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
+            let mut __for_first_486: bool = true;
+            while { if !__for_first_486 { i = add(&i, &Value::Int(1)); } __for_first_486 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
             append_to_array(&mut result, self.custom_parse_bid_ask(get_value(&bidasks, &i), &[priceKey.clone(), amountKey.clone(), thirdKey.clone()]));
         }
         }
@@ -679,8 +691,8 @@ impl LunoCore {
         let mut handlers: Value = Value::List(vec![Value::Null.clone(), Value::Null.clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_489: bool = true;
-            while { if !__for_first_489 { j = add(&j, &Value::Int(1)); } __for_first_489 = false; is_less_than(&j, &get_array_length(&handlers)) } {
+            let mut __for_first_487: bool = true;
+            while { if !__for_first_487 { j = add(&j, &Value::Int(1)); } __for_first_487 = false; is_less_than(&j, &get_array_length(&handlers)) } {
             let mut handler: Value = get_value(&handlers, &j);
             let mut handler: Value = get_value(&handlers, &j);
             handler.call(&[client.clone(), message.clone(), get_value(&subscriptions, &Value::Int(0))]);

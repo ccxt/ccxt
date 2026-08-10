@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BullishCore {
 
 impl crate::exchange_generated::ExchangeBase for BullishCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -544,8 +544,8 @@ impl BullishCore {
         let mut tradesArray: Value = get_value(&self.trades, &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_190: bool = true;
-            while { if !__for_first_190 { i = add(&i, &Value::Int(1)); } __for_first_190 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_188: bool = true;
+            while { if !__for_first_188 { i = add(&i, &Value::Int(1)); } __for_first_188 = false; is_less_than(&i, &get_array_length(&trades)) } {
             tradesArray.append(get_value(&trades, &i));
         }
         }
@@ -659,7 +659,7 @@ impl BullishCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -743,8 +743,8 @@ impl BullishCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_191: bool = true;
-            while { if !__for_first_191 { i = add(&i, &Value::Int(1)); } __for_first_191 = false; is_less_than(&i, &get_array_length(&entry)) } {
+            let mut __for_first_189: bool = true;
+            while { if !__for_first_189 { i = add(&i, &Value::Int(1)); } __for_first_189 = false; is_less_than(&i, &get_array_length(&entry)) } {
             if !is_equal(&mod_val(&i, &Value::Int(2)), &Value::Int(0)) {
                 continue;
             }
@@ -862,7 +862,8 @@ impl BullishCore {
         }  else {
             rawOrders = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]); // snapshot is a list of orders
         }
-        if is_greater_than(&get_array_length(&rawOrders), &Value::Int(0)) {
+        let mut numRawOrders: Value = get_array_length(&rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if is_greater_than(&numRawOrders, &Value::Int(0)) {
             if is_equal(&self.orders, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
                 self.orders = ArrayCacheBySymbolById::new(limit.clone());
@@ -874,8 +875,8 @@ impl BullishCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_192: bool = true;
-                while { if !__for_first_192 { i = add(&i, &Value::Int(1)); } __for_first_192 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
+                let mut __for_first_190: bool = true;
+                while { if !__for_first_190 { i = add(&i, &Value::Int(1)); } __for_first_190 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
                 let mut rawOrder: Value = get_value(&rawOrders, &i);
                 let mut rawOrder: Value = get_value(&rawOrders, &i);
                 let mut parsedOrder: Value = self.parse_order(rawOrder.clone(), &[]);
@@ -891,8 +892,8 @@ impl BullishCore {
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_193: bool = true;
-                while { if !__for_first_193 { i = add(&i, &Value::Int(1)); } __for_first_193 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_191: bool = true;
+                while { if !__for_first_191 { i = add(&i, &Value::Int(1)); } __for_first_191 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut symbolMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &hashSymbol);
@@ -999,7 +1000,8 @@ impl BullishCore {
         }  else {
             rawTrades = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]); // snapshot is a list of trades
         }
-        if is_greater_than(&get_array_length(&rawTrades), &Value::Int(0)) {
+        let mut numRawTrades: Value = get_array_length(&rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if is_greater_than(&numRawTrades, &Value::Int(0)) {
             if is_equal(&self.myTrades, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
@@ -1011,8 +1013,8 @@ impl BullishCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_194: bool = true;
-                while { if !__for_first_194 { i = add(&i, &Value::Int(1)); } __for_first_194 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+                let mut __for_first_192: bool = true;
+                while { if !__for_first_192 { i = add(&i, &Value::Int(1)); } __for_first_192 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
                 let mut rawTrade: Value = get_value(&rawTrades, &i);
                 let mut rawTrade: Value = get_value(&rawTrades, &i);
                 let mut parsedTrade: Value = self.parse_trade(rawTrade.clone(), &[]);
@@ -1028,8 +1030,8 @@ impl BullishCore {
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_195: bool = true;
-                while { if !__for_first_195 { i = add(&i, &Value::Int(1)); } __for_first_195 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_193: bool = true;
+                while { if !__for_first_193 { i = add(&i, &Value::Int(1)); } __for_first_193 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut symbolMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &hashSymbol);
@@ -1139,7 +1141,9 @@ impl BullishCore {
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "availableQuantity", &[]));
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "lockedQuantity", &[]));
             let mut code: Value = self.safe_currency_code(assetId.clone(), &[]);
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &code, account.clone());
+            if is_true(&(!is_equal(&tradingAccountId, &Value::Null))) && is_true(&(!is_equal(&code, &Value::Null))) {
+                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &code, account.clone());
+            }
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &Value::Str("info".to_string()), message.clone());
             { let __be_tmp = self.safe_balance(get_value(&self.balance, &tradingAccountId)); add_element_to_object(&mut self.balance.clone(), &tradingAccountId, __be_tmp); };
         }
@@ -1213,8 +1217,8 @@ impl BullishCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_196: bool = true;
-            while { if !__for_first_196 { i = add(&i, &Value::Int(1)); } __for_first_196 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
+            let mut __for_first_194: bool = true;
+            while { if !__for_first_194 { i = add(&i, &Value::Int(1)); } __for_first_194 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
@@ -1225,8 +1229,8 @@ impl BullishCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("positions::".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_197: bool = true;
-            while { if !__for_first_197 { i = add(&i, &Value::Int(1)); } __for_first_197 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_195: bool = true;
+            while { if !__for_first_195 { i = add(&i, &Value::Int(1)); } __for_first_195 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));

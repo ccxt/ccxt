@@ -197,7 +197,7 @@ impl crate::exchange::DerivedExchange for BydfiCore {
 
 impl crate::exchange_generated::ExchangeBase for BydfiCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -398,7 +398,7 @@ impl BydfiCore {
         m.insert("fetchOpenInterest".to_string(), Value::Bool(false));
         m.insert("fetchOpenInterestHistory".to_string(), Value::Bool(false));
         m.insert("fetchOpenInterests".to_string(), Value::Bool(false));
-        m.insert("fetchOpenOrder".to_string(), Value::Bool(false));
+        m.insert("fetchOpenOrder".to_string(), Value::Bool(true));
         m.insert("fetchOpenOrders".to_string(), Value::Bool(true));
         m.insert("fetchOption".to_string(), Value::Bool(false));
         m.insert("fetchOptionChain".to_string(), Value::Bool(false));
@@ -475,17 +475,61 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v1/public/api_limits".to_string(), Value::Int(1));
-        m.insert("v1/fapi/market/exchange_info".to_string(), Value::Int(1));
-        m.insert("v1/fapi/market/depth".to_string(), Value::Int(1));
-        m.insert("v1/fapi/market/trades".to_string(), Value::Int(1));
-        m.insert("v1/fapi/market/klines".to_string(), Value::Int(1));
-        m.insert("v1/fapi/market/ticker/24hr".to_string(), Value::Int(1));
-        m.insert("v1/fapi/market/ticker/price".to_string(), Value::Int(1));
-        m.insert("v1/fapi/market/mark_price".to_string(), Value::Int(1));
-        m.insert("v1/fapi/market/funding_rate".to_string(), Value::Int(1));
-        m.insert("v1/fapi/market/funding_rate_history".to_string(), Value::Int(1));
-        m.insert("v1/fapi/market/risk_limit".to_string(), Value::Int(1));
+        m.insert("v1/public/api_limits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/market/exchange_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/market/depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/market/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/market/klines".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/market/ticker/24hr".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/market/ticker/price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/market/mark_price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/market/funding_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/market/funding_rate_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/market/risk_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -494,44 +538,180 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v1/account/assets".to_string(), Value::Int(1));
-        m.insert("v1/account/transfer_records".to_string(), Value::Int(1));
-        m.insert("v1/spot/deposit_records".to_string(), Value::Int(1));
-        m.insert("v1/spot/withdraw_records".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/open_order".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/plan_order".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/leverage".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/history_order".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/history_trade".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/position_history".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/positions".to_string(), Value::Int(1));
-        m.insert("v1/fapi/account/balance".to_string(), Value::Int(1));
-        m.insert("v1/fapi/user_data/assets_margin".to_string(), Value::Int(1));
-        m.insert("v1/fapi/user_data/position_side/dual".to_string(), Value::Int(1));
-        m.insert("v1/agent/teams".to_string(), Value::Int(1));
-        m.insert("v1/agent/agent_links".to_string(), Value::Int(1));
-        m.insert("v1/agent/regular_overview".to_string(), Value::Int(1));
-        m.insert("v1/agent/agent_sub_overview".to_string(), Value::Int(1));
-        m.insert("v1/agent/partener_user_deposit".to_string(), Value::Int(1));
-        m.insert("v1/agent/partener_users_data".to_string(), Value::Int(1));
-        m.insert("v1/agent/affiliate_uids".to_string(), Value::Int(1));
-        m.insert("v1/agent/affiliate_commission".to_string(), Value::Int(1));
-        m.insert("v1/agent/internal_withdrawal_status".to_string(), Value::Int(1));
+        m.insert("v1/account/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/account/transfer_records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/spot/deposit_records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/spot/withdraw_records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/open_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/plan_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/history_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/history_trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/position_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/account/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/user_data/assets_margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/user_data/position_side/dual".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/agent/teams".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/agent/agent_links".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/agent/regular_overview".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/agent/agent_sub_overview".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/agent/partener_user_deposit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/agent/partener_users_data".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/agent/affiliate_uids".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/agent/affiliate_commission".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/agent/internal_withdrawal_status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v1/account/transfer".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/place_order".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/batch_place_order".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/edit_order".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/batch_edit_order".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/cancel_all_order".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/leverage".to_string(), Value::Int(1));
-        m.insert("v1/fapi/trade/batch_leverage_margin".to_string(), Value::Int(1));
-        m.insert("v1/fapi/user_data/margin_type".to_string(), Value::Int(1));
-        m.insert("v1/fapi/user_data/position_side/dual".to_string(), Value::Int(1));
-        m.insert("v1/agent/internal_withdrawal".to_string(), Value::Int(1));
+        m.insert("v1/account/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/place_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/batch_place_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/edit_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/batch_edit_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/cancel_all_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/trade/batch_leverage_margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/user_data/margin_type".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/fapi/user_data/position_side/dual".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/agent/internal_withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -987,8 +1167,8 @@ impl BydfiCore {
         let mut result: Value = Value::Int(1000);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_468: bool = true;
-            while { if !__for_first_468 { i = add(&i, &Value::Int(1)); } __for_first_468 = false; is_less_than(&i, &get_array_length(&limits)) } {
+            let mut __for_first_471: bool = true;
+            while { if !__for_first_471 { i = add(&i, &Value::Int(1)); } __for_first_471 = false; is_less_than(&i, &get_array_length(&limits)) } {
             if is_equal(&limit, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" getClosestLimit() requires a limit argument".to_string()))));
             }
@@ -1860,8 +2040,8 @@ impl BydfiCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_469: bool = true;
-            while { if !__for_first_469 { i = add(&i, &Value::Int(1)); } __for_first_469 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_472: bool = true;
+            while { if !__for_first_472 { i = add(&i, &Value::Int(1)); } __for_first_472 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -1958,8 +2138,8 @@ impl BydfiCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_470: bool = true;
-            while { if !__for_first_470 { i = add(&i, &Value::Int(1)); } __for_first_470 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_473: bool = true;
+            while { if !__for_first_473 { i = add(&i, &Value::Int(1)); } __for_first_473 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
@@ -2914,7 +3094,7 @@ impl BydfiCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut contractType: Value = Value::Str("FUTURE".to_string());
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositionsHistory".to_string()), Value::Str("contractType".to_string()), &[contractType.clone()]); contractType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositionHistory".to_string()), Value::Str("contractType".to_string()), &[contractType.clone()]); contractType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -3121,9 +3301,9 @@ impl BydfiCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut contractType: Value = Value::Str("FUTURE".to_string());
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMarginMode".to_string()), Value::Str("contractType".to_string()), &[contractType.clone()]); contractType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("setMarginMode".to_string()), Value::Str("contractType".to_string()), &[contractType.clone()]); contractType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut wallet: Value = Value::Str("W001".to_string());
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMarginMode".to_string()), Value::Str("wallet".to_string()), &[wallet.clone()]); wallet = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("setMarginMode".to_string()), Value::Str("wallet".to_string()), &[wallet.clone()]); wallet = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("contractType".to_string(), contractType.clone());
@@ -3361,8 +3541,8 @@ impl BydfiCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_471: bool = true;
-            while { if !__for_first_471 { i = add(&i, &Value::Int(1)); } __for_first_471 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_474: bool = true;
+            while { if !__for_first_474 { i = add(&i, &Value::Int(1)); } __for_first_474 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "asset", &[]);

@@ -193,7 +193,7 @@ impl crate::exchange::DerivedExchange for ApexCore {
 
 impl crate::exchange_generated::ExchangeBase for ApexCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -372,7 +372,7 @@ impl ApexCore {
         m.insert("setLeverage".to_string(), Value::Bool(true));
         m.insert("setMarginMode".to_string(), Value::Bool(false));
         m.insert("setPositionMode".to_string(), Value::Bool(false));
-        m.insert("transfer".to_string(), Value::Bool(false));
+        m.insert("transfer".to_string(), Value::Bool(true));
         m.insert("withdraw".to_string(), Value::Bool(false));
     m
 }));
@@ -420,14 +420,46 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v3/symbols".to_string(), Value::Int(1));
-        m.insert("v3/history-funding".to_string(), Value::Int(1));
-        m.insert("v3/ticker".to_string(), Value::Int(1));
-        m.insert("v3/klines".to_string(), Value::Int(1));
-        m.insert("v3/trades".to_string(), Value::Int(1));
-        m.insert("v3/depth".to_string(), Value::Int(1));
-        m.insert("v3/time".to_string(), Value::Int(1));
-        m.insert("v3/data/all-ticker-info".to_string(), Value::Int(1));
+        m.insert("v3/symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/history-funding".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/klines".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/data/all-ticker-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -436,29 +468,105 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v3/account".to_string(), Value::Int(1));
-        m.insert("v3/account-balance".to_string(), Value::Int(1));
-        m.insert("v3/fills".to_string(), Value::Int(1));
-        m.insert("v3/order-fills".to_string(), Value::Int(1));
-        m.insert("v3/order".to_string(), Value::Int(1));
-        m.insert("v3/history-orders".to_string(), Value::Int(1));
-        m.insert("v3/order-by-client-order-id".to_string(), Value::Int(1));
-        m.insert("v3/funding".to_string(), Value::Int(1));
-        m.insert("v3/historical-pnl".to_string(), Value::Int(1));
-        m.insert("v3/open-orders".to_string(), Value::Int(1));
-        m.insert("v3/transfers".to_string(), Value::Int(1));
-        m.insert("v3/transfer".to_string(), Value::Int(1));
+        m.insert("v3/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/account-balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/order-fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/history-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/order-by-client-order-id".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/funding".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/historical-pnl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/open-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/transfers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v3/delete-open-orders".to_string(), Value::Int(1));
-        m.insert("v3/delete-client-order-id".to_string(), Value::Int(1));
-        m.insert("v3/delete-order".to_string(), Value::Int(1));
-        m.insert("v3/order".to_string(), Value::Int(1));
-        m.insert("v3/set-initial-margin-rate".to_string(), Value::Int(1));
-        m.insert("v3/transfer-out".to_string(), Value::Int(1));
-        m.insert("v3/contract-transfer-out".to_string(), Value::Int(1));
+        m.insert("v3/delete-open-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/delete-client-order-id".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/delete-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/set-initial-margin-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/transfer-out".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/contract-transfer-out".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -871,15 +979,15 @@ impl ApexCore {
         let mut chains: Value = get_value(&self.options, &Value::Str("_temp_currencies_chains".to_string()));
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_213: bool = true;
-            while { if !__for_first_213 { j = add(&j, &Value::Int(1)); } __for_first_213 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_215: bool = true;
+            while { if !__for_first_215 { j = add(&j, &Value::Int(1)); } __for_first_215 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::List(vec![])]);
             {
                                 let mut f: Value = Value::Int(0);
-                let mut __for_first_212: bool = true;
-                while { if !__for_first_212 { f = add(&f, &Value::Int(1)); } __for_first_212 = false; is_less_than(&f, &get_array_length(&tokens)) } {
+                let mut __for_first_214: bool = true;
+                while { if !__for_first_214 { f = add(&f, &Value::Int(1)); } __for_first_214 = false; is_less_than(&f, &get_array_length(&tokens)) } {
                 let mut token: Value = get_value(&tokens, &f);
                 let mut token: Value = get_value(&tokens, &f);
                 let mut tokenName: Value = self.safe_string_k(token.clone(), "token", &[]);
@@ -1573,8 +1681,8 @@ impl ApexCore {
         let mut resultList: Value = self.safe_list_k(data.clone(), "historyFunds", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_214: bool = true;
-            while { if !__for_first_214 { i = add(&i, &Value::Int(1)); } __for_first_214 = false; is_less_than(&i, &get_array_length(&resultList)) } {
+            let mut __for_first_216: bool = true;
+            while { if !__for_first_216 { i = add(&i, &Value::Int(1)); } __for_first_216 = false; is_less_than(&i, &get_array_length(&resultList)) } {
             let mut entry: Value = get_value(&resultList, &i);
             let mut entry: Value = get_value(&resultList, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingTimestamp", &[]);
@@ -2028,8 +2136,8 @@ impl ApexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_215: bool = true;
-            while { if !__for_first_215 { i = add(&i, &Value::Int(1)); } __for_first_215 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_217: bool = true;
+            while { if !__for_first_217 { i = add(&i, &Value::Int(1)); } __for_first_217 = false; is_less_than(&i, &get_array_length(&assets)) } {
             if is_equal(&self.safe_string_k(get_value(&assets, &i), "token", &[Value::Str("".to_string())]), &code) {
                 currency = get_value(&assets, &i);
             }

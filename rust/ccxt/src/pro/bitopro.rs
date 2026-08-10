@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BitoproCore {
 
 impl crate::exchange_generated::ExchangeBase for BitoproCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -359,7 +359,7 @@ impl BitoproCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -497,8 +497,8 @@ impl BitoproCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_159: bool = true;
-            while { if !__for_first_159 { i = add(&i, &Value::Int(1)); } __for_first_159 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_147: bool = true;
+            while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&trades)) } {
             tradesCache.append(get_value(&trades, &i));
         }
         }
@@ -716,9 +716,12 @@ impl BitoproCore {
         //         "low24hr": "1179321"
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(message.clone(), "pair", &[]);
+        let mut marketId: Value = self.safe_string_lower(message.clone(), Value::Str("pair".to_string()), &[]);
+        if is_equal(&marketId, &Value::Null) {
+            return;
+        }
         // market-ids are lowercase in REST API and uppercase in WS API
-        let mut market: Value = self.safe_market(&[ternary(!is_equal(&marketId, &Value::Null), to_lower(&marketId), Value::Null), Value::Null, Value::Str("_".to_string())]);
+        let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         let mut messageHash: Value = add(&add(&event, &Value::Str(":".to_string())), &symbol);
@@ -834,8 +837,8 @@ impl BitoproCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_160: bool = true;
-            while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+            let mut __for_first_148: bool = true;
+            while { if !__for_first_148 { i = add(&i, &Value::Int(1)); } __for_first_148 = false; is_less_than(&i, &get_array_length(&currencies)) } {
             let mut currency: Value = self.safe_string(currencies.clone(), i.clone(), &[]);
             let mut balance: Value = self.safe_value(data.clone(), currency.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -843,7 +846,9 @@ impl BitoproCore {
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "available", &[]));
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "amount", &[]));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         { let __t = self.safe_balance(result.clone()); self.balance = __t; }

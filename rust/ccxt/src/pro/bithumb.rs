@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BithumbCore {
 
 impl crate::exchange_generated::ExchangeBase for BithumbCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -399,8 +399,8 @@ impl BithumbCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_116: bool = true;
-            while { if !__for_first_116 { i = add(&i, &Value::Int(1)); } __for_first_116 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_123: bool = true;
+            while { if !__for_first_123 { i = add(&i, &Value::Int(1)); } __for_first_123 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -528,7 +528,7 @@ impl BithumbCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -627,8 +627,8 @@ impl BithumbCore {
     pub fn handle_deltas(&self, mut orderbook: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_117: bool = true;
-            while { if !__for_first_117 { i = add(&i, &Value::Int(1)); } __for_first_117 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_124: bool = true;
+            while { if !__for_first_124 { i = add(&i, &Value::Int(1)); } __for_first_124 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(orderbook.clone(), get_value(&deltas, &i));
         }
         }
@@ -701,8 +701,8 @@ impl BithumbCore {
         let mut rawTrades: Value = self.safe_list_k(content.clone(), "list", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_118: bool = true;
-            while { if !__for_first_118 { i = add(&i, &Value::Int(1)); } __for_first_118 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_125: bool = true;
+            while { if !__for_first_125 { i = add(&i, &Value::Int(1)); } __for_first_125 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut marketId: Value = self.safe_string_k(rawTrade.clone(), "symbol", &[]);
@@ -846,8 +846,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_119: bool = true;
-            while { if !__for_first_119 { i = add(&i, &Value::Int(1)); } __for_first_119 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_126: bool = true;
+            while { if !__for_first_126 { i = add(&i, &Value::Int(1)); } __for_first_126 = false; is_less_than(&i, &get_array_length(&assets)) } {
             let mut asset: Value = get_value(&assets, &i);
             let mut asset: Value = get_value(&assets, &i);
             let mut currencyId: Value = self.safe_string_k(asset.clone(), "currency", &[]);
@@ -855,7 +855,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(asset.clone(), "balance", &[]));
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(asset.clone(), "locked", &[]));
-            add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            }
         }
         }
         add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), message.clone());

@@ -177,7 +177,7 @@ impl crate::exchange::DerivedExchange for BitteamCore {
 
 impl crate::exchange_generated::ExchangeBase for BitteamCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -403,7 +403,11 @@ impl BitteamCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("api/tw/history/{pairName}/{resolution}".to_string(), Value::Int(1));
+        m.insert("api/tw/history/{pairName}/{resolution}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -412,22 +416,86 @@ impl BitteamCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("trade/api/asset".to_string(), Value::Int(1));
-        m.insert("trade/api/currencies".to_string(), Value::Int(1));
-        m.insert("trade/api/orderbooks/{symbol}".to_string(), Value::Int(1));
-        m.insert("trade/api/orders".to_string(), Value::Int(1));
-        m.insert("trade/api/pair/{name}".to_string(), Value::Int(1));
-        m.insert("trade/api/pairs".to_string(), Value::Int(1));
-        m.insert("trade/api/pairs/precisions".to_string(), Value::Int(1));
-        m.insert("trade/api/rates".to_string(), Value::Int(1));
-        m.insert("trade/api/trade/{id}".to_string(), Value::Int(1));
-        m.insert("trade/api/trades".to_string(), Value::Int(1));
-        m.insert("trade/api/ccxt/pairs".to_string(), Value::Int(1));
-        m.insert("trade/api/cmc/assets".to_string(), Value::Int(1));
-        m.insert("trade/api/cmc/orderbook/{pair}".to_string(), Value::Int(1));
-        m.insert("trade/api/cmc/summary".to_string(), Value::Int(1));
-        m.insert("trade/api/cmc/ticker".to_string(), Value::Int(1));
-        m.insert("trade/api/cmc/trades/{pair}".to_string(), Value::Int(1));
+        m.insert("trade/api/asset".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/orderbooks/{symbol}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/pair/{name}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/pairs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/pairs/precisions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/rates".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/trade/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/ccxt/pairs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/cmc/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/cmc/orderbook/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/cmc/summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/cmc/ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/cmc/trades/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -436,18 +504,50 @@ impl BitteamCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("trade/api/ccxt/balance".to_string(), Value::Int(1));
-        m.insert("trade/api/ccxt/order/{id}".to_string(), Value::Int(1));
-        m.insert("trade/api/ccxt/ordersOfUser".to_string(), Value::Int(1));
-        m.insert("trade/api/ccxt/tradesOfUser".to_string(), Value::Int(1));
-        m.insert("trade/api/transactionsOfUser".to_string(), Value::Int(1));
+        m.insert("trade/api/ccxt/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/ccxt/order/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/ccxt/ordersOfUser".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/ccxt/tradesOfUser".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/transactionsOfUser".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("trade/api/ccxt/cancel-all-order".to_string(), Value::Int(1));
-        m.insert("trade/api/ccxt/cancelorder".to_string(), Value::Int(1));
-        m.insert("trade/api/ccxt/ordercreate".to_string(), Value::Int(1));
+        m.insert("trade/api/ccxt/cancel-all-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/ccxt/cancelorder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/api/ccxt/ordercreate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -1031,8 +1131,8 @@ impl BitteamCore {
         let mut typeRaw: Value = self.safe_string_k(currency.clone(), "type", &[]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_400: bool = true;
-            while { if !__for_first_400 { j = add(&j, &Value::Int(1)); } __for_first_400 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
+            let mut __for_first_403: bool = true;
+            while { if !__for_first_403 { j = add(&j, &Value::Int(1)); } __for_first_403 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -1966,15 +2066,16 @@ impl BitteamCore {
         //     ]
         //
         let mut tickers: Value = Value::List(vec![]);
-        if !is_true(&Value::Bool(is_array(&response))) {
-            response = Value::List(vec![]);
+        let mut rawTickers: Value = Value::List(vec![]);
+        if is_true(&Value::Bool(is_array(&response))) {
+            rawTickers = response.clone();
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_401: bool = true;
-            while { if !__for_first_401 { i = add(&i, &Value::Int(1)); } __for_first_401 = false; is_less_than(&i, &get_array_length(&response)) } {
-            let mut rawTicker: Value = get_value(&response, &i);
-            let mut rawTicker: Value = get_value(&response, &i);
+            let mut __for_first_404: bool = true;
+            while { if !__for_first_404 { i = add(&i, &Value::Int(1)); } __for_first_404 = false; is_less_than(&i, &get_array_length(&rawTickers)) } {
+            let mut rawTicker: Value = get_value(&rawTickers, &i);
+            let mut rawTicker: Value = get_value(&rawTickers, &i);
             let mut ticker: Value = self.parse_ticker(rawTicker.clone(), &[]);
             append_to_array(&mut tickers, ticker.clone());
         }
@@ -2757,8 +2858,8 @@ impl BitteamCore {
         let mut rawCurrencyIds: Value = object_keys(&balanceByCurrencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_402: bool = true;
-            while { if !__for_first_402 { i = add(&i, &Value::Int(1)); } __for_first_402 = false; is_less_than(&i, &get_array_length(&rawCurrencyIds)) } {
+            let mut __for_first_405: bool = true;
+            while { if !__for_first_405 { i = add(&i, &Value::Int(1)); } __for_first_405 = false; is_less_than(&i, &get_array_length(&rawCurrencyIds)) } {
             let mut rawCurrencyId: Value = get_value(&rawCurrencyIds, &i);
             let mut rawCurrencyId: Value = get_value(&rawCurrencyIds, &i);
             let mut currencyBalance: Value = self.safe_value(result.clone(), rawCurrencyId.clone(), &[]);

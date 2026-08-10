@@ -173,7 +173,7 @@ impl crate::exchange::DerivedExchange for AlpacaCore {
 
 impl crate::exchange_generated::ExchangeBase for AlpacaCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -284,6 +284,7 @@ impl AlpacaCore {
         m.insert("createMarketBuyOrder".to_string(), Value::Bool(true));
         m.insert("createMarketBuyOrderWithCost".to_string(), Value::Bool(true));
         m.insert("createMarketOrderWithCost".to_string(), Value::Bool(true));
+        m.insert("createMarketSellOrderWithCost".to_string(), Value::Bool(true));
         m.insert("createOrder".to_string(), Value::Bool(true));
         m.insert("createOrderWithTakeProfitAndStopLoss".to_string(), Value::Bool(false));
         m.insert("createOrderWithTakeProfitAndStopLossWs".to_string(), Value::Bool(false));
@@ -390,11 +391,211 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("v2/account".to_string()), Value::Str("v2/orders".to_string()), Value::Str("v2/orders/{order_id}".to_string()), Value::Str("v2/positions".to_string()), Value::Str("v2/positions/{symbol_or_asset_id}".to_string()), Value::Str("v2/account/portfolio/history".to_string()), Value::Str("v2/watchlists".to_string()), Value::Str("v2/watchlists/{watchlist_id}".to_string()), Value::Str("v2/watchlists:by_name".to_string()), Value::Str("v2/account/configurations".to_string()), Value::Str("v2/account/activities".to_string()), Value::Str("v2/account/activities/{activity_type}".to_string()), Value::Str("v2/calendar".to_string()), Value::Str("v2/clock".to_string()), Value::Str("v2/assets".to_string()), Value::Str("v2/assets/{symbol_or_asset_id}".to_string()), Value::Str("v2/corporate_actions/announcements/{id}".to_string()), Value::Str("v2/corporate_actions/announcements".to_string()), Value::Str("v2/wallets".to_string()), Value::Str("v2/wallets/transfers".to_string())]));
-        m.insert("post".to_string(), Value::List(vec![Value::Str("v2/orders".to_string()), Value::Str("v2/watchlists".to_string()), Value::Str("v2/watchlists/{watchlist_id}".to_string()), Value::Str("v2/watchlists:by_name".to_string()), Value::Str("v2/wallets/transfers".to_string())]));
-        m.insert("put".to_string(), Value::List(vec![Value::Str("v2/orders/{order_id}".to_string()), Value::Str("v2/watchlists/{watchlist_id}".to_string()), Value::Str("v2/watchlists:by_name".to_string())]));
-        m.insert("patch".to_string(), Value::List(vec![Value::Str("v2/orders/{order_id}".to_string()), Value::Str("v2/account/configurations".to_string())]));
-        m.insert("delete".to_string(), Value::List(vec![Value::Str("v2/orders".to_string()), Value::Str("v2/orders/{order_id}".to_string()), Value::Str("v2/positions".to_string()), Value::Str("v2/positions/{symbol_or_asset_id}".to_string()), Value::Str("v2/watchlists/{watchlist_id}".to_string()), Value::Str("v2/watchlists:by_name".to_string()), Value::Str("v2/watchlists/{watchlist_id}/{symbol}".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("v2/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/orders/{order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/positions/{symbol_or_asset_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/account/portfolio/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/watchlists".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/watchlists/{watchlist_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/watchlists:by_name".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/account/configurations".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/account/activities".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/account/activities/{activity_type}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/calendar".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/clock".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/assets/{symbol_or_asset_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/corporate_actions/announcements/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/corporate_actions/announcements".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/wallets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/wallets/transfers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("v2/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/watchlists".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/watchlists/{watchlist_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/watchlists:by_name".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/wallets/transfers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("put".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("v2/orders/{order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/watchlists/{watchlist_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/watchlists:by_name".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("patch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("v2/orders/{order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/account/configurations".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("delete".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("v2/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/orders/{order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/positions/{symbol_or_asset_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/watchlists/{watchlist_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/watchlists:by_name".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/watchlists/{watchlist_id}/{symbol}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
     m
@@ -403,12 +604,183 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("v1beta3/crypto/{loc}/bars".to_string()), Value::Str("v1beta3/crypto/{loc}/latest/bars".to_string()), Value::Str("v1beta3/crypto/{loc}/latest/orderbooks".to_string()), Value::Str("v1beta3/crypto/{loc}/latest/quotes".to_string()), Value::Str("v1beta3/crypto/{loc}/latest/trades".to_string()), Value::Str("v1beta3/crypto/{loc}/quotes".to_string()), Value::Str("v1beta3/crypto/{loc}/snapshots".to_string()), Value::Str("v1beta3/crypto/{loc}/trades".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("v1beta3/crypto/{loc}/bars".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta3/crypto/{loc}/latest/bars".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta3/crypto/{loc}/latest/orderbooks".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta3/crypto/{loc}/latest/quotes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta3/crypto/{loc}/latest/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta3/crypto/{loc}/quotes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta3/crypto/{loc}/snapshots".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta3/crypto/{loc}/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("v1beta1/corporate-actions".to_string()), Value::Str("v1beta1/forex/latest/rates".to_string()), Value::Str("v1beta1/forex/rates".to_string()), Value::Str("v1beta1/logos/{symbol}".to_string()), Value::Str("v1beta1/news".to_string()), Value::Str("v1beta1/screener/stocks/most-actives".to_string()), Value::Str("v1beta1/screener/{market_type}/movers".to_string()), Value::Str("v2/stocks/auctions".to_string()), Value::Str("v2/stocks/bars".to_string()), Value::Str("v2/stocks/bars/latest".to_string()), Value::Str("v2/stocks/meta/conditions/{ticktype}".to_string()), Value::Str("v2/stocks/meta/exchanges".to_string()), Value::Str("v2/stocks/quotes".to_string()), Value::Str("v2/stocks/quotes/latest".to_string()), Value::Str("v2/stocks/snapshots".to_string()), Value::Str("v2/stocks/trades".to_string()), Value::Str("v2/stocks/trades/latest".to_string()), Value::Str("v2/stocks/{symbol}/auctions".to_string()), Value::Str("v2/stocks/{symbol}/bars".to_string()), Value::Str("v2/stocks/{symbol}/bars/latest".to_string()), Value::Str("v2/stocks/{symbol}/quotes".to_string()), Value::Str("v2/stocks/{symbol}/quotes/latest".to_string()), Value::Str("v2/stocks/{symbol}/snapshot".to_string()), Value::Str("v2/stocks/{symbol}/trades".to_string()), Value::Str("v2/stocks/{symbol}/trades/latest".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("v1beta1/corporate-actions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/forex/latest/rates".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/forex/rates".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/logos/{symbol}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/news".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/screener/stocks/most-actives".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1beta1/screener/{market_type}/movers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/auctions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/bars".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/bars/latest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/meta/conditions/{ticktype}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/meta/exchanges".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/quotes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/quotes/latest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/snapshots".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/trades/latest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/{symbol}/auctions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/{symbol}/bars".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/{symbol}/bars/latest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/{symbol}/quotes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/{symbol}/quotes/latest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/{symbol}/snapshot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/{symbol}/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/stocks/{symbol}/trades/latest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
     m
@@ -880,11 +1252,11 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            symbolTrades = self.safe_dict(trades.clone(), marketId.clone(), &[Value::Map({
+            let mut symbolTrade: Value = self.safe_dict(trades.clone(), marketId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            symbolTrades = Value::List(vec![symbolTrades.clone()]);
+            symbolTrades = Value::List(vec![symbolTrade.clone()]);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchTrades() does not support ".to_string())), &method), &Value::Str(", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported".to_string()))));
         }
@@ -1084,11 +1456,11 @@ impl AlpacaCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            ohlcvs = self.safe_dict(bars.clone(), marketId.clone(), &[Value::Map({
+            let mut bar: Value = self.safe_dict(bars.clone(), marketId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            ohlcvs = Value::List(vec![ohlcvs.clone()]);
+            ohlcvs = Value::List(vec![bar.clone()]);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchOHLCV() does not support ".to_string())), &method), &Value::Str(", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported".to_string()))));
         }
@@ -1237,8 +1609,8 @@ impl AlpacaCore {
         let mut marketIds: Value = object_keys(&snapshots);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_210: bool = true;
-            while { if !__for_first_210 { i = add(&i, &Value::Int(1)); } __for_first_210 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_211: bool = true;
+            while { if !__for_first_211 { i = add(&i, &Value::Int(1)); } __for_first_211 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -2065,6 +2437,11 @@ impl AlpacaCore {
     Value::Null
 }
 
+    pub fn set_sandbox_mode(&mut self, mut enable: Value) {
+        self.super_set_sandbox_mode(enable.clone());
+        add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
+}
+
     pub async fn fetch_transactions_helper(&mut self, mut type_var: Value, mut code: Value, mut since: Value, mut limit: Value, mut params: Value) -> Value {
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
@@ -2072,6 +2449,51 @@ impl AlpacaCore {
         let mut currency: Value = Value::Null;
         if !is_equal(&code, &Value::Null) {
             currency = self.currency(code.clone());
+        }
+        let mut sandboxMode: Value = Value::Bool(is_true(&self.isSandboxModeEnabled) || is_true(&self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)])));
+        if is_true(&sandboxMode) {
+            // paper-trading hosts do not serve the crypto wallets api at all, so route
+            // through the account activities ledger instead, filtered to transfer-like
+            // entries, see https://github.com/ccxt/ccxt/issues/24847
+            let mut request: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("activity_types".to_string(), Value::Str("CSD,CSW,TRANS".to_string()));
+                m
+            });
+            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            let mut activities: Value = self.trader_private_get_v2_account_activities(&[__ws_arg_20]).await;
+            //
+            //     [
+            //         {
+            //             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+            //             "activity_type": "CSD",
+            //             "date": "2025-01-10",
+            //             "net_amount": "1000",
+            //             "status": "executed"
+            //         }
+            //     ]
+            //
+            let mut filtered: Value = Value::List(vec![]);
+            let mut ledger: Value = Value::List(vec![]);
+            if is_true(&Value::Bool(is_array(&activities))) {
+                ledger = activities.clone();
+            }
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_212: bool = true;
+                while { if !__for_first_212 { i = add(&i, &Value::Int(1)); } __for_first_212 = false; is_less_than(&i, &get_array_length(&ledger)) } {
+                let mut entry: Value = get_value(&ledger, &i);
+                let mut entry: Value = get_value(&ledger, &i);
+                let mut activityType: Value = self.safe_string_k(entry.clone(), "activity_type", &[]);
+                let mut amount: Value = self.safe_string_k(entry.clone(), "net_amount", &[]);
+                let mut isIncoming: Value = Value::Bool(is_true(&(is_equal(&activityType, &Value::Str("CSD".to_string())))) || is_true(&(is_true(&(is_equal(&activityType, &Value::Str("TRANS".to_string())))) && !is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string()))))));
+                let mut entryDirection: Value = ternary(is_true(&isIncoming), Value::Str("INCOMING".to_string()), Value::Str("OUTGOING".to_string()));
+                if is_true(&(is_equal(&type_var, &Value::Str("BOTH".to_string())))) || is_true(&(is_equal(&entryDirection, &type_var))) {
+                    append_to_array(&mut filtered, entry.clone());
+                }
+            }
+            }
+            return self.parse_transactions(filtered.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
         }
         let mut response: Value = self.trader_private_get_v2_wallets_transfers(&[params.clone()]).await;
         //
@@ -2092,12 +2514,16 @@ impl AlpacaCore {
         //     }
         //
         let mut results: Value = Value::List(vec![]);
+        let mut transfers: Value = Value::List(vec![]);
+        if is_true(&Value::Bool(is_array(&response))) {
+            transfers = response.clone();
+        }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_211: bool = true;
-            while { if !__for_first_211 { i = add(&i, &Value::Int(1)); } __for_first_211 = false; is_less_than(&i, &get_array_length(&response)) } {
-            let mut entry: Value = get_value(&response, &i);
-            let mut entry: Value = get_value(&response, &i);
+            let mut __for_first_213: bool = true;
+            while { if !__for_first_213 { i = add(&i, &Value::Int(1)); } __for_first_213 = false; is_less_than(&i, &get_array_length(&transfers)) } {
+            let mut entry: Value = get_value(&transfers, &i);
+            let mut entry: Value = get_value(&transfers, &i);
             let mut direction: Value = self.safe_string_k(entry.clone(), "direction", &[]);
             if is_equal(&direction, &type_var) {
                 append_to_array(&mut results, entry.clone());
@@ -2186,6 +2612,18 @@ impl AlpacaCore {
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         //
+        // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        //
+        //     {
+        //         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+        //         "activity_type": "CSD",
+        //         "date": "2025-01-10",
+        //         "net_amount": "1000",
+        //         "status": "executed"
+        //     }
+        //
+        // crypto wallets api entry
+        //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
         //         "tx_hash": null,
@@ -2202,40 +2640,87 @@ impl AlpacaCore {
         //         "fees": "0.1"
         //     }
         //
-        let mut datetime: Value = self.safe_string_k(transaction.clone(), "created_at", &[]);
-        let mut currencyId: Value = self.safe_string_k(transaction.clone(), "asset", &[]);
-        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
-        let mut fees: Value = self.safe_string_k(transaction.clone(), "fees", &[]);
-        let mut networkFee: Value = self.safe_string_k(transaction.clone(), "network_fee", &[]);
-        let mut totalFee: Value = crate::precise::Precise::stringAdd(&fees, &networkFee);
-        let mut fee: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("cost".to_string(), self.parse_number(totalFee.clone(), &[]));
-                m.insert("currency".to_string(), code.clone());
-            m
-        });
+        let mut activityType: Value = self.safe_string_k(transaction.clone(), "activity_type", &[]);
+        let mut txid: Value = Value::Null;
+        let mut timestamp: Value = Value::Null;
+        let mut datetime: Value = Value::Null;
+        let mut network: Value = Value::Null;
+        let mut address: Value = Value::Null;
+        let mut addressTo: Value = Value::Null;
+        let mut addressFrom: Value = Value::Null;
+        let mut type_var: Value = Value::Null;
+        let mut amount: Value = Value::Null;
+        let mut code: Value = Value::Null;
+        let mut status: Value = Value::Null;
+        let mut comment: Value = Value::Null;
+        let mut internal: Value = Value::Null;
+        let mut fee: Value = Value::Null;
+        if !is_equal(&activityType, &Value::Null) {
+            let mut netAmount: Value = self.safe_string_k(transaction.clone(), "net_amount", &[]);
+            let mut isIncoming: Value = Value::Bool(is_true(&(is_equal(&activityType, &Value::Str("CSD".to_string())))) || is_true(&(is_true(&(is_equal(&activityType, &Value::Str("TRANS".to_string())))) && !is_true(&crate::precise::Precise::stringLt(&netAmount, &Value::Str("0".to_string()))))));
+            timestamp = self.parse8601(add(&self.safe_string_k(transaction.clone(), "date", &[]), &Value::Str("T00:00:00Z".to_string())));
+            datetime = self.iso8601(timestamp.clone());
+            type_var = ternary(is_true(&isIncoming), Value::Str("deposit".to_string()), Value::Str("withdrawal".to_string()));
+            amount = self.parse_number(crate::precise::Precise::stringAbs(&netAmount), &[]);
+            // cash ledger rows carry no per-entry asset field and are USD, while crypto
+            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
+            // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            let mut activityCurrencyId: Value = self.safe_string2(transaction.clone(), Value::Str("symbol".to_string()), Value::Str("asset".to_string()), &[]);
+            if !is_equal(&activityCurrencyId, &Value::Null) {
+                code = self.safe_currency_code(activityCurrencyId.clone(), &[]);
+            }  else if is_true(&(is_equal(&activityType, &Value::Str("CSD".to_string())))) || is_true(&(is_equal(&activityType, &Value::Str("CSW".to_string())))) {
+                code = Value::Str("USD".to_string());
+            }  else {
+                code = self.safe_currency_code(Value::Null, &[currency.clone()]);
+            }
+            status = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
+            comment = activityType.clone();
+            internal = Value::Bool(!is_equal(&activityType, &Value::Str("TRANS".to_string())));
+        }  else {
+            txid = self.safe_string_k(transaction.clone(), "tx_hash", &[]);
+            datetime = self.safe_string_k(transaction.clone(), "created_at", &[]);
+            timestamp = self.parse8601(datetime.clone());
+            network = self.safe_string_k(transaction.clone(), "chain", &[]);
+            address = self.safe_string_k(transaction.clone(), "to_address", &[]);
+            addressTo = self.safe_string_k(transaction.clone(), "to_address", &[]);
+            addressFrom = self.safe_string_k(transaction.clone(), "from_address", &[]);
+            type_var = self.parse_transaction_type(self.safe_string_k(transaction.clone(), "direction", &[]));
+            amount = self.safe_number_k(transaction.clone(), "amount", &[]);
+            let mut currencyId: Value = self.safe_string_k(transaction.clone(), "asset", &[]);
+            code = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
+            status = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
+            let mut fees: Value = self.safe_string_k(transaction.clone(), "fees", &[]);
+            let mut networkFee: Value = self.safe_string_k(transaction.clone(), "network_fee", &[]);
+            let mut totalFee: Value = crate::precise::Precise::stringAdd(&fees, &networkFee);
+            fee = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("cost".to_string(), self.parse_number(totalFee.clone(), &[]));
+                    m.insert("currency".to_string(), code.clone());
+                m
+            });
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(transaction.clone(), "id", &[]));
-        m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "tx_hash", &[]));
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
+        m.insert("txid".to_string(), txid.clone());
+        m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), datetime.clone());
-        m.insert("network".to_string(), self.safe_string_k(transaction.clone(), "chain", &[]));
-        m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "to_address", &[]));
-        m.insert("addressTo".to_string(), self.safe_string_k(transaction.clone(), "to_address", &[]));
-        m.insert("addressFrom".to_string(), self.safe_string_k(transaction.clone(), "from_address", &[]));
+        m.insert("network".to_string(), network.clone());
+        m.insert("address".to_string(), address.clone());
+        m.insert("addressTo".to_string(), addressTo.clone());
+        m.insert("addressFrom".to_string(), addressFrom.clone());
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), self.parse_transaction_type(self.safe_string_k(transaction.clone(), "direction", &[])));
-        m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
+        m.insert("type".to_string(), type_var.clone());
+        m.insert("amount".to_string(), amount.clone());
         m.insert("currency".to_string(), code.clone());
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])));
+        m.insert("status".to_string(), status.clone());
         m.insert("updated".to_string(), Value::Null);
+        m.insert("comment".to_string(), comment.clone());
+        m.insert("internal".to_string(), internal.clone());
         m.insert("fee".to_string(), fee.clone());
-        m.insert("comment".to_string(), Value::Null);
-        m.insert("internal".to_string(), Value::Null);
     m
 });
 
@@ -2248,6 +2733,9 @@ impl AlpacaCore {
                 m.insert("PROCESSING".to_string(), Value::Str("pending".to_string()));
                 m.insert("FAILED".to_string(), Value::Str("failed".to_string()));
                 m.insert("COMPLETE".to_string(), Value::Str("ok".to_string()));
+                m.insert("executed".to_string(), Value::Str("ok".to_string()));
+                m.insert("canceled".to_string(), Value::Str("canceled".to_string()));
+                m.insert("pending".to_string(), Value::Str("pending".to_string()));
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);

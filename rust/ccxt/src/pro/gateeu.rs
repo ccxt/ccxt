@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for GateeuCore {
 
 impl crate::exchange_generated::ExchangeBase for GateeuCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -285,7 +285,10 @@ impl GateeuCore {
         let mut restInstance = crate::exchanges::gateeu::GateeuCore::new(None);
         let mut restDescribe: Value = restInstance.describe();
         let mut parentWsDescribe: Value = self.parent.describe_data();
-        let mut extended: Value = self.deep_extend(parentWsDescribe.clone(), &[restDescribe.clone()]);
+        // the ws describe-data must be applied on top of the rest describe,
+        // otherwise the explicit-undefined watch* defaults of the rest 'has'
+        // block wipe the parent's ws capability flags in the deep extend
+        let mut extended: Value = self.deep_extend(restDescribe.clone(), &[parentWsDescribe.clone()]);
         return self.deep_extend(extended.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("gateeu".to_string()));

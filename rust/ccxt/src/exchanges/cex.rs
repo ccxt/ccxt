@@ -193,7 +193,7 @@ impl crate::exchange::DerivedExchange for CexCore {
 
 impl crate::exchange_generated::ExchangeBase for CexCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -340,6 +340,7 @@ impl CexCore {
         m.insert("fetchOption".to_string(), Value::Bool(false));
         m.insert("fetchOptionChain".to_string(), Value::Bool(false));
         m.insert("fetchOrderBook".to_string(), Value::Bool(true));
+        m.insert("fetchOrdersByStatus".to_string(), Value::Bool(true));
         m.insert("fetchPosition".to_string(), Value::Bool(false));
         m.insert("fetchPositionHistory".to_string(), Value::Bool(false));
         m.insert("fetchPositionMode".to_string(), Value::Bool(false));
@@ -391,14 +392,46 @@ impl CexCore {
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get_server_time".to_string(), Value::Int(1));
-        m.insert("get_pairs_info".to_string(), Value::Int(1));
-        m.insert("get_currencies_info".to_string(), Value::Int(1));
-        m.insert("get_processing_info".to_string(), Value::Int(10));
-        m.insert("get_ticker".to_string(), Value::Int(1));
-        m.insert("get_trade_history".to_string(), Value::Int(1));
-        m.insert("get_order_book".to_string(), Value::Int(1));
-        m.insert("get_candles".to_string(), Value::Int(1));
+        m.insert("get_server_time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_pairs_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_currencies_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_processing_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("get_ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_trade_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_order_book".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -411,26 +444,106 @@ impl CexCore {
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get_my_current_fee".to_string(), Value::Int(5));
-        m.insert("get_fee_strategy".to_string(), Value::Int(1));
-        m.insert("get_my_volume".to_string(), Value::Int(5));
-        m.insert("do_create_account".to_string(), Value::Int(1));
-        m.insert("get_my_account_status_v3".to_string(), Value::Int(5));
-        m.insert("get_my_wallet_balance".to_string(), Value::Int(5));
-        m.insert("get_my_orders".to_string(), Value::Int(5));
-        m.insert("do_my_new_order".to_string(), Value::Int(1));
-        m.insert("do_cancel_my_order".to_string(), Value::Int(1));
-        m.insert("do_cancel_all_orders".to_string(), Value::Int(5));
-        m.insert("get_order_book".to_string(), Value::Int(1));
-        m.insert("get_candles".to_string(), Value::Int(1));
-        m.insert("get_trade_history".to_string(), Value::Int(1));
-        m.insert("get_my_transaction_history".to_string(), Value::Int(1));
-        m.insert("get_my_funding_history".to_string(), Value::Int(5));
-        m.insert("do_my_internal_transfer".to_string(), Value::Int(1));
-        m.insert("get_processing_info".to_string(), Value::Int(10));
-        m.insert("get_deposit_address".to_string(), Value::Int(5));
-        m.insert("do_deposit_funds_from_wallet".to_string(), Value::Int(1));
-        m.insert("do_withdrawal_funds_to_wallet".to_string(), Value::Int(1));
+        m.insert("get_my_current_fee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("get_fee_strategy".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_my_volume".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("do_create_account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_my_account_status_v3".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("get_my_wallet_balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("get_my_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("do_my_new_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("do_cancel_my_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("do_cancel_all_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("get_order_book".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_trade_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_my_transaction_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_my_funding_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("do_my_internal_transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_processing_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("get_deposit_address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("do_deposit_funds_from_wallet".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("do_withdrawal_funds_to_wallet".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -579,7 +692,7 @@ impl CexCore {
         m.insert("AVALANCHEC".to_string(), Value::Str("avalanche".to_string()));
         m.insert("ETHPOW".to_string(), Value::Str("ethereumpow".to_string()));
         m.insert("NEAR".to_string(), Value::Str("near".to_string()));
-        m.insert("ARB".to_string(), Value::Str("arbitrum".to_string()));
+        m.insert("ARBITRUM".to_string(), Value::Str("arbitrum".to_string()));
         m.insert("DOT".to_string(), Value::Str("polkadot".to_string()));
         m.insert("OPT".to_string(), Value::Str("optimism".to_string()));
         m.insert("INJ".to_string(), Value::Str("injective".to_string()));
@@ -682,8 +795,8 @@ impl CexCore {
         let mut keys: Value = object_keys(&rawNetworks);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_472: bool = true;
-            while { if !__for_first_472 { j = add(&j, &Value::Int(1)); } __for_first_472 = false; is_less_than(&j, &get_array_length(&keys)) } {
+            let mut __for_first_475: bool = true;
+            while { if !__for_first_475 { j = add(&j, &Value::Int(1)); } __for_first_475 = false; is_less_than(&j, &get_array_length(&keys)) } {
             let mut networkId: Value = get_value(&keys, &j);
             let mut networkId: Value = get_value(&keys, &j);
             let mut rawNetwork: Value = get_value(&rawNetworks, &networkId);
@@ -1320,8 +1433,8 @@ impl CexCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_473: bool = true;
-            while { if !__for_first_473 { i = add(&i, &Value::Int(1)); } __for_first_473 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_476: bool = true;
+            while { if !__for_first_476 { i = add(&i, &Value::Int(1)); } __for_first_476 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut market: Value = Value::Null;
@@ -1337,8 +1450,8 @@ impl CexCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_474: bool = true;
-            while { if !__for_first_474 { i = add(&i, &Value::Int(1)); } __for_first_474 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_477: bool = true;
+            while { if !__for_first_477 { i = add(&i, &Value::Int(1)); } __for_first_477 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             if !is_true(&(Value::Bool(in_op(&result, &symbol)))) {
@@ -1504,8 +1617,8 @@ impl CexCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { i = add(&i, &Value::Int(1)); } __for_first_475 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_478: bool = true;
+            while { if !__for_first_478 { i = add(&i, &Value::Int(1)); } __for_first_478 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut balance: Value = self.safe_dict(response.clone(), key.clone(), &[Value::Map({
@@ -2038,8 +2151,8 @@ impl CexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { i = add(&i, &Value::Int(1)); } __for_first_476 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_479: bool = true;
+            while { if !__for_first_479 { i = add(&i, &Value::Int(1)); } __for_first_479 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             append_to_array(&mut orders, Value::Map({

@@ -193,7 +193,7 @@ impl crate::exchange::DerivedExchange for DeepcoinCore {
 
 impl crate::exchange_generated::ExchangeBase for DeepcoinCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -431,17 +431,61 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("deepcoin/market/books".to_string(), Value::Int(1));
-        m.insert("deepcoin/market/candles".to_string(), Value::Int(1));
-        m.insert("deepcoin/market/instruments".to_string(), Value::Int(1));
-        m.insert("deepcoin/market/tickers".to_string(), Value::Int(1));
-        m.insert("deepcoin/market/index-candles".to_string(), Value::Int(1));
-        m.insert("deepcoin/market/trades".to_string(), Value::Int(1));
-        m.insert("deepcoin/market/mark-price-candles".to_string(), Value::Int(1));
-        m.insert("deepcoin/market/step-margin".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/funding-rate".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/fund-rate/current-funding-rate".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/fund-rate/history".to_string(), Value::Int(5));
+        m.insert("deepcoin/market/books".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("deepcoin/market/candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("deepcoin/market/instruments".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("deepcoin/market/tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("deepcoin/market/index-candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("deepcoin/market/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("deepcoin/market/mark-price-candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("deepcoin/market/step-margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/funding-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/fund-rate/current-funding-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/fund-rate/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
     m
 }));
     m
@@ -450,52 +494,220 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("deepcoin/account/balances".to_string(), Value::Int(5));
-        m.insert("deepcoin/account/bills".to_string(), Value::Int(5));
-        m.insert("deepcoin/account/positions".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/fills".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/orderByID".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/finishOrderByID".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/orders-history".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/v2/orders-pending".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/trigger-orders-pending".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/trigger-orders-history".to_string(), Value::Int(5));
-        m.insert("deepcoin/copytrading/support-contracts".to_string(), Value::Int(5));
-        m.insert("deepcoin/copytrading/leader-position".to_string(), Value::Int(5));
-        m.insert("deepcoin/copytrading/estimate-profit".to_string(), Value::Int(5));
-        m.insert("deepcoin/copytrading/history-profit".to_string(), Value::Int(5));
-        m.insert("deepcoin/copytrading/follower-rank".to_string(), Value::Int(5));
-        m.insert("deepcoin/internal-transfer/support".to_string(), Value::Int(5));
-        m.insert("deepcoin/internal-transfer/history-order".to_string(), Value::Int(5));
-        m.insert("deepcoin/rebate/config".to_string(), Value::Int(5));
-        m.insert("deepcoin/agents/users".to_string(), Value::Int(5));
-        m.insert("deepcoin/agents/users/rebate-list".to_string(), Value::Int(5));
-        m.insert("deepcoin/agents/users/rebates".to_string(), Value::Int(5));
-        m.insert("deepcoin/asset/deposit-list".to_string(), Value::Int(5));
-        m.insert("deepcoin/asset/withdraw-list".to_string(), Value::Int(5));
-        m.insert("deepcoin/asset/recharge-chain-list".to_string(), Value::Int(5));
-        m.insert("deepcoin/listenkey/acquire".to_string(), Value::Int(5));
-        m.insert("deepcoin/listenkey/extend".to_string(), Value::Int(5));
+        m.insert("deepcoin/account/balances".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/account/bills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/account/positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/orderByID".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/finishOrderByID".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/orders-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/v2/orders-pending".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/trigger-orders-pending".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/trigger-orders-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/copytrading/support-contracts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/copytrading/leader-position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/copytrading/estimate-profit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/copytrading/history-profit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/copytrading/follower-rank".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/internal-transfer/support".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/internal-transfer/history-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/rebate/config".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/agents/users".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/agents/users/rebate-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/agents/users/rebates".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/asset/deposit-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/asset/withdraw-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/asset/recharge-chain-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/listenkey/acquire".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/listenkey/extend".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("deepcoin/account/set-leverage".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/order".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/replace-order".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/cancel-order".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/batch-cancel-order".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/cancel-trigger-order".to_string(), divide(&Value::Int(1), &Value::Int(6)));
-        m.insert("deepcoin/trade/swap/cancel-all".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/trigger-order".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/batch-close-position".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/replace-order-sltp".to_string(), Value::Int(5));
-        m.insert("deepcoin/trade/close-position-by-ids".to_string(), Value::Int(5));
-        m.insert("deepcoin/copytrading/leader-settings".to_string(), Value::Int(5));
-        m.insert("deepcoin/copytrading/set-contracts".to_string(), Value::Int(5));
-        m.insert("deepcoin/internal-transfer".to_string(), Value::Int(5));
-        m.insert("deepcoin/rebate/config".to_string(), Value::Int(5));
-        m.insert("deepcoin/asset/transfer".to_string(), Value::Int(5));
+        m.insert("deepcoin/account/set-leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/replace-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/batch-cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/cancel-trigger-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(1), &Value::Int(6)));
+    m
+}));
+        m.insert("deepcoin/trade/swap/cancel-all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/trigger-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/batch-close-position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/replace-order-sltp".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/trade/close-position-by-ids".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/copytrading/leader-settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/copytrading/set-contracts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/internal-transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/rebate/config".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deepcoin/asset/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
     m
 }));
     m
@@ -634,7 +846,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("ERC20".to_string(), Value::Str("ERC20".to_string()));
         m.insert("TRC20".to_string(), Value::Str("TRC20".to_string()));
-        m.insert("ARB".to_string(), Value::Str("ARBITRUM".to_string()));
+        m.insert("ARBITRUM".to_string(), Value::Str("ARBITRUM".to_string()));
         m.insert("BSC".to_string(), Value::Str("BSC(BEP20)".to_string()));
         m.insert("SOL".to_string(), Value::Str("SOL".to_string()));
         m.insert("BTC".to_string(), Value::Str("Bitcoin".to_string()));
@@ -771,16 +983,16 @@ impl DeepcoinCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_573: bool = true;
-            while { if !__for_first_573 { i = add(&i, &Value::Int(1)); } __for_first_573 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut __for_first_576: bool = true;
+            while { if !__for_first_576 { i = add(&i, &Value::Int(1)); } __for_first_576 = false; is_less_than(&i, &get_array_length(&types)) } {
             append_to_array(&mut promises, self.fetch_markets_by_type(get_value(&types, &i), &[params.clone()]).await);
         }
         }
         promises = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_574: bool = true;
-            while { if !__for_first_574 { i = add(&i, &Value::Int(1)); } __for_first_574 = false; is_less_than(&i, &get_array_length(&promises)) } {
+            let mut __for_first_577: bool = true;
+            while { if !__for_first_577 { i = add(&i, &Value::Int(1)); } __for_first_577 = false; is_less_than(&i, &get_array_length(&promises)) } {
             result = self.array_concat(result.clone(), get_value(&promises, &i));
         }
         }
@@ -991,8 +1203,8 @@ impl DeepcoinCore {
         let mut symbols: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_575: bool = true;
-            while { if !__for_first_575 { i = add(&i, &Value::Int(1)); } __for_first_575 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_578: bool = true;
+            while { if !__for_first_578 { i = add(&i, &Value::Int(1)); } __for_first_578 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = get_value(&result, &symbol);
@@ -1477,8 +1689,8 @@ impl DeepcoinCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_576: bool = true;
-            while { if !__for_first_576 { i = add(&i, &Value::Int(1)); } __for_first_576 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_579: bool = true;
+            while { if !__for_first_579 { i = add(&i, &Value::Int(1)); } __for_first_579 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
@@ -1586,9 +1798,9 @@ impl DeepcoinCore {
             self.load_markets(&[]).await;
         }
         let mut paginate: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchDeposits".to_string()), Value::Str("paginate".to_string()), &[Value::Bool(false)]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchWithdrawals".to_string()), Value::Str("paginate".to_string()), &[Value::Bool(false)]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone(), Value::Str("code".to_string()), Value::Null, Value::Int(1), Value::Int(50)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone(), Value::Str("code".to_string()), Value::Null, Value::Int(1), Value::Int(50)]).await;
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1806,8 +2018,8 @@ impl DeepcoinCore {
         if is_true(&(!is_equal(&network, &Value::Null))) && is_true(&(is_greater_than(&length, &Value::Int(1)))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_577: bool = true;
-                while { if !__for_first_577 { i = add(&i, &Value::Int(1)); } __for_first_577 = false; is_less_than(&i, &length) } {
+                let mut __for_first_580: bool = true;
+                while { if !__for_first_580 { i = add(&i, &Value::Int(1)); } __for_first_580 = false; is_less_than(&i, &length) } {
                 let mut entry: Value = get_value(&addressess, &i);
                 let mut entry: Value = get_value(&addressess, &i);
                 if is_equal(&get_value(&entry, &Value::Str("network".to_string())), &network) {
@@ -2630,7 +2842,7 @@ impl DeepcoinCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut length: Value = get_array_length(&data);
         if is_equal(&length, &Value::Int(0)) {
-            return Value::Null;
+            panic!("{}", crate::exchange_errors::order_not_found(add(&add(&self.id, &Value::Str(" fetchOpenOrder() could not find order id ".to_string())), &id)));
         }
         let mut entry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4102,8 +4314,8 @@ impl DeepcoinCore {
         if !is_equal(&errorList, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_578: bool = true;
-                while { if !__for_first_578 { i = add(&i, &Value::Int(1)); } __for_first_578 = false; is_less_than(&i, &get_array_length(&errorList)) } {
+                let mut __for_first_581: bool = true;
+                while { if !__for_first_581 { i = add(&i, &Value::Int(1)); } __for_first_581 = false; is_less_than(&i, &get_array_length(&errorList)) } {
                 let mut entry: Value = self.safe_dict(errorList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

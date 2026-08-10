@@ -173,7 +173,7 @@ impl crate::exchange::DerivedExchange for MudrexCore {
 
 impl crate::exchange_generated::ExchangeBase for MudrexCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -323,8 +323,16 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("price/kline".to_string(), Value::Int(1));
-        m.insert("price/mark-kline".to_string(), Value::Int(1));
+        m.insert("price/kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("price/mark-kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -341,42 +349,138 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("futures".to_string(), Value::Int(1));
-        m.insert("futures/{asset_id}".to_string(), Value::Int(1));
-        m.insert("wallet/funds".to_string(), Value::Int(5));
-        m.insert("futures/funds".to_string(), Value::Int(5));
-        m.insert("futures/orders".to_string(), Value::Int(1));
-        m.insert("futures/orders/history".to_string(), Value::Int(1));
-        m.insert("futures/orders/{order_id}".to_string(), Value::Int(1));
-        m.insert("futures/positions".to_string(), Value::Int(1));
-        m.insert("futures/positions/history".to_string(), Value::Int(1));
-        m.insert("futures/fee/history".to_string(), Value::Int(1));
-        m.insert("futures/{asset_id}/leverage".to_string(), Value::Int(2));
-        m.insert("futures/positions/{position_id}/liq-price".to_string(), Value::Int(1));
+        m.insert("futures".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("futures/{asset_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("wallet/funds".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("futures/funds".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("futures/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("futures/orders/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("futures/orders/{order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("futures/positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("futures/positions/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("futures/fee/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("futures/{asset_id}/leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("futures/positions/{position_id}/liq-price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("wallet/futures/transfer".to_string(), Value::Int(5));
-        m.insert("futures/transfers/inr".to_string(), Value::Int(5));
-        m.insert("futures/{asset_id}/order".to_string(), Value::Int(2));
-        m.insert("futures/positions/{position_id}/close".to_string(), Value::Int(2));
-        m.insert("futures/positions/{position_id}/close/partial".to_string(), Value::Int(2));
-        m.insert("futures/positions/{position_id}/reverse".to_string(), Value::Int(2));
-        m.insert("futures/positions/{position_id}/add-margin".to_string(), Value::Int(2));
-        m.insert("futures/positions/{position_id}/riskorder".to_string(), Value::Int(2));
-        m.insert("futures/{asset_id}/leverage".to_string(), Value::Int(2));
+        m.insert("wallet/futures/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("futures/transfers/inr".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("futures/{asset_id}/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("futures/positions/{position_id}/close".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("futures/positions/{position_id}/close/partial".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("futures/positions/{position_id}/reverse".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("futures/positions/{position_id}/add-margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("futures/positions/{position_id}/riskorder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("futures/{asset_id}/leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("patch".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("futures/orders/{order_id}".to_string(), Value::Int(1));
-        m.insert("futures/positions/{position_id}/riskorder".to_string(), Value::Int(2));
+        m.insert("futures/orders/{order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("futures/positions/{position_id}/riskorder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("futures/orders/{order_id}".to_string(), Value::Int(2));
+        m.insert("futures/orders/{order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -758,8 +862,8 @@ impl MudrexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_925: bool = true;
-            while { if !__for_first_925 { i = add(&i, &Value::Int(1)); } __for_first_925 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_928: bool = true;
+            while { if !__for_first_928 { i = add(&i, &Value::Int(1)); } __for_first_928 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut t: Value = get_value(&rows, &i);
             let mut t: Value = get_value(&rows, &i);
             let mut sym: Value = self.safe_string_k(t.clone(), "symbol", &[]);
@@ -843,37 +947,42 @@ impl MudrexCore {
             let mut items: Value = Value::List(vec![]);
             if is_object(&data) && !is_true(&Value::Bool(is_array(&data))) {
                 items = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
-                if !is_true(&get_array_length(&items)) {
+                // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                let mut itemsLength: Value = get_array_length(&items);
+                if !is_true(&itemsLength) {
                     items = self.safe_list_k(data.clone(), "results", &[Value::List(vec![])]);
+                    itemsLength = get_array_length(&items);
                 }
-                if !is_true(&get_array_length(&items)) && is_true(&(Value::Bool(in_op(&data, &Value::Str("symbol".to_string()))))) {
+                if !is_true(&itemsLength) && is_true(&(Value::Bool(in_op(&data, &Value::Str("symbol".to_string()))))) {
                     items = Value::List(vec![data.clone()]);
                 }
             }  else {
                 items = self.to_array(data.clone());
             }
-            if !is_true(&get_array_length(&items)) {
+            let mut numItems: Value = get_array_length(&items);
+            if !is_true(&numItems) {
                 paging = Value::Bool(false);
                 break;
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_926: bool = true;
-                while { if !__for_first_926 { i = add(&i, &Value::Int(1)); } __for_first_926 = false; is_less_than(&i, &get_array_length(&items)) } {
+                let mut __for_first_929: bool = true;
+                while { if !__for_first_929 { i = add(&i, &Value::Int(1)); } __for_first_929 = false; is_less_than(&i, &numItems) } {
                 append_to_array(&mut aggregated, get_value(&items, &i));
             }
             }
-            if is_less_than(&get_array_length(&items), &pageLimit) {
+            if is_less_than(&numItems, &pageLimit) {
                 paging = Value::Bool(false);
             }  else {
-                offset = add(&offset, &pageLimit);
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = self.sum(&[offset.clone(), pageLimit.clone()]);
             }
         }
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_927: bool = true;
-            while { if !__for_first_927 { i = add(&i, &Value::Int(1)); } __for_first_927 = false; is_less_than(&i, &get_array_length(&aggregated)) } {
+            let mut __for_first_930: bool = true;
+            while { if !__for_first_930 { i = add(&i, &Value::Int(1)); } __for_first_930 = false; is_less_than(&i, &get_array_length(&aggregated)) } {
             append_to_array(&mut result, self.parse_market(get_value(&aggregated, &i)));
         }
         }
@@ -1472,8 +1581,8 @@ impl MudrexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_928: bool = true;
-            while { if !__for_first_928 { i = add(&i, &Value::Int(1)); } __for_first_928 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_931: bool = true;
+            while { if !__for_first_931 { i = add(&i, &Value::Int(1)); } __for_first_931 = false; is_less_than(&i, &get_array_length(&rows)) } {
             append_to_array(&mut orders, self.parse_order(get_value(&rows, &i), &[market.clone()]));
         }
         }
@@ -1587,8 +1696,8 @@ impl MudrexCore {
         let mut outPos: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_929: bool = true;
-            while { if !__for_first_929 { i = add(&i, &Value::Int(1)); } __for_first_929 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_932: bool = true;
+            while { if !__for_first_932 { i = add(&i, &Value::Int(1)); } __for_first_932 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut p: Value = get_value(&rows, &i);
             let mut p: Value = get_value(&rows, &i);
             let mut symRaw: Value = self.safe_string_k(p.clone(), "symbol", &[]);
@@ -1749,8 +1858,8 @@ impl MudrexCore {
             let mut positions: Value = self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_930: bool = true;
-                while { if !__for_first_930 { i = add(&i, &Value::Int(1)); } __for_first_930 = false; is_less_than(&i, &get_array_length(&positions)) } {
+                let mut __for_first_933: bool = true;
+                while { if !__for_first_933 { i = add(&i, &Value::Int(1)); } __for_first_933 = false; is_less_than(&i, &get_array_length(&positions)) } {
                 let mut p: Value = get_value(&positions, &i);
                 let mut p: Value = get_value(&positions, &i);
                 if !is_equal(&side, &Value::Null) && !is_equal(&get_value(&p, &Value::Str("side".to_string())), &side) {
@@ -1781,11 +1890,13 @@ impl MudrexCore {
             }
             params = self.omit(params.clone(), Value::List(vec![Value::Str("order_type".to_string()), Value::Str("limit_price".to_string()), Value::Str("amount".to_string()), Value::Str("position_id".to_string())]), &[]);
             let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
-            return self.private_post_futures_positions_position_id_close_partial(&[__ws_arg_16]).await;
+            let mut partialResponse: Value = self.private_post_futures_positions_position_id_close_partial(&[__ws_arg_16]).await;
+            return partialResponse;
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("position_id".to_string())]), &[]);
         let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_futures_positions_position_id_close(&[__ws_arg_17]).await;
+        let mut response: Value = self.private_post_futures_positions_position_id_close(&[__ws_arg_17]).await;
+        return response;
 
     Value::Null
 }
@@ -1814,8 +1925,8 @@ impl MudrexCore {
             let mut positions: Value = self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_931: bool = true;
-                while { if !__for_first_931 { i = add(&i, &Value::Int(1)); } __for_first_931 = false; is_less_than(&i, &get_array_length(&positions)) } {
+                let mut __for_first_934: bool = true;
+                while { if !__for_first_934 { i = add(&i, &Value::Int(1)); } __for_first_934 = false; is_less_than(&i, &get_array_length(&positions)) } {
                 let mut p: Value = get_value(&positions, &i);
                 let mut p: Value = get_value(&positions, &i);
                 if is_equal(&get_value(&p, &Value::Str("symbol".to_string())), &symbol) {
@@ -1836,7 +1947,8 @@ impl MudrexCore {
         });
         params = self.omit(params.clone(), Value::List(vec![Value::Str("position_id".to_string())]), &[]);
         let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_futures_positions_position_id_add_margin(&[__ws_arg_18]).await;
+        let mut response: Value = self.private_post_futures_positions_position_id_add_margin(&[__ws_arg_18]).await;
+        return response;
 
     Value::Null
 }

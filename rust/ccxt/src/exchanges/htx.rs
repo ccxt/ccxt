@@ -225,7 +225,7 @@ impl crate::exchange::DerivedExchange for HtxCore {
 
 impl crate::exchange_generated::ExchangeBase for HtxCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -459,7 +459,7 @@ impl HtxCore {
         m.insert("fetchPositionsRisk".to_string(), Value::Bool(false));
         m.insert("fetchPremiumIndexOHLCV".to_string(), Value::Bool(true));
         m.insert("fetchSettlementHistory".to_string(), Value::Bool(true));
-        m.insert("fetchStatus".to_string(), Value::Bool(false));
+        m.insert("fetchStatus".to_string(), Value::Bool(true));
         m.insert("fetchTicker".to_string(), Value::Bool(true));
         m.insert("fetchTickers".to_string(), Value::Bool(true));
         m.insert("fetchTime".to_string(), Value::Bool(true));
@@ -554,8 +554,16 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("reference/currencies".to_string(), Value::Int(1));
-        m.insert("market-status".to_string(), Value::Int(1));
+        m.insert("reference/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market-status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -564,61 +572,265 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("account/ledger".to_string(), Value::Int(1));
-        m.insert("account/withdraw/quota".to_string(), Value::Int(1));
-        m.insert("account/withdraw/address".to_string(), Value::Int(1));
-        m.insert("account/deposit/address".to_string(), Value::Int(1));
-        m.insert("account/repayment".to_string(), Value::Int(5));
-        m.insert("reference/transact-fee-rate".to_string(), Value::Int(1));
-        m.insert("account/asset-valuation".to_string(), Value::Float(0.2));
-        m.insert("point/account".to_string(), Value::Int(5));
-        m.insert("sub-user/user-list".to_string(), Value::Int(1));
-        m.insert("sub-user/user-state".to_string(), Value::Int(1));
-        m.insert("sub-user/account-list".to_string(), Value::Int(1));
-        m.insert("sub-user/deposit-address".to_string(), Value::Int(1));
-        m.insert("sub-user/query-deposit".to_string(), Value::Int(1));
-        m.insert("user/api-key".to_string(), Value::Int(1));
-        m.insert("user/uid".to_string(), Value::Int(1));
-        m.insert("algo-orders/opening".to_string(), Value::Int(1));
-        m.insert("algo-orders/history".to_string(), Value::Int(1));
-        m.insert("algo-orders/specific".to_string(), Value::Int(1));
-        m.insert("c2c/offers".to_string(), Value::Int(1));
-        m.insert("c2c/offer".to_string(), Value::Int(1));
-        m.insert("c2c/transactions".to_string(), Value::Int(1));
-        m.insert("c2c/repayment".to_string(), Value::Int(1));
-        m.insert("c2c/account".to_string(), Value::Int(1));
-        m.insert("etp/reference".to_string(), Value::Int(1));
-        m.insert("etp/transactions".to_string(), Value::Int(5));
-        m.insert("etp/transaction".to_string(), Value::Int(5));
-        m.insert("etp/rebalance".to_string(), Value::Int(1));
-        m.insert("etp/limit".to_string(), Value::Int(1));
+        m.insert("account/ledger".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("account/withdraw/quota".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("account/withdraw/address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("account/deposit/address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("account/repayment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("reference/transact-fee-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("account/asset-valuation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("point/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("sub-user/user-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sub-user/user-state".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sub-user/account-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sub-user/deposit-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sub-user/query-deposit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/api-key".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/uid".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo-orders/opening".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo-orders/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo-orders/specific".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("c2c/offers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("c2c/offer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("c2c/transactions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("c2c/repayment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("c2c/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("etp/reference".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("etp/transactions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("etp/transaction".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("etp/rebalance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("etp/limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("account/transfer".to_string(), Value::Int(1));
-        m.insert("account/repayment".to_string(), Value::Int(5));
-        m.insert("point/transfer".to_string(), Value::Int(5));
-        m.insert("sub-user/management".to_string(), Value::Int(1));
-        m.insert("sub-user/creation".to_string(), Value::Int(1));
-        m.insert("sub-user/tradable-market".to_string(), Value::Int(1));
-        m.insert("sub-user/transferability".to_string(), Value::Int(1));
-        m.insert("sub-user/api-key-generation".to_string(), Value::Int(1));
-        m.insert("sub-user/api-key-modification".to_string(), Value::Int(1));
-        m.insert("sub-user/api-key-deletion".to_string(), Value::Int(1));
-        m.insert("sub-user/deduct-mode".to_string(), Value::Int(1));
-        m.insert("algo-orders".to_string(), Value::Int(1));
-        m.insert("algo-orders/cancel-all-after".to_string(), Value::Int(1));
-        m.insert("algo-orders/cancellation".to_string(), Value::Int(1));
-        m.insert("c2c/offer".to_string(), Value::Int(1));
-        m.insert("c2c/cancellation".to_string(), Value::Int(1));
-        m.insert("c2c/cancel-all".to_string(), Value::Int(1));
-        m.insert("c2c/repayment".to_string(), Value::Int(1));
-        m.insert("c2c/transfer".to_string(), Value::Int(1));
-        m.insert("etp/creation".to_string(), Value::Int(5));
-        m.insert("etp/redemption".to_string(), Value::Int(5));
-        m.insert("etp/{transactId}/cancel".to_string(), Value::Int(10));
-        m.insert("etp/batch-cancel".to_string(), Value::Int(50));
+        m.insert("account/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("account/repayment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("point/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("sub-user/management".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sub-user/creation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sub-user/tradable-market".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sub-user/transferability".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sub-user/api-key-generation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sub-user/api-key-modification".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sub-user/api-key-deletion".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sub-user/deduct-mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo-orders/cancel-all-after".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo-orders/cancellation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("c2c/offer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("c2c/cancellation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("c2c/cancel-all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("c2c/repayment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("c2c/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("etp/creation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("etp/redemption".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("etp/{transactId}/cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("etp/batch-cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
     m
 }));
     m
@@ -627,11 +839,31 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("common/symbols".to_string(), Value::Int(1));
-        m.insert("common/currencys".to_string(), Value::Int(1));
-        m.insert("common/timestamp".to_string(), Value::Int(1));
-        m.insert("common/exchange".to_string(), Value::Int(1));
-        m.insert("settings/currencys".to_string(), Value::Int(1));
+        m.insert("common/symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("common/currencys".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("common/timestamp".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("common/exchange".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("settings/currencys".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -640,54 +872,230 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("account/accounts".to_string(), Value::Float(0.2));
-        m.insert("account/accounts/{id}/balance".to_string(), Value::Float(0.2));
-        m.insert("account/accounts/{sub-uid}".to_string(), Value::Int(1));
-        m.insert("account/history".to_string(), Value::Int(4));
-        m.insert("cross-margin/loan-info".to_string(), Value::Int(1));
-        m.insert("margin/loan-info".to_string(), Value::Int(1));
-        m.insert("fee/fee-rate/get".to_string(), Value::Int(1));
-        m.insert("order/openOrders".to_string(), Value::Float(0.4));
-        m.insert("order/orders".to_string(), Value::Float(0.4));
-        m.insert("order/orders/{id}".to_string(), Value::Float(0.4));
-        m.insert("order/orders/{id}/matchresults".to_string(), Value::Float(0.4));
-        m.insert("order/orders/getClientOrder".to_string(), Value::Float(0.4));
-        m.insert("order/history".to_string(), Value::Int(1));
-        m.insert("order/matchresults".to_string(), Value::Int(1));
-        m.insert("query/deposit-withdraw".to_string(), Value::Int(1));
-        m.insert("margin/loan-orders".to_string(), Value::Float(0.2));
-        m.insert("margin/accounts/balance".to_string(), Value::Float(0.2));
-        m.insert("cross-margin/loan-orders".to_string(), Value::Int(1));
-        m.insert("cross-margin/accounts/balance".to_string(), Value::Int(1));
-        m.insert("points/actions".to_string(), Value::Int(1));
-        m.insert("points/orders".to_string(), Value::Int(1));
-        m.insert("subuser/aggregate-balance".to_string(), Value::Int(10));
-        m.insert("stable-coin/exchange_rate".to_string(), Value::Int(1));
-        m.insert("stable-coin/quote".to_string(), Value::Int(1));
+        m.insert("account/accounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("account/accounts/{id}/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("account/accounts/{sub-uid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("account/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("cross-margin/loan-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/loan-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("fee/fee-rate/get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order/openOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("order/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("order/orders/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("order/orders/{id}/matchresults".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("order/orders/getClientOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("order/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order/matchresults".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("query/deposit-withdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/loan-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("margin/accounts/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("cross-margin/loan-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cross-margin/accounts/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("points/actions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("points/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("subuser/aggregate-balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("stable-coin/exchange_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("stable-coin/quote".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("account/transfer".to_string(), Value::Int(1));
-        m.insert("futures/transfer".to_string(), Value::Int(1));
-        m.insert("order/batch-orders".to_string(), Value::Float(0.4));
-        m.insert("order/orders/place".to_string(), Value::Float(0.2));
-        m.insert("order/orders/submitCancelClientOrder".to_string(), Value::Float(0.2));
-        m.insert("order/orders/batchCancelOpenOrders".to_string(), Value::Float(0.4));
-        m.insert("order/orders/{id}/submitcancel".to_string(), Value::Float(0.2));
-        m.insert("order/orders/batchcancel".to_string(), Value::Float(0.4));
-        m.insert("dw/withdraw/api/create".to_string(), Value::Int(1));
-        m.insert("dw/withdraw-virtual/{id}/cancel".to_string(), Value::Int(1));
-        m.insert("dw/transfer-in/margin".to_string(), Value::Int(10));
-        m.insert("dw/transfer-out/margin".to_string(), Value::Int(10));
-        m.insert("margin/orders".to_string(), Value::Int(10));
-        m.insert("margin/orders/{id}/repay".to_string(), Value::Int(10));
-        m.insert("cross-margin/transfer-in".to_string(), Value::Int(1));
-        m.insert("cross-margin/transfer-out".to_string(), Value::Int(1));
-        m.insert("cross-margin/orders".to_string(), Value::Int(1));
-        m.insert("cross-margin/orders/{id}/repay".to_string(), Value::Int(1));
-        m.insert("stable-coin/exchange".to_string(), Value::Int(1));
-        m.insert("subuser/transfer".to_string(), Value::Int(10));
+        m.insert("account/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("futures/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order/batch-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("order/orders/place".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("order/orders/submitCancelClientOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("order/orders/batchCancelOpenOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("order/orders/{id}/submitcancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("order/orders/batchcancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("dw/withdraw/api/create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("dw/withdraw-virtual/{id}/cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("dw/transfer-in/margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("dw/transfer-out/margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("margin/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("margin/orders/{id}/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("cross-margin/transfer-in".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cross-margin/transfer-out".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cross-margin/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cross-margin/orders/{id}/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("stable-coin/exchange".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("subuser/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
     m
@@ -700,7 +1108,11 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("api/v2/summary.json".to_string(), Value::Int(1));
+        m.insert("api/v2/summary.json".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -711,7 +1123,11 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("api/v2/summary.json".to_string(), Value::Int(1));
+        m.insert("api/v2/summary.json".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -720,7 +1136,11 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("api/v2/summary.json".to_string(), Value::Int(1));
+        m.insert("api/v2/summary.json".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -733,7 +1153,11 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("api/v2/summary.json".to_string(), Value::Int(1));
+        m.insert("api/v2/summary.json".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -742,7 +1166,11 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("api/v2/summary.json".to_string(), Value::Int(1));
+        m.insert("api/v2/summary.json".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -759,29 +1187,121 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/market-status".to_string(), Value::Int(1));
-        m.insert("v1/common/symbols".to_string(), Value::Int(1));
-        m.insert("v1/common/currencys".to_string(), Value::Int(1));
-        m.insert("v2/settings/common/currencies".to_string(), Value::Int(1));
-        m.insert("v2/reference/currencies".to_string(), Value::Int(1));
-        m.insert("v1/common/timestamp".to_string(), Value::Int(1));
-        m.insert("v1/common/exchange".to_string(), Value::Int(1));
-        m.insert("v1/settings/common/chains".to_string(), Value::Int(1));
-        m.insert("v1/settings/common/currencys".to_string(), Value::Int(1));
-        m.insert("v1/settings/common/symbols".to_string(), Value::Int(1));
-        m.insert("v2/settings/common/symbols".to_string(), Value::Int(1));
-        m.insert("v1/settings/common/market-symbols".to_string(), Value::Int(1));
-        m.insert("market/history/candles".to_string(), Value::Int(1));
-        m.insert("market/history/kline".to_string(), Value::Int(1));
-        m.insert("market/detail/merged".to_string(), Value::Int(1));
-        m.insert("market/tickers".to_string(), Value::Int(1));
-        m.insert("market/detail".to_string(), Value::Int(1));
-        m.insert("market/depth".to_string(), Value::Int(1));
-        m.insert("market/trade".to_string(), Value::Int(1));
-        m.insert("market/history/trade".to_string(), Value::Int(1));
-        m.insert("market/etp".to_string(), Value::Int(1));
-        m.insert("v2/etp/reference".to_string(), Value::Int(1));
-        m.insert("v2/etp/rebalance".to_string(), Value::Int(1));
+        m.insert("v2/market-status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/common/symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/common/currencys".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/settings/common/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/reference/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/common/timestamp".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/common/exchange".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/settings/common/chains".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/settings/common/currencys".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/settings/common/symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/settings/common/symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/settings/common/market-symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/history/candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/history/kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/detail/merged".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/history/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/etp".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/etp/reference".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/etp/rebalance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -790,97 +1310,445 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v1/account/accounts".to_string(), Value::Float(0.2));
-        m.insert("v1/account/accounts/{account-id}/balance".to_string(), Value::Float(0.2));
-        m.insert("v2/account/valuation".to_string(), Value::Int(1));
-        m.insert("v2/account/asset-valuation".to_string(), Value::Float(0.2));
-        m.insert("v1/account/history".to_string(), Value::Int(4));
-        m.insert("v2/account/ledger".to_string(), Value::Int(1));
-        m.insert("v2/point/account".to_string(), Value::Int(5));
-        m.insert("v2/account/deposit/address".to_string(), Value::Int(1));
-        m.insert("v2/account/withdraw/quota".to_string(), Value::Int(1));
-        m.insert("v2/account/withdraw/address".to_string(), Value::Int(1));
-        m.insert("v2/reference/currencies".to_string(), Value::Int(1));
-        m.insert("v1/query/deposit-withdraw".to_string(), Value::Int(1));
-        m.insert("v1/query/withdraw/client-order-id".to_string(), Value::Int(1));
-        m.insert("v2/user/api-key".to_string(), Value::Int(1));
-        m.insert("v2/user/uid".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/user-list".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/user-state".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/account-list".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/deposit-address".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/query-deposit".to_string(), Value::Int(1));
-        m.insert("v1/subuser/aggregate-balance".to_string(), Value::Int(10));
-        m.insert("v1/account/accounts/{sub-uid}".to_string(), Value::Int(1));
-        m.insert("v1/order/openOrders".to_string(), Value::Float(0.4));
-        m.insert("v1/order/orders/{order-id}".to_string(), Value::Float(0.4));
-        m.insert("v1/order/orders/getClientOrder".to_string(), Value::Float(0.4));
-        m.insert("v1/order/orders/{order-id}/matchresult".to_string(), Value::Float(0.4));
-        m.insert("v1/order/orders/{order-id}/matchresults".to_string(), Value::Float(0.4));
-        m.insert("v1/order/orders".to_string(), Value::Float(0.4));
-        m.insert("v1/order/history".to_string(), Value::Int(1));
-        m.insert("v1/order/matchresults".to_string(), Value::Int(1));
-        m.insert("v2/reference/transact-fee-rate".to_string(), Value::Int(1));
-        m.insert("v2/algo-orders/opening".to_string(), Value::Int(1));
-        m.insert("v2/algo-orders/history".to_string(), Value::Int(1));
-        m.insert("v2/algo-orders/specific".to_string(), Value::Int(1));
-        m.insert("v1/margin/loan-info".to_string(), Value::Int(1));
-        m.insert("v1/margin/loan-orders".to_string(), Value::Float(0.2));
-        m.insert("v1/margin/accounts/balance".to_string(), Value::Float(0.2));
-        m.insert("v1/cross-margin/loan-info".to_string(), Value::Int(1));
-        m.insert("v1/cross-margin/loan-orders".to_string(), Value::Int(1));
-        m.insert("v1/cross-margin/accounts/balance".to_string(), Value::Int(1));
-        m.insert("v2/account/repayment".to_string(), Value::Int(5));
-        m.insert("v5/account/universal_transfer_records".to_string(), Value::Int(4));
-        m.insert("v1/stable-coin/quote".to_string(), Value::Int(1));
-        m.insert("v1/stable_coin/exchange_rate".to_string(), Value::Int(1));
-        m.insert("v2/etp/transactions".to_string(), Value::Int(5));
-        m.insert("v2/etp/transaction".to_string(), Value::Int(5));
-        m.insert("v2/etp/limit".to_string(), Value::Int(1));
+        m.insert("v1/account/accounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("v1/account/accounts/{account-id}/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("v2/account/valuation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/account/asset-valuation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("v1/account/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/account/ledger".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/point/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("v2/account/deposit/address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/account/withdraw/quota".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/account/withdraw/address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/reference/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/query/deposit-withdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/query/withdraw/client-order-id".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/user/api-key".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/user/uid".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/user-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/user-state".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/account-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/deposit-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/query-deposit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/subuser/aggregate-balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/account/accounts/{sub-uid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/order/openOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("v1/order/orders/{order-id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("v1/order/orders/getClientOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("v1/order/orders/{order-id}/matchresult".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("v1/order/orders/{order-id}/matchresults".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("v1/order/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("v1/order/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/order/matchresults".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/reference/transact-fee-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/algo-orders/opening".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/algo-orders/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/algo-orders/specific".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/margin/loan-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/margin/loan-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("v1/margin/accounts/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("v1/cross-margin/loan-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/cross-margin/loan-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/cross-margin/accounts/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/account/repayment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("v5/account/universal_transfer_records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v1/stable-coin/quote".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/stable_coin/exchange_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/etp/transactions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("v2/etp/transaction".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("v2/etp/limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v1/account/transfer".to_string(), Value::Int(1));
-        m.insert("v1/futures/transfer".to_string(), Value::Int(1));
-        m.insert("v2/point/transfer".to_string(), Value::Int(5));
-        m.insert("v2/account/transfer".to_string(), Value::Int(1));
-        m.insert("v1/dw/withdraw/api/create".to_string(), Value::Int(1));
-        m.insert("v1/dw/withdraw-virtual/{withdraw-id}/cancel".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/deduct-mode".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/creation".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/management".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/tradable-market".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/transferability".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/api-key-generation".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/api-key-modification".to_string(), Value::Int(1));
-        m.insert("v2/sub-user/api-key-deletion".to_string(), Value::Int(1));
-        m.insert("v1/subuser/transfer".to_string(), Value::Int(10));
-        m.insert("v1/trust/user/active/credit".to_string(), Value::Int(10));
-        m.insert("v1/order/orders/place".to_string(), Value::Float(0.2));
-        m.insert("v1/order/batch-orders".to_string(), Value::Float(0.4));
-        m.insert("v1/order/auto/place".to_string(), Value::Float(0.2));
-        m.insert("v1/order/orders/{order-id}/submitcancel".to_string(), Value::Float(0.2));
-        m.insert("v1/order/orders/submitCancelClientOrder".to_string(), Value::Float(0.2));
-        m.insert("v1/order/orders/batchCancelOpenOrders".to_string(), Value::Float(0.4));
-        m.insert("v1/order/orders/batchcancel".to_string(), Value::Float(0.4));
-        m.insert("v2/algo-orders/cancel-all-after".to_string(), Value::Int(1));
-        m.insert("v2/algo-orders".to_string(), Value::Int(1));
-        m.insert("v2/algo-orders/cancellation".to_string(), Value::Int(1));
-        m.insert("v2/account/repayment".to_string(), Value::Int(5));
-        m.insert("v1/dw/transfer-in/margin".to_string(), Value::Int(10));
-        m.insert("v1/dw/transfer-out/margin".to_string(), Value::Int(10));
-        m.insert("v1/margin/orders".to_string(), Value::Int(10));
-        m.insert("v1/margin/orders/{order-id}/repay".to_string(), Value::Int(10));
-        m.insert("v1/cross-margin/transfer-in".to_string(), Value::Int(1));
-        m.insert("v1/cross-margin/transfer-out".to_string(), Value::Int(1));
-        m.insert("v1/cross-margin/orders".to_string(), Value::Int(1));
-        m.insert("v1/cross-margin/orders/{order-id}/repay".to_string(), Value::Int(1));
-        m.insert("v1/stable-coin/exchange".to_string(), Value::Int(1));
-        m.insert("v2/etp/creation".to_string(), Value::Int(5));
-        m.insert("v2/etp/redemption".to_string(), Value::Int(5));
-        m.insert("v2/etp/{transactId}/cancel".to_string(), Value::Int(10));
-        m.insert("v2/etp/batch-cancel".to_string(), Value::Int(50));
+        m.insert("v1/account/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/futures/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/point/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("v2/account/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/dw/withdraw/api/create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/dw/withdraw-virtual/{withdraw-id}/cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/deduct-mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/creation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/management".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/tradable-market".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/transferability".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/api-key-generation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/api-key-modification".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/sub-user/api-key-deletion".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/subuser/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/trust/user/active/credit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/order/orders/place".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("v1/order/batch-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("v1/order/auto/place".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("v1/order/orders/{order-id}/submitcancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("v1/order/orders/submitCancelClientOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.2));
+    m
+}));
+        m.insert("v1/order/orders/batchCancelOpenOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("v1/order/orders/batchcancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("v2/algo-orders/cancel-all-after".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/algo-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/algo-orders/cancellation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/account/repayment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("v1/dw/transfer-in/margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/dw/transfer-out/margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/margin/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/margin/orders/{order-id}/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v1/cross-margin/transfer-in".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/cross-margin/transfer-out".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/cross-margin/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/cross-margin/orders/{order-id}/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/stable-coin/exchange".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/etp/creation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("v2/etp/redemption".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("v2/etp/{transactId}/cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/etp/batch-cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
     m
 }));
     m
@@ -893,106 +1761,506 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("api/v1/timestamp".to_string(), Value::Int(1));
-        m.insert("heartbeat/".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_contract_info".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_index".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_query_elements".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_price_limit".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_open_interest".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_delivery_price".to_string(), Value::Int(1));
-        m.insert("market/depth".to_string(), Value::Int(1));
-        m.insert("market/bbo".to_string(), Value::Int(1));
-        m.insert("market/history/kline".to_string(), Value::Int(1));
-        m.insert("index/market/history/mark_price_kline".to_string(), Value::Int(1));
-        m.insert("market/detail/merged".to_string(), Value::Int(1));
-        m.insert("market/detail/batch_merged".to_string(), Value::Int(1));
-        m.insert("v2/market/detail/batch_merged".to_string(), Value::Int(1));
-        m.insert("market/trade".to_string(), Value::Int(1));
-        m.insert("market/history/trade".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_risk_info".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_insurance_fund".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_adjustfactor".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_his_open_interest".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_ladder_margin".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_api_state".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_elite_account_ratio".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_elite_position_ratio".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_liquidation_orders".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_settlement_records".to_string(), Value::Int(1));
-        m.insert("index/market/history/index".to_string(), Value::Int(1));
-        m.insert("index/market/history/basis".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_estimated_settlement_price".to_string(), Value::Int(1));
-        m.insert("api/v3/contract_liquidation_orders".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_contract_info".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_index".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_query_elements".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_price_limit".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_open_interest".to_string(), Value::Int(1));
-        m.insert("swap-ex/market/depth".to_string(), Value::Int(1));
-        m.insert("swap-ex/market/bbo".to_string(), Value::Int(1));
-        m.insert("swap-ex/market/history/kline".to_string(), Value::Int(1));
-        m.insert("index/market/history/swap_mark_price_kline".to_string(), Value::Int(1));
-        m.insert("swap-ex/market/detail/merged".to_string(), Value::Int(1));
-        m.insert("v2/swap-ex/market/detail/batch_merged".to_string(), Value::Int(1));
-        m.insert("index/market/history/swap_premium_index_kline".to_string(), Value::Int(1));
-        m.insert("swap-ex/market/detail/batch_merged".to_string(), Value::Int(1));
-        m.insert("swap-ex/market/trade".to_string(), Value::Int(1));
-        m.insert("swap-ex/market/history/trade".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_risk_info".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_insurance_fund".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_adjustfactor".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_his_open_interest".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_ladder_margin".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_api_state".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_elite_account_ratio".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_elite_position_ratio".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_estimated_settlement_price".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_liquidation_orders".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_settlement_records".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_funding_rate".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_batch_funding_rate".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_historical_funding_rate".to_string(), Value::Int(1));
-        m.insert("swap-api/v3/swap_liquidation_orders".to_string(), Value::Int(1));
-        m.insert("index/market/history/swap_estimated_rate_kline".to_string(), Value::Int(1));
-        m.insert("index/market/history/swap_basis".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_contract_info".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_index".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_query_elements".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_price_limit".to_string(), Value::Int(1));
-        m.insert("linear-swap-ex/market/depth".to_string(), Value::Int(1));
-        m.insert("linear-swap-ex/market/bbo".to_string(), Value::Int(1));
-        m.insert("linear-swap-ex/market/history/kline".to_string(), Value::Int(1));
-        m.insert("index/market/history/linear_swap_mark_price_kline".to_string(), Value::Int(1));
-        m.insert("linear-swap-ex/market/detail/merged".to_string(), Value::Int(1));
-        m.insert("linear-swap-ex/market/detail/batch_merged".to_string(), Value::Int(1));
-        m.insert("v2/linear-swap-ex/market/detail/batch_merged".to_string(), Value::Int(1));
-        m.insert("linear-swap-ex/market/trade".to_string(), Value::Int(1));
-        m.insert("linear-swap-ex/market/history/trade".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/linear-swap-api/v1/swap_insurance_fund".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_adjustfactor".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_cross_adjustfactor".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_his_open_interest".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_ladder_margin".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_cross_ladder_margin".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_api_state".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_elite_account_ratio".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_elite_position_ratio".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_settlement_records".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v3/swap_liquidation_orders".to_string(), Value::Int(1));
-        m.insert("index/market/history/linear_swap_premium_index_kline".to_string(), Value::Int(1));
-        m.insert("index/market/history/linear_swap_estimated_rate_kline".to_string(), Value::Int(1));
-        m.insert("index/market/history/linear_swap_basis".to_string(), Value::Int(1));
-        m.insert("linear-swap-api/v1/swap_estimated_settlement_price".to_string(), Value::Int(1));
-        m.insert("v5/market/funding_rate".to_string(), Value::Float(0.125));
-        m.insert("v5/market/funding_rate_history".to_string(), Value::Float(0.125));
-        m.insert("v5/market/open_interest".to_string(), Value::Float(0.125));
-        m.insert("v5/market/liquidation_orders".to_string(), Value::Float(0.125));
-        m.insert("v5/market/settlement_history".to_string(), Value::Float(0.125));
-        m.insert("v5/market/elite_account_ratio".to_string(), Value::Float(0.125));
-        m.insert("v5/market/elite_position_ratio".to_string(), Value::Float(0.125));
-        m.insert("v5/market/estimated_settlement_price".to_string(), Value::Float(0.125));
-        m.insert("v5/market/price_limit".to_string(), Value::Float(0.125));
+        m.insert("api/v1/timestamp".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("heartbeat/".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_contract_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_index".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_query_elements".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_price_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_open_interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_delivery_price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/bbo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/history/kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("index/market/history/mark_price_kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/detail/merged".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/detail/batch_merged".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/market/detail/batch_merged".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/history/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_risk_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_insurance_fund".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_adjustfactor".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_his_open_interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_ladder_margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_api_state".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_elite_account_ratio".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_elite_position_ratio".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_liquidation_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_settlement_records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("index/market/history/index".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("index/market/history/basis".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_estimated_settlement_price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v3/contract_liquidation_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_contract_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_index".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_query_elements".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_price_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_open_interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-ex/market/depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-ex/market/bbo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-ex/market/history/kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("index/market/history/swap_mark_price_kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-ex/market/detail/merged".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/swap-ex/market/detail/batch_merged".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("index/market/history/swap_premium_index_kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-ex/market/detail/batch_merged".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-ex/market/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-ex/market/history/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_risk_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_insurance_fund".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_adjustfactor".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_his_open_interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_ladder_margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_api_state".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_elite_account_ratio".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_elite_position_ratio".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_estimated_settlement_price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_liquidation_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_settlement_records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_funding_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_batch_funding_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_historical_funding_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v3/swap_liquidation_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("index/market/history/swap_estimated_rate_kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("index/market/history/swap_basis".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_contract_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_index".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_query_elements".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_price_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-ex/market/depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-ex/market/bbo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-ex/market/history/kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("index/market/history/linear_swap_mark_price_kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-ex/market/detail/merged".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-ex/market/detail/batch_merged".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/linear-swap-ex/market/detail/batch_merged".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-ex/market/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-ex/market/history/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/linear-swap-api/v1/swap_insurance_fund".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_adjustfactor".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_cross_adjustfactor".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_his_open_interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_ladder_margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_cross_ladder_margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_api_state".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_elite_account_ratio".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_elite_position_ratio".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_settlement_records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v3/swap_liquidation_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("index/market/history/linear_swap_premium_index_kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("index/market/history/linear_swap_estimated_rate_kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("index/market/history/linear_swap_basis".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("linear-swap-api/v1/swap_estimated_settlement_price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v5/market/funding_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
+        m.insert("v5/market/funding_rate_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
+        m.insert("v5/market/open_interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
+        m.insert("v5/market/liquidation_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
+        m.insert("v5/market/settlement_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
+        m.insert("v5/market/elite_account_ratio".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
+        m.insert("v5/market/elite_position_ratio".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
+        m.insert("v5/market/estimated_settlement_price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
+        m.insert("v5/market/price_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
     m
 }));
     m
@@ -1001,158 +2269,750 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("api/v1/contract_sub_auth_list".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_api_trading_status".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_sub_auth_list".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_api_trading_status".to_string(), Value::Int(1));
-        m.insert("v5/account/asset_mode".to_string(), Value::Float(0.20834));
-        m.insert("v5/account/balance".to_string(), Value::Float(0.20834));
-        m.insert("v5/account/bills".to_string(), Value::Float(0.20834));
-        m.insert("v5/account/fee_deduction_currency".to_string(), Value::Float(0.20834));
-        m.insert("v5/trade/position/opens".to_string(), Value::Float(0.41679));
-        m.insert("v5/trade/order/opens".to_string(), Value::Float(0.41679));
-        m.insert("v5/trade/order/details".to_string(), Value::Float(0.41679));
-        m.insert("v5/trade/order/history".to_string(), Value::Float(0.41679));
-        m.insert("v5/trade/order".to_string(), Value::Float(0.41679));
-        m.insert("v5/position/lever".to_string(), Value::Float(0.20834));
-        m.insert("v5/position/mode".to_string(), Value::Float(0.20834));
-        m.insert("v5/position/risk/limit".to_string(), Value::Float(0.20834));
-        m.insert("v5/position/risk/limit_tier".to_string(), Value::Float(0.20834));
-        m.insert("v5/market/risk/limit".to_string(), Value::Float(0.125));
-        m.insert("v5/market/assets_deduction_currency".to_string(), Value::Float(0.125));
-        m.insert("v5/market/multi_assets_margin".to_string(), Value::Float(0.125));
-        m.insert("v5/algo/order/opens".to_string(), Value::Float(0.41679));
-        m.insert("v5/algo/order".to_string(), Value::Float(0.41679));
-        m.insert("v5/algo/order/history".to_string(), Value::Float(0.41679));
+        m.insert("api/v1/contract_sub_auth_list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_api_trading_status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_sub_auth_list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_api_trading_status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v5/account/asset_mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/account/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/account/bills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/account/fee_deduction_currency".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/trade/position/opens".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/trade/order/opens".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/trade/order/details".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/trade/order/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/trade/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/position/lever".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/position/mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/position/risk/limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/position/risk/limit_tier".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/market/risk/limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
+        m.insert("v5/market/assets_deduction_currency".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
+        m.insert("v5/market/multi_assets_margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.125));
+    m
+}));
+        m.insert("v5/algo/order/opens".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/algo/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/algo/order/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("api/v1/contract_balance_valuation".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_account_info".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_position_info".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_sub_auth".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_sub_account_list".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_sub_account_info_list".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_sub_account_info".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_sub_position_info".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_financial_record".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_financial_record_exact".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_user_settlement_records".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_order_limit".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_fee".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_transfer_limit".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_position_limit".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_account_position_info".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_master_sub_transfer".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_master_sub_transfer_record".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_available_level_rate".to_string(), Value::Int(1));
-        m.insert("api/v3/contract_financial_record".to_string(), Value::Int(1));
-        m.insert("api/v3/contract_financial_record_exact".to_string(), Value::Int(1));
-        m.insert("api/v1/contract-cancel-after".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_order".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_batchorder".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_cancel".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_cancelall".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_switch_lever_rate".to_string(), Value::Int(30));
-        m.insert("api/v1/lightning_close_position".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_order_info".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_order_detail".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_openorders".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_hisorders".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_hisorders_exact".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_matchresults".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_matchresults_exact".to_string(), Value::Int(1));
-        m.insert("api/v3/contract_hisorders".to_string(), Value::Int(1));
-        m.insert("api/v3/contract_hisorders_exact".to_string(), Value::Int(1));
-        m.insert("api/v3/contract_matchresults".to_string(), Value::Int(1));
-        m.insert("api/v3/contract_matchresults_exact".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_trigger_order".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_trigger_cancel".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_trigger_cancelall".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_trigger_openorders".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_trigger_hisorders".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_tpsl_order".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_tpsl_cancel".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_tpsl_cancelall".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_tpsl_openorders".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_tpsl_hisorders".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_relation_tpsl_order".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_track_order".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_track_cancel".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_track_cancelall".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_track_openorders".to_string(), Value::Int(1));
-        m.insert("api/v1/contract_track_hisorders".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_balance_valuation".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_account_info".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_position_info".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_account_position_info".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_sub_auth".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_sub_account_list".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_sub_account_info_list".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_sub_account_info".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_sub_position_info".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_financial_record".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_financial_record_exact".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_user_settlement_records".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_available_level_rate".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_order_limit".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_fee".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_transfer_limit".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_position_limit".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_master_sub_transfer".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_master_sub_transfer_record".to_string(), Value::Int(1));
-        m.insert("swap-api/v3/swap_financial_record".to_string(), Value::Int(1));
-        m.insert("swap-api/v3/swap_financial_record_exact".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap-cancel-after".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_order".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_batchorder".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_cancel".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_cancelall".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_lightning_close_position".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_switch_lever_rate".to_string(), Value::Int(30));
-        m.insert("swap-api/v1/swap_order_info".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_order_detail".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_openorders".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_hisorders".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_hisorders_exact".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_matchresults".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_matchresults_exact".to_string(), Value::Int(1));
-        m.insert("swap-api/v3/swap_matchresults".to_string(), Value::Int(1));
-        m.insert("swap-api/v3/swap_matchresults_exact".to_string(), Value::Int(1));
-        m.insert("swap-api/v3/swap_hisorders".to_string(), Value::Int(1));
-        m.insert("swap-api/v3/swap_hisorders_exact".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_trigger_order".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_trigger_cancel".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_trigger_cancelall".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_trigger_openorders".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_trigger_hisorders".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_tpsl_order".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_tpsl_cancel".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_tpsl_cancelall".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_tpsl_openorders".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_tpsl_hisorders".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_relation_tpsl_order".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_track_order".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_track_cancel".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_track_cancelall".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_track_openorders".to_string(), Value::Int(1));
-        m.insert("swap-api/v1/swap_track_hisorders".to_string(), Value::Int(1));
-        m.insert("v5/account/asset_mode".to_string(), Value::Int(100));
-        m.insert("v5/trade/order".to_string(), Value::Float(0.41679));
-        m.insert("v5/trade/batch_orders".to_string(), Value::Float(0.41679));
-        m.insert("v5/trade/cancel_order".to_string(), Value::Float(0.41679));
-        m.insert("v5/trade/cancel_batch_orders".to_string(), Value::Float(0.41679));
-        m.insert("v5/trade/cancel_all_orders".to_string(), Value::Float(0.41679));
-        m.insert("v5/trade/cancel-after".to_string(), Value::Float(0.41679));
-        m.insert("v5/trade/position".to_string(), Value::Float(0.41679));
-        m.insert("v5/trade/position_all".to_string(), Value::Float(0.41679));
-        m.insert("v5/position/lever".to_string(), Value::Float(0.20834));
-        m.insert("v5/position/mode".to_string(), Value::Float(0.20834));
-        m.insert("v5/position/margin".to_string(), Value::Float(0.20834));
-        m.insert("v5/account/fee_deduction_currency".to_string(), Value::Float(0.20834));
-        m.insert("v5/algo/order".to_string(), Value::Float(0.41679));
-        m.insert("v5/algo/cancel_orders".to_string(), Value::Float(0.41679));
+        m.insert("api/v1/contract_balance_valuation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_account_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_position_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_sub_auth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_sub_account_list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_sub_account_info_list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_sub_account_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_sub_position_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_financial_record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_financial_record_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_user_settlement_records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_order_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_fee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_transfer_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_position_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_account_position_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_master_sub_transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_master_sub_transfer_record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_available_level_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v3/contract_financial_record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v3/contract_financial_record_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract-cancel-after".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_batchorder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_cancelall".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_switch_lever_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
+        m.insert("api/v1/lightning_close_position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_order_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_order_detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_openorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_hisorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_hisorders_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_matchresults".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_matchresults_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v3/contract_hisorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v3/contract_hisorders_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v3/contract_matchresults".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v3/contract_matchresults_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_trigger_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_trigger_cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_trigger_cancelall".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_trigger_openorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_trigger_hisorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_tpsl_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_tpsl_cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_tpsl_cancelall".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_tpsl_openorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_tpsl_hisorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_relation_tpsl_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_track_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_track_cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_track_cancelall".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_track_openorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/contract_track_hisorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_balance_valuation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_account_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_position_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_account_position_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_sub_auth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_sub_account_list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_sub_account_info_list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_sub_account_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_sub_position_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_financial_record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_financial_record_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_user_settlement_records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_available_level_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_order_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_fee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_transfer_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_position_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_master_sub_transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_master_sub_transfer_record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v3/swap_financial_record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v3/swap_financial_record_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap-cancel-after".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_batchorder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_cancelall".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_lightning_close_position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_switch_lever_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
+        m.insert("swap-api/v1/swap_order_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_order_detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_openorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_hisorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_hisorders_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_matchresults".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_matchresults_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v3/swap_matchresults".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v3/swap_matchresults_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v3/swap_hisorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v3/swap_hisorders_exact".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_trigger_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_trigger_cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_trigger_cancelall".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_trigger_openorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_trigger_hisorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_tpsl_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_tpsl_cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_tpsl_cancelall".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_tpsl_openorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_tpsl_hisorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_relation_tpsl_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_track_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_track_cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_track_cancelall".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_track_openorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("swap-api/v1/swap_track_hisorders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v5/account/asset_mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("v5/trade/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/trade/batch_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/trade/cancel_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/trade/cancel_batch_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/trade/cancel_all_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/trade/cancel-after".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/trade/position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/trade/position_all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/position/lever".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/position/mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/position/margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/account/fee_deduction_currency".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.20834));
+    m
+}));
+        m.insert("v5/algo/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
+        m.insert("v5/algo/cancel_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.41679));
+    m
+}));
     m
 }));
     m
@@ -1960,7 +3820,7 @@ impl HtxCore {
             }  else {
                 status = ternary(is_true(&(is_equal(&statusRaw, &Value::Str("ok".to_string())))), Value::Str("ok".to_string()), Value::Str("maintenance".to_string())); // 'ok', 'error'
             }
-            updated = self.safe_string_k(response.clone(), "ts", &[]);
+            updated = self.safe_integer_k(response.clone(), "ts", &[]);
         }  else {
             let mut statusData: Value = self.safe_value_k(response.clone(), "status", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2121,8 +3981,8 @@ impl HtxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_737: bool = true;
-            while { if !__for_first_737 { i = add(&i, &Value::Int(1)); } __for_first_737 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_740: bool = true;
+            while { if !__for_first_740 { i = add(&i, &Value::Int(1)); } __for_first_740 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, self.fetch_trading_limits_by_id(self.market_id(symbol.clone()), &[params.clone()]).await);
@@ -2222,8 +4082,8 @@ impl HtxCore {
         let mut keys: Value = object_keys(&types);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_738: bool = true;
-            while { if !__for_first_738 { i = add(&i, &Value::Int(1)); } __for_first_738 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_741: bool = true;
+            while { if !__for_first_741 { i = add(&i, &Value::Int(1)); } __for_first_741 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_true(&self.safe_bool(types.clone(), key.clone(), &[])) {
@@ -2241,8 +4101,8 @@ impl HtxCore {
         promises = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_739: bool = true;
-            while { if !__for_first_739 { i = add(&i, &Value::Int(1)); } __for_first_739 = false; is_less_than(&i, &get_array_length(&promises)) } {
+            let mut __for_first_742: bool = true;
+            while { if !__for_first_742 { i = add(&i, &Value::Int(1)); } __for_first_742 = false; is_less_than(&i, &get_array_length(&promises)) } {
             allMarkets = self.array_concat(allMarkets.clone(), get_value(&promises, &i));
         }
         }
@@ -2388,8 +4248,8 @@ impl HtxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_740: bool = true;
-            while { if !__for_first_740 { i = add(&i, &Value::Int(1)); } __for_first_740 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_743: bool = true;
+            while { if !__for_first_743 { i = add(&i, &Value::Int(1)); } __for_first_743 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut baseId: Value = Value::Null;
@@ -2630,8 +4490,8 @@ impl HtxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_741: bool = true;
-            while { if !__for_first_741 { i = add(&i, &Value::Int(1)); } __for_first_741 = false; is_less_than(&i, &get_array_length(&futureMarkets)) } {
+            let mut __for_first_744: bool = true;
+            while { if !__for_first_744 { i = add(&i, &Value::Int(1)); } __for_first_744 = false; is_less_than(&i, &get_array_length(&futureMarkets)) } {
             let mut market: Value = get_value(&futureMarkets, &i);
             let mut market: Value = get_value(&futureMarkets, &i);
             let mut info: Value = self.safe_value_k(market.clone(), "info", &[Value::Map({
@@ -3405,7 +5265,8 @@ impl HtxCore {
         });
         let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.spot_private_get_v1_order_orders_order_id_matchresults(&[__ws_arg_18]).await;
-        return self.parse_trades(get_value(&response, &Value::Str("data".to_string())), &[Value::Null, since.clone(), limit.clone()]);
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        return self.parse_trades(data.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -3691,13 +5552,13 @@ impl HtxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_743: bool = true;
-            while { if !__for_first_743 { i = add(&i, &Value::Int(1)); } __for_first_743 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_746: bool = true;
+            while { if !__for_first_746 { i = add(&i, &Value::Int(1)); } __for_first_746 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut trades: Value = self.safe_value_k(get_value(&data, &i), "data", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_742: bool = true;
-                while { if !__for_first_742 { j = add(&j, &Value::Int(1)); } __for_first_742 = false; is_less_than(&j, &get_array_length(&trades)) } {
+                let mut __for_first_745: bool = true;
+                while { if !__for_first_745 { j = add(&j, &Value::Int(1)); } __for_first_745 = false; is_less_than(&j, &get_array_length(&trades)) } {
                 let mut trade: Value = self.parse_trade(get_value(&trades, &j), &[market.clone()]);
                 append_to_array(&mut result, trade.clone());
             }
@@ -3980,8 +5841,8 @@ impl HtxCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_744: bool = true;
-            while { if !__for_first_744 { i = add(&i, &Value::Int(1)); } __for_first_744 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+            let mut __for_first_747: bool = true;
+            while { if !__for_first_747 { i = add(&i, &Value::Int(1)); } __for_first_747 = false; is_less_than(&i, &get_array_length(&accounts)) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
             let mut info: Value = self.safe_value_k(account.clone(), "info", &[]);
@@ -4099,8 +5960,8 @@ impl HtxCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_745: bool = true;
-            while { if !__for_first_745 { j = add(&j, &Value::Int(1)); } __for_first_745 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_748: bool = true;
+            while { if !__for_first_748 { j = add(&j, &Value::Int(1)); } __for_first_748 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chainEntry: Value = get_value(&chains, &j);
             let mut chainEntry: Value = get_value(&chains, &j);
             let mut uniqueChainId: Value = self.safe_string_k(chainEntry.clone(), "chain", &[]); // i.e. usdterc20, trc20usdt ...
@@ -4459,8 +6320,8 @@ impl HtxCore {
             let mut details: Value = self.safe_list_k(data.clone(), "details", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_746: bool = true;
-                while { if !__for_first_746 { i = add(&i, &Value::Int(1)); } __for_first_746 = false; is_less_than(&i, &get_array_length(&details)) } {
+                let mut __for_first_749: bool = true;
+                while { if !__for_first_749 { i = add(&i, &Value::Int(1)); } __for_first_749 = false; is_less_than(&i, &get_array_length(&details)) } {
                 let mut balance: Value = get_value(&details, &i);
                 let mut balance: Value = get_value(&details, &i);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -4478,8 +6339,8 @@ impl HtxCore {
             if is_true(&isolated) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_748: bool = true;
-                    while { if !__for_first_748 { i = add(&i, &Value::Int(1)); } __for_first_748 = false; is_less_than(&i, &get_array_length(&data)) } {
+                    let mut __for_first_751: bool = true;
+                    while { if !__for_first_751 { i = add(&i, &Value::Int(1)); } __for_first_751 = false; is_less_than(&i, &get_array_length(&data)) } {
                     let mut entry: Value = get_value(&data, &i);
                     let mut entry: Value = get_value(&data, &i);
                     let mut symbol: Value = self.safe_symbol(self.safe_string_k(entry.clone(), "symbol", &[]), &[]);
@@ -4490,8 +6351,8 @@ impl HtxCore {
                     });
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_747: bool = true;
-                        while { if !__for_first_747 { j = add(&j, &Value::Int(1)); } __for_first_747 = false; is_less_than(&j, &get_array_length(&balances)) } {
+                        let mut __for_first_750: bool = true;
+                        while { if !__for_first_750 { j = add(&j, &Value::Int(1)); } __for_first_750 = false; is_less_than(&j, &get_array_length(&balances)) } {
                         let mut balance: Value = get_value(&balances, &j);
                         let mut balance: Value = get_value(&balances, &j);
                         let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -4508,8 +6369,8 @@ impl HtxCore {
                 let mut balances: Value = self.safe_value_k(data.clone(), "list", &[Value::List(vec![])]);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_749: bool = true;
-                    while { if !__for_first_749 { i = add(&i, &Value::Int(1)); } __for_first_749 = false; is_less_than(&i, &get_array_length(&balances)) } {
+                    let mut __for_first_752: bool = true;
+                    while { if !__for_first_752 { i = add(&i, &Value::Int(1)); } __for_first_752 = false; is_less_than(&i, &get_array_length(&balances)) } {
                     let mut balance: Value = get_value(&balances, &i);
                     let mut balance: Value = get_value(&balances, &i);
                     let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -4524,8 +6385,8 @@ impl HtxCore {
         }  else if is_true(&inverse) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_750: bool = true;
-                while { if !__for_first_750 { i = add(&i, &Value::Int(1)); } __for_first_750 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_753: bool = true;
+                while { if !__for_first_753 { i = add(&i, &Value::Int(1)); } __for_first_753 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut balance: Value = get_value(&data, &i);
                 let mut balance: Value = get_value(&data, &i);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
@@ -5264,8 +7125,8 @@ impl HtxCore {
                 self.load_accounts(&[]).await;
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_751: bool = true;
-                    while { if !__for_first_751 { i = add(&i, &Value::Int(1)); } __for_first_751 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
+                    let mut __for_first_754: bool = true;
+                    while { if !__for_first_754 { i = add(&i, &Value::Int(1)); } __for_first_754 = false; is_less_than(&i, &get_array_length(&self.accounts)) } {
                     let mut account: Value = get_value(&self.accounts, &i);
                     if is_equal(&self.safe_string_k(account.clone(), "type", &[]), &Value::Str("spot".to_string())) {
                         accountId = self.safe_string_k(account.clone(), "id", &[]);
@@ -6640,8 +8501,8 @@ impl HtxCore {
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_752: bool = true;
-            while { if !__for_first_752 { i = add(&i, &Value::Int(1)); } __for_first_752 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_755: bool = true;
+            while { if !__for_first_755 { i = add(&i, &Value::Int(1)); } __for_first_755 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -7250,8 +9111,8 @@ impl HtxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_753: bool = true;
-            while { if !__for_first_753 { i = add(&i, &Value::Int(1)); } __for_first_753 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_756: bool = true;
+            while { if !__for_first_756 { i = add(&i, &Value::Int(1)); } __for_first_756 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut order: Value = get_value(&data, &i);
             let mut order: Value = get_value(&data, &i);
             append_to_array(&mut result, self.safe_order(Value::Map({
@@ -7266,8 +9127,8 @@ impl HtxCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_754: bool = true;
-            while { if !__for_first_754 { i = add(&i, &Value::Int(1)); } __for_first_754 = false; is_less_than(&i, &get_array_length(&success)) } {
+            let mut __for_first_757: bool = true;
+            while { if !__for_first_757 { i = add(&i, &Value::Int(1)); } __for_first_757 = false; is_less_than(&i, &get_array_length(&success)) } {
             let mut order: Value = get_value(&success, &i);
             let mut order: Value = get_value(&success, &i);
             append_to_array(&mut result, self.safe_order(Value::Map({
@@ -7281,8 +9142,8 @@ impl HtxCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_755: bool = true;
-            while { if !__for_first_755 { i = add(&i, &Value::Int(1)); } __for_first_755 = false; is_less_than(&i, &get_array_length(&failed)) } {
+            let mut __for_first_758: bool = true;
+            while { if !__for_first_758 { i = add(&i, &Value::Int(1)); } __for_first_758 = false; is_less_than(&i, &get_array_length(&failed)) } {
             let mut order: Value = get_value(&failed, &i);
             let mut order: Value = get_value(&failed, &i);
             append_to_array(&mut result, self.safe_order(Value::Map({
@@ -7592,12 +9453,12 @@ impl HtxCore {
         //     }
         //
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut allAddresses: Value = self.parse_deposit_addresses(data.clone(), &[Value::List(vec![get_value(&currency, &Value::Str("code".to_string()))]), Value::Bool(false)]); // cjg: to do remove this weird object or array ambiguity
+        let mut allAddresses: Value = self.parse_deposit_addresses(data.clone(), &[Value::List(vec![get_value(&currency, &Value::Str("code".to_string()))]), Value::Bool(false)]);
         let mut addresses: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_756: bool = true;
-            while { if !__for_first_756 { i = add(&i, &Value::Int(1)); } __for_first_756 = false; is_less_than(&i, &get_array_length(&allAddresses)) } {
+            let mut __for_first_759: bool = true;
+            while { if !__for_first_759 { i = add(&i, &Value::Int(1)); } __for_first_759 = false; is_less_than(&i, &get_array_length(&allAddresses)) } {
             let mut address: Value = get_value(&allAddresses, &i);
             let mut address: Value = get_value(&allAddresses, &i);
             let mut noteMatch: Value = Value::Bool(is_true(&(is_equal(&note, &Value::Null))) || is_true(&(is_equal(&get_value(&address, &Value::Str("note".to_string())), &note))));
@@ -7656,7 +9517,34 @@ impl HtxCore {
         }
         let __ws_arg_113 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.spot_private_get_v1_query_deposit_withdraw(&[__ws_arg_113]).await;
-        return self.parse_transactions(get_value(&response, &Value::Str("data".to_string())), &[currency.clone(), since.clone(), limit.clone()]);
+        //
+        //    {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": "75115912",
+        //                 "type": "deposit",
+        //                 "sub-type": "NORMAL",
+        //                 "request-id": "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
+        //                 "currency": "usdt",
+        //                 "chain": "trc20usdt",
+        //                 "tx-hash": "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
+        //                 "amount": "12.000000000000000000",
+        //                 "from-addr-tag": "",
+        //                 "address-id": "0",
+        //                 "address": "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
+        //                 "address-tag": "",
+        //                 "fee": "0",
+        //                 "state": "safe",
+        //                 "wallet-confirm": "2",
+        //                 "created-at": "1621843808662",
+        //                 "updated-at": "1621843857137"
+        //             },
+        //         ]
+        //     }
+        //
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -7705,7 +9593,32 @@ impl HtxCore {
         }
         let __ws_arg_114 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.spot_private_get_v1_query_deposit_withdraw(&[__ws_arg_114]).await;
-        return self.parse_transactions(get_value(&response, &Value::Str("data".to_string())), &[currency.clone(), since.clone(), limit.clone()]);
+        //
+        //    {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": "61335312",
+        //                 "type": "withdraw",
+        //                 "sub-type": "NORMAL",
+        //                 "currency": "usdt",
+        //                 "chain": "trc20usdt",
+        //                 "tx-hash": "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
+        //                 "amount": "12.000000000000000000",
+        //                 "from-addr-tag": "",
+        //                 "address-id": "27321591",
+        //                 "address": "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
+        //                 "address-tag": "",
+        //                 "fee": "1.000000000000000000",
+        //                 "state": "confirmed",
+        //                 "created-at": "1621852316553",
+        //                 "updated-at": "1621852467041"
+        //             },
+        //         ]
+        //     }
+        //
+        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -8352,8 +10265,8 @@ impl HtxCore {
         if is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_757: bool = true;
-                while { if !__for_first_757 { i = add(&i, &Value::Int(1)); } __for_first_757 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_760: bool = true;
+                while { if !__for_first_760 { i = add(&i, &Value::Int(1)); } __for_first_760 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut entry: Value = get_value(&data, &i);
                 let mut entry: Value = get_value(&data, &i);
                 let mut marketId: Value = self.safe_string_k(entry.clone(), "contract_code", &[]);
@@ -8375,8 +10288,8 @@ impl HtxCore {
             let mut result: Value = self.safe_value_k(data.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_758: bool = true;
-                while { if !__for_first_758 { i = add(&i, &Value::Int(1)); } __for_first_758 = false; is_less_than(&i, &get_array_length(&result)) } {
+                let mut __for_first_761: bool = true;
+                while { if !__for_first_761 { i = add(&i, &Value::Int(1)); } __for_first_761 = false; is_less_than(&i, &get_array_length(&result)) } {
                 let mut entry: Value = get_value(&result, &i);
                 add_element_to_object(&mut entry, &Value::Str("current_page".to_string()), cursor.clone());
                 crate::set_value(&mut result, &i, entry.clone());
@@ -9385,8 +11298,8 @@ impl HtxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_759: bool = true;
-            while { if !__for_first_759 { i = add(&i, &Value::Int(1)); } __for_first_759 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_762: bool = true;
+            while { if !__for_first_762 { i = add(&i, &Value::Int(1)); } __for_first_762 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut position: Value = get_value(&data, &i);
             let mut position: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_position(position.clone(), &[]);
@@ -9477,8 +11390,8 @@ impl HtxCore {
         if is_true(&get_value(&market, &Value::Str("future".to_string()))) && is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_760: bool = true;
-                while { if !__for_first_760 { i = add(&i, &Value::Int(1)); } __for_first_760 = false; is_less_than(&i, &get_array_length(&positions)) } {
+                let mut __for_first_763: bool = true;
+                while { if !__for_first_763 { i = add(&i, &Value::Int(1)); } __for_first_763 = false; is_less_than(&i, &get_array_length(&positions)) } {
                 let mut entry: Value = get_value(&positions, &i);
                 let mut entry: Value = get_value(&positions, &i);
                 if is_equal(&get_value(&entry, &Value::Str("contract_code".to_string())), &get_value(&market, &Value::Str("id".to_string()))) {
@@ -9717,16 +11630,16 @@ impl HtxCore {
         let mut brackets: Value = self.safe_list_k(info.clone(), "list", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_762: bool = true;
-            while { if !__for_first_762 { i = add(&i, &Value::Int(1)); } __for_first_762 = false; is_less_than(&i, &get_array_length(&brackets)) } {
+            let mut __for_first_765: bool = true;
+            while { if !__for_first_765 { i = add(&i, &Value::Int(1)); } __for_first_765 = false; is_less_than(&i, &get_array_length(&brackets)) } {
             let mut item: Value = get_value(&brackets, &i);
             let mut item: Value = get_value(&brackets, &i);
             let mut leverage: Value = self.safe_string_k(item.clone(), "lever_rate", &[]);
             let mut ladders: Value = self.safe_list_k(item.clone(), "ladders", &[Value::List(vec![])]);
             {
                                 let mut k: Value = Value::Int(0);
-                let mut __for_first_761: bool = true;
-                while { if !__for_first_761 { k = add(&k, &Value::Int(1)); } __for_first_761 = false; is_less_than(&k, &get_array_length(&ladders)) } {
+                let mut __for_first_764: bool = true;
+                while { if !__for_first_764 { k = add(&k, &Value::Int(1)); } __for_first_764 = false; is_less_than(&k, &get_array_length(&ladders)) } {
                 let mut bracket: Value = get_value(&ladders, &k);
                 let mut bracket: Value = get_value(&ladders, &k);
                 let mut adjustFactor: Value = self.safe_string_k(bracket.clone(), "adjust_factor", &[]);
@@ -10616,8 +12529,8 @@ impl HtxCore {
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_763: bool = true;
-            while { if !__for_first_763 { j = add(&j, &Value::Int(1)); } __for_first_763 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_766: bool = true;
+            while { if !__for_first_766 { j = add(&j, &Value::Int(1)); } __for_first_766 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chainEntry: Value = get_value(&chains, &j);
             let mut chainEntry: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chainEntry.clone(), "chain", &[]);
@@ -10715,8 +12628,8 @@ impl HtxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_765: bool = true;
-            while { if !__for_first_765 { i = add(&i, &Value::Int(1)); } __for_first_765 = false; is_less_than(&i, &get_array_length(&settlements)) } {
+            let mut __for_first_768: bool = true;
+            while { if !__for_first_768 { i = add(&i, &Value::Int(1)); } __for_first_768 = false; is_less_than(&i, &get_array_length(&settlements)) } {
             let mut settlement: Value = get_value(&settlements, &i);
             let mut settlement: Value = get_value(&settlements, &i);
             let mut list: Value = self.safe_value_k(settlement.clone(), "list", &[]);
@@ -10733,8 +12646,8 @@ impl HtxCore {
                 });
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_764: bool = true;
-                    while { if !__for_first_764 { j = add(&j, &Value::Int(1)); } __for_first_764 = false; is_less_than(&j, &get_array_length(&list)) } {
+                    let mut __for_first_767: bool = true;
+                    while { if !__for_first_767 { j = add(&j, &Value::Int(1)); } __for_first_767 = false; is_less_than(&j, &get_array_length(&list)) } {
                     let mut item: Value = get_value(&list, &j);
                     let mut item: Value = get_value(&list, &j);
                     let mut parsedSettlement: Value = self.parse_settlement(item.clone(), market.clone());

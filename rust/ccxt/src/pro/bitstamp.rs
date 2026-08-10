@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BitstampCore {
 
 impl crate::exchange_generated::ExchangeBase for BitstampCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -349,7 +349,7 @@ impl BitstampCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -407,6 +407,9 @@ impl BitstampCore {
         //     }
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
+        if is_equal(&channel, &Value::Null) {
+            return;
+        }
         let mut parts: Value = split(&channel, &Value::Str("_".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -414,6 +417,9 @@ impl BitstampCore {
         let mut nonce: Value = self.safe_value_k(storedOrderBook.clone(), "nonce", &[]);
         let mut delta: Value = self.safe_value_k(message.clone(), "data", &[]);
         let mut deltaNonce: Value = self.safe_integer_k(delta.clone(), "microtimestamp", &[]);
+        if is_equal(&deltaNonce, &Value::Null) {
+            return;
+        }
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
         if is_equal(&nonce, &Value::Null) {
             let mut cacheLength: Value = get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".to_string())));
@@ -451,8 +457,8 @@ impl BitstampCore {
     pub fn handle_bid_asks(&self, mut bookSide: Value, mut bidAsks: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_165: bool = true;
-            while { if !__for_first_165 { i = add(&i, &Value::Int(1)); } __for_first_165 = false; is_less_than(&i, &get_array_length(&bidAsks)) } {
+            let mut __for_first_153: bool = true;
+            while { if !__for_first_153 { i = add(&i, &Value::Int(1)); } __for_first_153 = false; is_less_than(&i, &get_array_length(&bidAsks)) } {
             let mut bidAsk: Value = self.parse_order_book_bid_ask(get_value(&bidAsks, &i), &[]);
             bookSide.store_array(bidAsk.clone());
         }
@@ -463,14 +469,17 @@ impl BitstampCore {
         // we will consider it a fail
         let mut firstElement: Value = get_value(&deltas, &Value::Int(0));
         let mut firstElementNonce: Value = self.safe_integer_k(firstElement.clone(), "microtimestamp", &[]);
+        if is_equal(&firstElementNonce, &Value::Null) {
+            return negate(&Value::Int(1));
+        }
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
-        if is_less_than(&nonce, &firstElementNonce) {
+        if is_true(&(is_equal(&nonce, &Value::Null))) || is_true(&(is_less_than(&nonce, &firstElementNonce))) {
             return negate(&Value::Int(1));
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_166: bool = true;
-            while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_154: bool = true;
+            while { if !__for_first_154 { i = add(&i, &Value::Int(1)); } __for_first_154 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             let mut delta: Value = get_value(&deltas, &i);
             let mut delta: Value = get_value(&deltas, &i);
             let mut deltaNonce: Value = self.safe_integer_k(delta.clone(), "microtimestamp", &[]);
@@ -545,11 +554,14 @@ impl BitstampCore {
         //         "price": 6294.77
         //     }
         //
-        let mut microtimestamp: Value = self.safe_integer_k(trade.clone(), "microtimestamp", &[]);
+        let mut microtimestamp: Value = self.safe_integer_k(trade.clone(), "microtimestamp", &[Value::Int(0)]);
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
         let mut timestamp: Value = self.parse_to_int(divide(&microtimestamp, &Value::Int(1000)));
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
+        if is_equal(&market, &Value::Null) {
+            market = self.safe_market(&[Value::Null, market.clone()]);
+        }
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut sideRaw: Value = self.safe_integer_k(trade.clone(), "type", &[]);
         let mut side: Value = ternary(is_true(&(is_equal(&sideRaw, &Value::Int(0)))), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
@@ -596,6 +608,9 @@ impl BitstampCore {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
+        if is_equal(&channel, &Value::Null) {
+            return;
+        }
         let mut parts: Value = split(&channel, &Value::Str("_".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -780,6 +795,9 @@ impl BitstampCore {
 
     pub fn handle_order_book_subscription(&self, mut client: Value, mut message: Value) {
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
+        if is_equal(&channel, &Value::Null) {
+            return;
+        }
         let mut parts: Value = split(&channel, &Value::Str("_".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -800,6 +818,9 @@ impl BitstampCore {
         //     }
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
+        if is_equal(&channel, &Value::Null) {
+            return;
+        }
         if is_greater_than(&get_index_of(&channel, &Value::Str("order_book".to_string())), &negate(&Value::Int(1))) {
             self.handle_order_book_subscription(client.clone(), message.clone());
         }
@@ -844,6 +865,9 @@ impl BitstampCore {
         //     }
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
+        if is_equal(&channel, &Value::Null) {
+            return;
+        }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("live_trades".to_string(), Value::Null.clone());
@@ -854,8 +878,8 @@ impl BitstampCore {
         let mut keys: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_167: bool = true;
-            while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_155: bool = true;
+            while { if !__for_first_155 { i = add(&i, &Value::Int(1)); } __for_first_155 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_greater_than(&get_index_of(&channel, &key), &negate(&Value::Int(1))) {

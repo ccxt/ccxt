@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BitfinexCore {
 
 impl crate::exchange_generated::ExchangeBase for BitfinexCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -626,8 +626,8 @@ impl BitfinexCore {
         let mut ohlcvsLength: Value = get_array_length(&ohlcvs);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_90: bool = true;
-            while { if !__for_first_90 { i = add(&i, &Value::Int(1)); } __for_first_90 = false; is_less_than(&i, &ohlcvsLength) } {
+            let mut __for_first_97: bool = true;
+            while { if !__for_first_97 { i = add(&i, &Value::Int(1)); } __for_first_97 = false; is_less_than(&i, &ohlcvsLength) } {
             let mut ohlcv: Value = get_value(&ohlcvs, &subtract(&subtract(&ohlcvsLength, &i), &Value::Int(1)));
             let mut parsed: Value = self.parse_ohlcv(ohlcv.clone(), &[market.clone()]);
             stored.append(parsed.clone());
@@ -846,8 +846,8 @@ impl BitfinexCore {
             let mut length: Value = get_array_length(&trades);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_91: bool = true;
-                while { if !__for_first_91 { i = add(&i, &Value::Int(1)); } __for_first_91 = false; is_less_than(&i, &length) } {
+                let mut __for_first_98: bool = true;
+                while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &length) } {
                 let mut index: Value = subtract(&subtract(&length, &i), &Value::Int(1));
                 let mut parsed: Value = self.parse_ws_trade(get_value(&trades, &index), &[market.clone()]);
                 stored.append(parsed.clone());
@@ -1059,7 +1059,7 @@ impl BitfinexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1115,7 +1115,7 @@ impl BitfinexCore {
         //         358169, // channel id
         //         [
         //            1807.1, // price
-        //            0, // cound
+        //            0, // count
         //            1 // size
         //         ]
         //     ]
@@ -1147,8 +1147,8 @@ impl BitfinexCore {
                 let mut deltas: Value = get_value(&message, &Value::Int(1));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_92: bool = true;
-                    while { if !__for_first_92 { i = add(&i, &Value::Int(1)); } __for_first_92 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+                    let mut __for_first_99: bool = true;
+                    while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&deltas)) } {
                     let mut delta: Value = get_value(&deltas, &i);
                     let mut delta: Value = get_value(&deltas, &i);
                     let mut delta2: Value = get_value(&delta, &Value::Int(2));
@@ -1165,8 +1165,8 @@ impl BitfinexCore {
                 let mut deltas: Value = get_value(&message, &Value::Int(1));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_93: bool = true;
-                    while { if !__for_first_93 { i = add(&i, &Value::Int(1)); } __for_first_93 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+                    let mut __for_first_100: bool = true;
+                    while { if !__for_first_100 { i = add(&i, &Value::Int(1)); } __for_first_100 = false; is_less_than(&i, &get_array_length(&deltas)) } {
                     let mut delta: Value = get_value(&deltas, &i);
                     let mut delta: Value = get_value(&deltas, &i);
                     let mut amount: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
@@ -1235,8 +1235,8 @@ impl BitfinexCore {
         let mut idToCheck: Value = ternary(is_true(&isRaw), Value::Int(2), Value::Int(0));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_94: bool = true;
-            while { if !__for_first_94 { i = add(&i, &Value::Int(1)); } __for_first_94 = false; is_less_than(&i, &depth) } {
+            let mut __for_first_101: bool = true;
+            while { if !__for_first_101 { i = add(&i, &Value::Int(1)); } __for_first_101 = false; is_less_than(&i, &depth) } {
             let mut bid: Value = self.safe_value(bids.clone(), i.clone(), &[]);
             let mut ask: Value = self.safe_value(asks.clone(), i.clone(), &[]);
             if !is_equal(&bid, &Value::Null) {
@@ -1364,8 +1364,8 @@ impl BitfinexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_95: bool = true;
-            while { if !__for_first_95 { i = add(&i, &Value::Int(1)); } __for_first_95 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_102: bool = true;
+            while { if !__for_first_102 { i = add(&i, &Value::Int(1)); } __for_first_102 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawBalance: Value = get_value(&data, &i);
             let mut rawBalance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string(rawBalance.clone(), Value::Int(1), &[]);
@@ -1376,7 +1376,9 @@ impl BitfinexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            add_element_to_object(&mut oldBalance, &code, balance.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut oldBalance, &code, balance.clone());
+            }
             add_element_to_object(&mut oldBalance, &Value::Str("info".to_string()), message.clone());
             { let __be_tmp = self.safe_balance(oldBalance.clone()); add_element_to_object(&mut self.balance.clone(), &balanceType, __be_tmp); };
             add_element_to_object(&mut updatedTypes, &balanceType, Value::Bool(true));
@@ -1385,8 +1387,8 @@ impl BitfinexCore {
         let mut updatesKeys: Value = object_keys(&updatedTypes);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_96: bool = true;
-            while { if !__for_first_96 { i = add(&i, &Value::Int(1)); } __for_first_96 = false; is_less_than(&i, &get_array_length(&updatesKeys)) } {
+            let mut __for_first_103: bool = true;
+            while { if !__for_first_103 { i = add(&i, &Value::Int(1)); } __for_first_103 = false; is_less_than(&i, &get_array_length(&updatesKeys)) } {
             let mut type_var: Value = get_value(&updatesKeys, &i);
             let mut type_var: Value = get_value(&updatesKeys, &i);
             let mut messageHash: Value = add(&Value::Str("balance:".to_string()), &type_var);
@@ -1442,8 +1444,8 @@ impl BitfinexCore {
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_97: bool = true;
-            while { if !__for_first_97 { i = add(&i, &Value::Int(1)); } __for_first_97 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_104: bool = true;
+            while { if !__for_first_104 { i = add(&i, &Value::Int(1)); } __for_first_104 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut subHash: Value = get_value(&subMessageHashes, &i);
@@ -1616,7 +1618,7 @@ impl BitfinexCore {
         //           null,
         //           30, // price
         //           0, // price average
-        //           0, // price_trailling
+        //           0, // price_trailing
         //           0, // price_aux_limit
         //           null,
         //           null,
@@ -1650,8 +1652,8 @@ impl BitfinexCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_98: bool = true;
-                while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_105: bool = true;
+                while { if !__for_first_105 { i = add(&i, &Value::Int(1)); } __for_first_105 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut value: Value = get_value(&data, &i);
                 let mut value: Value = get_value(&data, &i);
                 let mut parsed: Value = self.parse_ws_order(value.clone(), &[]);
@@ -1671,8 +1673,8 @@ impl BitfinexCore {
         let mut keys: Value = object_keys(&symbolIds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_99: bool = true;
-            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_106: bool = true;
+            while { if !__for_first_106 { i = add(&i, &Value::Int(1)); } __for_first_106 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut symbol: Value = get_value(&keys, &i);
             let mut symbol: Value = get_value(&keys, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1718,7 +1720,7 @@ impl BitfinexCore {
         //       null,
         //       42.799, // price
         //       42.821, // price average
-        //       0, // price trailling
+        //       0, // price trailing
         //       0, // price_aux_limit
         //       null,
         //       null,

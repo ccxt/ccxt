@@ -181,7 +181,7 @@ impl crate::exchange::DerivedExchange for DydxCore {
 
 impl crate::exchange_generated::ExchangeBase for DydxCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -402,52 +402,236 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("addresses/{address}".to_string(), Value::Int(1));
-        m.insert("addresses/{address}/parentSubaccountNumber/{number}".to_string(), Value::Int(1));
-        m.insert("addresses/{address}/subaccountNumber/{subaccountNumber}".to_string(), Value::Int(1));
-        m.insert("assetPositions".to_string(), Value::Int(1));
-        m.insert("assetPositions/parentSubaccountNumber".to_string(), Value::Int(1));
-        m.insert("candles/perpetualMarkets/{market}".to_string(), Value::Int(1));
-        m.insert("compliance/screen/{address}".to_string(), Value::Int(1));
-        m.insert("fills".to_string(), Value::Int(1));
-        m.insert("fills/parentSubaccountNumber".to_string(), Value::Int(1));
-        m.insert("fundingPayments".to_string(), Value::Int(1));
-        m.insert("fundingPayments/parentSubaccount".to_string(), Value::Int(1));
-        m.insert("height".to_string(), Value::Float(0.1));
-        m.insert("historical-pnl".to_string(), Value::Int(1));
-        m.insert("historical-pnl/parentSubaccountNumber".to_string(), Value::Int(1));
-        m.insert("historicalBlockTradingRewards/{address}".to_string(), Value::Int(1));
-        m.insert("historicalFunding/{market}".to_string(), Value::Int(1));
-        m.insert("historicalTradingRewardAggregations/{address}".to_string(), Value::Int(1));
-        m.insert("orderbooks/perpetualMarket/{market}".to_string(), Value::Int(1));
-        m.insert("orders".to_string(), Value::Int(1));
-        m.insert("orders/parentSubaccountNumber".to_string(), Value::Int(1));
-        m.insert("orders/{orderId}".to_string(), Value::Int(1));
-        m.insert("perpetualMarkets".to_string(), Value::Int(1));
-        m.insert("perpetualPositions".to_string(), Value::Int(1));
-        m.insert("perpetualPositions/parentSubaccountNumber".to_string(), Value::Int(1));
-        m.insert("screen".to_string(), Value::Int(1));
-        m.insert("sparklines".to_string(), Value::Int(1));
-        m.insert("time".to_string(), Value::Int(1));
-        m.insert("trades/perpetualMarket/{market}".to_string(), Value::Int(1));
-        m.insert("transfers".to_string(), Value::Int(1));
-        m.insert("transfers/between".to_string(), Value::Int(1));
-        m.insert("transfers/parentSubaccountNumber".to_string(), Value::Int(1));
-        m.insert("vault/v1/megavault/historicalPnl".to_string(), Value::Int(1));
-        m.insert("vault/v1/megavault/positions".to_string(), Value::Int(1));
-        m.insert("vault/v1/vaults/historicalPnl".to_string(), Value::Int(1));
-        m.insert("perpetualMarketSparklines".to_string(), Value::Int(1));
-        m.insert("perpetualMarkets/{ticker}".to_string(), Value::Int(1));
-        m.insert("perpetualMarkets/{ticker}/orderbook".to_string(), Value::Int(1));
-        m.insert("trades/perpetualMarket/{ticker}".to_string(), Value::Int(1));
-        m.insert("historicalFunding/{ticker}".to_string(), Value::Int(1));
-        m.insert("candles/{ticker}/{resolution}".to_string(), Value::Int(1));
-        m.insert("addresses/{address}/subaccounts".to_string(), Value::Int(1));
-        m.insert("addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions".to_string(), Value::Int(1));
-        m.insert("addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions".to_string(), Value::Int(1));
-        m.insert("addresses/{address}/subaccountNumber/{subaccountNumber}/orders".to_string(), Value::Int(1));
-        m.insert("fills/parentSubaccount".to_string(), Value::Int(1));
-        m.insert("historical-pnl/parentSubaccount".to_string(), Value::Int(1));
+        m.insert("addresses/{address}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("addresses/{address}/parentSubaccountNumber/{number}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("addresses/{address}/subaccountNumber/{subaccountNumber}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("assetPositions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("assetPositions/parentSubaccountNumber".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("candles/perpetualMarkets/{market}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("compliance/screen/{address}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("fills/parentSubaccountNumber".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("fundingPayments".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("fundingPayments/parentSubaccount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("height".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.1));
+    m
+}));
+        m.insert("historical-pnl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("historical-pnl/parentSubaccountNumber".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("historicalBlockTradingRewards/{address}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("historicalFunding/{market}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("historicalTradingRewardAggregations/{address}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orderbooks/perpetualMarket/{market}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders/parentSubaccountNumber".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders/{orderId}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("perpetualMarkets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("perpetualPositions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("perpetualPositions/parentSubaccountNumber".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("screen".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("sparklines".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trades/perpetualMarket/{market}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("transfers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("transfers/between".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("transfers/parentSubaccountNumber".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("vault/v1/megavault/historicalPnl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("vault/v1/megavault/positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("vault/v1/vaults/historicalPnl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("perpetualMarketSparklines".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("perpetualMarkets/{ticker}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("perpetualMarkets/{ticker}/orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trades/perpetualMarket/{ticker}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("historicalFunding/{ticker}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("candles/{ticker}/{resolution}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("addresses/{address}/subaccounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("addresses/{address}/subaccountNumber/{subaccountNumber}/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("fills/parentSubaccount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("historical-pnl/parentSubaccount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -456,11 +640,31 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("abci_info".to_string(), Value::Int(1));
-        m.insert("block".to_string(), Value::Int(1));
-        m.insert("broadcast_tx_async".to_string(), Value::Int(1));
-        m.insert("broadcast_tx_sync".to_string(), Value::Int(1));
-        m.insert("tx".to_string(), Value::Int(1));
+        m.insert("abci_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("block".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("broadcast_tx_async".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("broadcast_tx_sync".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("tx".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -469,13 +673,25 @@ impl DydxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cosmos/auth/v1beta1/account_info/{dydxAddress}".to_string(), Value::Int(1));
+        m.insert("cosmos/auth/v1beta1/account_info/{dydxAddress}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cosmos/tx/v1beta1/encode".to_string(), Value::Int(1));
-        m.insert("cosmos/tx/v1beta1/simulate".to_string(), Value::Int(1));
+        m.insert("cosmos/tx/v1beta1/encode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cosmos/tx/v1beta1/simulate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -1195,8 +1411,8 @@ impl DydxCore {
         let mut rows: Value = self.safe_list_k(response.clone(), "historicalFunding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_615: bool = true;
-            while { if !__for_first_615 { i = add(&i, &Value::Int(1)); } __for_first_615 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_618: bool = true;
+            while { if !__for_first_618 { i = add(&i, &Value::Int(1)); } __for_first_618 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut entry: Value = get_value(&rows, &i);
             let mut entry: Value = get_value(&rows, &i);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(entry.clone(), "effectiveAt", &[]));
@@ -1585,7 +1801,7 @@ impl DydxCore {
         let mut userAddress: Value = Value::Null;
         let mut subAccountNumber: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchPositions".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrders".to_string()), Value::Str("subAccountNumber".to_string()), &[Value::Str("0".to_string())]); subAccountNumber = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositions".to_string()), Value::Str("subAccountNumber".to_string()), &[Value::Str("0".to_string())]); subAccountNumber = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -1770,8 +1986,8 @@ impl DydxCore {
         let mut c: Value = self.parse_to_int(m.clone());
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_616: bool = true;
-            while { if !__for_first_616 { i = add(&i, &Value::Int(1)); } __for_first_616 = false; is_less_than(&i, &c) } {
+            let mut __for_first_619: bool = true;
+            while { if !__for_first_619 { i = add(&i, &Value::Int(1)); } __for_first_619 = false; is_less_than(&i, &c) } {
             r = crate::precise::Precise::stringMul(&r, &n);
         }
         }
@@ -3041,8 +3257,8 @@ impl DydxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_617: bool = true;
-            while { if !__for_first_617 { i = add(&i, &Value::Int(1)); } __for_first_617 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_620: bool = true;
+            while { if !__for_first_620 { i = add(&i, &Value::Int(1)); } __for_first_620 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut account: Value = get_value(&rows, &i);
             let mut account: Value = get_value(&rows, &i);
             let mut accountId: Value = self.safe_string_k(account.clone(), "subaccountNumber", &[]);
@@ -3079,9 +3295,9 @@ impl DydxCore {
             self.load_markets(&[]).await;
         }
         let mut userAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_public_address(Value::Str("fetchAccounts".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_public_address(Value::Str("fetchBalance".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut subaccountNumber: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchAccounts".to_string()), Value::Str("subaccountNumber".to_string()), &[Value::Int(0)]); subaccountNumber = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchBalance".to_string()), Value::Str("subaccountNumber".to_string()), &[Value::Int(0)]); subaccountNumber = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), userAddress.clone());

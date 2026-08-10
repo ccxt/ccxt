@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for LbankCore {
 
 impl crate::exchange_generated::ExchangeBase for LbankCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -373,6 +373,14 @@ impl LbankCore {
     Value::Null
 }
 
+    pub fn check_contract_market(&self, mut market: Value, mut methodName: Value) {
+        // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+        // see https://github.com/ccxt/ccxt/issues/26864
+        if is_true(&(!is_equal(&market, &Value::Null))) && is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" markets yet".to_string()))));
+        }
+}
+
 /*
  * @method
  * @name lbank#fetchOHLCVWs
@@ -397,6 +405,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        self.check_contract_market(market.clone(), Value::Str("fetchOHLCVWs".to_string()));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut watchOHLCVOptions: Value = self.safe_value_k(self.options.clone(), "watchOHLCV", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -453,6 +462,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        self.check_contract_market(market.clone(), Value::Str("watchOHLCV".to_string()));
         let mut watchOHLCVOptions: Value = self.safe_value_k(self.options.clone(), "watchOHLCV", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -594,7 +604,7 @@ impl LbankCore {
  * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_ticker_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -606,6 +616,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        self.check_contract_market(market.clone(), Value::Str("fetchTickerWs".to_string()));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("fetchTicker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut message: Value = Value::Map({
@@ -628,7 +639,7 @@ impl LbankCore {
  * @see https://www.lbank.com/en-US/docs/index.html#market
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} params extra parameters specific to the lbank api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
     pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -640,6 +651,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        self.check_contract_market(market.clone(), Value::Str("watchTicker".to_string()));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut message: Value = Value::Map({
@@ -765,6 +777,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        self.check_contract_market(market.clone(), Value::Str("fetchTradesWs".to_string()));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("fetchTrades:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         if is_equal(&limit, &Value::Null) {
@@ -807,6 +820,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        self.check_contract_market(market.clone(), Value::Str("watchTrades".to_string()));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("trades:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut message: Value = Value::Map({
@@ -864,8 +878,8 @@ impl LbankCore {
         let mut rawTrades: Value = self.safe_value_k(message.clone(), "trades", &[Value::List(vec![rawTrade.clone()])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { i = add(&i, &Value::Int(1)); } __for_first_475 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_473: bool = true;
+            while { if !__for_first_473 { i = add(&i, &Value::Int(1)); } __for_first_473 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut trade: Value = self.parse_ws_trade(get_value(&rawTrades, &i), &[market.clone()]);
             add_element_to_object(&mut trade, &Value::Str("symbol".to_string()), symbol.clone());
             stored.append(trade.clone());
@@ -935,7 +949,7 @@ impl LbankCore {
  * @param {string} [symbol] unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} params extra parameters specific to the lbank api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
     pub async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -1003,6 +1017,9 @@ impl LbankCore {
             myOrders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut order: Value = self.parse_ws_order(message.clone(), &[]);
+        if is_equal(&myOrders, &Value::Null) {
+            return;
+        }
         myOrders.append(order.clone());
         self.orders = myOrders.clone();
         client.resolve(&[myOrders.clone(), Value::Str("orders".to_string())]);
@@ -1180,7 +1197,9 @@ impl LbankCore {
         add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(data.clone(), "free", &[]));
         add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "freeze", &[]));
         add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "asset", &[]));
-        add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+        if !is_equal(&code, &Value::Null) {
+            add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+        }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         client.resolve(&[self.balance.clone(), Value::Str("balance".to_string())]);
 }
@@ -1192,7 +1211,7 @@ impl LbankCore {
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int|undefined} limit the maximum amount of order book entries to return
- * @param {object} params extra parameters specific to the lbank api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
  */
     pub async fn fetch_order_book_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1205,6 +1224,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        self.check_contract_market(market.clone(), Value::Str("fetchOrderBookWs".to_string()));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("fetchOrderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         if is_equal(&limit, &Value::Null) {
@@ -1232,8 +1252,8 @@ impl LbankCore {
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int|undefined} limit the maximum amount of order book entries to return
- * @param {object} params extra parameters specific to the lbank api endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+ * @param {object} params extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1245,6 +1265,7 @@ impl LbankCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        self.check_contract_market(market.clone(), Value::Str("watchOrderBook".to_string()));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         params = self.omit(params.clone(), Value::Str("aggregation".to_string()), &[]);
@@ -1411,7 +1432,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         // when we implement more private streams, we need to refactor the authentication
-        // to be concurent-safe and respect the same authentication token
+        // to be concurrent-safe and respect the same authentication token
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut client: Value = self.client(&[url.clone()]);
         let mut now: Value = self.milliseconds();

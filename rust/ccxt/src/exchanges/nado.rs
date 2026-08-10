@@ -185,7 +185,7 @@ impl crate::exchange::DerivedExchange for NadoCore {
 
 impl crate::exchange_generated::ExchangeBase for NadoCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -356,14 +356,30 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::Int(2));
-        m.insert("query".to_string(), Value::Int(1));
-        m.insert("edge/query".to_string(), Value::Int(1));
+        m.insert("symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("query".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("edge/query".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("query".to_string(), Value::Int(1));
+        m.insert("query".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -372,7 +388,11 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("execute".to_string(), Value::Int(1));
+        m.insert("execute".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -385,9 +405,21 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("assets".to_string(), Value::Int(2));
-        m.insert("pairs".to_string(), Value::Int(1));
-        m.insert("orderbook".to_string(), Value::Int(1));
+        m.insert("assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("pairs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -398,7 +430,11 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("".to_string(), Value::Int(1));
+        m.insert("".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -409,9 +445,21 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("tickers".to_string(), Value::Int(1));
-        m.insert("contracts".to_string(), Value::Int(1));
-        m.insert("trades".to_string(), Value::Int(1));
+        m.insert("tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("contracts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -424,8 +472,16 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("execute".to_string(), Value::Int(1));
-        m.insert("query".to_string(), Value::Int(1));
+        m.insert("execute".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("query".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -1088,8 +1144,8 @@ impl NadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_932: bool = true;
-            while { if !__for_first_932 { i = add(&i, &Value::Int(1)); } __for_first_932 = false; is_less_than(&i, &get_array_length(&cancelledOrders)) } {
+            let mut __for_first_935: bool = true;
+            while { if !__for_first_935 { i = add(&i, &Value::Int(1)); } __for_first_935 = false; is_less_than(&i, &get_array_length(&cancelledOrders)) } {
             let __ws_arg_2 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("canceled".to_string()));
@@ -1207,8 +1263,8 @@ impl NadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_933: bool = true;
-            while { if !__for_first_933 { i = add(&i, &Value::Int(1)); } __for_first_933 = false; is_less_than(&i, &get_array_length(&cancelledOrders)) } {
+            let mut __for_first_936: bool = true;
+            while { if !__for_first_936 { i = add(&i, &Value::Int(1)); } __for_first_936 = false; is_less_than(&i, &get_array_length(&cancelledOrders)) } {
             let __ws_arg_3 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("canceled".to_string()));
@@ -1246,8 +1302,8 @@ impl NadoCore {
         let mut productIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_934: bool = true;
-            while { if !__for_first_934 { i = add(&i, &Value::Int(1)); } __for_first_934 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_937: bool = true;
+            while { if !__for_first_937 { i = add(&i, &Value::Int(1)); } __for_first_937 = false; is_less_than(&i, &get_array_length(&ids)) } {
             append_to_array(&mut productIds, productId.clone());
         }
         }
@@ -1384,7 +1440,7 @@ impl NadoCore {
             append_to_array(&mut productIds, self.parse_to_int(get_value(&market, &Value::Str("id".to_string()))));
         }
         let mut subaccount: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("subaccount".to_string()), &[Value::Str("default".to_string())]); subaccount = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrders".to_string()), Value::Str("subaccount".to_string()), &[Value::Str("default".to_string())]); subaccount = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut sender: Value = self.create_subaccount(self.walletAddress.clone(), &[subaccount.clone()]);
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
@@ -1631,8 +1687,8 @@ impl NadoCore {
         let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_935: bool = true;
-            while { if !__for_first_935 { i = add(&i, &Value::Int(1)); } __for_first_935 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_938: bool = true;
+            while { if !__for_first_938 { i = add(&i, &Value::Int(1)); } __for_first_938 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             if is_true(&self.is_archive_order_closed(order.clone())) {
@@ -1792,8 +1848,8 @@ impl NadoCore {
         let mut trades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_936: bool = true;
-            while { if !__for_first_936 { i = add(&i, &Value::Int(1)); } __for_first_936 = false; is_less_than(&i, &get_array_length(&matches)) } {
+            let mut __for_first_939: bool = true;
+            while { if !__for_first_939 { i = add(&i, &Value::Int(1)); } __for_first_939 = false; is_less_than(&i, &get_array_length(&matches)) } {
             let mut match_val: Value = get_value(&matches, &i);
             let mut match_val: Value = get_value(&matches, &i);
             let mut submissionIdx: Value = self.safe_string_k(match_val.clone(), "submission_idx", &[]);
@@ -1993,8 +2049,8 @@ impl NadoCore {
         let mut transactions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_938: bool = true;
-            while { if !__for_first_938 { i = add(&i, &Value::Int(1)); } __for_first_938 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_941: bool = true;
+            while { if !__for_first_941 { i = add(&i, &Value::Int(1)); } __for_first_941 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             let mut submissionIdx: Value = self.safe_string_k(event.clone(), "submission_idx", &[]);
@@ -2004,8 +2060,8 @@ impl NadoCore {
             });
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_937: bool = true;
-                while { if !__for_first_937 { j = add(&j, &Value::Int(1)); } __for_first_937 = false; is_less_than(&j, &get_array_length(&txs)) } {
+                let mut __for_first_940: bool = true;
+                while { if !__for_first_940 { j = add(&j, &Value::Int(1)); } __for_first_940 = false; is_less_than(&j, &get_array_length(&txs)) } {
                 let mut rawTx: Value = get_value(&txs, &j);
                 let mut rawTx: Value = get_value(&txs, &j);
                 let mut txSubmissionIdx: Value = self.safe_string_k(rawTx.clone(), "submission_idx", &[]);
@@ -2096,8 +2152,8 @@ impl NadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_940: bool = true;
-            while { if !__for_first_940 { i = add(&i, &Value::Int(1)); } __for_first_940 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_943: bool = true;
+            while { if !__for_first_943 { i = add(&i, &Value::Int(1)); } __for_first_943 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut balance: Value = self.safe_dict_k(position.clone(), "balance", &[Value::Map({
@@ -2115,8 +2171,8 @@ impl NadoCore {
             });
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_939: bool = true;
-                while { if !__for_first_939 { j = add(&j, &Value::Int(1)); } __for_first_939 = false; is_less_than(&j, &get_array_length(&products)) } {
+                let mut __for_first_942: bool = true;
+                while { if !__for_first_942 { j = add(&j, &Value::Int(1)); } __for_first_942 = false; is_less_than(&j, &get_array_length(&products)) } {
                 let mut rawProduct: Value = get_value(&products, &j);
                 let mut rawProduct: Value = get_value(&products, &j);
                 let mut rawProductId: Value = self.safe_string_k(rawProduct.clone(), "product_id", &[]);
@@ -2235,8 +2291,8 @@ impl NadoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_941: bool = true;
-            while { if !__for_first_941 { i = add(&i, &Value::Int(1)); } __for_first_941 = false; is_less_than(&i, &get_array_length(&pairs)) } {
+            let mut __for_first_944: bool = true;
+            while { if !__for_first_944 { i = add(&i, &Value::Int(1)); } __for_first_944 = false; is_less_than(&i, &get_array_length(&pairs)) } {
             let mut rawPair: Value = get_value(&pairs, &i);
             let mut rawPair: Value = get_value(&pairs, &i);
             let mut pairProductId: Value = self.safe_string_k(rawPair.clone(), "product_id", &[]);
@@ -2251,8 +2307,8 @@ impl NadoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_942: bool = true;
-            while { if !__for_first_942 { i = add(&i, &Value::Int(1)); } __for_first_942 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_945: bool = true;
+            while { if !__for_first_945 { i = add(&i, &Value::Int(1)); } __for_first_945 = false; is_less_than(&i, &get_array_length(&assets)) } {
             let mut rawAsset: Value = get_value(&assets, &i);
             let mut rawAsset: Value = get_value(&assets, &i);
             let mut assetProductId: Value = self.safe_string_k(rawAsset.clone(), "product_id", &[]);
@@ -2267,8 +2323,8 @@ impl NadoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_943: bool = true;
-            while { if !__for_first_943 { i = add(&i, &Value::Int(1)); } __for_first_943 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_946: bool = true;
+            while { if !__for_first_946 { i = add(&i, &Value::Int(1)); } __for_first_946 = false; is_less_than(&i, &get_array_length(&assets)) } {
             let mut rawAsset: Value = get_value(&assets, &i);
             let mut rawAsset: Value = get_value(&assets, &i);
             let mut assetSymbol: Value = self.safe_string_k(rawAsset.clone(), "symbol", &[]);
@@ -2293,8 +2349,8 @@ impl NadoCore {
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_944: bool = true;
-            while { if !__for_first_944 { i = add(&i, &Value::Int(1)); } __for_first_944 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_947: bool = true;
+            while { if !__for_first_947 { i = add(&i, &Value::Int(1)); } __for_first_947 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = get_value(&symbols, &i);
             let mut market: Value = get_value(&symbols, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "product_id", &[]);
@@ -2431,12 +2487,13 @@ impl NadoCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
+        let mut assets: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_945: bool = true;
-            while { if !__for_first_945 { i = add(&i, &Value::Int(1)); } __for_first_945 = false; is_less_than(&i, &get_array_length(&response)) } {
-            let mut currency: Value = get_value(&response, &i);
-            let mut currency: Value = get_value(&response, &i);
+            let mut __for_first_948: bool = true;
+            while { if !__for_first_948 { i = add(&i, &Value::Int(1)); } __for_first_948 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut currency: Value = get_value(&assets, &i);
+            let mut currency: Value = get_value(&assets, &i);
             let mut parsed: Value = self.parse_currency(currency.clone());
             let mut code: Value = self.safe_string_k(parsed.clone(), "code", &[]);
             if is_equal(&code, &Value::Null) {
@@ -2645,8 +2702,8 @@ impl NadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_946: bool = true;
-            while { if !__for_first_946 { i = add(&i, &Value::Int(1)); } __for_first_946 = false; is_less_than(&i, &get_array_length(&fundingPayments)) } {
+            let mut __for_first_949: bool = true;
+            while { if !__for_first_949 { i = add(&i, &Value::Int(1)); } __for_first_949 = false; is_less_than(&i, &get_array_length(&fundingPayments)) } {
             append_to_array(&mut result, self.parse_funding_history(get_value(&fundingPayments, &i), &[market.clone()]));
         }
         }
@@ -2702,11 +2759,14 @@ impl NadoCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_947: bool = true;
-            while { if !__for_first_947 { i = add(&i, &Value::Int(1)); } __for_first_947 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_950: bool = true;
+            while { if !__for_first_950 { i = add(&i, &Value::Int(1)); } __for_first_950 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = get_value(&tickers, &i);
             let mut ticker: Value = get_value(&tickers, &i);
-            append_to_array(&mut rates, get_value(&response, &ticker));
+            append_to_array(&mut rates, self.safe_dict(response.clone(), ticker.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]));
         }
         }
         return self.parse_funding_rates(rates.clone(), &[symbols.clone()]);
@@ -2814,11 +2874,14 @@ impl NadoCore {
         let mut interests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_948: bool = true;
-            while { if !__for_first_948 { i = add(&i, &Value::Int(1)); } __for_first_948 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_951: bool = true;
+            while { if !__for_first_951 { i = add(&i, &Value::Int(1)); } __for_first_951 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = get_value(&tickers, &i);
             let mut ticker: Value = get_value(&tickers, &i);
-            append_to_array(&mut interests, get_value(&response, &ticker));
+            append_to_array(&mut interests, self.safe_dict(response.clone(), ticker.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]));
         }
         }
         return self.parse_open_interests(interests.clone(), &[symbols.clone()]);
@@ -3327,8 +3390,8 @@ impl NadoCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "spot_balances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_949: bool = true;
-            while { if !__for_first_949 { i = add(&i, &Value::Int(1)); } __for_first_949 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_952: bool = true;
+            while { if !__for_first_952 { i = add(&i, &Value::Int(1)); } __for_first_952 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut rawBalance: Value = get_value(&balances, &i);
             let mut rawBalance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(rawBalance.clone(), "product_id", &[]);

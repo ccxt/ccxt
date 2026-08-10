@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for IndependentreserveCore {
 
 impl crate::exchange_generated::ExchangeBase for IndependentreserveCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -446,7 +446,7 @@ impl IndependentreserveCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -501,6 +501,9 @@ impl IndependentreserveCore {
         //
         let mut event: Value = self.safe_string_k(message.clone(), "Event", &[]);
         let mut channel: Value = self.safe_string_k(message.clone(), "Channel", &[]);
+        if is_equal(&channel, &Value::Null) {
+            return;
+        }
         let mut parts: Value = split(&channel, &Value::Str("/".to_string()));
         let mut depth: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
@@ -548,8 +551,8 @@ impl IndependentreserveCore {
             let mut payload: Value = Value::Str("".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_424: bool = true;
-                while { if !__for_first_424 { i = add(&i, &Value::Int(1)); } __for_first_424 = false; is_less_than(&i, &Value::Int(10)) } {
+                let mut __for_first_422: bool = true;
+                while { if !__for_first_422 { i = add(&i, &Value::Int(1)); } __for_first_422 = false; is_less_than(&i, &Value::Int(10)) } {
                 if is_less_than(&i, &bidsLength) {
                     payload = add(&add(&payload, &self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(0)))), &self.value_to_checksum(get_value(&get_value(&storedBids, &i), &Value::Int(1))));
                 }
@@ -557,8 +560,8 @@ impl IndependentreserveCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_425: bool = true;
-                while { if !__for_first_425 { i = add(&i, &Value::Int(1)); } __for_first_425 = false; is_less_than(&i, &Value::Int(10)) } {
+                let mut __for_first_423: bool = true;
+                while { if !__for_first_423 { i = add(&i, &Value::Int(1)); } __for_first_423 = false; is_less_than(&i, &Value::Int(10)) } {
                 if is_less_than(&i, &asksLength) {
                     payload = add(&add(&payload, &self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(0)))), &self.value_to_checksum(get_value(&get_value(&storedAsks, &i), &Value::Int(1))));
                 }
@@ -598,8 +601,8 @@ impl IndependentreserveCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_426: bool = true;
-            while { if !__for_first_426 { i = add(&i, &Value::Int(1)); } __for_first_426 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_424: bool = true;
+            while { if !__for_first_424 { i = add(&i, &Value::Int(1)); } __for_first_424 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }

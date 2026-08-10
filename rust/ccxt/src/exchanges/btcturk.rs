@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for BtcturkCore {
 
 impl crate::exchange_generated::ExchangeBase for BtcturkCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -347,11 +347,31 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("orderbook".to_string(), Value::Int(1));
-        m.insert("ticker".to_string(), Value::Float(0.1));
-        m.insert("trades".to_string(), Value::Int(1));
-        m.insert("ohlc".to_string(), Value::Int(1));
-        m.insert("server/exchangeinfo".to_string(), Value::Int(1));
+        m.insert("orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.1));
+    m
+}));
+        m.insert("trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ohlc".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("server/exchangeinfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -360,23 +380,59 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("users/balances".to_string(), Value::Int(1));
-        m.insert("openOrders".to_string(), Value::Int(1));
-        m.insert("allOrders".to_string(), Value::Int(1));
-        m.insert("users/transactions/trade".to_string(), Value::Int(1));
+        m.insert("users/balances".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("openOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("allOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("users/transactions/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("users/transactions/crypto".to_string(), Value::Int(1));
-        m.insert("users/transactions/fiat".to_string(), Value::Int(1));
-        m.insert("order".to_string(), Value::Int(1));
-        m.insert("cancelOrder".to_string(), Value::Int(1));
+        m.insert("users/transactions/crypto".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("users/transactions/fiat".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("order".to_string(), Value::Int(1));
+        m.insert("order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -385,8 +441,16 @@ impl BtcturkCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ohlcs".to_string(), Value::Int(1));
-        m.insert("klines/history".to_string(), Value::Int(1));
+        m.insert("ohlcs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("klines/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -586,8 +650,8 @@ impl BtcturkCore {
         let mut minCost: Value = Value::Null;
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_432: bool = true;
-            while { if !__for_first_432 { j = add(&j, &Value::Int(1)); } __for_first_432 = false; is_less_than(&j, &get_array_length(&filters)) } {
+            let mut __for_first_435: bool = true;
+            while { if !__for_first_435 { j = add(&j, &Value::Int(1)); } __for_first_435 = false; is_less_than(&j, &get_array_length(&filters)) } {
             let mut filter: Value = get_value(&filters, &j);
             let mut filter: Value = get_value(&filters, &j);
             let mut filterType: Value = self.safe_string_k(filter.clone(), "filterType", &[]);
@@ -679,8 +743,8 @@ impl BtcturkCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_433: bool = true;
-            while { if !__for_first_433 { i = add(&i, &Value::Int(1)); } __for_first_433 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_436: bool = true;
+            while { if !__for_first_436 { i = add(&i, &Value::Int(1)); } __for_first_436 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
@@ -1083,8 +1147,8 @@ impl BtcturkCore {
         let mut volume: Value = self.safe_list_k(ohlcvs.clone(), "v", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_434: bool = true;
-            while { if !__for_first_434 { i = add(&i, &Value::Int(1)); } __for_first_434 = false; is_less_than(&i, &get_array_length(&timestamp)) } {
+            let mut __for_first_437: bool = true;
+            while { if !__for_first_437 { i = add(&i, &Value::Int(1)); } __for_first_437 = false; is_less_than(&i, &get_array_length(&timestamp)) } {
             let mut ohlcv: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer(timestamp.clone(), i.clone(), &[]));

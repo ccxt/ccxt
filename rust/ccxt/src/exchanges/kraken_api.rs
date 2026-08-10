@@ -12,14 +12,14 @@ use super::kraken::KrakenCore;
 use crate::exchange::ExchangeRuntime;
 
 impl KrakenCore {
-    /// Auto-generated wrapper for the `zendeskGet360000292886` implicit endpoint.
-    pub async fn zendesk_get360000292886(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("zendesk_get360000292886".to_string()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `zendeskGet201893608` implicit endpoint.
     pub async fn zendesk_get201893608(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("zendesk_get201893608".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `zendeskGet360000292886` implicit endpoint.
+    pub async fn zendesk_get360000292886(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("zendesk_get360000292886".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTime` implicit endpoint.

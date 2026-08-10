@@ -189,7 +189,7 @@ impl crate::exchange::DerivedExchange for KrakenCore {
 
 impl crate::exchange_generated::ExchangeBase for KrakenCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -302,7 +302,7 @@ impl KrakenCore {
         m.insert("cancelOrders".to_string(), Value::Bool(true));
         m.insert("createDepositAddress".to_string(), Value::Bool(true));
         m.insert("createMarketBuyOrderWithCost".to_string(), Value::Bool(true));
-        m.insert("createMarketOrderWithCost".to_string(), Value::Bool(false));
+        m.insert("createMarketOrderWithCost".to_string(), Value::Bool(true));
         m.insert("createMarketSellOrderWithCost".to_string(), Value::Bool(false));
         m.insert("createOrder".to_string(), Value::Bool(true));
         m.insert("createOrders".to_string(), Value::Bool(true));
@@ -410,25 +410,86 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("zendesk".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("360000292886".to_string()), Value::Str("201893608".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("360000292886".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("201893608".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Time".to_string(), Value::Int(1));
-        m.insert("SystemStatus".to_string(), Value::Int(1));
-        m.insert("Assets".to_string(), Value::Int(1));
-        m.insert("AssetPairs".to_string(), Value::Int(1));
-        m.insert("Ticker".to_string(), Value::Int(1));
-        m.insert("OHLC".to_string(), Value::Float(1.2));
-        m.insert("Depth".to_string(), Value::Float(1.2));
-        m.insert("GroupedBook".to_string(), Value::Float(1.2));
-        m.insert("Trades".to_string(), Value::Float(1.2));
-        m.insert("Spread".to_string(), Value::Int(1));
-        m.insert("PreTrade".to_string(), Value::Int(1));
-        m.insert("PostTrade".to_string(), Value::Int(1));
+        m.insert("Time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("SystemStatus".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("AssetPairs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("OHLC".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.2));
+    m
+}));
+        m.insert("Depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.2));
+    m
+}));
+        m.insert("GroupedBook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.2));
+    m
+}));
+        m.insert("Trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.2));
+    m
+}));
+        m.insert("Spread".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("PreTrade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("PostTrade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -437,53 +498,241 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Level3".to_string(), Value::Float(1.2));
-        m.insert("Balance".to_string(), Value::Int(3));
-        m.insert("BalanceEx".to_string(), Value::Int(3));
-        m.insert("CreditLines".to_string(), Value::Int(3));
-        m.insert("TradeBalance".to_string(), Value::Int(3));
-        m.insert("OpenOrders".to_string(), Value::Int(3));
-        m.insert("ClosedOrders".to_string(), Value::Int(3));
-        m.insert("QueryOrders".to_string(), Value::Int(3));
-        m.insert("OrderAmends".to_string(), Value::Int(3));
-        m.insert("TradesHistory".to_string(), Value::Int(6));
-        m.insert("QueryTrades".to_string(), Value::Int(3));
-        m.insert("OpenPositions".to_string(), Value::Int(3));
-        m.insert("Ledgers".to_string(), Value::Int(6));
-        m.insert("QueryLedgers".to_string(), Value::Int(3));
-        m.insert("TradeVolume".to_string(), Value::Int(3));
-        m.insert("AddExport".to_string(), Value::Int(3));
-        m.insert("ExportStatus".to_string(), Value::Int(3));
-        m.insert("RetrieveExport".to_string(), Value::Int(3));
-        m.insert("RemoveExport".to_string(), Value::Int(3));
-        m.insert("GetApiKeyInfo".to_string(), Value::Int(3));
-        m.insert("AddOrder".to_string(), Value::Int(0));
-        m.insert("AmendOrder".to_string(), Value::Int(0));
-        m.insert("CancelOrder".to_string(), Value::Int(0));
-        m.insert("CancelAll".to_string(), Value::Int(3));
-        m.insert("CancelAllOrdersAfter".to_string(), Value::Int(3));
-        m.insert("GetWebSocketsToken".to_string(), Value::Int(3));
-        m.insert("AddOrderBatch".to_string(), Value::Int(0));
-        m.insert("CancelOrderBatch".to_string(), Value::Int(0));
-        m.insert("EditOrder".to_string(), Value::Int(0));
-        m.insert("DepositMethods".to_string(), Value::Int(3));
-        m.insert("DepositAddresses".to_string(), Value::Int(3));
-        m.insert("DepositStatus".to_string(), Value::Int(3));
-        m.insert("WithdrawMethods".to_string(), Value::Int(3));
-        m.insert("WithdrawAddresses".to_string(), Value::Int(3));
-        m.insert("WithdrawInfo".to_string(), Value::Int(3));
-        m.insert("Withdraw".to_string(), Value::Int(3));
-        m.insert("WithdrawStatus".to_string(), Value::Int(3));
-        m.insert("WithdrawCancel".to_string(), Value::Int(3));
-        m.insert("WalletTransfer".to_string(), Value::Int(3));
-        m.insert("CreateSubaccount".to_string(), Value::Int(3));
-        m.insert("AccountTransfer".to_string(), Value::Int(3));
-        m.insert("Earn/Allocate".to_string(), Value::Int(3));
-        m.insert("Earn/Deallocate".to_string(), Value::Int(3));
-        m.insert("Earn/AllocateStatus".to_string(), Value::Int(3));
-        m.insert("Earn/DeallocateStatus".to_string(), Value::Int(3));
-        m.insert("Earn/Strategies".to_string(), Value::Int(3));
-        m.insert("Earn/Allocations".to_string(), Value::Int(3));
+        m.insert("Level3".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.2));
+    m
+}));
+        m.insert("Balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("BalanceEx".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("CreditLines".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("TradeBalance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("OpenOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("ClosedOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("QueryOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("OrderAmends".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("TradesHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(6));
+    m
+}));
+        m.insert("QueryTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("OpenPositions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("Ledgers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(6));
+    m
+}));
+        m.insert("QueryLedgers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("TradeVolume".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("AddExport".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("ExportStatus".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("RetrieveExport".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("RemoveExport".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("GetApiKeyInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("AddOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(0));
+    m
+}));
+        m.insert("AmendOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(0));
+    m
+}));
+        m.insert("CancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(0));
+    m
+}));
+        m.insert("CancelAll".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("CancelAllOrdersAfter".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("GetWebSocketsToken".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("AddOrderBatch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(0));
+    m
+}));
+        m.insert("CancelOrderBatch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(0));
+    m
+}));
+        m.insert("EditOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(0));
+    m
+}));
+        m.insert("DepositMethods".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("DepositAddresses".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("DepositStatus".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("WithdrawMethods".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("WithdrawAddresses".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("WithdrawInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("Withdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("WithdrawStatus".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("WithdrawCancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("WalletTransfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("CreateSubaccount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("AccountTransfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("Earn/Allocate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("Earn/Deallocate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("Earn/AllocateStatus".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("Earn/DeallocateStatus".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("Earn/Strategies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("Earn/Allocations".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
     m
 }));
     m
@@ -964,8 +1213,8 @@ impl KrakenCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_814: bool = true;
-            while { if !__for_first_814 { i = add(&i, &Value::Int(1)); } __for_first_814 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_817: bool = true;
+            while { if !__for_first_817 { i = add(&i, &Value::Int(1)); } __for_first_817 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut id: Value = get_value(&keys, &i);
             let mut id: Value = get_value(&keys, &i);
             let mut isSynthetic: Value = Value::Bool(false);
@@ -1560,8 +1809,8 @@ impl KrakenCore {
             let mut marketIds: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_815: bool = true;
-                while { if !__for_first_815 { i = add(&i, &Value::Int(1)); } __for_first_815 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_818: bool = true;
+                while { if !__for_first_818 { i = add(&i, &Value::Int(1)); } __for_first_818 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -1574,7 +1823,10 @@ impl KrakenCore {
         }
         let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_2]).await;
-        let mut tickers: Value = get_value(&response, &Value::Str("result".to_string()));
+        let mut tickers: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut ids: Value = object_keys(&tickers);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1582,8 +1834,8 @@ impl KrakenCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_816: bool = true;
-            while { if !__for_first_816 { i = add(&i, &Value::Int(1)); } __for_first_816 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_819: bool = true;
+            while { if !__for_first_819 { i = add(&i, &Value::Int(1)); } __for_first_819 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut market: Value = self.safe_market(&[id.clone()]);
@@ -1623,7 +1875,11 @@ impl KrakenCore {
         });
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_3]).await;
-        let mut ticker: Value = self.safe_value(get_value(&response, &Value::Str("result".to_string())), get_value(&market, &Value::Str("id".to_string())), &[]);
+        let mut tickerResult: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut ticker: Value = self.safe_value(tickerResult.clone(), get_value(&market, &Value::Str("id".to_string())), &[]);
         return self.parse_ticker(ticker.clone(), &[market.clone()]);
 
     Value::Null
@@ -1853,8 +2109,8 @@ impl KrakenCore {
         let mut items: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_817: bool = true;
-            while { if !__for_first_817 { i = add(&i, &Value::Int(1)); } __for_first_817 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_820: bool = true;
+            while { if !__for_first_820 { i = add(&i, &Value::Int(1)); } __for_first_820 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&ledger, &key);
@@ -1894,13 +2150,16 @@ impl KrakenCore {
         //                                       "amount": "-0.2805800000",
         //                                          "fee": "0.0050000000",
         //                                      "balance": "0.0000051000"           } } }
-        let mut result: Value = get_value(&response, &Value::Str("result".to_string()));
+        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut keys: Value = object_keys(&result);
         let mut items: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_818: bool = true;
-            while { if !__for_first_818 { i = add(&i, &Value::Int(1)); } __for_first_818 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_821: bool = true;
+            while { if !__for_first_821 { i = add(&i, &Value::Int(1)); } __for_first_821 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&result, &key);
@@ -2133,7 +2392,10 @@ impl KrakenCore {
         //         }
         //     }
         //
-        let mut result: Value = get_value(&response, &Value::Str("result".to_string()));
+        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut trades: Value = self.safe_value(result.clone(), id.clone(), &[]);
         // trades is a sorted array: last (most recent trade) goes last
         let mut length: Value = get_array_length(&trades);
@@ -2164,8 +2426,8 @@ impl KrakenCore {
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_819: bool = true;
-            while { if !__for_first_819 { i = add(&i, &Value::Int(1)); } __for_first_819 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_822: bool = true;
+            while { if !__for_first_822 { i = add(&i, &Value::Int(1)); } __for_first_822 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2350,8 +2612,8 @@ impl KrakenCore {
         let mut market: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_820: bool = true;
-            while { if !__for_first_820 { i = add(&i, &Value::Int(1)); } __for_first_820 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_823: bool = true;
+            while { if !__for_first_823 { i = add(&i, &Value::Int(1)); } __for_first_823 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2714,8 +2976,8 @@ impl KrakenCore {
         let mut trades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_821: bool = true;
-            while { if !__for_first_821 { i = add(&i, &Value::Int(1)); } __for_first_821 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_824: bool = true;
+            while { if !__for_first_824 { i = add(&i, &Value::Int(1)); } __for_first_824 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             if is_string(&rawTrade) {
@@ -3134,8 +3396,8 @@ impl KrakenCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_822: bool = true;
-                while { if !__for_first_822 { i = add(&i, &Value::Int(1)); } __for_first_822 = false; is_less_than(&i, &get_array_length(&orderTrades)) } {
+                let mut __for_first_825: bool = true;
+                while { if !__for_first_825 { i = add(&i, &Value::Int(1)); } __for_first_825 = false; is_less_than(&i, &get_array_length(&orderTrades)) } {
                 let mut orderTrade: Value = get_value(&orderTrades, &i);
                 let mut orderTrade: Value = get_value(&orderTrades, &i);
                 if is_string(&orderTrade) {
@@ -3163,13 +3425,13 @@ impl KrakenCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_825: bool = true;
-            while { if !__for_first_825 { j = add(&j, &Value::Int(1)); } __for_first_825 = false; is_less_than(&j, &numBatches) } {
+            let mut __for_first_828: bool = true;
+            while { if !__for_first_828 { j = add(&j, &Value::Int(1)); } __for_first_828 = false; is_less_than(&j, &numBatches) } {
             let mut requestIds: Value = Value::List(vec![]);
             {
                                 let mut k: Value = Value::Int(0);
-                let mut __for_first_823: bool = true;
-                while { if !__for_first_823 { k = add(&k, &Value::Int(1)); } __for_first_823 = false; is_less_than(&k, &batchSize) } {
+                let mut __for_first_826: bool = true;
+                while { if !__for_first_826 { k = add(&k, &Value::Int(1)); } __for_first_826 = false; is_less_than(&k, &batchSize) } {
                 let mut index: Value = self.sum(&[multiply(&j, &batchSize), k.clone()]);
                 if is_less_than(&index, &numTradeIds) {
                     append_to_array(&mut requestIds, get_value(&tradeIds, &index));
@@ -3207,8 +3469,8 @@ impl KrakenCore {
             let mut ids: Value = object_keys(&rawTrades);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_824: bool = true;
-                while { if !__for_first_824 { i = add(&i, &Value::Int(1)); } __for_first_824 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_827: bool = true;
+                while { if !__for_first_827 { i = add(&i, &Value::Int(1)); } __for_first_827 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 add_element_to_object(get_value_mut(&mut rawTrades, &get_value(&ids, &i)), &Value::Str("id".to_string()), get_value(&ids, &i));
             }
             }
@@ -3256,8 +3518,8 @@ impl KrakenCore {
         let mut orderIds: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_826: bool = true;
-            while { if !__for_first_826 { i = add(&i, &Value::Int(1)); } __for_first_826 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
+            let mut __for_first_829: bool = true;
+            while { if !__for_first_829 { i = add(&i, &Value::Int(1)); } __for_first_829 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
             let mut id: Value = get_value(&orderIds, &i);
             let mut id: Value = get_value(&orderIds, &i);
             let mut item: Value = get_value(&result, &id);
@@ -3343,12 +3605,19 @@ impl KrakenCore {
         //         },
         //     }
         //
-        let mut trades: Value = get_value(&get_value(&response, &Value::Str("result".to_string())), &Value::Str("trades".to_string()));
+        let mut tradesResult: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut trades: Value = self.safe_dict_k(tradesResult.clone(), "trades", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut ids: Value = object_keys(&trades);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_827: bool = true;
-            while { if !__for_first_827 { i = add(&i, &Value::Int(1)); } __for_first_827 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_830: bool = true;
+            while { if !__for_first_830 { i = add(&i, &Value::Int(1)); } __for_first_830 = false; is_less_than(&i, &get_array_length(&ids)) } {
             add_element_to_object(get_value_mut(&mut trades, &get_value(&ids, &i)), &Value::Str("id".to_string()), get_value(&ids, &i));
         }
         }
@@ -3356,7 +3625,8 @@ impl KrakenCore {
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
         }
-        return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        let mut tradesList: Value = self.to_array(trades.clone());
+        return self.parse_trades(tradesList.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -3611,8 +3881,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderIds: Value = object_keys(&open);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_828: bool = true;
-            while { if !__for_first_828 { i = add(&i, &Value::Int(1)); } __for_first_828 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
+            let mut __for_first_831: bool = true;
+            while { if !__for_first_831 { i = add(&i, &Value::Int(1)); } __for_first_831 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
             let mut id: Value = get_value(&orderIds, &i);
             let mut id: Value = get_value(&orderIds, &i);
             let mut item: Value = get_value(&open, &id);
@@ -3729,8 +3999,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderIds: Value = object_keys(&closed);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_829: bool = true;
-            while { if !__for_first_829 { i = add(&i, &Value::Int(1)); } __for_first_829 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
+            let mut __for_first_832: bool = true;
+            while { if !__for_first_832 { i = add(&i, &Value::Int(1)); } __for_first_832 = false; is_less_than(&i, &get_array_length(&orderIds)) } {
             let mut id: Value = get_value(&orderIds, &i);
             let mut id: Value = get_value(&orderIds, &i);
             let mut item: Value = get_value(&closed, &id);
@@ -3898,8 +4168,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_830: bool = true;
-            while { if !__for_first_830 { i = add(&i, &Value::Int(1)); } __for_first_830 = false; is_less_than(&i, &get_array_length(&transactions)) } {
+            let mut __for_first_833: bool = true;
+            while { if !__for_first_833 { i = add(&i, &Value::Int(1)); } __for_first_833 = false; is_less_than(&i, &get_array_length(&transactions)) } {
             let __ws_arg_20 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), type_var.clone());
@@ -3959,7 +4229,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_deposit_status(&[__ws_arg_21]).await;
-        return self.parse_transactions_by_type(Value::Str("deposit".to_string()), get_value(&response, &Value::Str("result".to_string())), &[code.clone(), since.clone(), limit.clone()]);
+        //
+        //     {  error: [],
+        //       "result": [ { "method": "Ether (Hex)",
+        //                     "aclass": "currency",
+        //                      "asset": "XETH",
+        //                      "refid": "Q2CANKL-LBFVEE-U4Y2WQ",
+        //                       "txid": "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //                       "info": "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //                     "amount": "7.9999257900",
+        //                        "fee": "0.0000000000",
+        //                       "time":  1529223212,
+        //                     "status": "Success"                                                       } ] }
+        //
+        let mut depositResult: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        return self.parse_transactions_by_type(Value::Str("deposit".to_string()), depositResult.clone(), &[code.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -4208,8 +4492,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_equal(&network, &Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_831: bool = true;
-                    while { if !__for_first_831 { i = add(&i, &Value::Int(1)); } __for_first_831 = false; is_less_than(&i, &get_array_length(&depositMethods)) } {
+                    let mut __for_first_834: bool = true;
+                    while { if !__for_first_834 { i = add(&i, &Value::Int(1)); } __for_first_834 = false; is_less_than(&i, &get_array_length(&depositMethods)) } {
                     let mut entry: Value = self.safe_string_k(get_value(&depositMethods, &i), "method", &[]);
                     if is_equal(&entry, &Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchDepositAddress() missing entry".to_string()))));
@@ -4691,8 +4975,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     if is_true(&numErrors) {
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_832: bool = true;
-                            while { if !__for_first_832 { i = add(&i, &Value::Int(1)); } __for_first_832 = false; is_less_than(&i, &get_array_length(&get_value(&response, &Value::Str("error".to_string())))) } {
+                            let mut __for_first_835: bool = true;
+                            while { if !__for_first_835 { i = add(&i, &Value::Int(1)); } __for_first_835 = false; is_less_than(&i, &get_array_length(&get_value(&response, &Value::Str("error".to_string())))) } {
                             let mut error: Value = get_value(&get_value(&response, &Value::Str("error".to_string())), &i);
                             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), error.clone(), message.clone());
                             self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), error.clone(), message.clone());
@@ -4711,8 +4995,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut orders: Value = self.safe_list_k(result.clone(), "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_833: bool = true;
-                            while { if !__for_first_833 { i = add(&i, &Value::Int(1)); } __for_first_833 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                            let mut __for_first_836: bool = true;
+                            while { if !__for_first_836 { i = add(&i, &Value::Int(1)); } __for_first_836 = false; is_less_than(&i, &get_array_length(&orders)) } {
                             let mut order: Value = get_value(&orders, &i);
                             let mut order: Value = get_value(&orders, &i);
                             let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);

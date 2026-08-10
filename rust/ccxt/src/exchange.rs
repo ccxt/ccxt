@@ -1002,7 +1002,7 @@ impl Exchange {
 // resolve here. Bodies reach `Exchange` fields via the `DerefMut` bound, other
 // base methods via `ExchangeBase`, and pure `impl Exchange` helpers via `Deref`.
 pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
-    async fn fetch(&mut self, url: Value, optional_args: &[Value]) -> Value {
+    fn fetch(&mut self, url: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let url_str = match &url { Value::Str(s) => s.clone(), _ => crate::runtime::stringify_param(&url) };
         let method = optional_args.get(0).cloned().unwrap_or(Value::Str("GET".to_string()));
         let headers = optional_args.get(1).cloned().unwrap_or(Value::Null);
@@ -1020,15 +1020,15 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             Ok(v) => v,
             Err(_) => Value::Null,
         }
-    }
+    } }
 
-    async fn fetch_typed(
+    fn fetch_typed(
         &mut self,
         url:     &str,
         method:  &str,
         headers: HashMap<String, String>,
         body:    Option<String>,
-    ) -> Result<Value> {
+    ) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
         let _fetch_call_count = HTTP_CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         self.last_request_url     = Value::Str(url.to_string());
         self.last_request_headers = Value::Map(headers.iter()
@@ -1118,9 +1118,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             return Ok(Value::Str(text));
         }
         Ok(json)
-    }
+    } }
 
-    async fn request_typed(&mut self, path: &str, scope_segments: &[String], verb: &str, params: Value) -> Result<Value> {
+    fn request_typed(&mut self, path: &str, scope_segments: &[String], verb: &str, params: Value) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
         if !matches!(self.mock_response, Value::Null) {
             return self.fetch_typed("", verb, HashMap::new(), None).await;
         }
@@ -1193,10 +1193,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             }
         }
         self.fetch_typed(&url, verb, headers, body).await
-    }
+    } }
 
     /// Route an implicit-API method name to `request_typed`.
-    async fn implicit_api_call(&mut self, name: &str, params: Value) -> Result<Value> {
+    fn implicit_api_call(&mut self, name: &str, params: Value) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
         if self.internals.implicit_api.is_empty() {
             self.build_implicit_api();
         }
@@ -1209,10 +1209,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             )),
         };
         self.request_typed(&path, &scope_segments, &verb, params).await
-    }
+    } }
 
     /// Dispatch an implicit-API method by name (from transpiled `_api.rs`).
-    async fn call_method(&mut self, name: Value, args: &[Value]) -> Value {
+    fn call_method(&mut self, name: Value, args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let n = match name { Value::Str(s) => s, _ => return Value::Null };
         let params = args.get(0).cloned().unwrap_or(Value::Map(HashMap::new()));
         match self.implicit_api_call(&n, params).await {
@@ -1224,11 +1224,11 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 panic!("{e}");
             }
         }
-    }
+    } }
 
     /// Loads markets (and currencies), dispatching `fetch_markets` /
     /// `fetch_currencies` / `set_markets` to the derived overrides.
-    async fn load_markets(&mut self, optional_args: &[Value]) -> Value {
+    fn load_markets(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let reload = optional_args.get(0).cloned().unwrap_or(Value::Bool(false));
         let reload_b = matches!(reload, Value::Bool(true));
         if !reload_b && !self.markets.is_null() {
@@ -1269,7 +1269,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             <Self as crate::exchange_generated::ExchangeBase>::set_markets(self, fetched, &[currencies_arg]);
         }
         self.markets.clone()
-    }
+    } }
 
     // ── super.X() shims — call the BASE (ExchangeBase) method, fully-qualified
     // so a derived override is bypassed (that is what `super.X()` means).
@@ -1306,12 +1306,12 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_network_code_to_id(&self, network_code: Value, optional_args: &[Value]) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::network_code_to_id(self, network_code, optional_args)
     }
-    async fn super_fetch_deposit_address(&mut self, code: Value, params: Value) -> Value {
+    fn super_fetch_deposit_address(&mut self, code: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         self.fetch_deposit_address(code, &[params]).await
-    }
-    async fn super_load_markets(&mut self, reload: Value, params: Value) -> Value {
+    } }
+    fn super_load_markets(&mut self, reload: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         self.load_markets(&[reload, params]).await
-    }
+    } }
 }
 
 impl<T: crate::exchange_generated::ExchangeBase> ExchangeRuntime for T {}
@@ -1338,7 +1338,7 @@ impl std::ops::DerefMut for BaseCore {
 impl DerivedExchange for BaseCore {}
 impl crate::exchange_generated::ExchangeBase for BaseCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>>
     {
         Box::pin(async move { self.call_dynamic_base(method, args).await })
     }

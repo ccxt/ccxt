@@ -12,6 +12,11 @@ use super::mexc::MexcCore;
 use crate::exchange::ExchangeRuntime;
 
 impl MexcCore {
+    /// Auto-generated wrapper for the `spotPublicGetAnnouncements` implicit endpoint.
+    pub async fn spot_public_get_announcements(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_public_get_announcements".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `spotPublicGetPing` implicit endpoint.
     pub async fn spot_public_get_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_public_get_ping".to_string()), optional_args).await

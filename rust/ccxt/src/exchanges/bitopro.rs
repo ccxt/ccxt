@@ -181,7 +181,7 @@ impl crate::exchange::DerivedExchange for BitoproCore {
 
 impl crate::exchange_generated::ExchangeBase for BitoproCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -325,7 +325,7 @@ impl BitoproCore {
         m.insert("fetchOptionChain".to_string(), Value::Bool(false));
         m.insert("fetchOrder".to_string(), Value::Bool(true));
         m.insert("fetchOrderBook".to_string(), Value::Bool(true));
-        m.insert("fetchOrders".to_string(), Value::Bool(false));
+        m.insert("fetchOrders".to_string(), Value::Bool(true));
         m.insert("fetchOrderTrades".to_string(), Value::Bool(false));
         m.insert("fetchPosition".to_string(), Value::Bool(false));
         m.insert("fetchPositionHistory".to_string(), Value::Bool(false));
@@ -400,15 +400,51 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("order-book/{pair}".to_string(), Value::Int(1));
-        m.insert("tickers".to_string(), Value::Int(1));
-        m.insert("tickers/{pair}".to_string(), Value::Int(1));
-        m.insert("trades/{pair}".to_string(), Value::Int(1));
-        m.insert("provisioning/currencies".to_string(), Value::Int(1));
-        m.insert("provisioning/trading-pairs".to_string(), Value::Int(1));
-        m.insert("provisioning/limitations-and-fees".to_string(), Value::Int(1));
-        m.insert("trading-history/{pair}".to_string(), Value::Int(1));
-        m.insert("price/otc/{currency}".to_string(), Value::Int(1));
+        m.insert("order-book/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("tickers/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trades/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("provisioning/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("provisioning/trading-pairs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("provisioning/limitations-and-fees".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trading-history/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("price/otc/{currency}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -417,35 +453,103 @@ impl BitoproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("accounts/balance".to_string(), Value::Int(1));
-        m.insert("orders/history".to_string(), Value::Int(1));
-        m.insert("orders/all/{pair}".to_string(), Value::Int(1));
-        m.insert("orders/trades/{pair}".to_string(), Value::Int(1));
-        m.insert("orders/{pair}/{orderId}".to_string(), Value::Int(1));
-        m.insert("wallet/withdraw/{currency}/{serial}".to_string(), Value::Int(1));
-        m.insert("wallet/withdraw/{currency}/id/{id}".to_string(), Value::Int(1));
-        m.insert("wallet/depositHistory/{currency}".to_string(), Value::Int(1));
-        m.insert("wallet/withdrawHistory/{currency}".to_string(), Value::Int(1));
-        m.insert("orders/open".to_string(), Value::Int(1));
+        m.insert("accounts/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders/all/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders/trades/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders/{pair}/{orderId}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("wallet/withdraw/{currency}/{serial}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("wallet/withdraw/{currency}/id/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("wallet/depositHistory/{currency}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("wallet/withdrawHistory/{currency}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders/open".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("orders/{pair}".to_string(), divide(&Value::Int(1), &Value::Int(2)));
-        m.insert("orders/batch".to_string(), divide(&Value::Int(20), &Value::Int(3)));
-        m.insert("wallet/withdraw/{currency}".to_string(), Value::Int(10));
+        m.insert("orders/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(1), &Value::Int(2)));
+    m
+}));
+        m.insert("orders/batch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(3)));
+    m
+}));
+        m.insert("wallet/withdraw/{currency}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
         m.insert("put".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("orders".to_string(), Value::Int(5));
+        m.insert("orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("orders/{pair}/{id}".to_string(), divide(&Value::Int(2), &Value::Int(3)));
-        m.insert("orders/all".to_string(), Value::Int(5));
-        m.insert("orders/{pair}".to_string(), Value::Int(5));
+        m.insert("orders/{pair}/{id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(2), &Value::Int(3)));
+    m
+}));
+        m.insert("orders/all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("orders/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
     m
 }));
     m
@@ -1161,8 +1265,8 @@ impl BitoproCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_369: bool = true;
-            while { if !__for_first_369 { i = add(&i, &Value::Int(1)); } __for_first_369 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_372: bool = true;
+            while { if !__for_first_372 { i = add(&i, &Value::Int(1)); } __for_first_372 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -1320,8 +1424,8 @@ impl BitoproCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_370: bool = true;
-            while { if !__for_first_370 { i = add(&i, &Value::Int(1)); } __for_first_370 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_373: bool = true;
+            while { if !__for_first_373 { i = add(&i, &Value::Int(1)); } __for_first_373 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1588,16 +1692,16 @@ impl BitoproCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_372: bool = true;
-            while { if !__for_first_372 { i = add(&i, &Value::Int(1)); } __for_first_372 = false; is_less_than(&i, &get_array_length(&dataKeys)) } {
+            let mut __for_first_375: bool = true;
+            while { if !__for_first_375 { i = add(&i, &Value::Int(1)); } __for_first_375 = false; is_less_than(&i, &get_array_length(&dataKeys)) } {
             let mut marketId: Value = get_value(&dataKeys, &i);
             let mut marketId: Value = get_value(&dataKeys, &i);
             let mut orderIds: Value = get_value(&data, &marketId);
             let mut orderIds: Value = get_value(&data, &marketId);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_371: bool = true;
-                while { if !__for_first_371 { j = add(&j, &Value::Int(1)); } __for_first_371 = false; is_less_than(&j, &get_array_length(&orderIds)) } {
+                let mut __for_first_374: bool = true;
+                while { if !__for_first_374 { j = add(&j, &Value::Int(1)); } __for_first_374 = false; is_less_than(&j, &get_array_length(&orderIds)) } {
                 append_to_array(&mut orders, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), get_value(&orderIds, &j));

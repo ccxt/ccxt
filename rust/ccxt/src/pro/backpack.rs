@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BackpackCore {
 
 impl crate::exchange_generated::ExchangeBase for BackpackCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -464,7 +464,7 @@ impl BackpackCore {
                 let mut splitHashes: Value = split(&messageHash, &Value::Str(":".to_string()));
                 let mut symbol: Value = self.safe_string(splitHashes.clone(), Value::Int(2), &[]);
                 let mut timeframe: Value = self.safe_string(splitHashes.clone(), Value::Int(3), &[]);
-                if is_true(&Value::Bool(in_op(&self.ohlcvs, &symbol))) {
+                if is_true(&(!is_equal(&symbol, &Value::Null))) && is_true(&(!is_equal(&timeframe, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
                     if is_true(&Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe))) {
                         remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
                     }
@@ -482,20 +482,23 @@ impl BackpackCore {
             }  else if is_greater_than_or_equal(&get_index_of(&messageHash, &Value::Str("orders".to_string())), &Value::Int(0)) {
                 if is_equal(&messageHash, &Value::Str("unsubscribe:orders".to_string())) {
                     let mut cache: Value = self.orders.clone();
-                    let mut keys: Value = object_keys(&cache);
-                    {
-                                                let mut j: Value = Value::Int(0);
-                        let mut __for_first_38: bool = true;
-                        while { if !__for_first_38 { j = add(&j, &Value::Int(1)); } __for_first_38 = false; is_less_than(&j, &get_array_length(&keys)) } {
-                        let mut symbol: Value = get_value(&keys, &j);
-                        let mut symbol: Value = get_value(&keys, &j);
-                        remove(&mut self.orders.clone(), &symbol);
-                    }
+                    if !is_equal(&cache, &Value::Null) {
+                        let mut keys: Value = object_keys(&cache);
+                        {
+                                                        let mut j: Value = Value::Int(0);
+                            let mut __for_first_38: bool = true;
+                            while { if !__for_first_38 { j = add(&j, &Value::Int(1)); } __for_first_38 = false; is_less_than(&j, &get_array_length(&keys)) } {
+                            let mut symbol: Value = get_value(&keys, &j);
+                            let mut symbol: Value = get_value(&keys, &j);
+                            remove(&mut cache, &symbol);
+                        }
+                        }
                     }
                 }  else {
                     let mut symbol: Value = replace_str(&messageHash, &Value::Str("unsubscribe:orders:".to_string()), &Value::Str("".to_string()));
-                    if is_true(&Value::Bool(in_op(&self.orders, &symbol))) {
-                        remove(&mut self.orders.clone(), &symbol);
+                    let mut cache: Value = self.orders.clone();
+                    if is_true(&(!is_equal(&cache, &Value::Null))) && is_true(&(Value::Bool(in_op(&cache, &symbol)))) {
+                        remove(&mut cache, &symbol);
                     }
                 }
             }  else if is_greater_than_or_equal(&get_index_of(&messageHash, &Value::Str("positions".to_string())), &Value::Int(0)) {
@@ -689,7 +692,7 @@ impl BackpackCore {
         //         v: '5542.3911'
         //     }
         //
-        let mut microseconds: Value = self.safe_integer_k(ticker.clone(), "E", &[]);
+        let mut microseconds: Value = self.safe_integer_k(ticker.clone(), "E", &[Value::Int(0)]);
         let mut timestamp: Value = self.parse_to_int(divide(&microseconds, &Value::Int(1000)));
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "s", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
@@ -845,7 +848,7 @@ impl BackpackCore {
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "s", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-        let mut microseconds: Value = self.safe_integer_k(ticker.clone(), "E", &[]);
+        let mut microseconds: Value = self.safe_integer_k(ticker.clone(), "E", &[Value::Int(0)]);
         let mut timestamp: Value = self.parse_to_int(divide(&microseconds, &Value::Int(1000)));
         let mut ask: Value = self.safe_string_k(ticker.clone(), "a", &[]);
         let mut askVolume: Value = self.safe_string_k(ticker.clone(), "A", &[]);
@@ -1037,9 +1040,9 @@ impl BackpackCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         let mut market: Value = self.market(marketId.clone());
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut stream: Value = self.safe_string_k(message.clone(), "stream", &[]);
+        let mut stream: Value = self.safe_string_k(message.clone(), "stream", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&stream, &Value::Str(".".to_string()));
-        let mut timeframe: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
+        let mut timeframe: Value = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".to_string())]);
         if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
             add_element_to_object(&mut self.ohlcvs.clone(), &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1252,7 +1255,7 @@ impl BackpackCore {
         //         t: 10782547
         //     }
         //
-        let mut microseconds: Value = self.safe_integer_k(trade.clone(), "E", &[]);
+        let mut microseconds: Value = self.safe_integer_k(trade.clone(), "E", &[Value::Int(0)]);
         let mut timestamp: Value = self.parse_to_int(divide(&microseconds, &Value::Int(1000)));
         let mut id: Value = self.safe_string_k(trade.clone(), "t", &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "s", &[]);
@@ -1332,7 +1335,7 @@ impl BackpackCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1468,7 +1471,7 @@ impl BackpackCore {
             }
             append_to_array(&mut get_value(&storedOrderBook, &Value::Str("cache".to_string())), data.clone());
             return;
-        }  else if is_greater_than(&nonce, &deltaNonce) {
+        }  else if is_true(&(!is_equal(&deltaNonce, &Value::Null))) && is_true(&(is_greater_than(&nonce, &deltaNonce))) {
             return;
         }
         self.handle_delta(storedOrderBook.clone(), data.clone());
@@ -1505,6 +1508,12 @@ impl BackpackCore {
         let mut firstDelta: Value = self.safe_dict(cache.clone(), Value::Int(0), &[]);
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
         let mut firstDeltaStart: Value = self.safe_integer_k(firstDelta.clone(), "U", &[]);
+        if is_equal(&nonce, &Value::Null) {
+            return get_array_length(&cache);
+        }
+        if is_equal(&firstDeltaStart, &Value::Null) {
+            return negate(&Value::Int(1));
+        }
         if is_less_than(&nonce, &subtract(&firstDeltaStart, &Value::Int(1))) {
             return negate(&Value::Int(1));
         }
@@ -1516,6 +1525,9 @@ impl BackpackCore {
             let mut delta: Value = get_value(&cache, &i);
             let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
             let mut deltaEnd: Value = self.safe_integer_k(delta.clone(), "u", &[]);
+            if is_true(&(is_equal(&deltaStart, &Value::Null))) || is_true(&(is_equal(&deltaEnd, &Value::Null))) {
+                return get_array_length(&cache);
+            }
             if is_true(&(is_greater_than_or_equal(&nonce, &subtract(&deltaStart, &Value::Int(1))))) && is_true(&(is_less_than(&nonce, &deltaEnd))) {
                 return i;
             }
@@ -1678,7 +1690,7 @@ impl BackpackCore {
         //
         let mut id: Value = self.safe_string_k(order.clone(), "i", &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "c", &[]);
-        let mut microseconds: Value = self.safe_integer_k(order.clone(), "E", &[]);
+        let mut microseconds: Value = self.safe_integer_k(order.clone(), "E", &[Value::Int(0)]);
         let mut timestamp: Value = self.parse_to_int(divide(&microseconds, &Value::Int(1000)));
         let mut status: Value = self.parse_ws_order_status(self.safe_string_k(order.clone(), "X", &[]), &[market.clone()]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
@@ -1885,7 +1897,7 @@ impl BackpackCore {
         }
         let mut cache: Value = self.positions.clone();
         let mut parsedPosition: Value = self.parse_ws_position(data.clone(), &[]);
-        let mut microseconds: Value = self.safe_integer_k(data.clone(), "E", &[]);
+        let mut microseconds: Value = self.safe_integer_k(data.clone(), "E", &[Value::Int(0)]);
         let mut timestamp: Value = self.parse_to_int(divide(&microseconds, &Value::Int(1000)));
         add_element_to_object(&mut parsedPosition, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut parsedPosition, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
@@ -1919,8 +1931,9 @@ impl BackpackCore {
         //
         let mut id: Value = self.safe_string_k(position.clone(), "i", &[]);
         let mut marketId: Value = self.safe_string_k(position.clone(), "s", &[]);
-        market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market.clone()]);
+        market = marketResolved.clone();
+        let mut symbol: Value = get_value(&marketResolved, &Value::Str("symbol".to_string()));
         let mut notional: Value = self.safe_string_k(position.clone(), "n", &[]);
         let mut liquidationPrice: Value = self.safe_string_k(position.clone(), "l", &[]);
         let mut entryPrice: Value = self.safe_string_k(position.clone(), "b", &[]);
@@ -1931,14 +1944,15 @@ impl BackpackCore {
         let mut netQuantity: Value = self.safe_number_k(position.clone(), "q", &[]);
         let mut hedged: Value = Value::Bool(false);
         let mut side: Value = Value::Str("long".to_string());
-        if is_less_than(&netQuantity, &Value::Int(0)) {
-            side = Value::Str("short".to_string());
-        }
-        if is_equal(&netQuantity, &Value::Null) {
+        if !is_equal(&netQuantity, &Value::Null) {
+            if is_less_than(&netQuantity, &Value::Int(0)) {
+                side = Value::Str("short".to_string());
+            }
+        }  else {
             hedged = Value::Null;
             side = Value::Null;
         }
-        let mut microseconds: Value = self.safe_integer_k(position.clone(), "E", &[]);
+        let mut microseconds: Value = self.safe_integer_k(position.clone(), "E", &[Value::Int(0)]);
         let mut timestamp: Value = self.parse_to_int(divide(&microseconds, &Value::Int(1000)));
         let mut maintenanceMarginPercentage: Value = self.safe_number_k(position.clone(), "m", &[]);
         let mut initialMarginPercentage: Value = self.safe_number_k(position.clone(), "f", &[]);

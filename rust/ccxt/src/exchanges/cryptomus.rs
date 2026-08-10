@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for CryptomusCore {
 
 impl crate::exchange_generated::ExchangeBase for CryptomusCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -379,12 +379,36 @@ impl CryptomusCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/user-api/exchange/markets".to_string(), Value::Int(1));
-        m.insert("v2/user-api/exchange/market/price".to_string(), Value::Int(1));
-        m.insert("v1/exchange/market/assets".to_string(), Value::Int(1));
-        m.insert("v1/exchange/market/order-book/{currencyPair}".to_string(), Value::Int(1));
-        m.insert("v1/exchange/market/tickers".to_string(), Value::Int(1));
-        m.insert("v1/exchange/market/trades/{currencyPair}".to_string(), Value::Int(1));
+        m.insert("v2/user-api/exchange/markets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/user-api/exchange/market/price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/exchange/market/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/exchange/market/order-book/{currencyPair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/exchange/market/tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v1/exchange/market/trades/{currencyPair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -393,24 +417,64 @@ impl CryptomusCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/user-api/exchange/orders".to_string(), Value::Int(1));
-        m.insert("v2/user-api/exchange/orders/history".to_string(), Value::Int(1));
-        m.insert("v2/user-api/exchange/account/balance".to_string(), Value::Int(1));
-        m.insert("v2/user-api/exchange/account/tariffs".to_string(), Value::Int(1));
-        m.insert("v2/user-api/payment/services".to_string(), Value::Int(1));
-        m.insert("v2/user-api/payout/services".to_string(), Value::Int(1));
-        m.insert("v2/user-api/transaction/list".to_string(), Value::Int(1));
+        m.insert("v2/user-api/exchange/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/user-api/exchange/orders/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/user-api/exchange/account/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/user-api/exchange/account/tariffs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/user-api/payment/services".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/user-api/payout/services".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/user-api/transaction/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/user-api/exchange/orders".to_string(), Value::Int(1));
-        m.insert("v2/user-api/exchange/orders/market".to_string(), Value::Int(1));
+        m.insert("v2/user-api/exchange/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/user-api/exchange/orders/market".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/user-api/exchange/orders/{orderId}".to_string(), Value::Int(1));
+        m.insert("v2/user-api/exchange/orders/{orderId}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -437,7 +501,7 @@ impl CryptomusCore {
         m.insert("BEP20".to_string(), Value::Str("bsc".to_string()));
         m.insert("DASH".to_string(), Value::Str("dash".to_string()));
         m.insert("POLYGON".to_string(), Value::Str("polygon".to_string()));
-        m.insert("ARB".to_string(), Value::Str("arbitrum".to_string()));
+        m.insert("ARBITRUM".to_string(), Value::Str("arbitrum".to_string()));
         m.insert("SOL".to_string(), Value::Str("sol".to_string()));
         m.insert("TON".to_string(), Value::Str("ton".to_string()));
         m.insert("ERC20".to_string(), Value::Str("eth".to_string()));
@@ -456,7 +520,7 @@ impl CryptomusCore {
         m.insert("bsc".to_string(), Value::Str("BEP20".to_string()));
         m.insert("dash".to_string(), Value::Str("DASH".to_string()));
         m.insert("polygon".to_string(), Value::Str("POLYGON".to_string()));
-        m.insert("arbitrum".to_string(), Value::Str("ARB".to_string()));
+        m.insert("arbitrum".to_string(), Value::Str("ARBITRUM".to_string()));
         m.insert("sol".to_string(), Value::Str("SOL".to_string()));
         m.insert("ton".to_string(), Value::Str("TON".to_string()));
         m.insert("eth".to_string(), Value::Str("ERC20".to_string()));
@@ -701,8 +765,8 @@ impl CryptomusCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_568: bool = true;
-            while { if !__for_first_568 { i = add(&i, &Value::Int(1)); } __for_first_568 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
+            let mut __for_first_571: bool = true;
+            while { if !__for_first_571 { i = add(&i, &Value::Int(1)); } __for_first_571 = false; is_less_than(&i, &get_array_length(&rawCurrency)) } {
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             // set ID on first loop
@@ -1042,8 +1106,8 @@ impl CryptomusCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_569: bool = true;
-            while { if !__for_first_569 { i = add(&i, &Value::Int(1)); } __for_first_569 = false; is_less_than(&i, &get_array_length(&balance)) } {
+            let mut __for_first_572: bool = true;
+            while { if !__for_first_572 { i = add(&i, &Value::Int(1)); } __for_first_572 = false; is_less_than(&i, &get_array_length(&balance)) } {
             let mut balanceEntry: Value = get_value(&balance, &i);
             let mut balanceEntry: Value = get_value(&balance, &i);
             let mut currencyId: Value = self.safe_string_k(balanceEntry.clone(), "ticker", &[]);
@@ -1259,8 +1323,8 @@ impl CryptomusCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_570: bool = true;
-            while { if !__for_first_570 { i = add(&i, &Value::Int(1)); } __for_first_570 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_573: bool = true;
+            while { if !__for_first_573 { i = add(&i, &Value::Int(1)); } __for_first_573 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut order: Value = get_value(&result, &i);
             let mut order: Value = get_value(&result, &i);
             append_to_array(&mut orders, self.parse_order(order.clone(), &[market.clone()]));
@@ -1559,8 +1623,8 @@ impl CryptomusCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_571: bool = true;
-            while { if !__for_first_571 { i = add(&i, &Value::Int(1)); } __for_first_571 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_574: bool = true;
+            while { if !__for_first_574 { i = add(&i, &Value::Int(1)); } __for_first_574 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -1587,8 +1651,8 @@ impl CryptomusCore {
         let mut makerFees: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { i = add(&i, &Value::Int(1)); } __for_first_572 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
+            let mut __for_first_575: bool = true;
+            while { if !__for_first_575 { i = add(&i, &Value::Int(1)); } __for_first_575 = false; is_less_than(&i, &get_array_length(&feeTiers)) } {
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut tier: Value = get_value(&feeTiers, &i);
             let mut turnover: Value = self.safe_number_k(tier.clone(), "from_turnover", &[]);

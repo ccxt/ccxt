@@ -181,7 +181,7 @@ impl crate::exchange::DerivedExchange for HollaexCore {
 
 impl crate::exchange_generated::ExchangeBase for HollaexCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -281,6 +281,7 @@ impl HollaexCore {
         m.insert("fetchDepositAddresses".to_string(), Value::Bool(true));
         m.insert("fetchDepositAddressesByNetwork".to_string(), Value::Bool(false));
         m.insert("fetchDeposits".to_string(), Value::Bool(true));
+        m.insert("fetchDepositWithdrawFees".to_string(), Value::Bool(true));
         m.insert("fetchFundingHistory".to_string(), Value::Bool(false));
         m.insert("fetchFundingRate".to_string(), Value::Bool(false));
         m.insert("fetchFundingRateHistory".to_string(), Value::Bool(false));
@@ -367,23 +368,91 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("health".to_string(), Value::Int(1));
-        m.insert("constants".to_string(), Value::Int(1));
-        m.insert("kit".to_string(), Value::Int(1));
-        m.insert("tiers".to_string(), Value::Int(1));
-        m.insert("ticker".to_string(), Value::Int(1));
-        m.insert("tickers".to_string(), Value::Int(1));
-        m.insert("orderbook".to_string(), Value::Int(1));
-        m.insert("orderbooks".to_string(), Value::Int(1));
-        m.insert("trades".to_string(), Value::Int(1));
-        m.insert("chart".to_string(), Value::Int(1));
-        m.insert("charts".to_string(), Value::Int(1));
-        m.insert("minicharts".to_string(), Value::Int(1));
-        m.insert("oracle/prices".to_string(), Value::Int(1));
-        m.insert("quick-trade".to_string(), Value::Int(1));
-        m.insert("udf/config".to_string(), Value::Int(1));
-        m.insert("udf/history".to_string(), Value::Int(1));
-        m.insert("udf/symbols".to_string(), Value::Int(1));
+        m.insert("health".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("constants".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("kit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("tiers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orderbooks".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("chart".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("charts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("minicharts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("oracle/prices".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("quick-trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("udf/config".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("udf/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("udf/symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -392,26 +461,74 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("user".to_string(), Value::Int(1));
-        m.insert("user/balance".to_string(), Value::Int(1));
-        m.insert("user/deposits".to_string(), Value::Int(1));
-        m.insert("user/withdrawals".to_string(), Value::Int(1));
-        m.insert("user/withdrawal/fee".to_string(), Value::Int(1));
-        m.insert("user/trades".to_string(), Value::Int(1));
-        m.insert("orders".to_string(), Value::Int(1));
-        m.insert("order".to_string(), Value::Int(1));
+        m.insert("user".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/deposits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/withdrawals".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/withdrawal/fee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("user/withdrawal".to_string(), Value::Int(1));
-        m.insert("order".to_string(), Value::Int(1));
+        m.insert("user/withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("order/all".to_string(), Value::Int(1));
-        m.insert("order".to_string(), Value::Int(1));
+        m.insert("order/all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -657,8 +774,8 @@ impl HollaexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_730: bool = true;
-            while { if !__for_first_730 { i = add(&i, &Value::Int(1)); } __for_first_730 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_733: bool = true;
+            while { if !__for_first_733 { i = add(&i, &Value::Int(1)); } __for_first_733 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&pairs, &key);
@@ -844,8 +961,8 @@ impl HollaexCore {
         let mut networkIds: Value = object_keys(&rawNetworks);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_731: bool = true;
-            while { if !__for_first_731 { j = add(&j, &Value::Int(1)); } __for_first_731 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
+            let mut __for_first_734: bool = true;
+            while { if !__for_first_734 { j = add(&j, &Value::Int(1)); } __for_first_734 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkEntry: Value = self.safe_dict(rawNetworks.clone(), networkId.clone(), &[]);
@@ -940,15 +1057,17 @@ impl HollaexCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_732: bool = true;
-            while { if !__for_first_732 { i = add(&i, &Value::Int(1)); } __for_first_732 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_735: bool = true;
+            while { if !__for_first_735 { i = add(&i, &Value::Int(1)); } __for_first_735 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
-            let mut orderbook: Value = get_value(&response, &marketId);
-            let mut orderbook: Value = get_value(&response, &marketId);
+            let mut orderbook: Value = self.safe_dict(response.clone(), marketId.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(orderbook.clone(), "timestamp", &[]));
-            add_element_to_object(&mut result, &symbol, self.parse_order_book(get_value(&response, &marketId), symbol.clone(), &[timestamp.clone()]));
+            add_element_to_object(&mut result, &symbol, self.parse_order_book(orderbook.clone(), symbol.clone(), &[timestamp.clone()]));
         }
         }
         return result;
@@ -1077,8 +1196,8 @@ impl HollaexCore {
         let mut keys: Value = object_keys(&tickers);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_733: bool = true;
-            while { if !__for_first_733 { i = add(&i, &Value::Int(1)); } __for_first_733 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_736: bool = true;
+            while { if !__for_first_736 { i = add(&i, &Value::Int(1)); } __for_first_736 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut ticker: Value = get_value(&tickers, &key);
@@ -1336,8 +1455,8 @@ impl HollaexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_734: bool = true;
-            while { if !__for_first_734 { i = add(&i, &Value::Int(1)); } __for_first_734 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_737: bool = true;
+            while { if !__for_first_737 { i = add(&i, &Value::Int(1)); } __for_first_737 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
             let mut makerString: Value = self.safe_string(makerFees.clone(), get_value(&market, &Value::Str("id".to_string())), &[]);
@@ -1411,7 +1530,7 @@ impl HollaexCore {
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_chart(&[__ws_arg_4]).await;
-        return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+        return self.parse_ohlc_vs(self.to_array(response.clone()), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1439,8 +1558,8 @@ impl HollaexCore {
         let mut currencyIds: Value = object_keys(&currenciesById);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_735: bool = true;
-            while { if !__for_first_735 { i = add(&i, &Value::Int(1)); } __for_first_735 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_738: bool = true;
+            while { if !__for_first_738 { i = add(&i, &Value::Int(1)); } __for_first_738 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2507,8 +2626,8 @@ impl HollaexCore {
             let mut keysLength: Value = get_array_length(&keys);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_736: bool = true;
-                while { if !__for_first_736 { i = add(&i, &Value::Int(1)); } __for_first_736 = false; is_less_than(&i, &keysLength) } {
+                let mut __for_first_739: bool = true;
+                while { if !__for_first_739 { i = add(&i, &Value::Int(1)); } __for_first_739 = false; is_less_than(&i, &keysLength) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 let mut value: Value = get_value(&withdrawalFees, &key);

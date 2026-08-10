@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for GeminiCore {
 
 impl crate::exchange_generated::ExchangeBase for GeminiCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -358,6 +358,9 @@ impl GeminiCore {
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("trades:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
+        if is_equal(&marketId, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchTrades() marketId is required".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".to_string()));
@@ -489,7 +492,9 @@ impl GeminiCore {
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             stored = ArrayCache::new(tradesLimit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            }
         }
         stored.append(trade.clone());
         let mut messageHash: Value = add(&Value::Str("trades:".to_string()), &symbol);
@@ -547,8 +552,8 @@ impl GeminiCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_360: bool = true;
-                while { if !__for_first_360 { i = add(&i, &Value::Int(1)); } __for_first_360 = false; is_less_than(&i, &get_array_length(&trades)) } {
+                let mut __for_first_358: bool = true;
+                while { if !__for_first_358 { i = add(&i, &Value::Int(1)); } __for_first_358 = false; is_less_than(&i, &get_array_length(&trades)) } {
                 let mut trade: Value = self.parse_ws_trade(get_value(&trades, &i), &[market.clone()]);
                 stored.append(trade.clone());
             }
@@ -567,8 +572,8 @@ impl GeminiCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_361: bool = true;
-                while { if !__for_first_361 { i = add(&i, &Value::Int(1)); } __for_first_361 = false; is_less_than(&i, &get_array_length(&trades)) } {
+                let mut __for_first_359: bool = true;
+                while { if !__for_first_359 { i = add(&i, &Value::Int(1)); } __for_first_359 = false; is_less_than(&i, &get_array_length(&trades)) } {
                 let mut marketId: Value = get_value(&get_value(&trades, &i), &Value::Str("symbol".to_string()));
                 let mut market: Value = self.safe_market(&[to_lower(&marketId)]);
                 let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
@@ -587,8 +592,8 @@ impl GeminiCore {
             let mut symbols: Value = object_keys(&storesForSymbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_362: bool = true;
-                while { if !__for_first_362 { i = add(&i, &Value::Int(1)); } __for_first_362 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_360: bool = true;
+                while { if !__for_first_360 { i = add(&i, &Value::Int(1)); } __for_first_360 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut stored: Value = get_value(&storesForSymbols, &symbol);
@@ -689,17 +694,19 @@ impl GeminiCore {
     m
 }));
         }
-        let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
+        let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            if !is_equal(&symbol, &Value::Null) && !is_equal(&timeframe, &Value::Null) {
+                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            }
         }
         let mut changesLength: Value = get_array_length(&changes);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_363: bool = true;
-            while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &changesLength) } {
+            let mut __for_first_361: bool = true;
+            while { if !__for_first_361 { i = add(&i, &Value::Int(1)); } __for_first_361 = false; is_less_than(&i, &changesLength) } {
             let mut index: Value = subtract(&subtract(&changesLength, &i), &Value::Int(1));
             let mut parsed: Value = self.parse_ohlcv(get_value(&changes, &index), &[market.clone()]);
             stored.append(parsed.clone());
@@ -720,7 +727,7 @@ impl GeminiCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -734,6 +741,9 @@ impl GeminiCore {
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
+        if is_equal(&marketId, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchOrderBook() marketId is required".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".to_string()));
@@ -754,6 +764,7 @@ impl GeminiCore {
 }
 
     pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+        let mut isInitial: Value = Value::Bool(is_true(&(Value::Bool(in_op(&message, &Value::Str("auction_events".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("trades".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("changes".to_string()))))));
         let mut changes: Value = self.safe_value_k(message.clone(), "changes", &[Value::List(vec![])]);
         let mut marketId: Value = self.safe_string_lower(message.clone(), Value::Str("symbol".to_string()), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -762,12 +773,18 @@ impl GeminiCore {
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+        }  else if is_true(&isInitial) {
+            // handle https://github.com/ccxt/ccxt/issues/29210
+            if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
+                remove(&mut self.orderbooks.clone(), &symbol);
+            }
+            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_364: bool = true;
-            while { if !__for_first_364 { i = add(&i, &Value::Int(1)); } __for_first_364 = false; is_less_than(&i, &get_array_length(&changes)) } {
+            let mut __for_first_362: bool = true;
+            while { if !__for_first_362 { i = add(&i, &Value::Int(1)); } __for_first_362 = false; is_less_than(&i, &get_array_length(&changes)) } {
             let mut delta: Value = get_value(&changes, &i);
             let mut delta: Value = get_value(&changes, &i);
             let mut price: Value = self.safe_number(delta.clone(), Value::Int(1), &[]);
@@ -792,7 +809,7 @@ impl GeminiCore {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -868,8 +885,8 @@ impl GeminiCore {
         let mut messageHash: Value = add(&Value::Str("bidsasks:".to_string()), &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_365: bool = true;
-            while { if !__for_first_365 { i = add(&i, &Value::Int(1)); } __for_first_365 = false; is_less_than(&i, &get_array_length(&rawBidAskChanges)) } {
+            let mut __for_first_363: bool = true;
+            while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &get_array_length(&rawBidAskChanges)) } {
             let mut entry: Value = get_value(&rawBidAskChanges, &i);
             let mut entry: Value = get_value(&rawBidAskChanges, &i);
             let mut rawSide: Value = self.safe_string_k(entry.clone(), "side", &[]);
@@ -921,8 +938,8 @@ impl GeminiCore {
         let mut marketIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_366: bool = true;
-            while { if !__for_first_366 { i = add(&i, &Value::Int(1)); } __for_first_366 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_364: bool = true;
+            while { if !__for_first_364 { i = add(&i, &Value::Int(1)); } __for_first_364 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut messageHash: Value = add(&add(&itemHashName, &Value::Str(":".to_string())), &symbol);
@@ -974,8 +991,8 @@ impl GeminiCore {
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_367: bool = true;
-            while { if !__for_first_367 { i = add(&i, &Value::Int(1)); } __for_first_367 = false; is_less_than(&i, &get_array_length(&rawOrderBookChanges)) } {
+            let mut __for_first_365: bool = true;
+            while { if !__for_first_365 { i = add(&i, &Value::Int(1)); } __for_first_365 = false; is_less_than(&i, &get_array_length(&rawOrderBookChanges)) } {
             let mut entry: Value = get_value(&rawOrderBookChanges, &i);
             let mut entry: Value = get_value(&rawOrderBookChanges, &i);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
@@ -1137,8 +1154,8 @@ impl GeminiCore {
         let mut orders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_368: bool = true;
-            while { if !__for_first_368 { i = add(&i, &Value::Int(1)); } __for_first_368 = false; is_less_than(&i, &get_array_length(&message)) } {
+            let mut __for_first_366: bool = true;
+            while { if !__for_first_366 { i = add(&i, &Value::Int(1)); } __for_first_366 = false; is_less_than(&i, &get_array_length(&message)) } {
             let mut order: Value = self.parse_ws_order(get_value(&message, &i), &[]);
             orders.append(order.clone());
         }
@@ -1313,14 +1330,17 @@ impl GeminiCore {
             let mut ts: Value = self.safe_integer_k(message.clone(), "timestampms", &[self.milliseconds()]);
             let mut eventId: Value = self.safe_integer_k(message.clone(), "eventId", &[]);
             let mut events: Value = self.safe_list_k(message.clone(), "events", &[]);
+            if is_equal(&events, &Value::Null) {
+                return;
+            }
             let mut orderBookItems: Value = Value::List(vec![]);
             let mut bidaskItems: Value = Value::List(vec![]);
             let mut collectedEventsOfTrades: Value = Value::List(vec![]);
             let mut eventsLength: Value = get_array_length(&events);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_369: bool = true;
-                while { if !__for_first_369 { i = add(&i, &Value::Int(1)); } __for_first_369 = false; is_less_than(&i, &get_array_length(&events)) } {
+                let mut __for_first_367: bool = true;
+                while { if !__for_first_367 { i = add(&i, &Value::Int(1)); } __for_first_367 = false; is_less_than(&i, &get_array_length(&events)) } {
                 let mut event: Value = get_value(&events, &i);
                 let mut event: Value = get_value(&events, &i);
                 let mut eventType: Value = self.safe_string_k(event.clone(), "type", &[]);
@@ -1357,6 +1377,9 @@ impl GeminiCore {
     m
 }));
         let mut url: Value = self.safe_string_k(params.clone(), "url", &[]);
+        if is_equal(&url, &Value::Null) {
+            return Value::Null;
+        }
         if is_true(&(!is_equal(&self.clients, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.clients, &url)))) {
             return Value::Null;
         }

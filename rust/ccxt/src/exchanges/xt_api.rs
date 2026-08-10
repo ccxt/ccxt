@@ -152,6 +152,11 @@ impl XtCore {
         self.call_method(Value::Str("public_linear_get_future_market_v1_public_q_ticker".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicLinearGetFutureMarketV1PublicQTickerBooks` implicit endpoint.
+    pub async fn public_linear_get_future_market_v1_public_q_ticker_books(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_linear_get_future_market_v1_public_q_ticker_books".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicLinearGetFutureMarketV1PublicQTickers` implicit endpoint.
     pub async fn public_linear_get_future_market_v1_public_q_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_linear_get_future_market_v1_public_q_tickers".to_string()), optional_args).await
@@ -250,6 +255,11 @@ impl XtCore {
     /// Auto-generated wrapper for the `publicInverseGetFutureMarketV1PublicQTicker` implicit endpoint.
     pub async fn public_inverse_get_future_market_v1_public_q_ticker(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_inverse_get_future_market_v1_public_q_ticker".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicInverseGetFutureMarketV1PublicQTickerBooks` implicit endpoint.
+    pub async fn public_inverse_get_future_market_v1_public_q_ticker_books(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_inverse_get_future_market_v1_public_q_ticker_books".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicInverseGetFutureMarketV1PublicQTickers` implicit endpoint.

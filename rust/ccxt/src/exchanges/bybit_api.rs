@@ -1032,6 +1032,11 @@ impl BybitCore {
         self.call_method(Value::Str("private_get_v5_spot_lever_token_order_record".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeFlexibleAvailableInventory` implicit endpoint.
+    pub async fn private_get_v5_spot_margin_trade_flexible_available_inventory(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v5_spot_margin_trade_flexible_available_inventory".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV5SpotMarginTradeInterestRateHistory` implicit endpoint.
     pub async fn private_get_v5_spot_margin_trade_interest_rate_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v5_spot_margin_trade_interest_rate_history".to_string()), optional_args).await

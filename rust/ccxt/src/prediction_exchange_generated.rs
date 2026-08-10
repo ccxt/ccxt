@@ -132,8 +132,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut extraNames: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_178: bool = true;
-            while { if !__for_first_178 { i = add(&i, &Value::Int(1)); } __for_first_178 = false; is_less_than(&i, &extraScopeParamsLength) } {
+            let mut __for_first_179: bool = true;
+            while { if !__for_first_179 { i = add(&i, &Value::Int(1)); } __for_first_179 = false; is_less_than(&i, &extraScopeParamsLength) } {
             let mut scopeKey: Value = get_value(&extraScopeParams, &i);
             let mut scopeKey: Value = get_value(&extraScopeParams, &i);
             if is_true(&Value::Bool(in_op(&params, &scopeKey))) {
@@ -165,8 +165,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut filtered: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_179: bool = true;
-                while { if !__for_first_179 { i = add(&i, &Value::Int(1)); } __for_first_179 = false; is_less_than(&i, &get_array_length(&result)) } {
+                let mut __for_first_180: bool = true;
+                while { if !__for_first_180 { i = add(&i, &Value::Int(1)); } __for_first_180 = false; is_less_than(&i, &get_array_length(&result)) } {
                 let mut event: Value = get_value(&result, &i);
                 let mut event: Value = get_value(&result, &i);
                 let mut idMatch: Value = Value::Bool(is_true(&(!is_equal(&eventId, &Value::Null))) && is_true(&(is_equal(&self.safe_string_k(event.clone(), "id", &[]), &eventId))));
@@ -202,8 +202,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if !is_equal(&sortKey, &Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_180: bool = true;
-                    while { if !__for_first_180 { i = add(&i, &Value::Int(1)); } __for_first_180 = false; is_less_than(&i, &get_array_length(&result)) } {
+                    let mut __for_first_181: bool = true;
+                    while { if !__for_first_181 { i = add(&i, &Value::Int(1)); } __for_first_181 = false; is_less_than(&i, &get_array_length(&result)) } {
                     { let __be_tmp = self.safe_number(get_value(&result, &i), sortKey.clone(), &[Value::Int(0)]); add_element_to_object(get_value_mut(&mut result, &i), &sortKey, __be_tmp.clone()); };
                 }
                 }
@@ -236,8 +236,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_181: bool = true;
-            while { if !__for_first_181 { i = add(&i, &Value::Int(1)); } __for_first_181 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_182: bool = true;
+            while { if !__for_first_182 { i = add(&i, &Value::Int(1)); } __for_first_182 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             let mut isActive: Value = self.safe_bool_k(event.clone(), "active", &[]);
@@ -268,8 +268,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_183: bool = true;
-            while { if !__for_first_183 { i = add(&i, &Value::Int(1)); } __for_first_183 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_184: bool = true;
+            while { if !__for_first_184 { i = add(&i, &Value::Int(1)); } __for_first_184 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             let mut title: Value = self.safe_string_lower(event.clone(), Value::Str("title".to_string()), &[Value::Str("".to_string())]);
@@ -277,8 +277,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut matched: Value = Value::Bool(false);
             {
                                 let mut qi: Value = Value::Int(0);
-                let mut __for_first_182: bool = true;
-                while { if !__for_first_182 { qi = add(&qi, &Value::Int(1)); } __for_first_182 = false; is_less_than(&qi, &get_array_length(&queries)) } {
+                let mut __for_first_183: bool = true;
+                while { if !__for_first_183 { qi = add(&qi, &Value::Int(1)); } __for_first_183 = false; is_less_than(&qi, &get_array_length(&queries)) } {
                 let mut q: Value = to_lower(&get_value(&queries, &qi));
                 if is_equal(&title, &Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" filterEventsBySearchIn() missing title".to_string()))));
@@ -319,8 +319,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut pendingSep: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_184: bool = true;
-            while { if !__for_first_184 { i = add(&i, &Value::Int(1)); } __for_first_184 = false; is_less_than(&i, &get_array_length(&chars)) } {
+            let mut __for_first_185: bool = true;
+            while { if !__for_first_185 { i = add(&i, &Value::Int(1)); } __for_first_185 = false; is_less_than(&i, &get_array_length(&chars)) } {
             let mut ch: Value = get_value(&chars, &i);
             let mut ch: Value = get_value(&chars, &i);
             if is_greater_than_or_equal(&get_index_of(&allowed, &ch), &Value::Int(0)) {
@@ -349,8 +349,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut wanted: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_185: bool = true;
-            while { if !__for_first_185 { i = add(&i, &Value::Int(1)); } __for_first_185 = false; is_less_than(&i, &get_array_length(&tags)) } {
+            let mut __for_first_186: bool = true;
+            while { if !__for_first_186 { i = add(&i, &Value::Int(1)); } __for_first_186 = false; is_less_than(&i, &get_array_length(&tags)) } {
             let mut wantedKey: Value = self.normalize_tag_key(get_value(&tags, &i));
             if !is_equal(&wantedKey, &Value::Str("".to_string())) {
                 // an empty normalized key would substring-match every tag
@@ -361,16 +361,16 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_188: bool = true;
-            while { if !__for_first_188 { i = add(&i, &Value::Int(1)); } __for_first_188 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_189: bool = true;
+            while { if !__for_first_189 { i = add(&i, &Value::Int(1)); } __for_first_189 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             let mut eventTags: Value = self.safe_list_k(event.clone(), "tags", &[Value::List(vec![])]);
             let mut matched: Value = Value::Bool(false);
             {
                                 let mut ti: Value = Value::Int(0);
-                let mut __for_first_187: bool = true;
-                while { if !__for_first_187 { ti = add(&ti, &Value::Int(1)); } __for_first_187 = false; is_less_than(&ti, &get_array_length(&eventTags)) } {
+                let mut __for_first_188: bool = true;
+                while { if !__for_first_188 { ti = add(&ti, &Value::Int(1)); } __for_first_188 = false; is_less_than(&ti, &get_array_length(&eventTags)) } {
                 let mut tag: Value = get_value(&eventTags, &ti);
                 let mut tag: Value = get_value(&eventTags, &ti);
                 let mut tagLabel: Value = Value::Null;
@@ -383,8 +383,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     let mut tagKey: Value = self.normalize_tag_key(tagLabel.clone());
                     {
                                                 let mut wi: Value = Value::Int(0);
-                        let mut __for_first_186: bool = true;
-                        while { if !__for_first_186 { wi = add(&wi, &Value::Int(1)); } __for_first_186 = false; is_less_than(&wi, &get_array_length(&wanted)) } {
+                        let mut __for_first_187: bool = true;
+                        while { if !__for_first_187 { wi = add(&wi, &Value::Int(1)); } __for_first_187 = false; is_less_than(&wi, &get_array_length(&wanted)) } {
                         if is_greater_than_or_equal(&get_index_of(&tagKey, &get_value(&wanted, &wi)), &Value::Int(0)) {
                             matched = Value::Bool(true);
                             break;
@@ -407,7 +407,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     Value::Null
 }
 
-    async fn fetch_events(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_events(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_events", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -420,9 +420,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchEvents() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_event(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn fetch_event(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_event", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -435,7 +435,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchEvent() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn set_events(&mut self, mut events: Value) -> Value {
         // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
@@ -455,8 +455,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_189: bool = true;
-            while { if !__for_first_189 { i = add(&i, &Value::Int(1)); } __for_first_189 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_190: bool = true;
+            while { if !__for_first_190 { i = add(&i, &Value::Int(1)); } __for_first_190 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             let mut id: Value = self.safe_string_k(event.clone(), "id", &[]);
@@ -492,8 +492,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut keys: Value = object_keys(&self.pred().events);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_190: bool = true;
-            while { if !__for_first_190 { i = add(&i, &Value::Int(1)); } __for_first_190 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_191: bool = true;
+            while { if !__for_first_191 { i = add(&i, &Value::Int(1)); } __for_first_191 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut event: Value = get_value(&self.pred().events, &get_value(&keys, &i));
             let mut identity: Value = self.safe_string2(event.clone(), Value::Str("id".to_string()), Value::Str("event".to_string()), &[get_value(&keys, &i)]);
             if !is_true(&(Value::Bool(in_op(&seen, &identity)))) {
@@ -507,7 +507,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     Value::Null
 }
 
-    async fn load_events_helper(&mut self, optional_args: &[Value]) -> Value {
+    fn load_events_helper(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut reload = get_arg(optional_args, 0, Value::Bool(false));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -523,9 +523,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         return self.set_events(events.clone());
 
     Value::Null
-}
+} }
 
-    async fn load_events(&mut self, optional_args: &[Value]) -> Value {
+    fn load_events(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut reload = get_arg(optional_args, 0, Value::Bool(false));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -534,7 +534,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         return self.load_events_helper(&[reload.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
     fn get_event(&self, mut eventIdOrSlug: Value) -> Value {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
@@ -662,8 +662,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut lastDash: Value = Value::Bool(true); // start true to drop leading separators
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_191: bool = true;
-            while { if !__for_first_191 { i = add(&i, &Value::Int(1)); } __for_first_191 = false; is_less_than(&i, &get_array_length(&chars)) } {
+            let mut __for_first_192: bool = true;
+            while { if !__for_first_192 { i = add(&i, &Value::Int(1)); } __for_first_192 = false; is_less_than(&i, &get_array_length(&chars)) } {
             let mut ch: Value = get_value(&chars, &i);
             let mut ch: Value = get_value(&chars, &i);
             if is_greater_than_or_equal(&get_index_of(&allowed, &ch), &Value::Int(0)) {
@@ -678,8 +678,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut replacementKeys: Value = object_keys(&replacements);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_192: bool = true;
-            while { if !__for_first_192 { i = add(&i, &Value::Int(1)); } __for_first_192 = false; is_less_than(&i, &get_array_length(&replacementKeys)) } {
+            let mut __for_first_193: bool = true;
+            while { if !__for_first_193 { i = add(&i, &Value::Int(1)); } __for_first_193 = false; is_less_than(&i, &get_array_length(&replacementKeys)) } {
             let mut replacementKey: Value = get_value(&replacementKeys, &i);
             let mut replacementKey: Value = get_value(&replacementKeys, &i);
             let mut replacementValue: Value = self.safe_string(replacements.clone(), replacementKey.clone(), &[]);
@@ -692,8 +692,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut parts: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_193: bool = true;
-            while { if !__for_first_193 { i = add(&i, &Value::Int(1)); } __for_first_193 = false; is_less_than(&i, &get_array_length(&rawParts)) } {
+            let mut __for_first_194: bool = true;
+            while { if !__for_first_194 { i = add(&i, &Value::Int(1)); } __for_first_194 = false; is_less_than(&i, &get_array_length(&rawParts)) } {
             let mut w: Value = get_value(&rawParts, &i);
             let mut w: Value = get_value(&rawParts, &i);
             if is_greater_than(&get_array_length(&w), &Value::Int(0)) && !is_true(&self.in_array(w.clone(), stopWords.clone())) {
@@ -744,8 +744,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut pendingSep: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_194: bool = true;
-            while { if !__for_first_194 { i = add(&i, &Value::Int(1)); } __for_first_194 = false; is_less_than(&i, &get_array_length(&chars)) } {
+            let mut __for_first_195: bool = true;
+            while { if !__for_first_195 { i = add(&i, &Value::Int(1)); } __for_first_195 = false; is_less_than(&i, &get_array_length(&chars)) } {
             let mut ch: Value = get_value(&chars, &i);
             let mut ch: Value = get_value(&chars, &i);
             if is_greater_than_or_equal(&get_index_of(&allowed, &ch), &Value::Int(0)) {
@@ -777,8 +777,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut aliased: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_195: bool = true;
-            while { if !__for_first_195 { i = add(&i, &Value::Int(1)); } __for_first_195 = false; is_less_than(&i, &get_array_length(&marketsList)) } {
+            let mut __for_first_196: bool = true;
+            while { if !__for_first_196 { i = add(&i, &Value::Int(1)); } __for_first_196 = false; is_less_than(&i, &get_array_length(&marketsList)) } {
             let mut row: Value = get_value(&marketsList, &i);
             let mut row: Value = get_value(&marketsList, &i);
             let mut copy: Value = self.extend(Value::Map({
@@ -796,8 +796,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut marketKeys: Value = object_keys(&stored);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_196: bool = true;
-            while { if !__for_first_196 { i = add(&i, &Value::Int(1)); } __for_first_196 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
+            let mut __for_first_197: bool = true;
+            while { if !__for_first_197 { i = add(&i, &Value::Int(1)); } __for_first_197 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
             let mut key: Value = get_value(&marketKeys, &i);
             let mut key: Value = get_value(&marketKeys, &i);
             { let __be_tmp = self.omit(get_value(&stored, &key), Value::Str("symbol".to_string()), &[]); add_element_to_object(&mut stored, &key, __be_tmp.clone()); };
@@ -831,8 +831,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut outcomesList: Value = self.safe_list_k(market.clone(), "outcomes", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_197: bool = true;
-            while { if !__for_first_197 { j = add(&j, &Value::Int(1)); } __for_first_197 = false; is_less_than(&j, &get_array_length(&outcomesList)) } {
+            let mut __for_first_198: bool = true;
+            while { if !__for_first_198 { j = add(&j, &Value::Int(1)); } __for_first_198 = false; is_less_than(&j, &get_array_length(&outcomesList)) } {
             let mut oc: Value = get_value(&outcomesList, &j);
             let mut oc: Value = get_value(&outcomesList, &j);
             let mut ocSymbol: Value = self.safe_string2(oc.clone(), Value::Str("outcome".to_string()), Value::Str("symbol".to_string()), &[]);
@@ -890,8 +890,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut marketKeys: Value = object_keys(&self.markets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_198: bool = true;
-            while { if !__for_first_198 { i = add(&i, &Value::Int(1)); } __for_first_198 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
+            let mut __for_first_199: bool = true;
+            while { if !__for_first_199 { i = add(&i, &Value::Int(1)); } __for_first_199 = false; is_less_than(&i, &get_array_length(&marketKeys)) } {
             self.index_market_outcomes(get_value(&self.markets, &get_value(&marketKeys, &i)));
         }
         }
@@ -910,8 +910,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut marketsLength: Value = get_array_length(&markets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_199: bool = true;
-            while { if !__for_first_199 { i = add(&i, &Value::Int(1)); } __for_first_199 = false; is_less_than(&i, &marketsLength) } {
+            let mut __for_first_200: bool = true;
+            while { if !__for_first_200 { i = add(&i, &Value::Int(1)); } __for_first_200 = false; is_less_than(&i, &marketsLength) } {
             let mut m: Value = get_value(&markets, &i);
             let mut m: Value = get_value(&markets, &i);
             let mut marketHandle: Value = self.safe_string2(m.clone(), Value::Str("market".to_string()), Value::Str("symbol".to_string()), &[]);
@@ -923,7 +923,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         self.populate_outcomes();
 }
 
-    fn load_outcomes<'ccxt_rec>(&'ccxt_rec mut self, optional_args: &'ccxt_rec [Value]) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = Value> + 'ccxt_rec>> { Box::pin(async move {
+    fn load_outcomes<'ccxt_rec>(&'ccxt_rec mut self, optional_args: &'ccxt_rec [Value]) -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = Value> + Send + 'ccxt_rec>> { Box::pin(async move {
         let mut outcomes = get_arg(optional_args, 0, Value::Null);
         let mut reload = get_arg(optional_args, 1, Value::Bool(false));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -943,8 +943,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut missing: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_200: bool = true;
-                while { if !__for_first_200 { i = add(&i, &Value::Int(1)); } __for_first_200 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+                let mut __for_first_201: bool = true;
+                while { if !__for_first_201 { i = add(&i, &Value::Int(1)); } __for_first_201 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
                 if is_true(&reload) || !is_true(&self.has_outcome(get_value(&outcomes, &i))) {
                     append_to_array(&mut missing, get_value(&outcomes, &i));
                 }
@@ -960,8 +960,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 let mut stillMissing: Value = Value::List(vec![]);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_201: bool = true;
-                    while { if !__for_first_201 { i = add(&i, &Value::Int(1)); } __for_first_201 = false; is_less_than(&i, &missingLength) } {
+                    let mut __for_first_202: bool = true;
+                    while { if !__for_first_202 { i = add(&i, &Value::Int(1)); } __for_first_202 = false; is_less_than(&i, &missingLength) } {
                     if !is_true(&self.has_outcome(get_value(&missing, &i))) {
                         append_to_array(&mut stillMissing, get_value(&missing, &i));
                     }
@@ -993,7 +993,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
  * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
  * @returns {object} the outcome cache
  */
-    async fn fetch_outcomes(&mut self, mut outcomeSymbols: Value) -> Value {
+    fn fetch_outcomes(&mut self, mut outcomeSymbols: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_outcomes", vec![outcomeSymbols.clone()]).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1001,17 +1001,17 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
 
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_202: bool = true;
-            while { if !__for_first_202 { i = add(&i, &Value::Int(1)); } __for_first_202 = false; is_less_than(&i, &get_array_length(&outcomeSymbols)) } {
+            let mut __for_first_203: bool = true;
+            while { if !__for_first_203 { i = add(&i, &Value::Int(1)); } __for_first_203 = false; is_less_than(&i, &get_array_length(&outcomeSymbols)) } {
             self.fetch_outcome(get_value(&outcomeSymbols, &i)).await;
         }
         }
         return self.pred().outcomes.clone();
 
     Value::Null
-}
+} }
 
-    async fn load_outcome(&mut self, mut outcomeSymbol: Value, optional_args: &[Value]) -> Value {
+    fn load_outcome(&mut self, mut outcomeSymbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut reload = get_arg(optional_args, 0, Value::Bool(false));
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
@@ -1052,7 +1052,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         return self.fetch_outcome(outcomeSymbol.clone()).await;
 
     Value::Null
-}
+} }
 
     fn outcome_search_query(&self, mut outcomeSymbol: Value) -> Value {
         // derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
@@ -1075,8 +1075,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut letters: Value = Value::Str("abcdefghijklmnopqrstuvwxyz".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_204: bool = true;
-            while { if !__for_first_204 { i = add(&i, &Value::Int(1)); } __for_first_204 = false; is_less_than(&i, &get_array_length(&rawWords)) } {
+            let mut __for_first_205: bool = true;
+            while { if !__for_first_205 { i = add(&i, &Value::Int(1)); } __for_first_205 = false; is_less_than(&i, &get_array_length(&rawWords)) } {
             let mut word: Value = get_value(&rawWords, &i);
             let mut word: Value = get_value(&rawWords, &i);
             // inline .length so the php transpiler emits strlen() — the standalone
@@ -1088,8 +1088,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut chars: Value = self.string_to_chars_array(word.clone());
             {
                                 let mut ci: Value = Value::Int(0);
-                let mut __for_first_203: bool = true;
-                while { if !__for_first_203 { ci = add(&ci, &Value::Int(1)); } __for_first_203 = false; is_less_than(&ci, &get_array_length(&chars)) } {
+                let mut __for_first_204: bool = true;
+                while { if !__for_first_204 { ci = add(&ci, &Value::Int(1)); } __for_first_204 = false; is_less_than(&ci, &get_array_length(&chars)) } {
                 if is_greater_than_or_equal(&get_index_of(&letters, &get_value(&chars, &ci)), &Value::Int(0)) {
                     wordHasLetters = Value::Bool(true);
                     break;
@@ -1116,7 +1116,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     Value::Null
 }
 
-    async fn fetch_outcome(&mut self, mut outcomeSymbol: Value) -> Value {
+    fn fetch_outcome(&mut self, mut outcomeSymbol: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_outcome", vec![outcomeSymbol.clone()]).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1152,7 +1152,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::bad_symbol(add(&add(&add(&self.id, &Value::Str(" could not resolve outcome ".to_string())), &outcomeSymbol), &Value::Str(" — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1162,7 +1162,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-    async fn fetch_ticker(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    fn fetch_ticker(&mut self, mut outcome: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_ticker", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(outcome.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1175,7 +1175,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTicker() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1185,7 +1185,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
  */
-    async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_tickers(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_tickers", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1199,7 +1199,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickers() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1210,7 +1210,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-    async fn fetch_order_book(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    fn fetch_order_book(&mut self, mut outcome: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_order_book", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(outcome.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1224,7 +1224,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBook() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1237,7 +1237,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
  */
-    async fn fetch_ohlcv(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    fn fetch_ohlcv(&mut self, mut outcome: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_ohlcv", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(outcome.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1253,7 +1253,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return self.super_fetch_ohlcv(outcome.clone(), timeframe.clone(), since.clone(), limit.clone(), params.clone()).await;
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1265,7 +1265,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-    async fn fetch_trades(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    fn fetch_trades(&mut self, mut outcome: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_trades", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(outcome.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1280,7 +1280,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTrades() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1294,7 +1294,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-    async fn create_order(&mut self, mut outcome: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_order(&mut self, mut outcome: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("create_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(outcome.clone()); __args.push(type_var.clone()); __args.push(side.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1308,7 +1308,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1319,7 +1319,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-    async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("cancel_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1333,7 +1333,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1343,7 +1343,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-    async fn watch_ticker(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    fn watch_ticker(&mut self, mut outcome: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1351,7 +1351,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTicker() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1362,7 +1362,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
  */
-    async fn watch_order_book(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    fn watch_order_book(&mut self, mut outcome: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1371,7 +1371,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrderBook() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1383,7 +1383,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-    async fn watch_trades(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    fn watch_trades(&mut self, mut outcome: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1393,7 +1393,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTrades() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1405,7 +1405,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-    async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1421,7 +1421,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1433,7 +1433,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-    async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_open_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_open_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1449,7 +1449,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1461,7 +1461,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-    async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_closed_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1477,7 +1477,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchClosedOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1490,7 +1490,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-    async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1501,7 +1501,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderTrades() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1513,7 +1513,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-    async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_my_trades(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_my_trades", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1529,7 +1529,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTrades() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1539,7 +1539,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-    async fn fetch_position(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    fn fetch_position(&mut self, mut outcome: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_position", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(outcome.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1552,7 +1552,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPosition() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1562,7 +1562,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-    async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_positions(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_positions", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1576,7 +1576,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1586,7 +1586,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
  */
-    async fn fetch_trading_fee(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    fn fetch_trading_fee(&mut self, mut outcome: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_trading_fee", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(outcome.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1599,7 +1599,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFee() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1609,7 +1609,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
  */
-    async fn fetch_open_interest(&mut self, mut outcome: Value, optional_args: &[Value]) -> Value {
+    fn fetch_open_interest(&mut self, mut outcome: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_open_interest", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(outcome.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1622,7 +1622,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenInterest() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1632,7 +1632,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-    async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("create_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(orders.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1645,7 +1645,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1656,7 +1656,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-    async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("cancel_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(ids.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1670,7 +1670,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1681,7 +1681,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-    async fn create_market_buy_order_with_cost(&mut self, mut outcome: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    fn create_market_buy_order_with_cost(&mut self, mut outcome: Value, mut cost: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1694,7 +1694,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1705,7 +1705,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-    async fn create_market_sell_order_with_cost(&mut self, mut outcome: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    fn create_market_sell_order_with_cost(&mut self, mut outcome: Value, mut cost: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1716,7 +1716,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketSellOrderWithCost() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1726,7 +1726,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-    async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_tickers(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut outcomes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1735,7 +1735,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTickers() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1747,7 +1747,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-    async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1758,7 +1758,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1770,7 +1770,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
-    async fn watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_my_trades(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1781,7 +1781,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyTrades() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1793,7 +1793,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
  */
-    async fn watch_positions(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_positions(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut outcomes = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1804,7 +1804,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchPositions() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -1817,7 +1817,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction settlement structures
  */
-    async fn fetch_settlements(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_settlements(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1828,7 +1828,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSettlements() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn safe_prediction_order(&self, mut outcomeOrder: Value, optional_args: &[Value]) -> Value {
         let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
@@ -1859,8 +1859,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_205: bool = true;
-                while { if !__for_first_205 { i = add(&i, &Value::Int(1)); } __for_first_205 = false; is_less_than(&i, &tradesLength) } {
+                let mut __for_first_206: bool = true;
+                while { if !__for_first_206 { i = add(&i, &Value::Int(1)); } __for_first_206 = false; is_less_than(&i, &tradesLength) } {
                 let mut trade: Value = get_value(&trades, &i);
                 let mut trade: Value = get_value(&trades, &i);
                 let mut tradeAmount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
@@ -2197,8 +2197,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_206: bool = true;
-            while { if !__for_first_206 { i = add(&i, &Value::Int(1)); } __for_first_206 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_207: bool = true;
+            while { if !__for_first_207 { i = add(&i, &Value::Int(1)); } __for_first_207 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, get_value(&rows, &i), &[outcomeObj.clone()]);
             let mut trade: Value = self.extend(parsed.clone(), &[params.clone()]);
             append_to_array(&mut results, trade.clone());
@@ -2236,8 +2236,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_207: bool = true;
-            while { if !__for_first_207 { i = add(&i, &Value::Int(1)); } __for_first_207 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_208: bool = true;
+            while { if !__for_first_208 { i = add(&i, &Value::Int(1)); } __for_first_208 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, get_value(&rows, &i), &[outcomeObj.clone()]);
             let mut order: Value = self.extend(parsed.clone(), &[params.clone()]);
             append_to_array(&mut results, order.clone());
@@ -2272,8 +2272,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_208: bool = true;
-            while { if !__for_first_208 { i = add(&i, &Value::Int(1)); } __for_first_208 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_209: bool = true;
+            while { if !__for_first_209 { i = add(&i, &Value::Int(1)); } __for_first_209 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, get_value(&rows, &i), &[]);
             let mut position: Value = self.extend(parsed.clone(), &[params.clone()]);
             append_to_array(&mut results, position.clone());
@@ -2388,8 +2388,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut concatenated: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_209: bool = true;
-            while { if !__for_first_209 { i = add(&i, &Value::Int(1)); } __for_first_209 = false; is_less_than(&i, &get_array_length(&items)) } {
+            let mut __for_first_210: bool = true;
+            while { if !__for_first_210 { i = add(&i, &Value::Int(1)); } __for_first_210 = false; is_less_than(&i, &get_array_length(&items)) } {
             concatenated = add(&concatenated, &get_value(&items, &i));
         }
         }
@@ -2449,7 +2449,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    async fn eth_rpc(&mut self, mut rpcUrl: Value, mut method: Value, mut rpcParams: Value) -> Value {
+    fn eth_rpc(&mut self, mut rpcUrl: Value, mut method: Value, mut rpcParams: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".to_string()));
@@ -2472,9 +2472,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return self.safe_value_k(response.clone(), "result", &[]);
 
     Value::Null
-}
+} }
 
-    async fn send_evm_transaction(&mut self, mut rpcUrl: Value, mut chainId: Value, mut fromAddress: Value, mut to: Value, mut value: Value, mut data: Value, mut gasLimit: Value) -> Value {
+    fn send_evm_transaction(&mut self, mut rpcUrl: Value, mut chainId: Value, mut fromAddress: Value, mut to: Value, mut value: Value, mut data: Value, mut gasLimit: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut nonce: Value = self.eth_rpc(rpcUrl.clone(), Value::Str("eth_getTransactionCount".to_string()), Value::List(vec![fromAddress.clone(), Value::Str("pending".to_string())])).await;
         let mut gasPrice: Value = self.eth_rpc(rpcUrl.clone(), Value::Str("eth_gasPrice".to_string()), Value::List(vec![])).await;
         let mut tx: Value = Value::Map({
@@ -2493,9 +2493,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return self.eth_rpc(rpcUrl.clone(), Value::Str("eth_sendRawTransaction".to_string()), Value::List(vec![signed.clone()])).await;
 
     Value::Null
-}
+} }
 
-    async fn wait_for_transaction_receipt(&mut self, mut rpcUrl: Value, mut txHash: Value, optional_args: &[Value]) -> Value {
+    fn wait_for_transaction_receipt(&mut self, mut rpcUrl: Value, mut txHash: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeout = get_arg(optional_args, 0, Value::Int(60000));
         let mut start: Value = self.milliseconds();
         while is_less_than(&(subtract(&self.milliseconds(), &start)), &timeout) {
@@ -2508,10 +2508,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         panic!("{}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" transaction ".to_string())), &txHash), &Value::Str(" not mined within timeout".to_string()))));
 
     Value::Null
-}
+} }
     /// Prediction-base fall-through for a prediction Core's `call_dynamic`.
     fn call_dynamic_prediction_base<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {

@@ -16,8 +16,8 @@ pub async fn testFetchDeposits(mut exchange: Value, mut skippedProperties: Value
     let mut now: Value = exchange.milliseconds();
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1353: bool = true;
-        while { if !__for_first_1353 { i = add(&i, &Value::Int(1)); } __for_first_1353 = false; is_less_than(&i, &get_array_length(&transactions)) } {
+        let mut __for_first_1398: bool = true;
+        while { if !__for_first_1398 { i = add(&i, &Value::Int(1)); } __for_first_1398 = false; is_less_than(&i, &get_array_length(&transactions)) } {
         testDepositWithdrawal(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&transactions, &i), code.clone(), now.clone());
     }
     }

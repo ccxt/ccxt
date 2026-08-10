@@ -51,13 +51,13 @@ impl PredictionExchange {
 /// Core. Blanket-impl'd for every `PredictionBase`.
 pub trait PredictionRuntime: crate::prediction_exchange_generated::PredictionBase {
     /// Venue `super.fetchOutcome(outcome)` → the PredictionExchange base impl.
-    async fn super_fetch_outcome(&mut self, outcome_symbol: Value) -> Value {
+    fn super_fetch_outcome(&mut self, outcome_symbol: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_outcome(self, outcome_symbol).await
-    }
+    } }
     /// Base `super.fetchOHLCV(...)` → the shared `Exchange` implementation.
-    async fn super_fetch_ohlcv(&mut self, symbol: Value, timeframe: Value, since: Value, limit: Value, params: Value) -> Value {
+    fn super_fetch_ohlcv(&mut self, symbol: Value, timeframe: Value, since: Value, limit: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         <Self as crate::exchange_generated::ExchangeBase>::fetch_ohlcv(self, symbol, &[timeframe, since, limit, params]).await
-    }
+    } }
     // NB: `super_set_markets` / `super_set_sandbox_mode` are inherited from
     // `ExchangeRuntime` (identical forwarding to the base) — not redefined here,
     // else `self.super_set_markets(...)` would be ambiguous between the two.

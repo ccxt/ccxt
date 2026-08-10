@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for DeribitCore {
 
 impl crate::exchange_generated::ExchangeBase for DeribitCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -411,8 +411,8 @@ impl DeribitCore {
         let mut channels: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_301: bool = true;
-            while { if !__for_first_301 { i = add(&i, &Value::Int(1)); } __for_first_301 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+            let mut __for_first_299: bool = true;
+            while { if !__for_first_299 { i = add(&i, &Value::Int(1)); } __for_first_299 = false; is_less_than(&i, &get_array_length(&currencies)) } {
             let mut currencyCode: Value = get_value(&currencies, &i);
             let mut currencyCode: Value = get_value(&currencies, &i);
             append_to_array(&mut channels, add(&Value::Str("user.portfolio.".to_string()), &currencyCode));
@@ -492,7 +492,9 @@ impl DeribitCore {
         let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
         let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut balance: Value = self.parse_balance(data.clone());
-        add_element_to_object(&mut self.balance.clone(), &currencyCode, balance.clone());
+        if !is_equal(&currencyCode, &Value::Null) {
+            add_element_to_object(&mut self.balance.clone(), &currencyCode, balance.clone());
+        }
         let mut messageHash: Value = Value::Str("balance".to_string());
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
 }
@@ -576,8 +578,8 @@ impl DeribitCore {
         let mut channels: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_302: bool = true;
-            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_300: bool = true;
+            while { if !__for_first_300 { i = add(&i, &Value::Int(1)); } __for_first_300 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut channels, add(&add(&add(&Value::Str("ticker.".to_string()), &get_value(&market, &Value::Str("id".to_string()))), &Value::Str(".".to_string())), &interval));
         }
@@ -678,8 +680,8 @@ impl DeribitCore {
         let mut channels: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_303: bool = true;
-            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_301: bool = true;
+            while { if !__for_first_301 { i = add(&i, &Value::Int(1)); } __for_first_301 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut channels, add(&Value::Str("quote.".to_string()), &get_value(&market, &Value::Str("id".to_string()))));
         }
@@ -865,8 +867,8 @@ impl DeribitCore {
         let mut stored: Value = get_value(&self.trades, &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_304: bool = true;
-            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_302: bool = true;
+            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut parsed: Value = self.parse_trade(trade.clone(), &[market.clone()]);
@@ -977,8 +979,8 @@ impl DeribitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_305: bool = true;
-            while { if !__for_first_305 { i = add(&i, &Value::Int(1)); } __for_first_305 = false; is_less_than(&i, &get_array_length(&parsed)) } {
+            let mut __for_first_303: bool = true;
+            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&parsed)) } {
             let mut trade: Value = get_value(&parsed, &i);
             let mut trade: Value = get_value(&parsed, &i);
             cachedTrades.append(trade.clone());
@@ -998,7 +1000,7 @@ impl DeribitCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1020,7 +1022,7 @@ impl DeribitCore {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1145,16 +1147,16 @@ impl DeribitCore {
         let mut cleanedBids: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_306: bool = true;
-            while { if !__for_first_306 { i = add(&i, &Value::Int(1)); } __for_first_306 = false; is_less_than(&i, &get_array_length(&bids)) } {
+            let mut __for_first_304: bool = true;
+            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&bids)) } {
             append_to_array(&mut cleanedBids, Value::List(vec![get_value(&get_value(&bids, &i), &Value::Int(1)), get_value(&get_value(&bids, &i), &Value::Int(2))]));
         }
         }
         let mut cleanedAsks: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_307: bool = true;
-            while { if !__for_first_307 { i = add(&i, &Value::Int(1)); } __for_first_307 = false; is_less_than(&i, &get_array_length(&asks)) } {
+            let mut __for_first_305: bool = true;
+            while { if !__for_first_305 { i = add(&i, &Value::Int(1)); } __for_first_305 = false; is_less_than(&i, &get_array_length(&asks)) } {
             append_to_array(&mut cleanedAsks, Value::List(vec![get_value(&get_value(&asks, &i), &Value::Int(1)), get_value(&get_value(&asks, &i), &Value::Int(2))]));
         }
         }
@@ -1178,8 +1180,8 @@ impl DeribitCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_308: bool = true;
-            while { if !__for_first_308 { i = add(&i, &Value::Int(1)); } __for_first_308 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_306: bool = true;
+            while { if !__for_first_306 { i = add(&i, &Value::Int(1)); } __for_first_306 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1297,8 +1299,8 @@ impl DeribitCore {
         let mut cachedOrders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_309: bool = true;
-            while { if !__for_first_309 { i = add(&i, &Value::Int(1)); } __for_first_309 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_307: bool = true;
+            while { if !__for_first_307 { i = add(&i, &Value::Int(1)); } __for_first_307 = false; is_less_than(&i, &get_array_length(&orders)) } {
             cachedOrders.append(get_value(&orders, &i));
         }
         }
@@ -1452,10 +1454,16 @@ impl DeribitCore {
         let mut isOHLCV: Value = Value::Bool(is_equal(&channelName, &Value::Str("chart.trades".to_string())));
         let mut symbols: Value = ternary(is_true(&isOHLCV), self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)), symbolsArray.clone());
         self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
+        if is_equal(&symbolsArray, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchMultipleWrapper() symbolsArray is required".to_string()))));
+        }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_310: bool = true;
-            while { if !__for_first_310 { i = add(&i, &Value::Int(1)); } __for_first_310 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
+            let mut __for_first_308: bool = true;
+            while { if !__for_first_308 { i = add(&i, &Value::Int(1)); } __for_first_308 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
+            if is_equal(&symbolsArray, &Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchMultipleWrapper() symbolsArray is required".to_string()))));
+            }
             let mut current: Value = get_value(&symbolsArray, &i);
             let mut current: Value = get_value(&symbolsArray, &i);
             let mut market: Value = Value::Null;

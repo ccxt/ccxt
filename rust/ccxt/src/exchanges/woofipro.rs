@@ -193,7 +193,7 @@ impl crate::exchange::DerivedExchange for WoofiproCore {
 
 impl crate::exchange_generated::ExchangeBase for WoofiproCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -313,6 +313,7 @@ impl WoofiproCore {
         m.insert("createMarketOrderWithCost".to_string(), Value::Bool(false));
         m.insert("createMarketSellOrderWithCost".to_string(), Value::Bool(false));
         m.insert("createOrder".to_string(), Value::Bool(true));
+        m.insert("createOrders".to_string(), Value::Bool(true));
         m.insert("createOrderWithTakeProfitAndStopLoss".to_string(), Value::Bool(true));
         m.insert("createReduceOnlyOrder".to_string(), Value::Bool(true));
         m.insert("createStopLimitOrder".to_string(), Value::Bool(false));
@@ -323,6 +324,7 @@ impl WoofiproCore {
         m.insert("createTrailingAmountOrder".to_string(), Value::Bool(false));
         m.insert("createTrailingPercentOrder".to_string(), Value::Bool(false));
         m.insert("createTriggerOrder".to_string(), Value::Bool(true));
+        m.insert("editOrder".to_string(), Value::Bool(true));
         m.insert("fetchAccounts".to_string(), Value::Bool(false));
         m.insert("fetchAllGreeks".to_string(), Value::Bool(false));
         m.insert("fetchBalance".to_string(), Value::Bool(true));
@@ -426,7 +428,7 @@ impl WoofiproCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://dex.woo.org".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://orderly.network/docs/build-on-omnichain/building-on-evm".to_string())]));
+        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://orderly.network/docs/build-on-omnichain/building-on-omnichain".to_string())]));
         m.insert("fees".to_string(), Value::List(vec![Value::Str("https://dex.woo.org/en/orderly".to_string())]));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -444,57 +446,245 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public/volume/stats".to_string(), Value::Int(1));
-        m.insert("public/broker/name".to_string(), Value::Int(1));
-        m.insert("public/chain_info/{broker_id}".to_string(), Value::Int(1));
-        m.insert("public/system_info".to_string(), Value::Int(1));
-        m.insert("public/vault_balance".to_string(), Value::Int(1));
-        m.insert("public/insurancefund".to_string(), Value::Int(1));
-        m.insert("public/chain_info".to_string(), Value::Int(1));
-        m.insert("faucet/usdc".to_string(), Value::Int(1));
-        m.insert("public/account".to_string(), Value::Int(1));
-        m.insert("get_account".to_string(), Value::Int(1));
-        m.insert("registration_nonce".to_string(), Value::Int(1));
-        m.insert("get_orderly_key".to_string(), Value::Int(1));
-        m.insert("public/liquidation".to_string(), Value::Int(1));
-        m.insert("public/liquidated_positions".to_string(), Value::Int(1));
-        m.insert("public/config".to_string(), Value::Int(1));
-        m.insert("public/campaign/ranking".to_string(), Value::Int(10));
-        m.insert("public/campaign/stats".to_string(), Value::Int(10));
-        m.insert("public/campaign/user".to_string(), Value::Int(10));
-        m.insert("public/campaign/stats/details".to_string(), Value::Int(10));
-        m.insert("public/campaigns".to_string(), Value::Int(10));
-        m.insert("public/points/leaderboard".to_string(), Value::Int(1));
-        m.insert("client/points".to_string(), Value::Int(1));
-        m.insert("public/points/epoch".to_string(), Value::Int(1));
-        m.insert("public/points/epoch_dates".to_string(), Value::Int(1));
-        m.insert("public/referral/check_ref_code".to_string(), Value::Int(1));
-        m.insert("public/referral/verify_ref_code".to_string(), Value::Int(1));
-        m.insert("referral/admin_info".to_string(), Value::Int(1));
-        m.insert("referral/info".to_string(), Value::Int(1));
-        m.insert("referral/referee_info".to_string(), Value::Int(1));
-        m.insert("referral/referee_rebate_summary".to_string(), Value::Int(1));
-        m.insert("referral/referee_history".to_string(), Value::Int(1));
-        m.insert("referral/referral_history".to_string(), Value::Int(1));
-        m.insert("referral/rebate_summary".to_string(), Value::Int(1));
-        m.insert("client/distribution_history".to_string(), Value::Int(1));
-        m.insert("tv/config".to_string(), Value::Int(1));
-        m.insert("tv/history".to_string(), Value::Int(1));
-        m.insert("tv/symbol_info".to_string(), Value::Int(1));
-        m.insert("public/funding_rate_history".to_string(), Value::Int(1));
-        m.insert("public/funding_rate/{symbol}".to_string(), Value::Float(0.33));
-        m.insert("public/funding_rates".to_string(), Value::Int(1));
-        m.insert("public/info".to_string(), Value::Int(1));
-        m.insert("public/info/{symbol}".to_string(), Value::Int(1));
-        m.insert("public/market_trades".to_string(), Value::Int(1));
-        m.insert("public/token".to_string(), Value::Int(1));
-        m.insert("public/futures".to_string(), Value::Int(1));
-        m.insert("public/futures/{symbol}".to_string(), Value::Int(1));
+        m.insert("public/volume/stats".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/broker/name".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/chain_info/{broker_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/system_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/vault_balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/insurancefund".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/chain_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("faucet/usdc".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("registration_nonce".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("get_orderly_key".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/liquidation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/liquidated_positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/config".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/campaign/ranking".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("public/campaign/stats".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("public/campaign/user".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("public/campaign/stats/details".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("public/campaigns".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("public/points/leaderboard".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("client/points".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/points/epoch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/points/epoch_dates".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/referral/check_ref_code".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/referral/verify_ref_code".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/admin_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/referee_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/referee_rebate_summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/referee_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/referral_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/rebate_summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("client/distribution_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("tv/config".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("tv/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("tv/symbol_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/funding_rate_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/funding_rate/{symbol}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.33));
+    m
+}));
+        m.insert("public/funding_rates".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/info/{symbol}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/market_trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/token".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/futures".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/futures/{symbol}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("register_account".to_string(), Value::Int(1));
+        m.insert("register_account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -503,86 +693,358 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("client/key_info".to_string(), Value::Int(6));
-        m.insert("client/orderly_key_ip_restriction".to_string(), Value::Int(6));
-        m.insert("order/{oid}".to_string(), Value::Int(1));
-        m.insert("client/order/{client_order_id}".to_string(), Value::Int(1));
-        m.insert("algo/order/{oid}".to_string(), Value::Int(1));
-        m.insert("algo/client/order/{client_order_id}".to_string(), Value::Int(1));
-        m.insert("orders".to_string(), Value::Int(1));
-        m.insert("algo/orders".to_string(), Value::Int(1));
-        m.insert("trade/{tid}".to_string(), Value::Int(1));
-        m.insert("trades".to_string(), Value::Int(1));
-        m.insert("order/{oid}/trades".to_string(), Value::Int(1));
-        m.insert("client/liquidator_liquidations".to_string(), Value::Int(1));
-        m.insert("liquidations".to_string(), Value::Int(1));
-        m.insert("asset/history".to_string(), Value::Int(60));
-        m.insert("client/holding".to_string(), Value::Int(1));
-        m.insert("withdraw_nonce".to_string(), Value::Int(1));
-        m.insert("settle_nonce".to_string(), Value::Int(1));
-        m.insert("pnl_settlement/history".to_string(), Value::Int(1));
-        m.insert("volume/user/daily".to_string(), Value::Int(60));
-        m.insert("volume/user/stats".to_string(), Value::Int(60));
-        m.insert("client/statistics".to_string(), Value::Int(60));
-        m.insert("client/info".to_string(), Value::Int(60));
-        m.insert("client/statistics/daily".to_string(), Value::Int(60));
-        m.insert("positions".to_string(), Value::Float(3.33));
-        m.insert("position/{symbol}".to_string(), Value::Float(3.33));
-        m.insert("funding_fee/history".to_string(), Value::Int(30));
-        m.insert("notification/inbox/notifications".to_string(), Value::Int(60));
-        m.insert("notification/inbox/unread".to_string(), Value::Int(60));
-        m.insert("volume/broker/daily".to_string(), Value::Int(60));
-        m.insert("broker/fee_rate/default".to_string(), Value::Int(10));
-        m.insert("broker/user_info".to_string(), Value::Int(10));
-        m.insert("orderbook/{symbol}".to_string(), Value::Int(1));
-        m.insert("kline".to_string(), Value::Int(1));
+        m.insert("client/key_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(6));
+    m
+}));
+        m.insert("client/orderly_key_ip_restriction".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(6));
+    m
+}));
+        m.insert("order/{oid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("client/order/{client_order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo/order/{oid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo/client/order/{client_order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/{tid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order/{oid}/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("client/liquidator_liquidations".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("liquidations".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("asset/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("client/holding".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("withdraw_nonce".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("settle_nonce".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("pnl_settlement/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("volume/user/daily".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("volume/user/stats".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("client/statistics".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("client/info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("client/statistics/daily".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(3.33));
+    m
+}));
+        m.insert("position/{symbol}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(3.33));
+    m
+}));
+        m.insert("funding_fee/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
+        m.insert("notification/inbox/notifications".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("notification/inbox/unread".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("volume/broker/daily".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("broker/fee_rate/default".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("broker/user_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("orderbook/{symbol}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("orderly_key".to_string(), Value::Int(1));
-        m.insert("client/set_orderly_key_ip_restriction".to_string(), Value::Int(6));
-        m.insert("client/reset_orderly_key_ip_restriction".to_string(), Value::Int(6));
-        m.insert("order".to_string(), Value::Int(1));
-        m.insert("batch-order".to_string(), Value::Int(10));
-        m.insert("algo/order".to_string(), Value::Int(1));
-        m.insert("liquidation".to_string(), Value::Int(1));
-        m.insert("claim_insurance_fund".to_string(), Value::Int(1));
-        m.insert("withdraw_request".to_string(), Value::Int(1));
-        m.insert("settle_pnl".to_string(), Value::Int(1));
-        m.insert("notification/inbox/mark_read".to_string(), Value::Int(60));
-        m.insert("notification/inbox/mark_read_all".to_string(), Value::Int(60));
-        m.insert("client/leverage".to_string(), Value::Int(120));
-        m.insert("client/maintenance_config".to_string(), Value::Int(60));
-        m.insert("delegate_signer".to_string(), Value::Int(10));
-        m.insert("delegate_orderly_key".to_string(), Value::Int(10));
-        m.insert("delegate_settle_pnl".to_string(), Value::Int(10));
-        m.insert("delegate_withdraw_request".to_string(), Value::Int(10));
-        m.insert("broker/fee_rate/set".to_string(), Value::Int(10));
-        m.insert("broker/fee_rate/set_default".to_string(), Value::Int(10));
-        m.insert("broker/fee_rate/default".to_string(), Value::Int(10));
-        m.insert("referral/create".to_string(), Value::Int(10));
-        m.insert("referral/update".to_string(), Value::Int(10));
-        m.insert("referral/bind".to_string(), Value::Int(10));
-        m.insert("referral/edit_split".to_string(), Value::Int(10));
+        m.insert("orderly_key".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("client/set_orderly_key_ip_restriction".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(6));
+    m
+}));
+        m.insert("client/reset_orderly_key_ip_restriction".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(6));
+    m
+}));
+        m.insert("order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("batch-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("algo/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("liquidation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("claim_insurance_fund".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("withdraw_request".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("settle_pnl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("notification/inbox/mark_read".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("notification/inbox/mark_read_all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("client/leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(120));
+    m
+}));
+        m.insert("client/maintenance_config".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(60));
+    m
+}));
+        m.insert("delegate_signer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("delegate_orderly_key".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("delegate_settle_pnl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("delegate_withdraw_request".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("broker/fee_rate/set".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("broker/fee_rate/set_default".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("broker/fee_rate/default".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/update".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/bind".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/edit_split".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
         m.insert("put".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("order".to_string(), Value::Int(1));
-        m.insert("algo/order".to_string(), Value::Int(1));
+        m.insert("order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("order".to_string(), Value::Int(1));
-        m.insert("algo/order".to_string(), Value::Int(1));
-        m.insert("client/order".to_string(), Value::Int(1));
-        m.insert("algo/client/order".to_string(), Value::Int(1));
-        m.insert("algo/orders".to_string(), Value::Int(1));
-        m.insert("orders".to_string(), Value::Int(1));
-        m.insert("batch-order".to_string(), Value::Int(1));
-        m.insert("client/batch-order".to_string(), Value::Int(1));
+        m.insert("order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("client/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo/client/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("algo/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("batch-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("client/batch-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -795,7 +1257,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -844,7 +1306,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -971,7 +1433,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchMarkets
  * @description retrieves data on all markets for woofipro
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1030,8 +1492,8 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -1084,8 +1546,8 @@ impl WoofiproCore {
         let mut indexedChains: Value = self.index_by(chainRows.clone(), Value::Str("chain_id".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1083: bool = true;
-            while { if !__for_first_1083 { i = add(&i, &Value::Int(1)); } __for_first_1083 = false; is_less_than(&i, &get_array_length(&tokenRows)) } {
+            let mut __for_first_1087: bool = true;
+            while { if !__for_first_1087 { i = add(&i, &Value::Int(1)); } __for_first_1087 = false; is_less_than(&i, &get_array_length(&tokenRows)) } {
             let mut token: Value = get_value(&tokenRows, &i);
             let mut token: Value = get_value(&tokenRows, &i);
             let mut parsed: Value = self.parse_currency(Value::Map({
@@ -1123,8 +1585,8 @@ impl WoofiproCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1084: bool = true;
-            while { if !__for_first_1084 { j = add(&j, &Value::Int(1)); } __for_first_1084 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_1088: bool = true;
+            while { if !__for_first_1088 { j = add(&j, &Value::Int(1)); } __for_first_1088 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut networkEntry: Value = get_value(&networks, &j);
             let mut networkEntry: Value = get_value(&networks, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain_id", &[]);
@@ -1295,7 +1757,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -1414,7 +1876,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1433,7 +1895,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1482,7 +1944,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchFundingRates
  * @description fetch the current funding rate for multiple markets
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1529,7 +1991,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1596,8 +2058,8 @@ impl WoofiproCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1085: bool = true;
-            while { if !__for_first_1085 { i = add(&i, &Value::Int(1)); } __for_first_1085 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_1089: bool = true;
+            while { if !__for_first_1089 { i = add(&i, &Value::Int(1)); } __for_first_1089 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -1661,7 +2123,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1744,7 +2206,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -1797,8 +2259,8 @@ impl WoofiproCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1086: bool = true;
-            while { if !__for_first_1086 { i = add(&i, &Value::Int(1)); } __for_first_1086 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_1090: bool = true;
+            while { if !__for_first_1090 { i = add(&i, &Value::Int(1)); } __for_first_1090 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -1822,7 +2284,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1886,7 +2348,7 @@ impl WoofiproCore {
 /*
  * @method
  * @name woofipro#fetchOHLCV
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -2011,9 +2473,9 @@ impl WoofiproCore {
             status = ternary(is_true(&(success)), Value::Str("NEW".to_string()), Value::Str("REJECTED".to_string()));
         }
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
-        let mut filled: Value = self.omit_zero(self.safe_value2(order.clone(), Value::Str("executed".to_string()), Value::Str("totalExecutedQuantity".to_string()), &[]));
+        let mut filled: Value = self.safe_string_n(order.clone(), Value::List(vec![Value::Str("total_executed_quantity".to_string()), Value::Str("totalExecutedQuantity".to_string()), Value::Str("executed_quantity".to_string()), Value::Str("executed".to_string())]), &[]);
         let mut average: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("average_executed_price".to_string()), Value::Str("averageExecutedPrice".to_string()), &[]));
-        let mut remaining: Value = crate::precise::Precise::stringSub(&cost, &filled);
+        let mut remaining: Value = crate::precise::Precise::stringSub(&amount, &filled);
         let mut fee: Value = self.safe_value2(order.clone(), Value::Str("total_fee".to_string()), Value::Str("totalFee".to_string()), &[]);
         let mut feeCurrency: Value = self.safe_string2(order.clone(), Value::Str("fee_asset".to_string()), Value::Str("feeAsset".to_string()), &[]);
         let mut transactions: Value = self.safe_value_k(order.clone(), "Transactions", &[]);
@@ -2200,18 +2662,10 @@ impl WoofiproCore {
             add_element_to_object(&mut request, &Value::Str("algo_type".to_string()), Value::Str("STOP".to_string()));
         }  else if is_true(&hasStopLoss) || is_true(&hasTakeProfit) {
             add_element_to_object(&mut request, &Value::Str("algo_type".to_string()), Value::Str("TP_SL".to_string()));
-            let mut outterOrder: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
-                    m.insert("reduce_only".to_string(), Value::Bool(false));
-                    m.insert("algo_type".to_string(), Value::Str("POSITIONAL_TP_SL".to_string()));
-                    m.insert("child_orders".to_string(), Value::List(vec![]));
-                m
-            });
-            let mut childOrders: Value = get_value(&outterOrder, &Value::Str("child_orders".to_string()));
+            let mut childOrders: Value = Value::List(vec![]);
             let mut closeSide: Value = ternary(is_true(&(is_equal(&orderSide, &Value::Str("BUY".to_string())))), Value::Str("SELL".to_string()), Value::Str("BUY".to_string()));
             if is_true(&hasStopLoss) {
-                let mut stopLossPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("price".to_string()), &[stopLoss.clone()]);
+                let mut stopLossPrice: Value = self.safe_value2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("price".to_string()), &[stopLoss.clone()]);
                 let mut stopLossOrder: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), closeSide.clone());
@@ -2224,7 +2678,7 @@ impl WoofiproCore {
                 append_to_array(&mut childOrders, stopLossOrder.clone());
             }
             if is_true(&hasTakeProfit) {
-                let mut takeProfitPrice: Value = self.safe_number2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("price".to_string()), &[takeProfit.clone()]);
+                let mut takeProfitPrice: Value = self.safe_value2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("price".to_string()), &[takeProfit.clone()]);
                 let mut takeProfitOrder: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), closeSide.clone());
@@ -2236,6 +2690,14 @@ impl WoofiproCore {
                 });
                 append_to_array(&mut childOrders, takeProfitOrder.clone());
             }
+            let mut outterOrder: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                    m.insert("reduce_only".to_string(), Value::Bool(false));
+                    m.insert("algo_type".to_string(), Value::Str("POSITIONAL_TP_SL".to_string()));
+                    m.insert("child_orders".to_string(), childOrders.clone());
+                m
+            });
             add_element_to_object(&mut request, &Value::Str("child_orders".to_string()), Value::List(vec![outterOrder.clone()]));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("postOnly".to_string()), Value::Str("timeInForce".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
@@ -2248,8 +2710,8 @@ impl WoofiproCore {
  * @method
  * @name woofipro#createOrder
  * @description create a trade order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2303,7 +2765,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#createOrders
  * @description *contract only* create a list of trade orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2319,8 +2781,8 @@ impl WoofiproCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1087: bool = true;
-            while { if !__for_first_1087 { i = add(&i, &Value::Int(1)); } __for_first_1087 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_1091: bool = true;
+            while { if !__for_first_1091 { i = add(&i, &Value::Int(1)); } __for_first_1091 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2381,8 +2843,8 @@ impl WoofiproCore {
  * @method
  * @name woofipro#editOrder
  * @description edit a trade order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -2480,10 +2942,10 @@ impl WoofiproCore {
 /*
  * @method
  * @name woofipro#cancelOrder
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -2589,8 +3051,8 @@ impl WoofiproCore {
  * @method
  * @name woofipro#cancelOrders
  * @description cancel multiple orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2634,8 +3096,8 @@ impl WoofiproCore {
 /*
  * @method
  * @name woofipro#cancelAllOrders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
  * @description cancel all open orders in a market
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2681,10 +3143,10 @@ impl WoofiproCore {
 /*
  * @method
  * @name woofipro#fetchOrder
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -2776,8 +3238,8 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2882,8 +3344,8 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2920,8 +3382,8 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchClosedOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2958,7 +3420,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3022,7 +3484,7 @@ impl WoofiproCore {
 /*
  * @method
  * @name woofipro#fetchMyTrades
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3113,14 +3575,14 @@ impl WoofiproCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1088: bool = true;
-            while { if !__for_first_1088 { i = add(&i, &Value::Int(1)); } __for_first_1088 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1092: bool = true;
+            while { if !__for_first_1092 { i = add(&i, &Value::Int(1)); } __for_first_1092 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "holding", &[]));
-            add_element_to_object(&mut account, &Value::Str("frozen".to_string()), self.safe_string_k(balance.clone(), "frozen", &[]));
+            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "frozen", &[]));
             if !is_equal(&code, &Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
@@ -3135,7 +3597,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -3285,7 +3747,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -3367,7 +3829,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3397,7 +3859,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3427,7 +3889,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -3520,7 +3982,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#withdraw
  * @description make a withdrawal
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -3671,7 +4133,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -3726,7 +4188,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#setLeverage
  * @description set the level of leverage for a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
  * @param {int} [leverage] the rate of leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3834,7 +4296,7 @@ impl WoofiproCore {
 /*
  * @method
  * @name woofipro#fetchPosition
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3895,7 +4357,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#fetchPositions
  * @description fetch all open positions
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3994,8 +4456,8 @@ impl WoofiproCore {
                         let mut ordersList: Value = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_1089: bool = true;
-                            while { if !__for_first_1089 { i = add(&i, &Value::Int(1)); } __for_first_1089 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
+                            let mut __for_first_1093: bool = true;
+                            while { if !__for_first_1093 { i = add(&i, &Value::Int(1)); } __for_first_1093 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
                             add_element_to_object(get_value_mut(get_value_mut(&mut params, &Value::Str("orders".to_string())), &i), &Value::Str("order_tag".to_string()), brokerId.clone());
                         }
                         }

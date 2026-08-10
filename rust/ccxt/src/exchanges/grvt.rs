@@ -201,7 +201,7 @@ impl crate::exchange::DerivedExchange for GrvtCore {
 
 impl crate::exchange_generated::ExchangeBase for GrvtCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -385,8 +385,16 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("auth/api_key/login".to_string(), Value::Int(100));
-        m.insert("auth/wallet/login".to_string(), Value::Int(100));
+        m.insert("auth/api_key/login".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("auth/wallet/login".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
     m
 }));
     m
@@ -395,18 +403,66 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("full/v1/instrument".to_string(), Value::Int(4));
-        m.insert("full/v1/all_instruments".to_string(), Value::Int(4));
-        m.insert("full/v1/instruments".to_string(), Value::Int(4));
-        m.insert("full/v1/currency".to_string(), Value::Int(12));
-        m.insert("full/v1/margin_rules".to_string(), Value::Int(12));
-        m.insert("full/v1/mini".to_string(), Value::Int(4));
-        m.insert("full/v1/ticker".to_string(), Value::Int(4));
-        m.insert("full/v1/book".to_string(), Value::Int(12));
-        m.insert("full/v1/trade".to_string(), Value::Int(12));
-        m.insert("full/v1/trade_history".to_string(), Value::Int(12));
-        m.insert("full/v1/kline".to_string(), Value::Int(12));
-        m.insert("full/v1/funding".to_string(), Value::Int(12));
+        m.insert("full/v1/instrument".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("full/v1/all_instruments".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("full/v1/instruments".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("full/v1/currency".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("full/v1/margin_rules".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("full/v1/mini".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("full/v1/ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("full/v1/book".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("full/v1/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("full/v1/trade_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("full/v1/kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("full/v1/funding".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
     m
 }));
     m
@@ -415,42 +471,186 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("full/v1/create_order".to_string(), Value::Int(5));
-        m.insert("full/v1/cancel_order".to_string(), Value::Int(5));
-        m.insert("full/v1/cancel_on_disconnect".to_string(), Value::Int(100));
-        m.insert("full/v1/cancel_all_orders".to_string(), Value::Int(50));
-        m.insert("full/v1/order".to_string(), rlOrders.clone());
-        m.insert("full/v1/order_history".to_string(), rlOrders.clone());
-        m.insert("full/v1/open_orders".to_string(), rlOrders.clone());
-        m.insert("full/v1/fill_history".to_string(), rlOrders.clone());
-        m.insert("full/v1/positions".to_string(), rlOrders.clone());
-        m.insert("full/v1/funding_payment_history".to_string(), rlOthers.clone());
-        m.insert("full/v1/get_sub_accounts".to_string(), rlOthers.clone());
-        m.insert("full/v1/account_summary".to_string(), rlOthers.clone());
-        m.insert("full/v1/account_history".to_string(), rlOthers.clone());
-        m.insert("full/v1/aggregated_account_summary".to_string(), rlOthers.clone());
-        m.insert("full/v1/funding_account_summary".to_string(), rlOthers.clone());
-        m.insert("full/v1/transfer".to_string(), Value::Int(100));
-        m.insert("full/v1/deposit_history".to_string(), Value::Int(100));
-        m.insert("full/v1/transfer_history".to_string(), Value::Int(100));
-        m.insert("full/v1/withdrawal".to_string(), Value::Int(100));
-        m.insert("full/v1/withdrawal_history".to_string(), Value::Int(100));
-        m.insert("full/v1/add_position_margin".to_string(), rlOthers.clone());
-        m.insert("full/v1/get_position_margin_limits".to_string(), rlOthers.clone());
-        m.insert("full/v1/set_position_config".to_string(), rlOthers.clone());
-        m.insert("full/v1/set_initial_leverage".to_string(), rlOthers.clone());
-        m.insert("full/v1/get_all_initial_leverage".to_string(), rlOthers.clone());
-        m.insert("full/v1/set_derisk_mm_ratio".to_string(), rlOthers.clone());
-        m.insert("full/v1/vault_burn_tokens".to_string(), rlOthers.clone());
-        m.insert("full/v1/vault_invest".to_string(), rlOthers.clone());
-        m.insert("full/v1/vault_investor_summary".to_string(), rlOthers.clone());
-        m.insert("full/v1/vault_redeem".to_string(), rlOthers.clone());
-        m.insert("full/v1/vault_redeem_cancel".to_string(), rlOthers.clone());
-        m.insert("full/v1/vault_view_redemption_queue".to_string(), rlOthers.clone());
-        m.insert("full/v1/vault_manager_investor_history".to_string(), rlOthers.clone());
-        m.insert("full/v1/authorize_builder".to_string(), rlOthers.clone());
-        m.insert("full/v1/get_authorized_builders".to_string(), rlOthers.clone());
-        m.insert("full/v1/builder_fill_history".to_string(), rlOthers.clone());
+        m.insert("full/v1/create_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("full/v1/cancel_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("full/v1/cancel_on_disconnect".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("full/v1/cancel_all_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
+        m.insert("full/v1/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOrders.clone());
+    m
+}));
+        m.insert("full/v1/order_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOrders.clone());
+    m
+}));
+        m.insert("full/v1/open_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOrders.clone());
+    m
+}));
+        m.insert("full/v1/fill_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOrders.clone());
+    m
+}));
+        m.insert("full/v1/positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOrders.clone());
+    m
+}));
+        m.insert("full/v1/funding_payment_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/get_sub_accounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/account_summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/account_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/aggregated_account_summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/funding_account_summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("full/v1/deposit_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("full/v1/transfer_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("full/v1/withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("full/v1/withdrawal_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("full/v1/add_position_margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/get_position_margin_limits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/set_position_config".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/set_initial_leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/get_all_initial_leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/set_derisk_mm_ratio".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/vault_burn_tokens".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/vault_invest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/vault_investor_summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/vault_redeem".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/vault_redeem_cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/vault_view_redemption_queue".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/vault_manager_investor_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/authorize_builder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/get_authorized_builders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/builder_fill_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
     m
 }));
     m
@@ -462,7 +662,7 @@ impl GrvtCore {
         m.insert("accountId".to_string(), Value::Null);
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ARBONE".to_string(), Value::Str("42161".to_string()));
+        m.insert("ARBITRUM".to_string(), Value::Str("42161".to_string()));
         m.insert("AVAXC".to_string(), Value::Str("43114".to_string()));
         m.insert("BASE".to_string(), Value::Str("8453".to_string()));
         m.insert("BSC".to_string(), Value::Str("56".to_string()));
@@ -1150,8 +1350,8 @@ impl GrvtCore {
         let mut found: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_693: bool = true;
-            while { if !__for_first_693 { i = add(&i, &Value::Int(1)); } __for_first_693 = false; is_less_than(&i, &length) } {
+            let mut __for_first_696: bool = true;
+            while { if !__for_first_696 { i = add(&i, &Value::Int(1)); } __for_first_696 = false; is_less_than(&i, &length) } {
             let mut builderInfo: Value = self.safe_dict(approvedBuilder.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2090,8 +2290,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut availableBalance: Value = self.safe_string_k(response.clone(), "available_balance", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_694: bool = true;
-            while { if !__for_first_694 { i = add(&i, &Value::Int(1)); } __for_first_694 = false; is_less_than(&i, &get_array_length(&spotBalances)) } {
+            let mut __for_first_697: bool = true;
+            while { if !__for_first_697 { i = add(&i, &Value::Int(1)); } __for_first_697 = false; is_less_than(&i, &get_array_length(&spotBalances)) } {
             let mut balance: Value = get_value(&spotBalances, &i);
             let mut balance: Value = get_value(&spotBalances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -2505,8 +2705,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut nonMatchedResults: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_695: bool = true;
-            while { if !__for_first_695 { i = add(&i, &Value::Int(1)); } __for_first_695 = false; is_less_than(&i, &get_array_length(&transfers)) } {
+            let mut __for_first_698: bool = true;
+            while { if !__for_first_698 { i = add(&i, &Value::Int(1)); } __for_first_698 = false; is_less_than(&i, &get_array_length(&transfers)) } {
             let mut transfer: Value = get_value(&transfers, &i);
             let mut transfer: Value = get_value(&transfers, &i);
             if is_true(&(is_true(&onlyMainAccount) && is_equal(&get_value(&transfer, &Value::Str("fromAccount".to_string())), &Value::Str("0".to_string())) && is_equal(&get_value(&transfer, &Value::Str("toAccount".to_string())), &Value::Str("0".to_string())))) || is_true(&(!is_true(&onlyMainAccount) && is_true(&(!is_equal(&get_value(&transfer, &Value::Str("fromAccount".to_string())), &Value::Str("0".to_string())) || !is_equal(&get_value(&transfer, &Value::Str("toAccount".to_string())), &Value::Str("0".to_string())))))) {
@@ -3021,8 +3221,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut legs: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_696: bool = true;
-            while { if !__for_first_696 { i = add(&i, &Value::Int(1)); } __for_first_696 = false; is_less_than(&i, &get_array_length(&orderLegs)) } {
+            let mut __for_first_699: bool = true;
+            while { if !__for_first_699 { i = add(&i, &Value::Int(1)); } __for_first_699 = false; is_less_than(&i, &get_array_length(&orderLegs)) } {
             let mut leg: Value = get_value(&orderLegs, &i);
             let mut leg: Value = get_value(&orderLegs, &i);
             let mut market: Value = self.market(get_value(&leg, &Value::Str("instrument".to_string())));
@@ -3193,8 +3393,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             add_element_to_object(&mut request, &Value::Str("quote".to_string()), Value::List(vec![]));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_697: bool = true;
-                while { if !__for_first_697 { i = add(&i, &Value::Int(1)); } __for_first_697 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_700: bool = true;
+                while { if !__for_first_700 { i = add(&i, &Value::Int(1)); } __for_first_700 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -4328,7 +4528,22 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 url = add(&url, &add(&Value::Str("?".to_string()), &queryString));
             }
         }  else if is_equal(&method, &Value::Str("POST".to_string())) {
-            body = self.json(params.clone());
+            // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+            // the private branch below sets its own headers, this covers the public market-data endpoints
+            headers = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
+                m
+            });
+            // an empty params dict must serialize as an empty json object, not an empty json array,
+            // php json_encode would produce [] here which the venue rejects with the same 1003 error
+            let mut paramsKeys: Value = object_keys(&params);
+            let mut paramsKeysLength: Value = get_array_length(&paramsKeys);
+            if is_equal(&paramsKeysLength, &Value::Int(0)) {
+                body = Value::Str("{}".to_string());
+            }  else {
+                body = self.json(params.clone());
+            }
         }
         let mut isPrivate: Value = Value::Bool(starts_with(&api, &Value::Str("private".to_string())));
         if is_true(&isPrivate) {

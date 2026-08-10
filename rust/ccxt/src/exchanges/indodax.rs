@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for IndodaxCore {
 
 impl crate::exchange_generated::ExchangeBase for IndodaxCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -178,6 +178,7 @@ impl crate::exchange_generated::ExchangeBase for IndodaxCore {
                 "fetch_balance" => self.fetch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_closed_orders" => self.fetch_closed_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_deposit_addresses" => self.fetch_deposit_addresses(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "fetch_deposit_withdraw_fee" => self.fetch_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_deposits_withdrawals" => self.fetch_deposits_withdrawals(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_markets" => self.fetch_markets(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "fetch_ohlcv" => self.fetch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
@@ -266,6 +267,8 @@ impl IndodaxCore {
         m.insert("fetchDepositAddressesByNetwork".to_string(), Value::Bool(false));
         m.insert("fetchDeposits".to_string(), Value::Bool(false));
         m.insert("fetchDepositsWithdrawals".to_string(), Value::Bool(true));
+        m.insert("fetchDepositWithdrawFee".to_string(), Value::Bool(true));
+        m.insert("fetchDepositWithdrawFees".to_string(), Value::Bool(false));
         m.insert("fetchFundingHistory".to_string(), Value::Bool(false));
         m.insert("fetchFundingInterval".to_string(), Value::Bool(false));
         m.insert("fetchFundingIntervals".to_string(), Value::Bool(false));
@@ -293,6 +296,7 @@ impl IndodaxCore {
         m.insert("fetchMarkPrices".to_string(), Value::Bool(false));
         m.insert("fetchMyLiquidations".to_string(), Value::Bool(false));
         m.insert("fetchMySettlementHistory".to_string(), Value::Bool(false));
+        m.insert("fetchOHLCV".to_string(), Value::Bool(true));
         m.insert("fetchOpenInterest".to_string(), Value::Bool(false));
         m.insert("fetchOpenInterestHistory".to_string(), Value::Bool(false));
         m.insert("fetchOpenInterests".to_string(), Value::Bool(false));
@@ -314,6 +318,7 @@ impl IndodaxCore {
         m.insert("fetchPremiumIndexOHLCV".to_string(), Value::Bool(false));
         m.insert("fetchSettlementHistory".to_string(), Value::Bool(false));
         m.insert("fetchTicker".to_string(), Value::Bool(true));
+        m.insert("fetchTickers".to_string(), Value::Bool(true));
         m.insert("fetchTime".to_string(), Value::Bool(true));
         m.insert("fetchTrades".to_string(), Value::Bool(true));
         m.insert("fetchTradingFee".to_string(), Value::Bool(false));
@@ -359,15 +364,51 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("api/server_time".to_string(), Value::Int(5));
-        m.insert("api/pairs".to_string(), Value::Int(5));
-        m.insert("api/price_increments".to_string(), Value::Int(5));
-        m.insert("api/summaries".to_string(), Value::Int(5));
-        m.insert("api/ticker/{pair}".to_string(), Value::Int(5));
-        m.insert("api/ticker_all".to_string(), Value::Int(5));
-        m.insert("api/trades/{pair}".to_string(), Value::Int(5));
-        m.insert("api/depth/{pair}".to_string(), Value::Int(5));
-        m.insert("tradingview/history_v2".to_string(), Value::Int(5));
+        m.insert("api/server_time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("api/pairs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("api/price_increments".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("api/summaries".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("api/ticker/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("api/ticker_all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("api/trades/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("api/depth/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("tradingview/history_v2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
     m
 }));
     m
@@ -376,19 +417,71 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("getInfo".to_string(), Value::Int(4));
-        m.insert("transHistory".to_string(), Value::Int(4));
-        m.insert("trade".to_string(), Value::Int(1));
-        m.insert("tradeHistory".to_string(), Value::Int(4));
-        m.insert("openOrders".to_string(), Value::Int(4));
-        m.insert("orderHistory".to_string(), Value::Int(4));
-        m.insert("getOrder".to_string(), Value::Int(4));
-        m.insert("cancelOrder".to_string(), Value::Int(4));
-        m.insert("withdrawFee".to_string(), Value::Int(4));
-        m.insert("withdrawCoin".to_string(), Value::Int(4));
-        m.insert("listDownline".to_string(), Value::Int(4));
-        m.insert("checkDownline".to_string(), Value::Int(4));
-        m.insert("createVoucher".to_string(), Value::Int(4));
+        m.insert("getInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("transHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("tradeHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("openOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("orderHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("getOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("cancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("withdrawFee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("withdrawCoin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("listDownline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("checkDownline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("createVoucher".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
     m
 }));
     m
@@ -619,12 +712,13 @@ impl IndodaxCore {
         //     ]
         //
         let mut result: Value = Value::List(vec![]);
+        let mut rawMarkets: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_806: bool = true;
-            while { if !__for_first_806 { i = add(&i, &Value::Int(1)); } __for_first_806 = false; is_less_than(&i, &get_array_length(&response)) } {
-            let mut market: Value = get_value(&response, &i);
-            let mut market: Value = get_value(&response, &i);
+            let mut __for_first_809: bool = true;
+            while { if !__for_first_809 { i = add(&i, &Value::Int(1)); } __for_first_809 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut market: Value = get_value(&rawMarkets, &i);
+            let mut market: Value = get_value(&rawMarkets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "traded_currency", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "base_currency", &[]);
@@ -728,8 +822,8 @@ impl IndodaxCore {
         let mut currencyIds: Value = object_keys(&free);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_807: bool = true;
-            while { if !__for_first_807 { i = add(&i, &Value::Int(1)); } __for_first_807 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_810: bool = true;
+            while { if !__for_first_810 { i = add(&i, &Value::Int(1)); } __for_first_810 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -941,8 +1035,8 @@ impl IndodaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_808: bool = true;
-            while { if !__for_first_808 { i = add(&i, &Value::Int(1)); } __for_first_808 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_811: bool = true;
+            while { if !__for_first_811 { i = add(&i, &Value::Int(1)); } __for_first_811 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut rawTicker: Value = get_value(&tickers, &key);
@@ -1069,7 +1163,7 @@ impl IndodaxCore {
         }
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_tradingview_history_v2(&[__ws_arg_3]).await;
-        return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+        return self.parse_ohlc_vs(self.to_array(response.clone()), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1223,7 +1317,10 @@ impl IndodaxCore {
         });
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_get_order(&[__ws_arg_4]).await;
-        let mut orders: Value = get_value(&response, &Value::Str("return".to_string()));
+        let mut orders: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let __ws_arg_5 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1269,7 +1366,11 @@ impl IndodaxCore {
         }
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_open_orders(&[__ws_arg_6]).await;
-        let mut rawOrders: Value = get_value(&get_value(&response, &Value::Str("return".to_string())), &Value::Str("orders".to_string()));
+        let mut openOrdersResult: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut rawOrders: Value = get_value(&openOrdersResult, &Value::Str("orders".to_string()));
         // { success: 1, return: { orders: null }} if no orders
         if !is_true(&rawOrders) {
             return Value::List(vec![]);
@@ -1283,8 +1384,8 @@ impl IndodaxCore {
         let mut exchangeOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_809: bool = true;
-            while { if !__for_first_809 { i = add(&i, &Value::Int(1)); } __for_first_809 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_812: bool = true;
+            while { if !__for_first_812 { i = add(&i, &Value::Int(1)); } __for_first_812 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketOrders: Value = get_value(&rawOrders, &marketId);
@@ -1332,7 +1433,11 @@ impl IndodaxCore {
         });
         let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_order_history(&[__ws_arg_7]).await;
-        let mut orders: Value = self.parse_orders(get_value(&get_value(&response, &Value::Str("return".to_string())), &Value::Str("orders".to_string())), &[market.clone()]);
+        let mut historyResult: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut orders: Value = self.parse_orders(get_value(&historyResult, &Value::Str("orders".to_string())), &[market.clone()]);
         orders = self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("closed".to_string()), &[]);
         return self.filter_by_symbol_since_limit(orders.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
 
@@ -1395,7 +1500,7 @@ impl IndodaxCore {
             priceIsRequired = Value::Bool(true);
             quantityIsRequired = Value::Bool(true);
             if is_equal(&side, &Value::Str("buy".to_string())) {
-                add_element_to_object(&mut request, &get_value(&market, &Value::Str("quoteId".to_string())), self.parse_to_numeric(crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &self.number_to_string(price.clone()))));
+                add_element_to_object(&mut request, &get_value(&market, &Value::Str("quoteId".to_string())), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &self.number_to_string(price.clone())))));
             }
         }
         if is_true(&priceIsRequired) {
@@ -1538,6 +1643,53 @@ impl IndodaxCore {
 
 /*
  * @method
+ * @name indodax#fetchDepositWithdrawFee
+ * @description fetch the withdrawal fee for a currency; indodax charges no crypto deposit fees, see https://github.com/ccxt/ccxt/issues/25800
+ * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-fee-endpoints
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+    pub async fn fetch_deposit_withdraw_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut currency: Value = self.currency(code.clone());
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
+            m
+        });
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_withdraw_fee(&[__ws_arg_11]).await;
+        //
+        //     {
+        //         "success": 1,
+        //         "return": {
+        //             "server_time": 1607923272,
+        //             "withdraw_fee": 0.005,
+        //             "currency": "eth"
+        //         }
+        //     }
+        //
+        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut result: Value = self.deposit_withdraw_fee(response.clone());
+        add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(data.clone(), "withdraw_fee", &[]));
+        add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
+        add_element_to_object(get_value_mut(&mut result, &Value::Str("deposit".to_string())), &Value::Str("fee".to_string()), Value::Int(0));
+        add_element_to_object(get_value_mut(&mut result, &Value::Str("deposit".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
+        return self.assign_default_deposit_withdraw_fees(result.clone(), &[currency.clone()]);
+
+    Value::Null
+}
+
+/*
+ * @method
  * @name indodax#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
  * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#transaction-history-endpoints
@@ -1567,8 +1719,8 @@ impl IndodaxCore {
             add_element_to_object(&mut request, &Value::Str("start".to_string()), startTime.clone());
             add_element_to_object(&mut request, &Value::Str("end".to_string()), self.yyyymmdd(self.milliseconds(), &[]));
         }
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_trans_history(&[__ws_arg_11]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trans_history(&[__ws_arg_12]).await;
         //
         //     {
         //         "success": 1,
@@ -1644,8 +1796,8 @@ impl IndodaxCore {
             let mut keys: Value = object_keys(&withdraw);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_810: bool = true;
-                while { if !__for_first_810 { i = add(&i, &Value::Int(1)); } __for_first_810 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_813: bool = true;
+                while { if !__for_first_813 { i = add(&i, &Value::Int(1)); } __for_first_813 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 transactions = self.array_concat(transactions.clone(), get_value(&withdraw, &key));
@@ -1654,8 +1806,8 @@ impl IndodaxCore {
             keys = object_keys(&deposit);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_811: bool = true;
-                while { if !__for_first_811 { i = add(&i, &Value::Int(1)); } __for_first_811 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_814: bool = true;
+                while { if !__for_first_814 { i = add(&i, &Value::Int(1)); } __for_first_814 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 transactions = self.array_concat(transactions.clone(), get_value(&deposit, &key));
@@ -1714,8 +1866,8 @@ impl IndodaxCore {
         if is_true(&tag) {
             add_element_to_object(&mut request, &Value::Str("withdraw_memo".to_string()), tag.clone());
         }
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_withdraw_coin(&[__ws_arg_12]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_withdraw_coin(&[__ws_arg_13]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -1888,8 +2040,8 @@ impl IndodaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_813: bool = true;
-            while { if !__for_first_813 { i = add(&i, &Value::Int(1)); } __for_first_813 = false; is_less_than(&i, &get_array_length(&addressKeys)) } {
+            let mut __for_first_816: bool = true;
+            while { if !__for_first_816 { i = add(&i, &Value::Int(1)); } __for_first_816 = false; is_less_than(&i, &get_array_length(&addressKeys)) } {
             let mut marketId: Value = get_value(&addressKeys, &i);
             let mut marketId: Value = get_value(&addressKeys, &i);
             let mut code: Value = self.safe_currency_code(marketId.clone(), &[]);
@@ -1910,8 +2062,8 @@ impl IndodaxCore {
                         let mut networkIds: Value = split(&networkId, &Value::Str(",".to_string()));
                         {
                                                         let mut j: Value = Value::Int(0);
-                            let mut __for_first_812: bool = true;
-                            while { if !__for_first_812 { j = add(&j, &Value::Int(1)); } __for_first_812 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
+                            let mut __for_first_815: bool = true;
+                            while { if !__for_first_815 { j = add(&j, &Value::Int(1)); } __for_first_815 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
                             let mut _netIdTmp: Value = self.network_id_to_code(&[get_value(&networkIds, &j), code.clone()]);
                             if !is_equal(&_netIdTmp, &Value::Null) {
                                 append_to_array(&mut network, to_upper(&_netIdTmp));
@@ -1967,14 +2119,14 @@ impl IndodaxCore {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let __ws_arg_13 = self.extend(Value::Map({
+            let __ws_arg_14 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), path.clone());
                     m.insert("timestamp".to_string(), self.nonce());
                     m.insert("recvWindow".to_string(), get_value(&self.options, &Value::Str("recvWindow".to_string())));
                 m
             }), &[params.clone()]);
-            body = self.urlencode(__ws_arg_13, &[]);
+            body = self.urlencode(__ws_arg_14, &[]);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".to_string()));

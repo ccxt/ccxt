@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for WoofiproCore {
 
 impl crate::exchange_generated::ExchangeBase for WoofiproCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -432,12 +432,12 @@ impl WoofiproCore {
 /*
  * @method
  * @name woofipro#watchOrderBook
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/orderbook
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -507,7 +507,7 @@ impl WoofiproCore {
 /*
  * @method
  * @name woofipro#watchTicker
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-ticker
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -605,7 +605,7 @@ impl WoofiproCore {
 /*
  * @method
  * @name woofipro#watchTickers
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-tickers
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-tickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -662,8 +662,8 @@ impl WoofiproCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_655: bool = true;
-            while { if !__for_first_655 { i = add(&i, &Value::Int(1)); } __for_first_655 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_671: bool = true;
+            while { if !__for_first_671 { i = add(&i, &Value::Int(1)); } __for_first_671 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut marketId: Value = self.safe_string_k(get_value(&data, &i), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let __ws_arg_0 = self.extend(get_value(&data, &i), &[Value::Map({
@@ -682,7 +682,7 @@ impl WoofiproCore {
 /*
  * @method
  * @name woofipro#watchBidsAsks
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/bbos
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -735,15 +735,17 @@ impl WoofiproCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_656: bool = true;
-            while { if !__for_first_656 { i = add(&i, &Value::Int(1)); } __for_first_656 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_672: bool = true;
+            while { if !__for_first_672 { i = add(&i, &Value::Int(1)); } __for_first_672 = false; is_less_than(&i, &get_array_length(&data)) } {
             let __ws_arg_1 = self.extend(get_value(&data, &i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ts".to_string(), timestamp.clone());
     m
 })]);
             let mut ticker: Value = self.parse_ws_bid_ask(__ws_arg_1, &[]);
-            add_element_to_object(&mut self.tickers.clone(), &get_value(&ticker, &Value::Str("symbol".to_string())), ticker.clone());
+            if !is_equal(&get_value(&ticker, &Value::Str("symbol".to_string())), &Value::Null) {
+                add_element_to_object(&mut self.tickers.clone(), &get_value(&ticker, &Value::Str("symbol".to_string())), ticker.clone());
+            }
             append_to_array(&mut result, ticker.clone());
         }
         }
@@ -776,7 +778,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/k-line
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -852,22 +854,23 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
-        let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
+        let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            if is_true(&(!is_equal(&symbol, &Value::Null))) && is_true(&(!is_equal(&timeframe, &Value::Null))) {
+                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            }
         }
-        let mut ohlcvCache: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
-        ohlcvCache.append(parsed.clone());
-        client.resolve(&[ohlcvCache.clone(), topic.clone()]);
+        stored.append(parsed.clone());
+        client.resolve(&[stored.clone(), topic.clone()]);
 }
 
 /*
  * @method
  * @name woofipro#watchTrades
  * @description watches information on multiple trades made in a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/trade
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1131,8 +1134,8 @@ impl WoofiproCore {
  * @method
  * @name woofipro#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1180,8 +1183,8 @@ impl WoofiproCore {
  * @method
  * @name woofipro#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1387,8 +1390,8 @@ impl WoofiproCore {
         if is_true(&Value::Bool(is_array(&data))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_657: bool = true;
-                while { if !__for_first_657 { i = add(&i, &Value::Int(1)); } __for_first_657 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_673: bool = true;
+                while { if !__for_first_673 { i = add(&i, &Value::Int(1)); } __for_first_673 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut order: Value = get_value(&data, &i);
                 let mut order: Value = get_value(&data, &i);
                 let mut tradeId: Value = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
@@ -1432,7 +1435,7 @@ impl WoofiproCore {
                 if !is_equal(&fees, &Value::Null) {
                     add_element_to_object(&mut parsed, &Value::Str("fees".to_string()), fees.clone());
                 }
-                add_element_to_object(&mut parsed, &Value::Str("trades".to_string()), self.safe_list_k(order.clone(), "trades", &[]));
+                add_element_to_object(&mut parsed, &Value::Str("trades".to_string()), self.safe_list_k(order.clone(), "trades", &[Value::List(vec![])]));
                 add_element_to_object(&mut parsed, &Value::Str("timestamp".to_string()), self.safe_integer_k(order.clone(), "timestamp", &[]));
                 add_element_to_object(&mut parsed, &Value::Str("datetime".to_string()), self.safe_string_k(order.clone(), "datetime", &[]));
             }
@@ -1492,7 +1495,7 @@ impl WoofiproCore {
 /*
  * @method
  * @name woofipro#watchPositions
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
  * @description watch all open positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch
@@ -1514,10 +1517,16 @@ impl WoofiproCore {
         let mut messageHashes: Value = Value::List(vec![]);
         symbols = self.market_symbols(&[symbols.clone()]);
         if !is_true(&self.is_empty(symbols.clone())) {
+            if is_equal(&symbols, &Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchPositions() symbols is required".to_string()))));
+            }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_658: bool = true;
-                while { if !__for_first_658 { i = add(&i, &Value::Int(1)); } __for_first_658 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_674: bool = true;
+                while { if !__for_first_674 { i = add(&i, &Value::Int(1)); } __for_first_674 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                if is_equal(&symbols, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchPositions() symbols is required".to_string()))));
+                }
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, add(&Value::Str("positions::".to_string()), &symbol));
@@ -1528,7 +1537,7 @@ impl WoofiproCore {
         }
         let mut url: Value = add(&add(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("private".to_string())), &Value::Str("/".to_string())), &self.accountId);
         let mut client: Value = self.client(&[url.clone()]);
-        self.set_positions_cache(client.clone(), symbols.clone(), &[]);
+        self.set_positions_cache(client.clone(), &[symbols.clone()]);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("awaitPositionsSnapshot".to_string()), &[Value::Bool(true)]);
         if is_true(&fetchPositionsSnapshot) && is_true(&awaitPositionsSnapshot) && is_equal(&self.positions, &Value::Null) {
@@ -1550,7 +1559,7 @@ impl WoofiproCore {
     Value::Null
 }
 
-    pub fn set_positions_cache(&mut self, mut client: Value, mut type_var: Value, optional_args: &[Value]) {
+    pub fn set_positions_cache(&mut self, mut client: Value, optional_args: &[Value]) {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(false)]);
         if is_true(&fetchPositionsSnapshot) {
@@ -1570,8 +1579,8 @@ impl WoofiproCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { i = add(&i, &Value::Int(1)); } __for_first_659 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_675: bool = true;
+            while { if !__for_first_675 { i = add(&i, &Value::Int(1)); } __for_first_675 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut contracts: Value = self.safe_string_k(position.clone(), "contracts", &[Value::Str("0".to_string())]);
@@ -1635,8 +1644,8 @@ impl WoofiproCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_660: bool = true;
-            while { if !__for_first_660 { i = add(&i, &Value::Int(1)); } __for_first_660 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
+            let mut __for_first_676: bool = true;
+            while { if !__for_first_676 { i = add(&i, &Value::Int(1)); } __for_first_676 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut marketId: Value = self.safe_string_k(rawPosition.clone(), "symbol", &[]);
@@ -1733,7 +1742,7 @@ impl WoofiproCore {
  * @method
  * @name woofipro#watchBalance
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/balance
+ * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -1802,20 +1811,25 @@ impl WoofiproCore {
         { let __be_tmp = self.iso8601(ts.clone()); add_element_to_object(&mut self.balance.clone(), &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_661: bool = true;
-            while { if !__for_first_661 { i = add(&i, &Value::Int(1)); } __for_first_661 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_677: bool = true;
+            while { if !__for_first_677 { i = add(&i, &Value::Int(1)); } __for_first_677 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&balances, &key);
             let mut value: Value = get_value(&balances, &key);
             let mut code: Value = self.safe_currency_code(key.clone(), &[]);
-            let mut account: Value = ternary(is_true(&(Value::Bool(in_op(&self.balance, &code)))), get_value(&self.balance, &code), self.account());
+            let mut account: Value = self.account();
+            if is_true(&(!is_equal(&code, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.balance, &code)))) {
+                account = get_value(&self.balance, &code);
+            }
             let mut total: Value = self.safe_string_k(value.clone(), "holding", &[]);
             let mut used: Value = self.safe_string_k(value.clone(), "frozen", &[]);
             add_element_to_object(&mut account, &Value::Str("total".to_string()), total.clone());
             add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
             add_element_to_object(&mut account, &Value::Str("free".to_string()), crate::precise::Precise::stringSub(&total, &used));
-            add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
@@ -1896,6 +1910,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut splitLength: Value = get_array_length(&splitTopic);
             if is_equal(&splitLength, &Value::Int(2)) {
                 let mut name: Value = self.safe_string(splitTopic.clone(), Value::Int(1), &[]);
+                if is_equal(&name, &Value::Null) {
+                    return;
+                }
                 method = self.safe_value(methods.clone(), name.clone(), &[]);
                 if !is_equal(&method, &Value::Null) {
                     method.call(&[client.clone(), message.clone()]);

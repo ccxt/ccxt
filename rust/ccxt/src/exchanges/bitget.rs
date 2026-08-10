@@ -233,7 +233,7 @@ impl crate::exchange::DerivedExchange for BitgetCore {
 
 impl crate::exchange_generated::ExchangeBase for BitgetCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -550,8 +550,16 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/public/annoucements".to_string(), Value::Int(1));
-        m.insert("v2/public/time".to_string(), Value::Int(1));
+        m.insert("v2/public/annoucements".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/public/time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -560,32 +568,136 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot/v1/notice/queryAllNotices".to_string(), Value::Int(1));
-        m.insert("spot/v1/public/time".to_string(), Value::Int(1));
-        m.insert("spot/v1/public/currencies".to_string(), Value::Float(6.6667));
-        m.insert("spot/v1/public/products".to_string(), Value::Int(1));
-        m.insert("spot/v1/public/product".to_string(), Value::Int(1));
-        m.insert("spot/v1/market/ticker".to_string(), Value::Int(1));
-        m.insert("spot/v1/market/tickers".to_string(), Value::Int(1));
-        m.insert("spot/v1/market/fills".to_string(), Value::Int(2));
-        m.insert("spot/v1/market/fills-history".to_string(), Value::Int(2));
-        m.insert("spot/v1/market/candles".to_string(), Value::Int(1));
-        m.insert("spot/v1/market/depth".to_string(), Value::Int(1));
-        m.insert("spot/v1/market/spot-vip-level".to_string(), Value::Int(2));
-        m.insert("spot/v1/market/merge-depth".to_string(), Value::Int(1));
-        m.insert("spot/v1/market/history-candles".to_string(), Value::Int(1));
-        m.insert("spot/v1/public/loan/coinInfos".to_string(), Value::Int(2));
-        m.insert("spot/v1/public/loan/hour-interest".to_string(), Value::Int(2));
-        m.insert("v2/spot/public/coins".to_string(), Value::Float(6.6667));
-        m.insert("v2/spot/public/symbols".to_string(), Value::Int(1));
-        m.insert("v2/spot/market/vip-fee-rate".to_string(), Value::Int(2));
-        m.insert("v2/spot/market/tickers".to_string(), Value::Int(1));
-        m.insert("v2/spot/market/merge-depth".to_string(), Value::Int(1));
-        m.insert("v2/spot/market/orderbook".to_string(), Value::Int(1));
-        m.insert("v2/spot/market/candles".to_string(), Value::Int(1));
-        m.insert("v2/spot/market/history-candles".to_string(), Value::Int(1));
-        m.insert("v2/spot/market/fills".to_string(), Value::Int(2));
-        m.insert("v2/spot/market/fills-history".to_string(), Value::Int(2));
+        m.insert("spot/v1/notice/queryAllNotices".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/public/time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/public/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("spot/v1/public/products".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/public/product".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/market/ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/market/tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/market/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/market/fills-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/market/candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/market/depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/market/spot-vip-level".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/market/merge-depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/market/history-candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/public/loan/coinInfos".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/public/loan/hour-interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/public/coins".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v2/spot/public/symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/market/vip-fee-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/market/tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/market/merge-depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/market/orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/market/candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/market/history-candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/market/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/market/fills-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -594,49 +706,221 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("mix/v1/market/contracts".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/depth".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/ticker".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/tickers".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/contract-vip-level".to_string(), Value::Int(2));
-        m.insert("mix/v1/market/fills".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/fills-history".to_string(), Value::Int(2));
-        m.insert("mix/v1/market/candles".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/index".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/funding-time".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/history-fundRate".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/current-fundRate".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/open-interest".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/mark-price".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/symbol-leverage".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/queryPositionLever".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/open-limit".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/history-candles".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/history-index-candles".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/history-mark-candles".to_string(), Value::Int(1));
-        m.insert("mix/v1/market/merge-depth".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/vip-fee-rate".to_string(), Value::Int(2));
-        m.insert("v2/mix/market/union-interest-rate-history".to_string(), Value::Int(4));
-        m.insert("v2/mix/market/exchange-rate".to_string(), Value::Int(4));
-        m.insert("v2/mix/market/discount-rate".to_string(), Value::Int(4));
-        m.insert("v2/mix/market/merge-depth".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/ticker".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/tickers".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/fills".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/fills-history".to_string(), Value::Int(2));
-        m.insert("v2/mix/market/candles".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/history-candles".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/history-index-candles".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/history-mark-candles".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/open-interest".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/funding-time".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/symbol-price".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/history-fund-rate".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/current-fund-rate".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/oi-limit".to_string(), Value::Int(2));
-        m.insert("v2/mix/market/contracts".to_string(), Value::Int(1));
-        m.insert("v2/mix/market/query-position-lever".to_string(), Value::Int(2));
-        m.insert("v2/mix/market/account-long-short".to_string(), Value::Int(20));
+        m.insert("mix/v1/market/contracts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/contract-vip-level".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/market/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/fills-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/market/candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/index".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/funding-time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/history-fundRate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/current-fundRate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/open-interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/mark-price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/symbol-leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/queryPositionLever".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/open-limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/history-candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/history-index-candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/history-mark-candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/market/merge-depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/vip-fee-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/market/union-interest-rate-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/market/exchange-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/market/discount-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/market/merge-depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/fills-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/market/candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/history-candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/history-index-candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/history-mark-candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/open-interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/funding-time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/symbol-price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/history-fund-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/current-fund-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/oi-limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/market/contracts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/market/query-position-lever".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/market/account-long-short".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
     m
 }));
     m
@@ -645,13 +929,41 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("margin/v1/cross/public/interestRateAndLimit".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/public/interestRateAndLimit".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/public/tierData".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/public/tierData".to_string(), Value::Int(2));
-        m.insert("margin/v1/public/currencies".to_string(), Value::Int(1));
-        m.insert("v2/margin/currencies".to_string(), Value::Int(2));
-        m.insert("v2/margin/market/long-short-ratio".to_string(), Value::Int(20));
+        m.insert("margin/v1/cross/public/interestRateAndLimit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/public/interestRateAndLimit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/public/tierData".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/public/tierData".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/public/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/margin/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/market/long-short-ratio".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
     m
 }));
     m
@@ -660,8 +972,16 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/earn/loan/public/coinInfos".to_string(), Value::Int(2));
-        m.insert("v2/earn/loan/public/hour-interest".to_string(), Value::Int(2));
+        m.insert("v2/earn/loan/public/coinInfos".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/loan/public/hour-interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -670,22 +990,86 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v3/market/instruments".to_string(), Value::Int(1));
-        m.insert("v3/market/tickers".to_string(), Value::Int(1));
-        m.insert("v3/market/orderbook".to_string(), Value::Int(1));
-        m.insert("v3/market/fills".to_string(), Value::Int(1));
-        m.insert("v3/market/proof-of-reserves".to_string(), Value::Int(1));
-        m.insert("v3/market/open-interest".to_string(), Value::Int(1));
-        m.insert("v3/market/candles".to_string(), Value::Int(1));
-        m.insert("v3/market/history-candles".to_string(), Value::Int(1));
-        m.insert("v3/market/current-fund-rate".to_string(), Value::Int(1));
-        m.insert("v3/market/history-fund-rate".to_string(), Value::Int(1));
-        m.insert("v3/market/risk-reserve".to_string(), Value::Int(1));
-        m.insert("v3/market/discount-rate".to_string(), Value::Int(1));
-        m.insert("v3/market/margin-loans".to_string(), Value::Int(1));
-        m.insert("v3/market/position-tier".to_string(), Value::Int(1));
-        m.insert("v3/market/oi-limit".to_string(), Value::Int(2));
-        m.insert("v3/market/index-components".to_string(), Value::Int(2));
+        m.insert("v3/market/instruments".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/proof-of-reserves".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/open-interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/history-candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/current-fund-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/history-fund-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/risk-reserve".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/discount-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/margin-loans".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/position-tier".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/market/oi-limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/market/index-components".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -698,110 +1082,510 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot/v1/wallet/deposit-address".to_string(), Value::Int(4));
-        m.insert("spot/v1/wallet/withdrawal-list".to_string(), Value::Int(1));
-        m.insert("spot/v1/wallet/deposit-list".to_string(), Value::Int(1));
-        m.insert("spot/v1/account/getInfo".to_string(), Value::Int(20));
-        m.insert("spot/v1/account/assets".to_string(), Value::Int(2));
-        m.insert("spot/v1/account/assets-lite".to_string(), Value::Int(2));
-        m.insert("spot/v1/account/transferRecords".to_string(), Value::Int(1));
-        m.insert("spot/v1/convert/currencies".to_string(), Value::Int(2));
-        m.insert("spot/v1/convert/convert-record".to_string(), Value::Int(2));
-        m.insert("spot/v1/loan/ongoing-orders".to_string(), Value::Int(2));
-        m.insert("spot/v1/loan/repay-history".to_string(), Value::Int(2));
-        m.insert("spot/v1/loan/revise-history".to_string(), Value::Int(2));
-        m.insert("spot/v1/loan/borrow-history".to_string(), Value::Int(2));
-        m.insert("spot/v1/loan/debts".to_string(), Value::Int(2));
-        m.insert("v2/spot/trade/orderInfo".to_string(), Value::Int(1));
-        m.insert("v2/spot/trade/unfilled-orders".to_string(), Value::Int(1));
-        m.insert("v2/spot/trade/history-orders".to_string(), Value::Int(1));
-        m.insert("v2/spot/trade/fills".to_string(), Value::Int(2));
-        m.insert("v2/spot/trade/current-plan-order".to_string(), Value::Int(1));
-        m.insert("v2/spot/trade/history-plan-order".to_string(), Value::Int(1));
-        m.insert("v2/spot/account/info".to_string(), Value::Int(20));
-        m.insert("v2/spot/account/assets".to_string(), Value::Int(2));
-        m.insert("v2/spot/account/subaccount-assets".to_string(), Value::Int(2));
-        m.insert("v2/spot/account/bills".to_string(), Value::Int(2));
-        m.insert("v2/spot/account/transferRecords".to_string(), Value::Int(1));
-        m.insert("v2/account/funding-assets".to_string(), Value::Int(2));
-        m.insert("v2/account/bot-assets".to_string(), Value::Int(2));
-        m.insert("v2/account/all-account-balance".to_string(), Value::Int(20));
-        m.insert("v2/spot/wallet/deposit-address".to_string(), Value::Int(2));
-        m.insert("v2/spot/wallet/deposit-records".to_string(), Value::Int(2));
-        m.insert("v2/spot/wallet/withdrawal-records".to_string(), Value::Int(2));
-        m.insert("v2/spot/account/upgrade-status".to_string(), Value::Int(20));
+        m.insert("spot/v1/wallet/deposit-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/wallet/withdrawal-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/wallet/deposit-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/account/getInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("spot/v1/account/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/account/assets-lite".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/account/transferRecords".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/convert/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/convert/convert-record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/loan/ongoing-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/loan/repay-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/loan/revise-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/loan/borrow-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/loan/debts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/trade/orderInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/trade/unfilled-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/trade/history-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/trade/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/trade/current-plan-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/trade/history-plan-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/account/info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/spot/account/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/account/subaccount-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/account/bills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/account/transferRecords".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/account/funding-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/account/bot-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/account/all-account-balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/spot/wallet/deposit-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/wallet/deposit-records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/wallet/withdrawal-records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/account/upgrade-status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot/v1/wallet/transfer".to_string(), Value::Int(4));
-        m.insert("spot/v1/wallet/transfer-v2".to_string(), Value::Int(4));
-        m.insert("spot/v1/wallet/subTransfer".to_string(), Value::Int(10));
-        m.insert("spot/v1/wallet/withdrawal".to_string(), Value::Int(4));
-        m.insert("spot/v1/wallet/withdrawal-v2".to_string(), Value::Int(4));
-        m.insert("spot/v1/wallet/withdrawal-inner".to_string(), Value::Int(4));
-        m.insert("spot/v1/wallet/withdrawal-inner-v2".to_string(), Value::Int(4));
-        m.insert("spot/v1/account/sub-account-spot-assets".to_string(), Value::Int(200));
-        m.insert("spot/v1/account/bills".to_string(), Value::Int(2));
-        m.insert("spot/v1/trade/orders".to_string(), Value::Int(2));
-        m.insert("spot/v1/trade/batch-orders".to_string(), Value::Int(4));
-        m.insert("spot/v1/trade/cancel-order".to_string(), Value::Int(2));
-        m.insert("spot/v1/trade/cancel-order-v2".to_string(), Value::Int(2));
-        m.insert("spot/v1/trade/cancel-symbol-order".to_string(), Value::Int(2));
-        m.insert("spot/v1/trade/cancel-batch-orders".to_string(), Value::Int(4));
-        m.insert("spot/v1/trade/cancel-batch-orders-v2".to_string(), Value::Int(4));
-        m.insert("spot/v1/trade/orderInfo".to_string(), Value::Int(1));
-        m.insert("spot/v1/trade/open-orders".to_string(), Value::Int(1));
-        m.insert("spot/v1/trade/history".to_string(), Value::Int(1));
-        m.insert("spot/v1/trade/fills".to_string(), Value::Int(1));
-        m.insert("spot/v1/plan/placePlan".to_string(), Value::Int(1));
-        m.insert("spot/v1/plan/modifyPlan".to_string(), Value::Int(1));
-        m.insert("spot/v1/plan/cancelPlan".to_string(), Value::Int(1));
-        m.insert("spot/v1/plan/currentPlan".to_string(), Value::Int(1));
-        m.insert("spot/v1/plan/historyPlan".to_string(), Value::Int(1));
-        m.insert("spot/v1/plan/batchCancelPlan".to_string(), Value::Int(2));
-        m.insert("spot/v1/convert/quoted-price".to_string(), Value::Int(4));
-        m.insert("spot/v1/convert/trade".to_string(), Value::Int(4));
-        m.insert("spot/v1/loan/borrow".to_string(), Value::Int(2));
-        m.insert("spot/v1/loan/repay".to_string(), Value::Int(2));
-        m.insert("spot/v1/loan/revise-pledge".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/order/orderCurrentList".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/order/orderHistoryList".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/order/closeTrackingOrder".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/order/updateTpsl".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/order/followerEndOrder".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/order/spotInfoList".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/config/getTraderSettings".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/config/getFollowerSettings".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/user/myTraders".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/config/setFollowerConfig".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/user/myFollowers".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/config/setProductCode".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/user/removeTrader".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/getRemovableFollower".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/user/removeFollower".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/profit/totalProfitInfo".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/profit/totalProfitList".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/profit/profitHisList".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/profit/profitHisDetailList".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/profit/waitProfitDetailList".to_string(), Value::Int(2));
-        m.insert("spot/v1/trace/user/getTraderInfo".to_string(), Value::Int(2));
-        m.insert("v2/spot/trade/place-order".to_string(), Value::Int(2));
-        m.insert("v2/spot/trade/cancel-order".to_string(), Value::Int(2));
-        m.insert("v2/spot/trade/batch-orders".to_string(), Value::Int(20));
-        m.insert("v2/spot/trade/batch-cancel-order".to_string(), Value::Int(2));
-        m.insert("v2/spot/trade/cancel-symbol-order".to_string(), Value::Int(4));
-        m.insert("v2/spot/trade/place-plan-order".to_string(), Value::Int(1));
-        m.insert("v2/spot/trade/modify-plan-order".to_string(), Value::Int(1));
-        m.insert("v2/spot/trade/cancel-plan-order".to_string(), Value::Int(1));
-        m.insert("v2/spot/trade/cancel-replace-order".to_string(), Value::Int(2));
-        m.insert("v2/spot/trade/batch-cancel-plan-order".to_string(), Value::Int(2));
-        m.insert("v2/spot/wallet/transfer".to_string(), Value::Int(2));
-        m.insert("v2/spot/wallet/subaccount-transfer".to_string(), Value::Int(2));
-        m.insert("v2/spot/wallet/withdrawal".to_string(), Value::Int(2));
-        m.insert("v2/spot/wallet/cancel-withdrawal".to_string(), Value::Int(2));
-        m.insert("v2/spot/wallet/modify-deposit-account".to_string(), Value::Int(2));
-        m.insert("v2/spot/account/upgrade".to_string(), Value::Int(20));
+        m.insert("spot/v1/wallet/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/wallet/transfer-v2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/wallet/subTransfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("spot/v1/wallet/withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/wallet/withdrawal-v2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/wallet/withdrawal-inner".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/wallet/withdrawal-inner-v2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/account/sub-account-spot-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(200));
+    m
+}));
+        m.insert("spot/v1/account/bills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trade/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trade/batch-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/trade/cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trade/cancel-order-v2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trade/cancel-symbol-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trade/cancel-batch-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/trade/cancel-batch-orders-v2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/trade/orderInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/trade/open-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/trade/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/trade/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/plan/placePlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/plan/modifyPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/plan/cancelPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/plan/currentPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/plan/historyPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/v1/plan/batchCancelPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/convert/quoted-price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/convert/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("spot/v1/loan/borrow".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/loan/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/loan/revise-pledge".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/order/orderCurrentList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/order/orderHistoryList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/order/closeTrackingOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/order/updateTpsl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/order/followerEndOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/order/spotInfoList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/config/getTraderSettings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/config/getFollowerSettings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/user/myTraders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/config/setFollowerConfig".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/user/myFollowers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/config/setProductCode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/user/removeTrader".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/getRemovableFollower".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/user/removeFollower".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/profit/totalProfitInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/profit/totalProfitList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/profit/profitHisList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/profit/profitHisDetailList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/profit/waitProfitDetailList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("spot/v1/trace/user/getTraderInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/trade/place-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/trade/cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/trade/batch-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/spot/trade/batch-cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/trade/cancel-symbol-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/spot/trade/place-plan-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/trade/modify-plan-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/trade/cancel-plan-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/spot/trade/cancel-replace-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/trade/batch-cancel-plan-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/wallet/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/wallet/subaccount-transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/wallet/withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/wallet/cancel-withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/wallet/modify-deposit-account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/spot/account/upgrade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
     m
 }));
     m
@@ -810,131 +1594,615 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("mix/v1/account/account".to_string(), Value::Int(2));
-        m.insert("mix/v1/account/accounts".to_string(), Value::Int(2));
-        m.insert("mix/v1/position/singlePosition".to_string(), Value::Int(2));
-        m.insert("mix/v1/position/singlePosition-v2".to_string(), Value::Int(2));
-        m.insert("mix/v1/position/allPosition".to_string(), Value::Int(4));
-        m.insert("mix/v1/position/allPosition-v2".to_string(), Value::Int(4));
-        m.insert("mix/v1/position/history-position".to_string(), Value::Int(1));
-        m.insert("mix/v1/account/accountBill".to_string(), Value::Int(2));
-        m.insert("mix/v1/account/accountBusinessBill".to_string(), Value::Int(4));
-        m.insert("mix/v1/order/current".to_string(), Value::Int(1));
-        m.insert("mix/v1/order/marginCoinCurrent".to_string(), Value::Int(1));
-        m.insert("mix/v1/order/history".to_string(), Value::Int(2));
-        m.insert("mix/v1/order/historyProductType".to_string(), Value::Int(4));
-        m.insert("mix/v1/order/detail".to_string(), Value::Int(2));
-        m.insert("mix/v1/order/fills".to_string(), Value::Int(2));
-        m.insert("mix/v1/order/allFills".to_string(), Value::Int(2));
-        m.insert("mix/v1/plan/currentPlan".to_string(), Value::Int(1));
-        m.insert("mix/v1/plan/historyPlan".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/currentTrack".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/followerOrder".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/followerHistoryOrders".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/historyTrack".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/summary".to_string(), Value::Int(1));
-        m.insert("mix/v1/trace/profitSettleTokenIdGroup".to_string(), Value::Int(1));
-        m.insert("mix/v1/trace/profitDateGroupList".to_string(), Value::Int(1));
-        m.insert("mix/v1/trade/profitDateList".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/waitProfitDateList".to_string(), Value::Int(1));
-        m.insert("mix/v1/trace/traderSymbols".to_string(), Value::Int(1));
-        m.insert("mix/v1/trace/traderList".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/traderDetail".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/queryTraceConfig".to_string(), Value::Int(2));
-        m.insert("v2/mix/account/account".to_string(), Value::Int(2));
-        m.insert("v2/mix/account/accounts".to_string(), Value::Int(2));
-        m.insert("v2/mix/account/sub-account-assets".to_string(), Value::Int(200));
-        m.insert("v2/mix/account/interest-history".to_string(), Value::Int(4));
-        m.insert("v2/mix/account/max-open".to_string(), Value::Int(1));
-        m.insert("v2/mix/account/liq-price".to_string(), Value::Int(1));
-        m.insert("v2/mix/account/open-count".to_string(), Value::Int(2));
-        m.insert("v2/mix/account/bill".to_string(), Value::Int(2));
-        m.insert("v2/mix/account/transfer-limits".to_string(), Value::Int(20));
-        m.insert("v2/mix/account/union-config".to_string(), Value::Int(20));
-        m.insert("v2/mix/account/switch-union-usdt".to_string(), Value::Int(20));
-        m.insert("v2/mix/account/isolated-symbols".to_string(), Value::Int(2));
-        m.insert("v2/mix/market/query-position-lever".to_string(), Value::Int(2));
-        m.insert("v2/mix/position/single-position".to_string(), Value::Int(2));
-        m.insert("v2/mix/position/all-position".to_string(), Value::Int(4));
-        m.insert("v2/mix/position/adlRank".to_string(), Value::Int(4));
-        m.insert("v2/mix/position/history-position".to_string(), Value::Int(1));
-        m.insert("v2/mix/order/detail".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/fills".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/fill-history".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/orders-pending".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/orders-history".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/plan-sub-order".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/orders-plan-pending".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/orders-plan-history".to_string(), Value::Int(2));
-        m.insert("v2/mix/market/position-long-short".to_string(), Value::Int(20));
+        m.insert("mix/v1/account/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/account/accounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/position/singlePosition".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/position/singlePosition-v2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/position/allPosition".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("mix/v1/position/allPosition-v2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("mix/v1/position/history-position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/account/accountBill".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/account/accountBusinessBill".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("mix/v1/order/current".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/order/marginCoinCurrent".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/order/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/order/historyProductType".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("mix/v1/order/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/order/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/order/allFills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/plan/currentPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/plan/historyPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/currentTrack".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/followerOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/followerHistoryOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/historyTrack".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/trace/profitSettleTokenIdGroup".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/trace/profitDateGroupList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/trade/profitDateList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/waitProfitDateList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/trace/traderSymbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/trace/traderList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/traderDetail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/queryTraceConfig".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/account/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/account/accounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/account/sub-account-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(200));
+    m
+}));
+        m.insert("v2/mix/account/interest-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/account/max-open".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/account/liq-price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/account/open-count".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/account/bill".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/account/transfer-limits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/mix/account/union-config".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/mix/account/switch-union-usdt".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/mix/account/isolated-symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/market/query-position-lever".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/position/single-position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/position/all-position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/position/adlRank".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/position/history-position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/mix/order/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/fill-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/orders-pending".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/orders-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/plan-sub-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/orders-plan-pending".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/orders-plan-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/market/position-long-short".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("mix/v1/account/sub-account-contract-assets".to_string(), Value::Int(200));
-        m.insert("mix/v1/account/open-count".to_string(), Value::Int(1));
-        m.insert("mix/v1/account/setLeverage".to_string(), Value::Int(4));
-        m.insert("mix/v1/account/setMargin".to_string(), Value::Int(4));
-        m.insert("mix/v1/account/setMarginMode".to_string(), Value::Int(4));
-        m.insert("mix/v1/account/setPositionMode".to_string(), Value::Int(4));
-        m.insert("mix/v1/order/placeOrder".to_string(), Value::Int(2));
-        m.insert("mix/v1/order/batch-orders".to_string(), Value::Int(2));
-        m.insert("mix/v1/order/cancel-order".to_string(), Value::Int(2));
-        m.insert("mix/v1/order/cancel-batch-orders".to_string(), Value::Int(2));
-        m.insert("mix/v1/order/modifyOrder".to_string(), Value::Int(2));
-        m.insert("mix/v1/order/cancel-symbol-orders".to_string(), Value::Int(2));
-        m.insert("mix/v1/order/cancel-all-orders".to_string(), Value::Int(2));
-        m.insert("mix/v1/order/close-all-positions".to_string(), Value::Int(20));
-        m.insert("mix/v1/plan/placePlan".to_string(), Value::Int(2));
-        m.insert("mix/v1/plan/modifyPlan".to_string(), Value::Int(2));
-        m.insert("mix/v1/plan/modifyPlanPreset".to_string(), Value::Int(2));
-        m.insert("mix/v1/plan/placeTPSL".to_string(), Value::Int(2));
-        m.insert("mix/v1/plan/placeTrailStop".to_string(), Value::Int(2));
-        m.insert("mix/v1/plan/placePositionsTPSL".to_string(), Value::Int(2));
-        m.insert("mix/v1/plan/modifyTPSLPlan".to_string(), Value::Int(2));
-        m.insert("mix/v1/plan/cancelPlan".to_string(), Value::Int(2));
-        m.insert("mix/v1/plan/cancelSymbolPlan".to_string(), Value::Int(2));
-        m.insert("mix/v1/plan/cancelAllPlan".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/closeTrackOrder".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/modifyTPSL".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/closeTrackOrderBySymbol".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/setUpCopySymbols".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/followerSetBatchTraceConfig".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/followerCloseByTrackingNo".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/followerCloseByAll".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/followerSetTpsl".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/cancelCopyTrader".to_string(), Value::Int(4));
-        m.insert("mix/v1/trace/traderUpdateConfig".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/myTraderList".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/myFollowerList".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/removeFollower".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/public/getFollowerConfig".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/report/order/historyList".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/report/order/currentList".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/queryTraderTpslRatioConfig".to_string(), Value::Int(2));
-        m.insert("mix/v1/trace/traderUpdateTpslRatioConfig".to_string(), Value::Int(2));
-        m.insert("v2/mix/account/set-auto-margin".to_string(), Value::Int(4));
-        m.insert("v2/mix/account/set-leverage".to_string(), Value::Int(4));
-        m.insert("v2/mix/account/set-all-leverage".to_string(), Value::Int(4));
-        m.insert("v2/mix/account/set-margin".to_string(), Value::Int(4));
-        m.insert("v2/mix/account/set-asset-mode".to_string(), Value::Int(10));
-        m.insert("v2/mix/account/set-margin-mode".to_string(), Value::Int(4));
-        m.insert("v2/mix/account/union-convert".to_string(), Value::Int(20));
-        m.insert("v2/mix/account/set-position-mode".to_string(), Value::Int(4));
-        m.insert("v2/mix/order/place-order".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/click-backhand".to_string(), Value::Int(20));
-        m.insert("v2/mix/order/batch-place-order".to_string(), Value::Int(20));
-        m.insert("v2/mix/order/modify-order".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/cancel-order".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/batch-cancel-orders".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/close-positions".to_string(), Value::Int(20));
-        m.insert("v2/mix/order/cancel-all-orders".to_string(), Value::Int(20));
-        m.insert("v2/mix/order/place-tpsl-order".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/place-pos-tpsl".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/place-plan-order".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/modify-tpsl-order".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/modify-plan-order".to_string(), Value::Int(2));
-        m.insert("v2/mix/order/cancel-plan-order".to_string(), Value::Int(2));
+        m.insert("mix/v1/account/sub-account-contract-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(200));
+    m
+}));
+        m.insert("mix/v1/account/open-count".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mix/v1/account/setLeverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("mix/v1/account/setMargin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("mix/v1/account/setMarginMode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("mix/v1/account/setPositionMode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("mix/v1/order/placeOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/order/batch-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/order/cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/order/cancel-batch-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/order/modifyOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/order/cancel-symbol-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/order/cancel-all-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/order/close-all-positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("mix/v1/plan/placePlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/plan/modifyPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/plan/modifyPlanPreset".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/plan/placeTPSL".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/plan/placeTrailStop".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/plan/placePositionsTPSL".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/plan/modifyTPSLPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/plan/cancelPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/plan/cancelSymbolPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/plan/cancelAllPlan".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/closeTrackOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/modifyTPSL".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/closeTrackOrderBySymbol".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/setUpCopySymbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/followerSetBatchTraceConfig".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/followerCloseByTrackingNo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/followerCloseByAll".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/followerSetTpsl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/cancelCopyTrader".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("mix/v1/trace/traderUpdateConfig".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/myTraderList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/myFollowerList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/removeFollower".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/public/getFollowerConfig".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/report/order/historyList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/report/order/currentList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/queryTraderTpslRatioConfig".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("mix/v1/trace/traderUpdateTpslRatioConfig".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/account/set-auto-margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/account/set-leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/account/set-all-leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/account/set-margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/account/set-asset-mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("v2/mix/account/set-margin-mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/account/union-convert".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/mix/account/set-position-mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/mix/order/place-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/click-backhand".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/mix/order/batch-place-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/mix/order/modify-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/batch-cancel-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/close-positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/mix/order/cancel-all-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/mix/order/place-tpsl-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/place-pos-tpsl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/place-plan-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/modify-tpsl-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/modify-plan-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/mix/order/cancel-plan-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -943,29 +2211,105 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("user/v1/fee/query".to_string(), Value::Int(2));
-        m.insert("user/v1/sub/virtual-list".to_string(), Value::Int(2));
-        m.insert("user/v1/sub/virtual-api-list".to_string(), Value::Int(2));
-        m.insert("user/v1/tax/spot-record".to_string(), Value::Int(1));
-        m.insert("user/v1/tax/future-record".to_string(), Value::Int(1));
-        m.insert("user/v1/tax/margin-record".to_string(), Value::Int(1));
-        m.insert("user/v1/tax/p2p-record".to_string(), Value::Int(1));
-        m.insert("v2/user/virtual-subaccount-list".to_string(), Value::Int(2));
-        m.insert("v2/user/virtual-subaccount-apikey-list".to_string(), Value::Int(2));
+        m.insert("user/v1/fee/query".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("user/v1/sub/virtual-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("user/v1/sub/virtual-api-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("user/v1/tax/spot-record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/v1/tax/future-record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/v1/tax/margin-record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user/v1/tax/p2p-record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/user/virtual-subaccount-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/user/virtual-subaccount-apikey-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("user/v1/sub/virtual-create".to_string(), Value::Int(4));
-        m.insert("user/v1/sub/virtual-modify".to_string(), Value::Int(4));
-        m.insert("user/v1/sub/virtual-api-batch-create".to_string(), Value::Int(20));
-        m.insert("user/v1/sub/virtual-api-create".to_string(), Value::Int(4));
-        m.insert("user/v1/sub/virtual-api-modify".to_string(), Value::Int(4));
-        m.insert("v2/user/create-virtual-subaccount".to_string(), Value::Int(4));
-        m.insert("v2/user/modify-virtual-subaccount".to_string(), Value::Int(4));
-        m.insert("v2/user/batch-create-subaccount-and-apikey".to_string(), Value::Int(20));
-        m.insert("v2/user/create-virtual-subaccount-apikey".to_string(), Value::Int(4));
-        m.insert("v2/user/modify-virtual-subaccount-apikey".to_string(), Value::Int(4));
+        m.insert("user/v1/sub/virtual-create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("user/v1/sub/virtual-modify".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("user/v1/sub/virtual-api-batch-create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("user/v1/sub/virtual-api-create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("user/v1/sub/virtual-api-modify".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/user/create-virtual-subaccount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/user/modify-virtual-subaccount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/user/batch-create-subaccount-and-apikey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/user/create-virtual-subaccount-apikey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/user/modify-virtual-subaccount-apikey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
     m
 }));
     m
@@ -974,14 +2318,46 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("p2p/v1/merchant/merchantList".to_string(), Value::Int(2));
-        m.insert("p2p/v1/merchant/merchantInfo".to_string(), Value::Int(2));
-        m.insert("p2p/v1/merchant/advList".to_string(), Value::Int(2));
-        m.insert("p2p/v1/merchant/orderList".to_string(), Value::Int(2));
-        m.insert("v2/p2p/merchantList".to_string(), Value::Int(2));
-        m.insert("v2/p2p/merchantInfo".to_string(), Value::Int(2));
-        m.insert("v2/p2p/orderList".to_string(), Value::Int(2));
-        m.insert("v2/p2p/advList".to_string(), Value::Int(2));
+        m.insert("p2p/v1/merchant/merchantList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("p2p/v1/merchant/merchantInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("p2p/v1/merchant/advList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("p2p/v1/merchant/orderList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/p2p/merchantList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/p2p/merchantInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/p2p/orderList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/p2p/advList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -990,41 +2366,165 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("broker/v1/account/info".to_string(), Value::Int(2));
-        m.insert("broker/v1/account/sub-list".to_string(), Value::Int(20));
-        m.insert("broker/v1/account/sub-email".to_string(), Value::Int(20));
-        m.insert("broker/v1/account/sub-spot-assets".to_string(), Value::Int(2));
-        m.insert("broker/v1/account/sub-future-assets".to_string(), Value::Int(2));
-        m.insert("broker/v1/account/subaccount-transfer".to_string(), Value::Int(1));
-        m.insert("broker/v1/account/subaccount-deposit".to_string(), Value::Int(1));
-        m.insert("broker/v1/account/subaccount-withdrawal".to_string(), Value::Int(1));
-        m.insert("broker/v1/account/sub-api-list".to_string(), Value::Int(2));
-        m.insert("v2/broker/account/info".to_string(), Value::Int(2));
-        m.insert("v2/broker/account/subaccount-list".to_string(), Value::Int(20));
-        m.insert("v2/broker/account/subaccount-email".to_string(), Value::Int(2));
-        m.insert("v2/broker/account/subaccount-spot-assets".to_string(), Value::Int(2));
-        m.insert("v2/broker/account/subaccount-future-assets".to_string(), Value::Int(2));
-        m.insert("v2/broker/manage/subaccount-apikey-list".to_string(), Value::Int(2));
+        m.insert("broker/v1/account/info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("broker/v1/account/sub-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("broker/v1/account/sub-email".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("broker/v1/account/sub-spot-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("broker/v1/account/sub-future-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("broker/v1/account/subaccount-transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("broker/v1/account/subaccount-deposit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("broker/v1/account/subaccount-withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("broker/v1/account/sub-api-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/broker/account/info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/broker/account/subaccount-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/broker/account/subaccount-email".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/broker/account/subaccount-spot-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/broker/account/subaccount-future-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/broker/manage/subaccount-apikey-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("broker/v1/account/sub-create".to_string(), Value::Int(20));
-        m.insert("broker/v1/account/sub-modify".to_string(), Value::Int(20));
-        m.insert("broker/v1/account/sub-modify-email".to_string(), Value::Int(20));
-        m.insert("broker/v1/account/sub-address".to_string(), Value::Int(2));
-        m.insert("broker/v1/account/sub-withdrawal".to_string(), Value::Int(2));
-        m.insert("broker/v1/account/sub-auto-transfer".to_string(), Value::Int(4));
-        m.insert("broker/v1/account/sub-api-create".to_string(), Value::Int(2));
-        m.insert("broker/v1/account/sub-api-modify".to_string(), Value::Int(2));
-        m.insert("v2/broker/account/modify-subaccount-email".to_string(), Value::Int(2));
-        m.insert("v2/broker/account/create-subaccount".to_string(), Value::Int(20));
-        m.insert("v2/broker/account/modify-subaccount".to_string(), Value::Int(20));
-        m.insert("v2/broker/account/subaccount-address".to_string(), Value::Int(2));
-        m.insert("v2/broker/account/subaccount-withdrawal".to_string(), Value::Int(2));
-        m.insert("v2/broker/account/set-subaccount-autotransfer".to_string(), Value::Int(2));
-        m.insert("v2/broker/manage/create-subaccount-apikey".to_string(), Value::Int(2));
-        m.insert("v2/broker/manage/modify-subaccount-apikey".to_string(), Value::Int(2));
+        m.insert("broker/v1/account/sub-create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("broker/v1/account/sub-modify".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("broker/v1/account/sub-modify-email".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("broker/v1/account/sub-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("broker/v1/account/sub-withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("broker/v1/account/sub-auto-transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("broker/v1/account/sub-api-create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("broker/v1/account/sub-api-modify".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/broker/account/modify-subaccount-email".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/broker/account/create-subaccount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/broker/account/modify-subaccount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/broker/account/subaccount-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/broker/account/subaccount-withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/broker/account/set-subaccount-autotransfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/broker/manage/create-subaccount-apikey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/broker/manage/modify-subaccount-apikey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -1033,94 +2533,430 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("margin/v1/cross/account/riskRate".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/account/maxTransferOutAmount".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/account/maxTransferOutAmount".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/order/openOrders".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/order/history".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/order/fills".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/loan/list".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/repay/list".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/interest/list".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/liquidation/list".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/fin/list".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/order/openOrders".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/order/history".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/order/fills".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/loan/list".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/repay/list".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/interest/list".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/liquidation/list".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/fin/list".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/account/assets".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/account/assets".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/borrow-history".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/repay-history".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/interest-history".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/liquidation-history".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/financial-records".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/account/assets".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/account/risk-rate".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/account/max-borrowable-amount".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/account/max-transfer-out-amount".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/interest-rate-and-limit".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/tier-data".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/open-orders".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/history-orders".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/fills".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/borrow-history".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/repay-history".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/interest-history".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/liquidation-history".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/financial-records".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/account/assets".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/account/risk-rate".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/account/max-borrowable-amount".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/account/max-transfer-out-amount".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/interest-rate-and-limit".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/tier-data".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/open-orders".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/history-orders".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/fills".to_string(), Value::Int(2));
+        m.insert("margin/v1/cross/account/riskRate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/account/maxTransferOutAmount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/account/maxTransferOutAmount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/order/openOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/order/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/order/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/loan/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/repay/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/interest/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/liquidation/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/fin/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/order/openOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/order/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/order/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/loan/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/repay/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/interest/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/liquidation/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/fin/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/account/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/account/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/borrow-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/repay-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/interest-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/liquidation-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/financial-records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/account/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/account/risk-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/account/max-borrowable-amount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/account/max-transfer-out-amount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/interest-rate-and-limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/tier-data".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/open-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/history-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/borrow-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/repay-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/interest-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/liquidation-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/financial-records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/account/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/account/risk-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/account/max-borrowable-amount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/account/max-transfer-out-amount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/interest-rate-and-limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/tier-data".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/open-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/history-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("margin/v1/cross/account/borrow".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/account/borrow".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/account/repay".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/account/repay".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/account/riskRate".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/account/maxBorrowableAmount".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/account/maxBorrowableAmount".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/account/flashRepay".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/account/queryFlashRepayStatus".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/account/flashRepay".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/account/queryFlashRepayStatus".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/order/placeOrder".to_string(), Value::Int(4));
-        m.insert("margin/v1/isolated/order/batchPlaceOrder".to_string(), Value::Int(4));
-        m.insert("margin/v1/isolated/order/cancelOrder".to_string(), Value::Int(2));
-        m.insert("margin/v1/isolated/order/batchCancelOrder".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/order/placeOrder".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/order/batchPlaceOrder".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/order/cancelOrder".to_string(), Value::Int(2));
-        m.insert("margin/v1/cross/order/batchCancelOrder".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/account/borrow".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/account/repay".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/account/flash-repay".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/account/query-flash-repay-status".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/place-order".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/batch-place-order".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/cancel-order".to_string(), Value::Int(2));
-        m.insert("v2/margin/crossed/batch-cancel-order".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/account/borrow".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/account/repay".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/account/flash-repay".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/account/query-flash-repay-status".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/place-order".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/batch-place-order".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/cancel-order".to_string(), Value::Int(2));
-        m.insert("v2/margin/isolated/batch-cancel-order".to_string(), Value::Int(2));
+        m.insert("margin/v1/cross/account/borrow".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/account/borrow".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/account/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/account/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/account/riskRate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/account/maxBorrowableAmount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/account/maxBorrowableAmount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/account/flashRepay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/account/queryFlashRepayStatus".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/account/flashRepay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/account/queryFlashRepayStatus".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/order/placeOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("margin/v1/isolated/order/batchPlaceOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("margin/v1/isolated/order/cancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/isolated/order/batchCancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/order/placeOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/order/batchPlaceOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/order/cancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("margin/v1/cross/order/batchCancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/account/borrow".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/account/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/account/flash-repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/account/query-flash-repay-status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/place-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/batch-place-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/crossed/batch-cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/account/borrow".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/account/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/account/flash-repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/account/query-flash-repay-status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/place-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/batch-place-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/margin/isolated/batch-cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -1129,58 +2965,250 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/copy/mix-trader/order-current-track".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-trader/order-history-track".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-trader/order-total-detail".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-trader/profit-history-summarys".to_string(), Value::Int(1));
-        m.insert("v2/copy/mix-trader/profit-history-details".to_string(), Value::Int(1));
-        m.insert("v2/copy/mix-trader/profit-details".to_string(), Value::Int(1));
-        m.insert("v2/copy/mix-trader/profits-group-coin-date".to_string(), Value::Int(1));
-        m.insert("v2/copy/mix-trader/config-query-symbols".to_string(), Value::Int(1));
-        m.insert("v2/copy/mix-trader/config-query-followers".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-follower/query-current-orders".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-follower/query-history-orders".to_string(), Value::Int(1));
-        m.insert("v2/copy/mix-follower/query-settings".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-follower/query-traders".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-follower/query-quantity-limit".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-broker/query-traders".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-broker/query-history-traces".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-broker/query-current-traces".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-trader/profit-summarys".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-trader/profit-history-details".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-trader/profit-details".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-trader/order-total-detail".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-trader/order-history-track".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-trader/order-current-track".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-trader/config-query-settings".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-trader/config-query-followers".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-follower/query-traders".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-follower/query-trader-symbols".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-follower/query-settings".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-follower/query-history-orders".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-follower/query-current-orders".to_string(), Value::Int(2));
+        m.insert("v2/copy/mix-trader/order-current-track".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-trader/order-history-track".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-trader/order-total-detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-trader/profit-history-summarys".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/copy/mix-trader/profit-history-details".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/copy/mix-trader/profit-details".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/copy/mix-trader/profits-group-coin-date".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/copy/mix-trader/config-query-symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/copy/mix-trader/config-query-followers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-follower/query-current-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-follower/query-history-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/copy/mix-follower/query-settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-follower/query-traders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-follower/query-quantity-limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-broker/query-traders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-broker/query-history-traces".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-broker/query-current-traces".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-trader/profit-summarys".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-trader/profit-history-details".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-trader/profit-details".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-trader/order-total-detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-trader/order-history-track".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-trader/order-current-track".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-trader/config-query-settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-trader/config-query-followers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-follower/query-traders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-follower/query-trader-symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-follower/query-settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-follower/query-history-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-follower/query-current-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/copy/mix-trader/order-modify-tpsl".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-trader/order-close-positions".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-trader/config-setting-symbols".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-trader/config-setting-base".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-trader/config-remove-follower".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-follower/setting-tpsl".to_string(), Value::Int(1));
-        m.insert("v2/copy/mix-follower/settings".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-follower/close-positions".to_string(), Value::Int(2));
-        m.insert("v2/copy/mix-follower/cancel-trader".to_string(), Value::Int(4));
-        m.insert("v2/copy/spot-trader/order-modify-tpsl".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-trader/order-close-tracking".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-trader/config-setting-symbols".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-trader/config-remove-follower".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-follower/stop-order".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-follower/settings".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-follower/setting-tpsl".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-follower/order-close-tracking".to_string(), Value::Int(2));
-        m.insert("v2/copy/spot-follower/cancel-trader".to_string(), Value::Int(2));
+        m.insert("v2/copy/mix-trader/order-modify-tpsl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-trader/order-close-positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-trader/config-setting-symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-trader/config-setting-base".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-trader/config-remove-follower".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-follower/setting-tpsl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/copy/mix-follower/settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-follower/close-positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/mix-follower/cancel-trader".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/copy/spot-trader/order-modify-tpsl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-trader/order-close-tracking".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-trader/config-setting-symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-trader/config-remove-follower".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-follower/stop-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-follower/settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-follower/setting-tpsl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-follower/order-close-tracking".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/copy/spot-follower/cancel-trader".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -1189,10 +3217,26 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/tax/spot-record".to_string(), Value::Int(20));
-        m.insert("v2/tax/future-record".to_string(), Value::Int(20));
-        m.insert("v2/tax/margin-record".to_string(), Value::Int(20));
-        m.insert("v2/tax/p2p-record".to_string(), Value::Int(20));
+        m.insert("v2/tax/spot-record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/tax/future-record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/tax/margin-record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v2/tax/p2p-record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
     m
 }));
     m
@@ -1201,17 +3245,45 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/convert/currencies".to_string(), Value::Int(2));
-        m.insert("v2/convert/quoted-price".to_string(), Value::Int(2));
-        m.insert("v2/convert/convert-record".to_string(), Value::Int(2));
-        m.insert("v2/convert/bgb-convert-coin-list".to_string(), Value::Int(2));
-        m.insert("v2/convert/bgb-convert-records".to_string(), Value::Int(2));
+        m.insert("v2/convert/currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/convert/quoted-price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/convert/convert-record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/convert/bgb-convert-coin-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/convert/bgb-convert-records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/convert/trade".to_string(), Value::Int(2));
-        m.insert("v2/convert/bgb-convert".to_string(), Value::Int(2));
+        m.insert("v2/convert/trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/convert/bgb-convert".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -1220,36 +3292,140 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/earn/savings/product".to_string(), Value::Int(2));
-        m.insert("v2/earn/savings/account".to_string(), Value::Int(2));
-        m.insert("v2/earn/savings/assets".to_string(), Value::Int(2));
-        m.insert("v2/earn/savings/records".to_string(), Value::Int(2));
-        m.insert("v2/earn/savings/subscribe-info".to_string(), Value::Int(2));
-        m.insert("v2/earn/savings/subscribe-result".to_string(), Value::Int(2));
-        m.insert("v2/earn/savings/redeem-result".to_string(), Value::Int(2));
-        m.insert("v2/earn/sharkfin/product".to_string(), Value::Int(2));
-        m.insert("v2/earn/sharkfin/account".to_string(), Value::Int(2));
-        m.insert("v2/earn/sharkfin/assets".to_string(), Value::Int(2));
-        m.insert("v2/earn/sharkfin/records".to_string(), Value::Int(2));
-        m.insert("v2/earn/sharkfin/subscribe-info".to_string(), Value::Int(2));
-        m.insert("v2/earn/sharkfin/subscribe-result".to_string(), Value::Int(4));
-        m.insert("v2/earn/loan/ongoing-orders".to_string(), Value::Int(2));
-        m.insert("v2/earn/loan/repay-history".to_string(), Value::Int(2));
-        m.insert("v2/earn/loan/revise-history".to_string(), Value::Int(2));
-        m.insert("v2/earn/loan/borrow-history".to_string(), Value::Int(2));
-        m.insert("v2/earn/loan/debts".to_string(), Value::Int(2));
-        m.insert("v2/earn/loan/reduces".to_string(), Value::Int(2));
-        m.insert("v2/earn/account/assets".to_string(), Value::Int(2));
+        m.insert("v2/earn/savings/product".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/savings/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/savings/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/savings/records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/savings/subscribe-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/savings/subscribe-result".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/savings/redeem-result".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/sharkfin/product".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/sharkfin/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/sharkfin/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/sharkfin/records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/sharkfin/subscribe-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/sharkfin/subscribe-result".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v2/earn/loan/ongoing-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/loan/repay-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/loan/revise-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/loan/borrow-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/loan/debts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/loan/reduces".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/account/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/earn/savings/subscribe".to_string(), Value::Int(2));
-        m.insert("v2/earn/savings/redeem".to_string(), Value::Int(2));
-        m.insert("v2/earn/sharkfin/subscribe".to_string(), Value::Int(2));
-        m.insert("v2/earn/loan/borrow".to_string(), Value::Int(2));
-        m.insert("v2/earn/loan/repay".to_string(), Value::Int(2));
-        m.insert("v2/earn/loan/revise-pledge".to_string(), Value::Int(2));
+        m.insert("v2/earn/savings/subscribe".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/savings/redeem".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/sharkfin/subscribe".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/loan/borrow".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/loan/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v2/earn/loan/revise-pledge".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -1258,7 +3434,11 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v2/common/trade-rate".to_string(), Value::Int(2));
+        m.insert("v2/common/trade-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -1267,102 +3447,470 @@ impl BitgetCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v3/account/assets".to_string(), Value::Int(1));
-        m.insert("v3/account/funding-assets".to_string(), Value::Int(1));
-        m.insert("v3/account/settings".to_string(), Value::Int(1));
-        m.insert("v3/account/financial-records".to_string(), Value::Int(1));
-        m.insert("v3/account/repayable-coins".to_string(), Value::Int(2));
-        m.insert("v3/account/payment-coins".to_string(), Value::Int(2));
-        m.insert("v3/account/convert-records".to_string(), Value::Int(1));
-        m.insert("v3/account/deduct-info".to_string(), Value::Int(20));
-        m.insert("v3/account/fee-rate".to_string(), Value::Float(6.6667));
-        m.insert("v3/account/switch-status".to_string(), Value::Int(4));
-        m.insert("v3/account/max-transferable".to_string(), Value::Float(6.6667));
-        m.insert("v3/account/open-interest-limit".to_string(), Value::Int(4));
-        m.insert("v3/account/sub-unified-assets".to_string(), Value::Int(20));
-        m.insert("v3/account/transferable-coins".to_string(), Value::Int(2));
-        m.insert("v3/account/sub-transfer-record".to_string(), Value::Int(4));
-        m.insert("v3/account/deposit-address".to_string(), Value::Int(2));
-        m.insert("v3/account/sub-deposit-address".to_string(), Value::Int(2));
-        m.insert("v3/account/deposit-records".to_string(), Value::Int(2));
-        m.insert("v3/account/sub-deposit-records".to_string(), Value::Int(2));
-        m.insert("v3/account/withdrawal-records".to_string(), Value::Int(2));
-        m.insert("v3/broker/sub-list".to_string(), Value::Int(1));
-        m.insert("v3/broker/all-sub-deposit-withdrawal".to_string(), Value::Int(1));
-        m.insert("v3/broker/commission".to_string(), Value::Int(1));
-        m.insert("v3/broker/query-sub-apikey".to_string(), Value::Int(1));
-        m.insert("v3/ins-loan/transfered".to_string(), Value::Float(6.6667));
-        m.insert("v3/ins-loan/symbols".to_string(), Value::Float(6.6667));
-        m.insert("v3/ins-loan/risk-unit".to_string(), Value::Float(6.6667));
-        m.insert("v3/ins-loan/repaid-history".to_string(), Value::Float(6.6667));
-        m.insert("v3/ins-loan/product-infos".to_string(), Value::Float(6.6667));
-        m.insert("v3/ins-loan/loan-order".to_string(), Value::Float(6.6667));
-        m.insert("v3/ins-loan/ltv-convert".to_string(), Value::Float(6.6667));
-        m.insert("v3/ins-loan/ensure-coins-convert".to_string(), Value::Float(6.6667));
-        m.insert("v3/loan/coins".to_string(), Value::Int(2));
-        m.insert("v3/loan/interest".to_string(), Value::Int(2));
-        m.insert("v3/loan/borrow-ongoing".to_string(), Value::Int(2));
-        m.insert("v3/loan/borrow-history".to_string(), Value::Int(2));
-        m.insert("v3/loan/repay-history".to_string(), Value::Int(2));
-        m.insert("v3/loan/pledge-rate-history".to_string(), Value::Int(2));
-        m.insert("v3/loan/debts".to_string(), Value::Int(2));
-        m.insert("v3/loan/reduces".to_string(), Value::Int(2));
-        m.insert("v3/position/current-position".to_string(), Value::Int(1));
-        m.insert("v3/position/history-position".to_string(), Value::Int(1));
-        m.insert("v3/position/adlRank".to_string(), Value::Int(20));
-        m.insert("v3/tax/records".to_string(), Value::Int(20));
-        m.insert("v3/trade/order-info".to_string(), Value::Int(1));
-        m.insert("v3/trade/unfilled-orders".to_string(), Value::Int(1));
-        m.insert("v3/trade/unfilled-strategy-orders".to_string(), Value::Int(1));
-        m.insert("v3/trade/history-orders".to_string(), Value::Int(1));
-        m.insert("v3/trade/history-strategy-orders".to_string(), Value::Int(1));
-        m.insert("v3/trade/fills".to_string(), Value::Int(1));
-        m.insert("v3/user/sub-list".to_string(), Value::Int(2));
-        m.insert("v3/user/sub-api-list".to_string(), Value::Int(2));
+        m.insert("v3/account/assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/account/funding-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/account/settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/account/financial-records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/account/repayable-coins".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/account/payment-coins".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/account/convert-records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/account/deduct-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v3/account/fee-rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v3/account/switch-status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/account/max-transferable".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v3/account/open-interest-limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/account/sub-unified-assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v3/account/transferable-coins".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/account/sub-transfer-record".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/account/deposit-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/account/sub-deposit-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/account/deposit-records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/account/sub-deposit-records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/account/withdrawal-records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/broker/sub-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/broker/all-sub-deposit-withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/broker/commission".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/broker/query-sub-apikey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/ins-loan/transfered".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v3/ins-loan/symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v3/ins-loan/risk-unit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v3/ins-loan/repaid-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v3/ins-loan/product-infos".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v3/ins-loan/loan-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v3/ins-loan/ltv-convert".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v3/ins-loan/ensure-coins-convert".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v3/loan/coins".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/loan/interest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/loan/borrow-ongoing".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/loan/borrow-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/loan/repay-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/loan/pledge-rate-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/loan/debts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/loan/reduces".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/position/current-position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/position/history-position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/position/adlRank".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v3/tax/records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v3/trade/order-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/trade/unfilled-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/trade/unfilled-strategy-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/trade/history-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/trade/history-strategy-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/trade/fills".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/user/sub-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/user/sub-api-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("v3/account/set-leverage".to_string(), Value::Int(2));
-        m.insert("v3/account/set-hold-mode".to_string(), Value::Int(2));
-        m.insert("v3/account/repay".to_string(), Value::Int(4));
-        m.insert("v3/account/switch-deduct".to_string(), Value::Int(20));
-        m.insert("v3/account/deposit-account".to_string(), Value::Int(20));
-        m.insert("v3/account/switch".to_string(), Value::Int(20));
-        m.insert("v3/account/adjust-account-mode".to_string(), Value::Int(20));
-        m.insert("v3/account/transfer".to_string(), Value::Int(4));
-        m.insert("v3/account/sub-transfer".to_string(), Value::Int(4));
-        m.insert("v3/account/sub-master-transfer".to_string(), Value::Int(4));
-        m.insert("v3/account/max-open-available".to_string(), Value::Int(4));
-        m.insert("v3/account/withdrawal".to_string(), Value::Int(20));
-        m.insert("v3/broker/create-sub".to_string(), Value::Int(1));
-        m.insert("v3/broker/modify-sub".to_string(), Value::Int(1));
-        m.insert("v3/broker/sub-withdrawal".to_string(), Value::Int(1));
-        m.insert("v3/broker/sub-deposit-address".to_string(), Value::Int(1));
-        m.insert("v3/broker/create-sub-apikey".to_string(), Value::Int(1));
-        m.insert("v3/broker/modify-sub-apikey".to_string(), Value::Int(1));
-        m.insert("v3/broker/delete-sub-apikey".to_string(), Value::Int(1));
-        m.insert("v3/ins-loan/bind-uid".to_string(), Value::Float(6.6667));
-        m.insert("v3/loan/borrow".to_string(), Value::Int(2));
-        m.insert("v3/loan/repay".to_string(), Value::Int(2));
-        m.insert("v3/loan/revise-pledge".to_string(), Value::Int(2));
-        m.insert("v3/trade/place-order".to_string(), Value::Int(2));
-        m.insert("v3/trade/place-strategy-order".to_string(), Value::Int(2));
-        m.insert("v3/trade/modify-order".to_string(), Value::Int(2));
-        m.insert("v3/trade/modify-strategy-order".to_string(), Value::Int(2));
-        m.insert("v3/trade/cancel-order".to_string(), Value::Int(2));
-        m.insert("v3/trade/cancel-strategy-order".to_string(), Value::Int(2));
-        m.insert("v3/trade/place-batch".to_string(), Value::Int(4));
-        m.insert("v3/trade/batch-modify-order".to_string(), Value::Int(2));
-        m.insert("v3/trade/cancel-batch".to_string(), Value::Int(4));
-        m.insert("v3/trade/cancel-symbol-order".to_string(), Value::Int(4));
-        m.insert("v3/trade/close-positions".to_string(), Value::Int(4));
-        m.insert("v3/trade/countdown-cancel-all".to_string(), Value::Int(20));
-        m.insert("v3/user/create-sub".to_string(), Value::Int(2));
-        m.insert("v3/user/freeze-sub".to_string(), Value::Int(2));
-        m.insert("v3/user/create-sub-api".to_string(), Value::Int(2));
-        m.insert("v3/user/update-sub-api".to_string(), Value::Int(2));
-        m.insert("v3/user/delete-sub-api".to_string(), Value::Int(2));
+        m.insert("v3/account/set-leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/account/set-hold-mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/account/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/account/switch-deduct".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v3/account/deposit-account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v3/account/switch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v3/account/adjust-account-mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v3/account/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/account/sub-transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/account/sub-master-transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/account/max-open-available".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/account/withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v3/broker/create-sub".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/broker/modify-sub".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/broker/sub-withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/broker/sub-deposit-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/broker/create-sub-apikey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/broker/modify-sub-apikey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/broker/delete-sub-apikey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/ins-loan/bind-uid".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(6.6667));
+    m
+}));
+        m.insert("v3/loan/borrow".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/loan/repay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/loan/revise-pledge".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/trade/place-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/trade/place-strategy-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/trade/modify-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/trade/modify-strategy-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/trade/cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/trade/cancel-strategy-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/trade/place-batch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/trade/batch-modify-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/trade/cancel-batch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/trade/cancel-symbol-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/trade/close-positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("v3/trade/countdown-cancel-all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("v3/user/create-sub".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/user/freeze-sub".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/user/create-sub-api".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/user/update-sub-api".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("v3/user/delete-sub-api".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
     m
 }));
     m
@@ -2065,6 +4613,7 @@ impl BitgetCore {
 }));
         m.insert("accountsByType".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("funding".to_string(), Value::Str("spot".to_string()));
         m.insert("spot".to_string(), Value::Str("spot".to_string()));
         m.insert("cross".to_string(), Value::Str("crossed_margin".to_string()));
         m.insert("isolated".to_string(), Value::Str("isolated_margin".to_string()));
@@ -2072,6 +4621,8 @@ impl BitgetCore {
         m.insert("usdc_swap".to_string(), Value::Str("usdc_futures".to_string()));
         m.insert("future".to_string(), Value::Str("coin_futures".to_string()));
         m.insert("p2p".to_string(), Value::Str("p2p".to_string()));
+        m.insert("uta".to_string(), Value::Str("uta".to_string()));
+        m.insert("unified".to_string(), Value::Str("uta".to_string()));
     m
 }));
         m.insert("accountsById".to_string(), Value::Map({
@@ -2083,6 +4634,7 @@ impl BitgetCore {
         m.insert("usdc_futures".to_string(), Value::Str("usdc_swap".to_string()));
         m.insert("coin_futures".to_string(), Value::Str("future".to_string()));
         m.insert("p2p".to_string(), Value::Str("p2p".to_string()));
+        m.insert("uta".to_string(), Value::Str("uta".to_string()));
     m
 }));
         m.insert("sandboxMode".to_string(), Value::Bool(false));
@@ -2094,8 +4646,8 @@ impl BitgetCore {
         m.insert("ATOM".to_string(), Value::Str("ATOM".to_string()));
         m.insert("ACA".to_string(), Value::Str("AcalaToken".to_string()));
         m.insert("APT".to_string(), Value::Str("Aptos".to_string()));
-        m.insert("ARBONE".to_string(), Value::Str("ArbitrumOne".to_string()));
-        m.insert("ARBNOVA".to_string(), Value::Str("ArbitrumNova".to_string()));
+        m.insert("ARBITRUM".to_string(), Value::Str("ArbitrumOne".to_string()));
+        m.insert("ARBITRUM_NOVA".to_string(), Value::Str("ArbitrumNova".to_string()));
         m.insert("AVAXC".to_string(), Value::Str("C-Chain".to_string()));
         m.insert("AVAXX".to_string(), Value::Str("X-Chain".to_string()));
         m.insert("AR".to_string(), Value::Str("Arweave".to_string()));
@@ -2169,6 +4721,7 @@ impl BitgetCore {
         m.insert("AZERO".to_string(), Value::Str("AZERO".to_string()));
         m.insert("TRC10".to_string(), Value::Str("TRC10".to_string()));
         m.insert("JUNO".to_string(), Value::Str("JUNO".to_string()));
+        m.insert("CANTO".to_string(), Value::Str("CANTO-EVM".to_string()));
         m.insert("ZKSYNC".to_string(), Value::Str("zkSyncEra".to_string()));
         m.insert("STARKNET".to_string(), Value::Str("Starknet".to_string()));
         m.insert("VIC".to_string(), Value::Str("VICTION".to_string()));
@@ -2550,16 +5103,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut fetchMargins: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_333: bool = true;
-            while { if !__for_first_333 { i = add(&i, &Value::Int(1)); } __for_first_333 = false; is_less_than(&i, &get_array_length(&types)) } {
+            let mut __for_first_335: bool = true;
+            while { if !__for_first_335 { i = add(&i, &Value::Int(1)); } __for_first_335 = false; is_less_than(&i, &get_array_length(&types)) } {
             let mut type_var: Value = get_value(&types, &i);
             let mut type_var: Value = get_value(&types, &i);
             if is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))) {
                 let mut subTypes: Value = Value::List(vec![Value::Str("USDT-FUTURES".to_string()), Value::Str("COIN-FUTURES".to_string()), Value::Str("USDC-FUTURES".to_string()), Value::Str("SUSDT-FUTURES".to_string()), Value::Str("SCOIN-FUTURES".to_string()), Value::Str("SUSDC-FUTURES".to_string())]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_332: bool = true;
-                    while { if !__for_first_332 { j = add(&j, &Value::Int(1)); } __for_first_332 = false; is_less_than(&j, &get_array_length(&subTypes)) } {
+                    let mut __for_first_334: bool = true;
+                    while { if !__for_first_334 { j = add(&j, &Value::Int(1)); } __for_first_334 = false; is_less_than(&j, &get_array_length(&subTypes)) } {
                     let __ws_arg_0 = self.extend(params.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("productType".to_string(), get_value(&subTypes, &j));
@@ -2583,8 +5136,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), Value::List(vec![]));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_334: bool = true;
-            while { if !__for_first_334 { i = add(&i, &Value::Int(1)); } __for_first_334 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_337: bool = true;
+            while { if !__for_first_337 { i = add(&i, &Value::Int(1)); } __for_first_337 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut res: Value = self.safe_dict(results.clone(), i.clone(), &[]);
             let mut data: Value = self.safe_list_k(res.clone(), "data", &[Value::List(vec![])]);
             let mut firstData: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
@@ -2593,9 +5146,34 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             let mut isBorrowable: Value = self.safe_bool_k(firstData.clone(), "isBorrowable", &[]);
             if is_true(&fetchMargins) && !is_equal(&isBorrowable, &Value::Null) {
-                let mut keysList: Value = object_keys(&self.index_by(data.clone(), Value::Str("symbol".to_string())));
-                add_element_to_object(&mut self.options, &Value::Str("crossMarginPairsData".to_string()), keysList.clone());
-                add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), keysList.clone());
+                // cross and isolated availability are per-symbol - a coin can be listed by
+                // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
+                // maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
+                // fail with bitget error 50001 "coin does not support cross"
+                let mut crossKeys: Value = Value::List(vec![]);
+                let mut isolatedKeys: Value = Value::List(vec![]);
+                {
+                                        let mut j: Value = Value::Int(0);
+                    let mut __for_first_336: bool = true;
+                    while { if !__for_first_336 { j = add(&j, &Value::Int(1)); } __for_first_336 = false; is_less_than(&j, &get_array_length(&data)) } {
+                    let mut entry: Value = self.safe_dict(data.clone(), j.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+                    let mut entrySymbol: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
+                    let mut entryBorrowable: Value = self.safe_bool_k(entry.clone(), "isBorrowable", &[Value::Bool(true)]);
+                    if is_true(&entryBorrowable) && is_true(&self.safe_bool_k(entry.clone(), "isCrossBorrowable", &[Value::Bool(true)])) {
+                        append_to_array(&mut crossKeys, entrySymbol.clone());
+                    }
+                    let mut isolatedBase: Value = self.safe_bool_k(entry.clone(), "isIsolatedBaseBorrowable", &[Value::Bool(true)]);
+                    let mut isolatedQuote: Value = self.safe_bool2(entry.clone(), Value::Str("isIsolatedQuotedBorrowable".to_string()), Value::Str("isIsolatedQuoteBorrowable".to_string()), &[Value::Bool(true)]);
+                    if is_true(&entryBorrowable) && is_true(&(is_true(&isolatedBase) || is_true(&isolatedQuote))) {
+                        append_to_array(&mut isolatedKeys, entrySymbol.clone());
+                    }
+                }
+                }
+                add_element_to_object(&mut self.options, &Value::Str("crossMarginPairsData".to_string()), crossKeys.clone());
+                add_element_to_object(&mut self.options, &Value::Str("isolatedMarginPairsData".to_string()), isolatedKeys.clone());
             }  else {
                 markets = self.array_concat(markets.clone(), data.clone());
             }
@@ -2661,8 +5239,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_335: bool = true;
-            while { if !__for_first_335 { i = add(&i, &Value::Int(1)); } __for_first_335 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_338: bool = true;
+            while { if !__for_first_338 { i = add(&i, &Value::Int(1)); } __for_first_338 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -2840,8 +5418,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_336: bool = true;
-            while { if !__for_first_336 { i = add(&i, &Value::Int(1)); } __for_first_336 = false; is_less_than(&i, &get_array_length(&subTypes)) } {
+            let mut __for_first_339: bool = true;
+            while { if !__for_first_339 { i = add(&i, &Value::Int(1)); } __for_first_339 = false; is_less_than(&i, &get_array_length(&subTypes)) } {
             let mut req: Value = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("category".to_string(), get_value(&subTypes, &i));
@@ -2854,8 +5432,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_337: bool = true;
-            while { if !__for_first_337 { i = add(&i, &Value::Int(1)); } __for_first_337 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_340: bool = true;
+            while { if !__for_first_340 { i = add(&i, &Value::Int(1)); } __for_first_340 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut res: Value = self.safe_dict(results.clone(), i.clone(), &[]);
             let mut data: Value = self.safe_list_k(res.clone(), "data", &[Value::List(vec![])]);
             markets = self.array_concat(markets.clone(), data.clone());
@@ -2953,8 +5531,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_338: bool = true;
-            while { if !__for_first_338 { i = add(&i, &Value::Int(1)); } __for_first_338 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_341: bool = true;
+            while { if !__for_first_341 { i = add(&i, &Value::Int(1)); } __for_first_341 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut category: Value = self.safe_string_k(market.clone(), "category", &[]);
@@ -3190,8 +5768,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_339: bool = true;
-            while { if !__for_first_339 { j = add(&j, &Value::Int(1)); } __for_first_339 = false; is_less_than(&j, &chainsLength) } {
+            let mut __for_first_342: bool = true;
+            while { if !__for_first_342 { j = add(&j, &Value::Int(1)); } __for_first_342 = false; is_less_than(&j, &chainsLength) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[]);
@@ -3478,8 +6056,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut minNotional: Value = Value::Int(0);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_340: bool = true;
-            while { if !__for_first_340 { i = add(&i, &Value::Int(1)); } __for_first_340 = false; is_less_than(&i, &get_array_length(&info)) } {
+            let mut __for_first_343: bool = true;
+            while { if !__for_first_343 { i = add(&i, &Value::Int(1)); } __for_first_343 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut item: Value = get_value(&info, &i);
             let mut item: Value = get_value(&info, &i);
             let mut minimumNotional: Value = self.safe_number2(item.clone(), Value::Str("startUnit".to_string()), Value::Str("minTierValue".to_string()), &[]);
@@ -5077,8 +7655,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_341: bool = true;
-            while { if !__for_first_341 { i = add(&i, &Value::Int(1)); } __for_first_341 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_344: bool = true;
+            while { if !__for_first_344 { i = add(&i, &Value::Int(1)); } __for_first_344 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5341,8 +7919,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::List(vec![]);
         }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
-        return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+        let mut candles: Value = Value::List(vec![]);
+        if is_true(&Value::Bool(is_array(&response))) {
+            candles = response.clone();
+        }  else {
+            candles = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        }
+        return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -5358,9 +7941,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
  * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
  * @see https://www.bitget.com/api-doc/uta/account/Get-Account
+ * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
@@ -5383,29 +7968,36 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
-            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_account_assets(&[__ws_arg_29]).await;
-            let mut results: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            let mut assets: Value = Value::Null;
+            if is_equal(&marketType, &Value::Str("funding".to_string())) {
+                let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_get_v3_account_funding_assets(&[__ws_arg_29]).await;
+                assets = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            }  else {
+                let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_get_v3_account_assets(&[__ws_arg_30]).await;
+                let mut results: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut assets: Value = self.safe_list_k(results.clone(), "assets", &[Value::List(vec![])]);
+                assets = self.safe_list_k(results.clone(), "assets", &[Value::List(vec![])]);
+            }
             return self.parse_uta_balance(assets.clone());
         }  else if is_true(&(is_equal(&marketType, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("future".to_string())))) {
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[Value::Null, params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_account_accounts(&[__ws_arg_30]).await;
-        }  else if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
             let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_isolated_account_assets(&[__ws_arg_31]).await;
-        }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
+            response = self.private_mix_get_v2_mix_account_accounts(&[__ws_arg_31]).await;
+        }  else if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
             let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_crossed_account_assets(&[__ws_arg_32]).await;
-        }  else if is_equal(&marketType, &Value::Str("spot".to_string())) {
+            response = self.private_margin_get_v2_margin_isolated_account_assets(&[__ws_arg_32]).await;
+        }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
             let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_spot_get_v2_spot_account_assets(&[__ws_arg_33]).await;
+            response = self.private_margin_get_v2_margin_crossed_account_assets(&[__ws_arg_33]).await;
+        }  else if is_equal(&marketType, &Value::Str("spot".to_string())) {
+            let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_get_v2_spot_account_assets(&[__ws_arg_34]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchBalance() does not support ".to_string())), &marketType), &Value::Str(" accounts".to_string()))));
         }
@@ -5485,6 +8077,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
+        // funding uta
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750396239013,
+        //         "data": [
+        //             {
+        //                 "coin": "BGB",
+        //                 "available": "0.01",
+        //                 "frozen": "0",
+        //                 "balance": "0.01"
+        //             }
+        //         ]
+        //     }
+        //
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_balance(data.clone());
 
@@ -5499,15 +8107,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_342: bool = true;
-            while { if !__for_first_342 { i = add(&i, &Value::Int(1)); } __for_first_342 = false; is_less_than(&i, &get_array_length(&balance)) } {
+            let mut __for_first_345: bool = true;
+            while { if !__for_first_345 { i = add(&i, &Value::Int(1)); } __for_first_345 = false; is_less_than(&i, &get_array_length(&balance)) } {
             let mut entry: Value = get_value(&balance, &i);
             let mut entry: Value = get_value(&balance, &i);
             let mut account: Value = self.account();
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             add_element_to_object(&mut account, &Value::Str("debt".to_string()), self.safe_string_k(entry.clone(), "debt", &[]));
-            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "locked", &[]));
+            add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string2(entry.clone(), Value::Str("locked".to_string()), Value::Str("frozen".to_string()), &[]));
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "available", &[]));
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "balance", &[]));
             if !is_equal(&code, &Value::Null) {
@@ -5528,8 +8136,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_343: bool = true;
-            while { if !__for_first_343 { i = add(&i, &Value::Int(1)); } __for_first_343 = false; is_less_than(&i, &get_array_length(&balance)) } {
+            let mut __for_first_346: bool = true;
+            while { if !__for_first_346 { i = add(&i, &Value::Int(1)); } __for_first_346 = false; is_less_than(&i, &get_array_length(&balance)) } {
             let mut entry: Value = get_value(&balance, &i);
             let mut entry: Value = get_value(&balance, &i);
             let mut account: Value = self.account();
@@ -5859,8 +8467,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut feeObject: Value = Value::Null;
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_344: bool = true;
-                    while { if !__for_first_344 { i = add(&i, &Value::Int(1)); } __for_first_344 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
+                    let mut __for_first_347: bool = true;
+                    while { if !__for_first_347 { i = add(&i, &Value::Int(1)); } __for_first_347 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
                     let mut feeValue: Value = get_value(&feeValues, &i);
                     let mut feeValue: Value = get_value(&feeValues, &i);
                     if !is_equal(&self.safe_value_k(feeValue.clone(), "feeCoinCode", &[]), &Value::Null) {
@@ -5983,8 +8591,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false));
             m
         });
-        let __ws_arg_34 = self.extend(req.clone(), &[params.clone()]);
-        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, __ws_arg_34]).await;
+        let __ws_arg_35 = self.extend(req.clone(), &[params.clone()]);
+        return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, __ws_arg_35]).await;
 
     Value::Null
 }
@@ -6509,8 +9117,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_345: bool = true;
-            while { if !__for_first_345 { i = add(&i, &Value::Int(1)); } __for_first_345 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_348: bool = true;
+            while { if !__for_first_348 { i = add(&i, &Value::Int(1)); } __for_first_348 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -6597,8 +9205,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_346: bool = true;
-            while { if !__for_first_346 { i = add(&i, &Value::Int(1)); } __for_first_346 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_349: bool = true;
+            while { if !__for_first_349 { i = add(&i, &Value::Int(1)); } __for_first_349 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -6806,14 +9414,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }
                 }
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
-                let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_uta_post_v3_trade_modify_strategy_order(&[__ws_arg_35]).await;
+                let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_post_v3_trade_modify_strategy_order(&[__ws_arg_36]).await;
             }  else {
                 if !is_equal(&price, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
                 }
-                let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_uta_post_v3_trade_modify_order(&[__ws_arg_36]).await;
+                let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_post_v3_trade_modify_order(&[__ws_arg_37]).await;
             }
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
@@ -6843,12 +9451,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             }
             if !is_equal(&triggerPrice, &Value::Null) {
-                let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_spot_post_v2_spot_trade_modify_plan_order(&[__ws_arg_37]).await;
+                let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_spot_post_v2_spot_trade_modify_plan_order(&[__ws_arg_38]).await;
             }  else {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-                let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_spot_post_v2_spot_trade_cancel_replace_order(&[__ws_arg_38]).await;
+                let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_spot_post_v2_spot_trade_cancel_replace_order(&[__ws_arg_39]).await;
             }
         }  else {
             if is_true(&(!is_true(&get_value(&market, &Value::Str("swap".to_string()))))) && is_true(&(!is_true(&get_value(&market, &Value::Str("future".to_string()))))) {
@@ -6872,8 +9480,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     add_element_to_object(&mut request, &Value::Str("newTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), trailingTriggerPrice.clone()));
                 }
                 add_element_to_object(&mut request, &Value::Str("newCallbackRatio".to_string()), trailingPercent.clone());
-                let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_post_v2_mix_order_modify_plan_order(&[__ws_arg_39]).await;
+                let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_modify_plan_order(&[__ws_arg_40]).await;
             }  else if is_true(&isTakeProfitOrder) || is_true(&isStopLossOrder) {
                 add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
                 add_element_to_object(&mut request, &Value::Str("size".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
@@ -6885,8 +9493,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }  else if is_true(&isTakeProfitOrder) {
                     add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
                 }
-                let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_post_v2_mix_order_modify_tpsl_order(&[__ws_arg_40]).await;
+                let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_modify_tpsl_order(&[__ws_arg_41]).await;
             }  else if is_true(&isTriggerOrder) {
                 add_element_to_object(&mut request, &Value::Str("newTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
                 if is_true(&hasStopLoss) {
@@ -6905,8 +9513,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut tpType: Value = self.safe_string_k(takeProfit.clone(), "type", &[Value::Str("mark_price".to_string())]);
                     add_element_to_object(&mut request, &Value::Str("newStopSurplusTriggerType".to_string()), tpType.clone());
                 }
-                let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_post_v2_mix_order_modify_plan_order(&[__ws_arg_41]).await;
+                let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_modify_plan_order(&[__ws_arg_42]).await;
             }  else {
                 let mut defaultNewClientOrderId: Value = self.uuid(&[]);
                 let mut newClientOrderId: Value = self.safe_string2(params.clone(), Value::Str("newClientOid".to_string()), Value::Str("newClientOrderId".to_string()), &[defaultNewClientOrderId.clone()]);
@@ -6920,8 +9528,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut tpTriggerPrice: Value = self.safe_value2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
                     add_element_to_object(&mut request, &Value::Str("newPresetStopSurplusPrice".to_string()), self.price_to_precision(symbol.clone(), tpTriggerPrice.clone()));
                 }
-                let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_post_v2_mix_order_modify_order(&[__ws_arg_42]).await;
+                let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_modify_order(&[__ws_arg_43]).await;
             }
         }
         //
@@ -7026,11 +9634,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if is_true(&uta) {
             if is_true(&trigger) {
-                let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_uta_post_v3_trade_cancel_strategy_order(&[__ws_arg_43]).await;
-            }  else {
                 let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_uta_post_v3_trade_cancel_order(&[__ws_arg_44]).await;
+                response = self.private_uta_post_v3_trade_cancel_strategy_order(&[__ws_arg_44]).await;
+            }  else {
+                let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_post_v3_trade_cancel_order(&[__ws_arg_45]).await;
             }
         }  else if is_true(&(get_value(&market, &Value::Str("swap".to_string())))) || is_true(&(get_value(&market, &Value::Str("future".to_string())))) {
             let mut productType: Value = Value::Null;
@@ -7039,31 +9647,31 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&trailing) {
                 let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("track_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
-                let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_45]).await;
-            }  else if is_true(&trigger) {
                 let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_46]).await;
-            }  else {
+            }  else if is_true(&trigger) {
                 let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_post_v2_mix_order_cancel_order(&[__ws_arg_47]).await;
+                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_47]).await;
+            }  else {
+                let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_cancel_order(&[__ws_arg_48]).await;
             }
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             if !is_equal(&marginMode, &Value::Null) {
                 if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                    let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_margin_post_v2_margin_isolated_cancel_order(&[__ws_arg_48]).await;
-                }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
                     let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_margin_post_v2_margin_crossed_cancel_order(&[__ws_arg_49]).await;
+                    response = self.private_margin_post_v2_margin_isolated_cancel_order(&[__ws_arg_49]).await;
+                }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
+                    let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_post_v2_margin_crossed_cancel_order(&[__ws_arg_50]).await;
                 }
             }  else {
                 if is_true(&trigger) {
-                    let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_spot_post_v2_spot_trade_cancel_plan_order(&[__ws_arg_50]).await;
-                }  else {
                     let __ws_arg_51 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_spot_post_v2_spot_trade_cancel_order(&[__ws_arg_51]).await;
+                    response = self.private_spot_post_v2_spot_trade_cancel_plan_order(&[__ws_arg_51]).await;
+                }  else {
+                    let __ws_arg_52 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_spot_post_v2_spot_trade_cancel_order(&[__ws_arg_52]).await;
                 }
             }
         }  else {
@@ -7163,8 +9771,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut requestList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_347: bool = true;
-            while { if !__for_first_347 { i = add(&i, &Value::Int(1)); } __for_first_347 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_350: bool = true;
+            while { if !__for_first_350 { i = add(&i, &Value::Int(1)); } __for_first_350 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut individualId: Value = get_value(&ids, &i);
             let mut individualId: Value = get_value(&ids, &i);
             let mut order: Value = Value::Map({
@@ -7240,8 +9848,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderIdList: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_348: bool = true;
-            while { if !__for_first_348 { i = add(&i, &Value::Int(1)); } __for_first_348 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_351: bool = true;
+            while { if !__for_first_351 { i = add(&i, &Value::Int(1)); } __for_first_351 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut individualId: Value = get_value(&ids, &i);
             let mut individualId: Value = get_value(&ids, &i);
             let mut orderId: Value = Value::Map({
@@ -7266,26 +9874,26 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             if !is_equal(&marginMode, &Value::Null) {
                 if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-                    let __ws_arg_52 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_margin_post_v2_margin_crossed_batch_cancel_order(&[__ws_arg_52]).await;
-                }  else {
                     let __ws_arg_53 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_margin_post_v2_margin_isolated_batch_cancel_order(&[__ws_arg_53]).await;
+                    response = self.private_margin_post_v2_margin_crossed_batch_cancel_order(&[__ws_arg_53]).await;
+                }  else {
+                    let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_post_v2_margin_isolated_batch_cancel_order(&[__ws_arg_54]).await;
                 }
             }  else {
-                let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_spot_post_v2_spot_trade_batch_cancel_order(&[__ws_arg_54]).await;
+                let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_spot_post_v2_spot_trade_batch_cancel_order(&[__ws_arg_55]).await;
             }
         }  else {
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             if is_true(&trigger) {
-                let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_55]).await;
-            }  else {
                 let __ws_arg_56 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_post_v2_mix_order_batch_cancel_orders(&[__ws_arg_56]).await;
+                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_56]).await;
+            }  else {
+                let __ws_arg_57 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_batch_cancel_orders(&[__ws_arg_57]).await;
             }
         }
         //
@@ -7364,8 +9972,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_57 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_post_v3_trade_cancel_symbol_order(&[__ws_arg_57]).await;
+            let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_trade_cancel_symbol_order(&[__ws_arg_58]).await;
         }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             if !is_equal(&marginMode, &Value::Null) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() does not support margin markets, you can use cancelOrders() instead".to_string()))));
@@ -7376,11 +9984,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             m.insert("symbolList".to_string(), Value::List(vec![get_value(&market, &Value::Str("id".to_string()))]));
                         m
                     });
-                    let __ws_arg_58 = self.extend(stopRequest.clone(), &[params.clone()]);
-                    response = self.private_spot_post_v2_spot_trade_batch_cancel_plan_order(&[__ws_arg_58]).await;
+                    let __ws_arg_59 = self.extend(stopRequest.clone(), &[params.clone()]);
+                    response = self.private_spot_post_v2_spot_trade_batch_cancel_plan_order(&[__ws_arg_59]).await;
                 }  else {
-                    let __ws_arg_59 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_spot_post_v2_spot_trade_cancel_symbol_order(&[__ws_arg_59]).await;
+                    let __ws_arg_60 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_spot_post_v2_spot_trade_cancel_symbol_order(&[__ws_arg_60]).await;
                 }
                 //
                 //     {
@@ -7407,11 +10015,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             if is_true(&trigger) {
-                let __ws_arg_60 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_60]).await;
-            }  else {
                 let __ws_arg_61 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_post_v2_mix_order_batch_cancel_orders(&[__ws_arg_61]).await;
+                response = self.private_mix_post_v2_mix_order_cancel_plan_order(&[__ws_arg_61]).await;
+            }  else {
+                let __ws_arg_62 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_post_v2_mix_order_batch_cancel_orders(&[__ws_arg_62]).await;
             }
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
@@ -7470,18 +10078,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchOrder".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
-            let __ws_arg_62 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_trade_order_info(&[__ws_arg_62]).await;
-        }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             let __ws_arg_63 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_spot_get_v2_spot_trade_order_info(&[__ws_arg_63]).await;
+            response = self.private_uta_get_v3_trade_order_info(&[__ws_arg_63]).await;
+        }  else if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
+            let __ws_arg_64 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_get_v2_spot_trade_order_info(&[__ws_arg_64]).await;
         }  else if is_true(&get_value(&market, &Value::Str("swap".to_string()))) || is_true(&get_value(&market, &Value::Str("future".to_string()))) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_64 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_order_detail(&[__ws_arg_64]).await;
+            let __ws_arg_65 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_order_detail(&[__ws_arg_65]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" fetchOrder() does not support ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(" orders".to_string()))));
         }
@@ -7723,11 +10331,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
             if is_true(&trigger) {
-                let __ws_arg_65 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_uta_get_v3_trade_unfilled_strategy_orders(&[__ws_arg_65]).await;
-            }  else {
                 let __ws_arg_66 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_uta_get_v3_trade_unfilled_orders(&[__ws_arg_66]).await;
+                response = self.private_uta_get_v3_trade_unfilled_strategy_orders(&[__ws_arg_66]).await;
+            }  else {
+                let __ws_arg_67 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_get_v3_trade_unfilled_orders(&[__ws_arg_67]).await;
             }
         }  else if is_equal(&type_var, &Value::Str("spot".to_string())) {
             if !is_equal(&marginMode, &Value::Null) {
@@ -7736,19 +10344,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
                 }
                 if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                    let __ws_arg_67 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_margin_get_v2_margin_isolated_open_orders(&[__ws_arg_67]).await;
-                }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
                     let __ws_arg_68 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_margin_get_v2_margin_crossed_open_orders(&[__ws_arg_68]).await;
+                    response = self.private_margin_get_v2_margin_isolated_open_orders(&[__ws_arg_68]).await;
+                }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
+                    let __ws_arg_69 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_get_v2_margin_crossed_open_orders(&[__ws_arg_69]).await;
                 }
             }  else {
                 if is_true(&trigger) {
-                    let __ws_arg_69 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_spot_get_v2_spot_trade_current_plan_order(&[__ws_arg_69]).await;
-                }  else {
                     let __ws_arg_70 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_spot_get_v2_spot_trade_unfilled_orders(&[__ws_arg_70]).await;
+                    response = self.private_spot_get_v2_spot_trade_current_plan_order(&[__ws_arg_70]).await;
+                }  else {
+                    let __ws_arg_71 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_spot_get_v2_spot_trade_unfilled_orders(&[__ws_arg_71]).await;
                 }
             }
         }  else {
@@ -7756,16 +10364,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&trailing) {
                 let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("track_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
-                let __ws_arg_71 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_get_v2_mix_order_orders_plan_pending(&[__ws_arg_71]).await;
+                let __ws_arg_72 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_orders_plan_pending(&[__ws_arg_72]).await;
             }  else if is_true(&isTrigger) {
                 let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("normal_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
-                let __ws_arg_72 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_get_v2_mix_order_orders_plan_pending(&[__ws_arg_72]).await;
-            }  else {
                 let __ws_arg_73 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_get_v2_mix_order_orders_pending(&[__ws_arg_73]).await;
+                response = self.private_mix_get_v2_mix_order_orders_plan_pending(&[__ws_arg_73]).await;
+            }  else {
+                let __ws_arg_74 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_orders_pending(&[__ws_arg_74]).await;
             }
         }
         //
@@ -8216,11 +10824,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
                 }
                 if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                    let __ws_arg_74 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_margin_get_v2_margin_isolated_history_orders(&[__ws_arg_74]).await;
-                }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
                     let __ws_arg_75 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_margin_get_v2_margin_crossed_history_orders(&[__ws_arg_75]).await;
+                    response = self.private_margin_get_v2_margin_isolated_history_orders(&[__ws_arg_75]).await;
+                }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
+                    let __ws_arg_76 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_margin_get_v2_margin_crossed_history_orders(&[__ws_arg_76]).await;
                 }
             }  else if is_true(&trigger) {
                 if is_equal(&symbol, &Value::Null) {
@@ -8235,11 +10843,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_equal(&endTime, &Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("endTime".to_string()), now.clone());
                 }
-                let __ws_arg_76 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_spot_get_v2_spot_trade_history_plan_order(&[__ws_arg_76]).await;
-            }  else {
                 let __ws_arg_77 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_spot_get_v2_spot_trade_history_orders(&[__ws_arg_77]).await;
+                response = self.private_spot_get_v2_spot_trade_history_plan_order(&[__ws_arg_77]).await;
+            }  else {
+                let __ws_arg_78 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_spot_get_v2_spot_trade_history_orders(&[__ws_arg_78]).await;
             }
         }  else {
             let mut productType: Value = Value::Null;
@@ -8249,16 +10857,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&trailing) {
                 let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("track_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
-                let __ws_arg_78 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_get_v2_mix_order_orders_plan_history(&[__ws_arg_78]).await;
+                let __ws_arg_79 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_orders_plan_history(&[__ws_arg_79]).await;
             }  else if is_true(&trigger) || is_true(&planTypeDefined) {
                 let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("normal_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
-                let __ws_arg_79 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_get_v2_mix_order_orders_plan_history(&[__ws_arg_79]).await;
-            }  else {
                 let __ws_arg_80 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_get_v2_mix_order_orders_history(&[__ws_arg_80]).await;
+                response = self.private_mix_get_v2_mix_order_orders_plan_history(&[__ws_arg_80]).await;
+            }  else {
+                let __ws_arg_81 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_orders_history(&[__ws_arg_81]).await;
             }
         }
         //
@@ -8504,11 +11112,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         if is_true(&trigger) {
-            let __ws_arg_81 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_trade_history_strategy_orders(&[__ws_arg_81]).await;
-        }  else {
             let __ws_arg_82 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_trade_history_orders(&[__ws_arg_82]).await;
+            response = self.private_uta_get_v3_trade_history_strategy_orders(&[__ws_arg_82]).await;
+        }  else {
+            let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_trade_history_orders(&[__ws_arg_83]).await;
         }
         //
         // uta
@@ -8665,8 +11273,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_spot_get_v2_spot_account_bills(&[__ws_arg_83]).await;
+            let __ws_arg_84 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_get_v2_spot_account_bills(&[__ws_arg_84]).await;
         }  else {
             if !is_equal(&symbol, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
@@ -8674,8 +11282,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_84 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_84]).await;
+            let __ws_arg_85 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_85]).await;
         }
         //
         // spot
@@ -8919,8 +11527,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut response: Value = Value::Null;
         if is_true(&uta) {
-            let __ws_arg_85 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_trade_fills(&[__ws_arg_85]).await;
+            let __ws_arg_86 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_trade_fills(&[__ws_arg_86]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
@@ -8929,22 +11537,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         add_element_to_object(&mut request, &Value::Str("startTime".to_string()), subtract(&self.milliseconds(), &Value::Int(7776000000)));
                     }
                     if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                        let __ws_arg_86 = self.extend(request.clone(), &[params.clone()]);
-                        response = self.private_margin_get_v2_margin_isolated_fills(&[__ws_arg_86]).await;
-                    }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
                         let __ws_arg_87 = self.extend(request.clone(), &[params.clone()]);
-                        response = self.private_margin_get_v2_margin_crossed_fills(&[__ws_arg_87]).await;
+                        response = self.private_margin_get_v2_margin_isolated_fills(&[__ws_arg_87]).await;
+                    }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
+                        let __ws_arg_88 = self.extend(request.clone(), &[params.clone()]);
+                        response = self.private_margin_get_v2_margin_crossed_fills(&[__ws_arg_88]).await;
                     }
                 }  else {
-                    let __ws_arg_88 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_spot_get_v2_spot_trade_fills(&[__ws_arg_88]).await;
+                    let __ws_arg_89 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_spot_get_v2_spot_trade_fills(&[__ws_arg_89]).await;
                 }
             }  else {
                 let mut productType: Value = Value::Null;
                 { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
                 add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-                let __ws_arg_89 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_get_v2_mix_order_fills(&[__ws_arg_89]).await;
+                let __ws_arg_90 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_fills(&[__ws_arg_90]).await;
             }
         }
         //
@@ -9127,8 +11735,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchPosition".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_90 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_90]).await;
+            let __ws_arg_91 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_91]).await;
             //
             //     {
             //         "code": "00000",
@@ -9175,8 +11783,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_91 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_position_single_position(&[__ws_arg_91]).await;
+            let __ws_arg_92 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_single_position(&[__ws_arg_92]).await;
             //
             //     {
             //         "code": "00000",
@@ -9276,8 +11884,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchPositions".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_92 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_92]).await;
+            let __ws_arg_93 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_93]).await;
         }  else if is_equal(&method, &Value::Str("privateMixGetV2MixPositionAllPosition".to_string())) {
             let mut marginCoin: Value = self.safe_string_k(params.clone(), "marginCoin", &[Value::Str("USDT".to_string())]);
             if !is_equal(&market, &Value::Null) {
@@ -9297,16 +11905,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), marginCoin.clone());
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_93 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_position_all_position(&[__ws_arg_93]).await;
+            let __ws_arg_94 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_all_position(&[__ws_arg_94]).await;
         }  else {
             isHistory = Value::Bool(true);
             if !is_equal(&market, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_94 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_94]).await;
+            let __ws_arg_95 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_95]).await;
         }
         //
         // privateMixGetV2MixPositionAllPosition
@@ -9422,8 +12030,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_349: bool = true;
-            while { if !__for_first_349 { i = add(&i, &Value::Int(1)); } __for_first_349 = false; is_less_than(&i, &get_array_length(&position)) } {
+            let mut __for_first_352: bool = true;
+            while { if !__for_first_352 { i = add(&i, &Value::Int(1)); } __for_first_352 = false; is_less_than(&i, &get_array_length(&position)) } {
             append_to_array(&mut result, self.parse_position(get_value(&position, &i), &[market.clone()]));
         }
         }
@@ -9707,8 +12315,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_95 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_uta_get_v3_market_history_fund_rate(&[__ws_arg_95]).await;
+            let __ws_arg_96 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_history_fund_rate(&[__ws_arg_96]).await;
             //
             //     {
             //         "code": "00000",
@@ -9740,8 +12348,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
             }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_96 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_history_fund_rate(&[__ws_arg_96]).await;
+            let __ws_arg_97 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_history_fund_rate(&[__ws_arg_97]).await;
             //
             //     {
             //         "code": "00000",
@@ -9761,8 +12369,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_350: bool = true;
-            while { if !__for_first_350 { i = add(&i, &Value::Int(1)); } __for_first_350 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_353: bool = true;
+            while { if !__for_first_353 { i = add(&i, &Value::Int(1)); } __for_first_353 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -9821,18 +12429,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = Value::Null;
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchFundingRate".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
-            let __ws_arg_97 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_97]).await;
+            let __ws_arg_98 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_98]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             let mut method: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRate".to_string()), Value::Str("method".to_string()), &[Value::Str("publicMixGetV2MixMarketCurrentFundRate".to_string())]); method = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             if is_equal(&method, &Value::Str("publicMixGetV2MixMarketCurrentFundRate".to_string())) {
-                let __ws_arg_98 = self.extend(request.clone(), &[params.clone()]);
-                response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_98]).await;
-            }  else if is_equal(&method, &Value::Str("publicMixGetV2MixMarketFundingTime".to_string())) {
                 let __ws_arg_99 = self.extend(request.clone(), &[params.clone()]);
-                response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_99]).await;
+                response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_99]).await;
+            }  else if is_equal(&method, &Value::Str("publicMixGetV2MixMarketFundingTime".to_string())) {
+                let __ws_arg_100 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_100]).await;
             }
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
@@ -9910,8 +12518,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //         },
             //     ]
             // }
-            let __ws_arg_100 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_tickers(&[__ws_arg_100]).await;
+            let __ws_arg_101 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_tickers(&[__ws_arg_101]).await;
         }  else if is_equal(&method, &Value::Str("publicMixGetV2MixMarketCurrentFundRate".to_string())) {
             //
             //     {
@@ -9930,8 +12538,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //         ]
             //     }
             //
-            let __ws_arg_101 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_101]).await;
+            let __ws_arg_102 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_102]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
@@ -10122,15 +12730,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_102 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_account_financial_records(&[__ws_arg_102]).await;
+            let __ws_arg_103 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_account_financial_records(&[__ws_arg_103]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("businessType".to_string()), Value::Str("contract_settle_fee".to_string()));
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_103 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_103]).await;
+            let __ws_arg_104 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_104]).await;
         }
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -10196,8 +12804,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_351: bool = true;
-            while { if !__for_first_351 { i = add(&i, &Value::Int(1)); } __for_first_351 = false; is_less_than(&i, &get_array_length(&contracts)) } {
+            let mut __for_first_354: bool = true;
+            while { if !__for_first_354 { i = add(&i, &Value::Int(1)); } __for_first_354 = false; is_less_than(&i, &get_array_length(&contracts)) } {
             let mut contract: Value = get_value(&contracts, &i);
             let mut contract: Value = get_value(&contracts, &i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
@@ -10240,13 +12848,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         params = self.omit(params.clone(), Value::Str("holdSide".to_string()), &[]);
-        let __ws_arg_104 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin(&[__ws_arg_104]).await;
-        let __ws_arg_105 = self.parse_margin_modification(response.clone(), &[market.clone()]);
-        let __ws_arg_106 = self.parse_number(amount.clone(), &[]);
-        return self.extend(__ws_arg_105, &[Value::Map({
+        let __ws_arg_105 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin(&[__ws_arg_105]).await;
+        let __ws_arg_106 = self.parse_margin_modification(response.clone(), &[market.clone()]);
+        let __ws_arg_107 = self.parse_number(amount.clone(), &[]);
+        return self.extend(__ws_arg_106, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), __ws_arg_106);
+        m.insert("amount".to_string(), __ws_arg_107);
         m.insert("type".to_string(), type_var.clone());
     m
 })]);
@@ -10364,8 +12972,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("productType".to_string(), productType.clone());
             m
         });
-        let __ws_arg_107 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_mix_get_v2_mix_account_account(&[__ws_arg_107]).await;
+        let __ws_arg_108 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_get_v2_mix_account_account(&[__ws_arg_108]).await;
         //
         //     {
         //         "code": "00000",
@@ -10465,20 +13073,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&uta) {
             if is_equal(&productType, &Value::Str("SPOT".to_string())) {
                 let mut marginMode: Value = Value::Null;
-                { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchTrades".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+                { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("setLeverage".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
                 if !is_equal(&marginMode, &Value::Null) {
                     productType = Value::Str("MARGIN".to_string());
                 }
             }
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_108 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_post_v3_account_set_leverage(&[__ws_arg_108]).await;
+            let __ws_arg_109 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_account_set_leverage(&[__ws_arg_109]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_109 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_post_v2_mix_account_set_leverage(&[__ws_arg_109]).await;
+            let __ws_arg_110 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_account_set_leverage(&[__ws_arg_110]).await;
         }
         return response;
 
@@ -10525,8 +13133,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("productType".to_string(), productType.clone());
             m
         });
-        let __ws_arg_110 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin_mode(&[__ws_arg_110]).await;
+        let __ws_arg_111 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin_mode(&[__ws_arg_111]).await;
         return response;
 
     Value::Null
@@ -10573,13 +13181,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("setPositionMode".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("holdMode".to_string()), posMode.clone());
-            let __ws_arg_111 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_post_v3_account_set_hold_mode(&[__ws_arg_111]).await;
+            let __ws_arg_112 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_account_set_hold_mode(&[__ws_arg_112]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("posMode".to_string()), posMode.clone());
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_112 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_post_v2_mix_account_set_position_mode(&[__ws_arg_112]).await;
+            let __ws_arg_113 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_account_set_position_mode(&[__ws_arg_113]).await;
         }
         return response;
 
@@ -10621,12 +13229,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchOpenInterest".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_113 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_uta_get_v3_market_open_interest(&[__ws_arg_113]).await;
+            let __ws_arg_114 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_open_interest(&[__ws_arg_114]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_114 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_open_interest(&[__ws_arg_114]).await;
+            let __ws_arg_115 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_open_interest(&[__ws_arg_115]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10730,8 +13338,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let __ws_arg_115 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_spot_get_v2_spot_account_transfer_records(&[__ws_arg_115]).await;
+        let __ws_arg_116 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_get_v2_spot_account_transfer_records(&[__ws_arg_116]).await;
         //
         //     {
         //         "code": "00000",
@@ -10764,11 +13372,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @name bitget#transfer
  * @description transfer currency internally between wallets on the same account
  * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
+ * @see https://www.bitget.com/api-doc/uta/account/transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.uta] set to true to transfer via the unified trading account v3 endpoint
  * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
  * @param {string} [params.clientOid] custom id
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -10781,6 +13391,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
+        let mut uta: Value = Value::Null;
+        { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("transfer".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut currency: Value = self.currency(code.clone());
         let mut accountsByType: Value = self.safe_value_k(self.options.clone(), "accountsByType", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -10803,8 +13415,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let __ws_arg_116 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_spot_post_v2_spot_wallet_transfer(&[__ws_arg_116]).await;
+        let mut response: Value = Value::Null;
+        if is_true(&uta) {
+            let __ws_arg_117 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_account_transfer(&[__ws_arg_117]).await;
+        }  else {
+            let __ws_arg_118 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_post_v2_spot_wallet_transfer(&[__ws_arg_118]).await;
+        }
         //
         //     {
         //         "code": "00000",
@@ -10940,8 +13558,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_352: bool = true;
-            while { if !__for_first_352 { i = add(&i, &Value::Int(1)); } __for_first_352 = false; is_less_than(&i, &chainsLength) } {
+            let mut __for_first_355: bool = true;
+            while { if !__for_first_355 { i = add(&i, &Value::Int(1)); } __for_first_355 = false; is_less_than(&i, &chainsLength) } {
             let mut chain: Value = get_value(&chains, &i);
             let mut chain: Value = get_value(&chains, &i);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[]);
@@ -11055,8 +13673,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("borrowAmount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
-        let __ws_arg_117 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_margin_post_v2_margin_crossed_account_borrow(&[__ws_arg_117]).await;
+        let __ws_arg_119 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_crossed_account_borrow(&[__ws_arg_119]).await;
         //
         //     {
         //         "code": "00000",
@@ -11106,8 +13724,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_118 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_margin_post_v2_margin_isolated_account_borrow(&[__ws_arg_118]).await;
+        let __ws_arg_120 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_isolated_account_borrow(&[__ws_arg_120]).await;
         //
         //     {
         //         "code": "00000",
@@ -11158,8 +13776,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_119 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_margin_post_v2_margin_isolated_account_repay(&[__ws_arg_119]).await;
+        let __ws_arg_121 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_isolated_account_repay(&[__ws_arg_121]).await;
         //
         //     {
         //         "code": "00000",
@@ -11208,8 +13826,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("repayAmount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
-        let __ws_arg_120 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_margin_post_v2_margin_crossed_account_repay(&[__ws_arg_120]).await;
+        let __ws_arg_122 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_crossed_account_repay(&[__ws_arg_122]).await;
         //
         //     {
         //         "code": "00000",
@@ -11354,11 +13972,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyLiquidations() requires a symbol argument".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
-            let __ws_arg_121 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_isolated_liquidation_history(&[__ws_arg_121]).await;
+            let __ws_arg_123 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_isolated_liquidation_history(&[__ws_arg_123]).await;
         }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-            let __ws_arg_122 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_crossed_liquidation_history(&[__ws_arg_122]).await;
+            let __ws_arg_124 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_crossed_liquidation_history(&[__ws_arg_124]).await;
         }
         //
         // isolated
@@ -11499,8 +14117,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_123 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_margin_get_v2_margin_isolated_interest_rate_and_limit(&[__ws_arg_123]).await;
+        let __ws_arg_125 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_get_v2_margin_isolated_interest_rate_and_limit(&[__ws_arg_125]).await;
         //
         //     {
         //         "code": "00000",
@@ -11645,8 +14263,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchCrossBorrowRate".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
-            let __ws_arg_124 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_uta_get_v3_market_margin_loans(&[__ws_arg_124]).await;
+            let __ws_arg_126 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_margin_loans(&[__ws_arg_126]).await;
             //
             //     {
             //         "code": "00000",
@@ -11664,8 +14282,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         }  else {
-            let __ws_arg_125 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_crossed_interest_rate_and_limit(&[__ws_arg_125]).await;
+            let __ws_arg_127 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_crossed_interest_rate_and_limit(&[__ws_arg_127]).await;
             //
             //     {
             //         "code": "00000",
@@ -11812,11 +14430,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchBorrowInterest() requires a symbol argument".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
-            let __ws_arg_126 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_isolated_interest_history(&[__ws_arg_126]).await;
+            let __ws_arg_128 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_isolated_interest_history(&[__ws_arg_128]).await;
         }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-            let __ws_arg_127 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_crossed_interest_history(&[__ws_arg_127]).await;
+            let __ws_arg_129 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_crossed_interest_history(&[__ws_arg_129]).await;
         }
         //
         // isolated
@@ -11967,15 +14585,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut request, &Value::Str("posSide".to_string()), side.clone());
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_128 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_128]).await;
+            let __ws_arg_130 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_130]).await;
         }  else {
             if !is_equal(&side, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("holdSide".to_string()), side.clone());
             }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_129 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_129]).await;
+            let __ws_arg_131 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_131]).await;
         }
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -12017,12 +14635,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("closeAllPositions".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_130 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_130]).await;
+            let __ws_arg_132 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_132]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_131 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_131]).await;
+            let __ws_arg_133 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_133]).await;
         }
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -12061,8 +14679,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("productType".to_string(), productType.clone());
             m
         });
-        let __ws_arg_132 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_mix_get_v2_mix_account_account(&[__ws_arg_132]).await;
+        let __ws_arg_134 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_get_v2_mix_account_account(&[__ws_arg_134]).await;
         //
         //     {
         //         "code": "00000",
@@ -12167,11 +14785,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchPositionsHistory".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_133 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_position_history_position(&[__ws_arg_133]).await;
+            let __ws_arg_135 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_position_history_position(&[__ws_arg_135]).await;
         }  else {
-            let __ws_arg_134 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_134]).await;
+            let __ws_arg_136 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_136]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -12211,8 +14829,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("fromCoinSize".to_string(), self.number_to_string(amount.clone()));
             m
         });
-        let __ws_arg_135 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_convert_get_v2_convert_quoted_price(&[__ws_arg_135]).await;
+        let __ws_arg_137 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_convert_get_v2_convert_quoted_price(&[__ws_arg_137]).await;
         //
         //     {
         //         "code": "00000",
@@ -12284,8 +14902,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("cnvtPrice".to_string(), price.clone());
             m
         });
-        let __ws_arg_136 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_convert_post_v2_convert_trade(&[__ws_arg_136]).await;
+        let __ws_arg_138 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_convert_post_v2_convert_trade(&[__ws_arg_138]).await;
         //
         //     {
         //         "code": "00000",
@@ -12353,8 +14971,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
-        let __ws_arg_137 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_convert_get_v2_convert_convert_record(&[__ws_arg_137]).await;
+        let __ws_arg_139 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_convert_get_v2_convert_convert_record(&[__ws_arg_139]).await;
         //
         //     {
         //         "code": "00000",
@@ -12487,8 +15105,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_353: bool = true;
-            while { if !__for_first_353 { i = add(&i, &Value::Int(1)); } __for_first_353 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_356: bool = true;
+            while { if !__for_first_356 { i = add(&i, &Value::Int(1)); } __for_first_356 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(entry.clone(), "coin", &[]);
@@ -12571,12 +15189,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchFundingInterval".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&uta) {
-            let __ws_arg_138 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_138]).await;
+            let __ws_arg_140 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_140]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_139 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_139]).await;
+            let __ws_arg_141 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_141]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
@@ -12624,11 +15242,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("swap".to_string()))) || is_true(&get_value(&market, &Value::Str("future".to_string()))) {
-            let __ws_arg_140 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_account_long_short(&[__ws_arg_140]).await;
+            let __ws_arg_142 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_account_long_short(&[__ws_arg_142]).await;
         }  else {
-            let __ws_arg_141 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_margin_get_v2_margin_market_long_short_ratio(&[__ws_arg_141]).await;
+            let __ws_arg_143 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_margin_get_v2_margin_market_long_short_ratio(&[__ws_arg_143]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_long_short_ratio_history(data.clone(), &[market.clone()]);

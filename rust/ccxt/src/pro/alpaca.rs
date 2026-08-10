@@ -260,7 +260,7 @@ impl crate::exchange::DerivedExchange for AlpacaCore {
 
 impl crate::exchange_generated::ExchangeBase for AlpacaCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -424,8 +424,10 @@ impl AlpacaCore {
         let mut ticker: Value = self.parse_ticker(message.clone(), &[]);
         let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
-        add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
-        client.resolve(&[get_value(&self.tickers, &symbol), messageHash.clone()]);
+        if !is_equal(&symbol, &Value::Null) {
+            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+        }
+        client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
 
     pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -552,7 +554,7 @@ impl AlpacaCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -946,6 +948,9 @@ impl AlpacaCore {
             myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut trade: Value = self.parse_my_trade(rawOrder.clone(), &[]);
+        if is_equal(&trade, &Value::Null) {
+            return;
+        }
         myTrades.append(trade.clone());
         let mut messageHash: Value = add(&Value::Str("myTrades:".to_string()), &get_value(&trade, &Value::Str("symbol".to_string())));
         client.resolve(&[myTrades.clone(), messageHash.clone()]);
@@ -995,6 +1000,9 @@ impl AlpacaCore {
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         let mut datetime: Value = self.safe_string_k(trade.clone(), "filled_at", &[]);
         let mut type_var: Value = self.safe_string_k(trade.clone(), "type", &[]);
+        if is_equal(&type_var, &Value::Null) {
+            return Value::Null;
+        }
         if is_greater_than_or_equal(&get_index_of(&type_var, &Value::Str("limit".to_string())), &Value::Int(0)) {
             // might be limit or stop-limit
             type_var = Value::Str("limit".to_string());

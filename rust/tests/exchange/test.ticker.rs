@@ -122,7 +122,12 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut close: Value = exchange.omit_zero(exchange.safeString(entry.clone(), Value::Str("close".to_string()), &[]));
     if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareQuoteVolumeBaseVolume".to_string()))))) {
         // assert!(ccxt::runtime::is_true(&(baseVolumeDefined === quoteVolumeDefined))); // No, exchanges might not report both values
-        if is_true(&(!is_equal(&baseVolume, &Value::Null))) && is_true(&(!is_equal(&quoteVolume, &Value::Null))) && is_true(&(!is_equal(&high, &Value::Null))) && is_true(&(!is_equal(&low, &Value::Null))) {
+        // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+        // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+        // far above baseVolume * high), so the spot-derived invariant does not hold there,
+        // see https://github.com/ccxt/ccxt/pull/29563
+        let mut isInverse: Value = exchange.safe_bool(market.clone(), Value::Str("inverse".to_string()), &[Value::Bool(false)]);
+        if is_true(&(!is_equal(&baseVolume, &Value::Null))) && is_true(&(!is_equal(&quoteVolume, &Value::Null))) && is_true(&(!is_equal(&high, &Value::Null))) && is_true(&(!is_equal(&low, &Value::Null))) && !is_true(&isInverse) {
             let mut baseLow: Value = ccxt::precise::Precise::stringMul(&baseVolume, &low);
             let mut baseHigh: Value = ccxt::precise::Precise::stringMul(&baseVolume, &high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -176,7 +181,8 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut askString: Value = exchange.safe_string(entry.clone(), Value::Str("ask".to_string()), &[]);
     let mut bidString: Value = exchange.safe_string(entry.clone(), Value::Str("bid".to_string()), &[]);
     if is_true(&(!is_equal(&askString, &Value::Null))) && is_true(&(!is_equal(&bidString, &Value::Null))) && !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("spread".to_string()))))) {
-        crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("ask".to_string()).clone(), exchange.safe_string(entry.clone(), Value::Str("bid".to_string()), &[]).clone()]);
+        // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
+        crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("ask".to_string()).clone(), exchange.safe_string(entry.clone(), Value::Str("bid".to_string()), &[]).clone()]);
     }
     // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
     let mut allowedPercentageVariation: Value = Value::Str("0.01".to_string());
@@ -192,7 +198,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         //
         // percentage
         //
-        let mut maxIncrease: Value = Value::Str("100".to_string()); // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+        let mut maxIncrease: Value = Value::Str("1000".to_string()); // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if !is_equal(&percentage, &Value::Null) {
             // - should be above -100 and below MAX
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&percentage, &Value::Str("-100".to_string())))));

@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BlockchaincomCore {
 
 impl crate::exchange_generated::ExchangeBase for BlockchaincomCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -428,8 +428,8 @@ impl BlockchaincomCore {
         let mut balances: Value = self.safe_value_k(message.clone(), "balances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_179: bool = true;
-            while { if !__for_first_179 { i = add(&i, &Value::Int(1)); } __for_first_179 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_177: bool = true;
+            while { if !__for_first_177 { i = add(&i, &Value::Int(1)); } __for_first_177 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut entry: Value = get_value(&balances, &i);
             let mut entry: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -437,7 +437,9 @@ impl BlockchaincomCore {
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "available", &[]));
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "balance", &[]));
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         let mut messageHash: Value = Value::Str("balance".to_string());
@@ -520,7 +522,7 @@ impl BlockchaincomCore {
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
             let mut messageHash: Value = add(&Value::Str("ohlcv:".to_string()), &symbol);
             let mut request: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
-            let mut timeframeId: Value = self.safe_number_k(request.clone(), "granularity", &[]);
+            let mut timeframeId: Value = self.safe_string_k(request.clone(), "granularity", &[]);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
             let mut ohlcv: Value = self.safe_value_k(message.clone(), "price", &[Value::List(vec![])]);
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
@@ -911,7 +913,8 @@ impl BlockchaincomCore {
         let mut cachedOrders: Value = self.orders.clone();
         if is_equal(&cachedOrders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
-            self.orders = ArrayCacheBySymbolById::new(limit.clone());
+            cachedOrders = ArrayCacheBySymbolById::new(limit.clone());
+            self.orders = cachedOrders.clone();
         }
         if is_equal(&event, &Value::Str("subscribed".to_string())) {
             return;
@@ -921,8 +924,8 @@ impl BlockchaincomCore {
             let mut orders: Value = self.safe_value_k(message.clone(), "orders", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_180: bool = true;
-                while { if !__for_first_180 { i = add(&i, &Value::Int(1)); } __for_first_180 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                let mut __for_first_178: bool = true;
+                while { if !__for_first_178 { i = add(&i, &Value::Int(1)); } __for_first_178 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 let mut order: Value = get_value(&orders, &i);
                 let mut order: Value = get_value(&orders, &i);
                 let mut parsedOrder: Value = self.parse_ws_order(order.clone(), &[]);
@@ -1044,7 +1047,7 @@ impl BlockchaincomCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1147,8 +1150,8 @@ impl BlockchaincomCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_181: bool = true;
-            while { if !__for_first_181 { i = add(&i, &Value::Int(1)); } __for_first_181 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_179: bool = true;
+            while { if !__for_first_179 { i = add(&i, &Value::Int(1)); } __for_first_179 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }

@@ -165,7 +165,7 @@ impl crate::exchange::DerivedExchange for Bit2cCore {
 
 impl crate::exchange_generated::ExchangeBase for Bit2cCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -327,13 +327,137 @@ impl Bit2cCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("Exchanges/{pair}/Ticker".to_string()), Value::Str("Exchanges/{pair}/orderbook".to_string()), Value::Str("Exchanges/{pair}/trades".to_string()), Value::Str("Exchanges/{pair}/lasttrades".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("Exchanges/{pair}/Ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Exchanges/{pair}/orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Exchanges/{pair}/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Exchanges/{pair}/lasttrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("post".to_string(), Value::List(vec![Value::Str("Merchant/CreateCheckout".to_string()), Value::Str("Funds/AddCoinFundsRequest".to_string()), Value::Str("Order/AddFund".to_string()), Value::Str("Order/AddOrder".to_string()), Value::Str("Order/GetById".to_string()), Value::Str("Order/AddOrderMarketPriceBuy".to_string()), Value::Str("Order/AddOrderMarketPriceSell".to_string()), Value::Str("Order/CancelOrder".to_string()), Value::Str("Order/AddCoinFundsRequest".to_string()), Value::Str("Order/AddStopOrder".to_string()), Value::Str("Payment/GetMyId".to_string()), Value::Str("Payment/Send".to_string()), Value::Str("Payment/Pay".to_string())]));
-        m.insert("get".to_string(), Value::List(vec![Value::Str("Account/Balance".to_string()), Value::Str("Account/Balance/v2".to_string()), Value::Str("Order/MyOrders".to_string()), Value::Str("Order/GetById".to_string()), Value::Str("Order/AccountHistory".to_string()), Value::Str("Order/OrderHistory".to_string())]));
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("Merchant/CreateCheckout".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Funds/AddCoinFundsRequest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/AddFund".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/AddOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/GetById".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/AddOrderMarketPriceBuy".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/AddOrderMarketPriceSell".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/CancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/AddCoinFundsRequest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/AddStopOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Payment/GetMyId".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Payment/Send".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Payment/Pay".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("Account/Balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Account/Balance/v2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/MyOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/GetById".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/AccountHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/OrderHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
     m
@@ -528,8 +652,8 @@ impl Bit2cCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_300: bool = true;
-            while { if !__for_first_300 { i = add(&i, &Value::Int(1)); } __for_first_300 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_302: bool = true;
+            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut account: Value = self.account();
@@ -701,27 +825,28 @@ impl Bit2cCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // max 100000
         }
-        let mut response: Value = Value::Null;
+        let mut responseList: Value = Value::List(vec![]);
         if is_equal(&method, &Value::Str("public_get_exchanges_pair_trades".to_string())) {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_get_exchanges_pair_trades(&[__ws_arg_2]).await;
+            let mut response: Value = self.public_get_exchanges_pair_trades(&[__ws_arg_2]).await;
+            //
+            //     [
+            //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+            //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+            //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+            //     ]
+            //
+            if is_string(&response) {
+                panic!("{}", crate::exchange_errors::exchange_error(response));
+            }
+            responseList = self.to_array(response.clone());
         }  else {
             let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_get_exchanges_pair_lasttrades(&[__ws_arg_3]).await;
-        }
-        //
-        //     [
-        //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
-        //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
-        //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
-        //     ]
-        //
-        if is_string(&response) {
-            panic!("{}", crate::exchange_errors::exchange_error(response));
-        }
-        let mut responseList: Value = Value::List(vec![]);
-        if !is_equal(&response, &Value::Null) {
-            responseList = response.clone();
+            let mut response: Value = self.public_get_exchanges_pair_lasttrades(&[__ws_arg_3]).await;
+            if is_string(&response) {
+                panic!("{}", crate::exchange_errors::exchange_error(response));
+            }
+            responseList = self.to_array(response.clone());
         }
         return self.parse_trades(responseList.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -772,8 +897,8 @@ impl Bit2cCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_301: bool = true;
-            while { if !__for_first_301 { i = add(&i, &Value::Int(1)); } __for_first_301 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_303: bool = true;
+            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1149,7 +1274,7 @@ impl Bit2cCore {
         //
         let mut responseList: Value = Value::List(vec![]);
         if !is_equal(&response, &Value::Null) {
-            responseList = response.clone();
+            responseList = self.to_array(response.clone());
         }
         return self.parse_trades(responseList.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1161,8 +1286,8 @@ impl Bit2cCore {
         let mut strParts: Value = split(&str_val, &Value::Str(",".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_302: bool = true;
-            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&strParts)) } {
+            let mut __for_first_304: bool = true;
+            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&strParts)) } {
             newString = add(&newString, &get_value(&strParts, &i));
         }
         }

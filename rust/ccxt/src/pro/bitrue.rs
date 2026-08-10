@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BitrueCore {
 
 impl crate::exchange_generated::ExchangeBase for BitrueCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -339,17 +339,29 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("poseidon/api/v1/listenKey".to_string(), Value::Int(1));
+        m.insert("poseidon/api/v1/listenKey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("put".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("poseidon/api/v1/listenKey/{listenKey}".to_string(), Value::Int(1));
+        m.insert("poseidon/api/v1/listenKey/{listenKey}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("poseidon/api/v1/listenKey/{listenKey}".to_string(), Value::Int(1));
+        m.insert("poseidon/api/v1/listenKey/{listenKey}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -492,8 +504,8 @@ impl BitrueCore {
         add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), balances.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_161: bool = true;
-            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_149: bool = true;
+            while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
@@ -512,7 +524,9 @@ impl BitrueCore {
                 if is_true(&updateUsed) {
                     add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
                 }
-                add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                if !is_equal(&code, &Value::Null) {
+                    add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                }
             }
         }
         }
@@ -787,12 +801,16 @@ impl BitrueCore {
 }
 
     pub fn find_swap_market_by_ws_base_quote(&self, mut wsBaseQuote: Value) -> Value {
-        let mut symbols: Value = object_keys(&self.markets);
+        let mut markets: Value = self.markets.clone();
+        if is_equal(&markets, &Value::Null) {
+            return Value::Null;
+        }
+        let mut symbols: Value = object_keys(&markets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_162: bool = true;
-            while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&symbols)) } {
-            let mut candidate: Value = get_value(&self.markets, &get_value(&symbols, &i));
+            let mut __for_first_150: bool = true;
+            while { if !__for_first_150 { i = add(&i, &Value::Int(1)); } __for_first_150 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut candidate: Value = get_value(&markets, &get_value(&symbols, &i));
             if !is_true(&get_value(&candidate, &Value::Str("swap".to_string()))) {
                 continue;
             }
@@ -812,8 +830,8 @@ impl BitrueCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_163: bool = true;
-            while { if !__for_first_163 { i = add(&i, &Value::Int(1)); } __for_first_163 = false; is_less_than(&i, &get_array_length(&bidsAsks)) } {
+            let mut __for_first_151: bool = true;
+            while { if !__for_first_151 { i = add(&i, &Value::Int(1)); } __for_first_151 = false; is_less_than(&i, &get_array_length(&bidsAsks)) } {
             let mut level: Value = get_value(&bidsAsks, &i);
             let mut level: Value = get_value(&bidsAsks, &i);
             let mut price: Value = self.safe_number(level.clone(), Value::Int(0), &[]);
@@ -932,8 +950,8 @@ impl BitrueCore {
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_164: bool = true;
-            while { if !__for_first_164 { i = add(&i, &Value::Int(1)); } __for_first_164 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_152: bool = true;
+            while { if !__for_first_152 { i = add(&i, &Value::Int(1)); } __for_first_152 = false; is_less_than(&i, &get_array_length(&data)) } {
             if is_equal(&stored, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 stored = ArrayCache::new(limit.clone());

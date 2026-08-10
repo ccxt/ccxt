@@ -165,7 +165,7 @@ impl crate::exchange::DerivedExchange for TokocryptoCore {
 
 impl crate::exchange_generated::ExchangeBase for TokocryptoCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -319,8 +319,8 @@ impl TokocryptoCore {
         m.insert("fetchPremiumIndexOHLCV".to_string(), Value::Bool(false));
         m.insert("fetchSettlementHistory".to_string(), Value::Bool(false));
         m.insert("fetchStatus".to_string(), Value::Bool(false));
-        m.insert("fetchTicker".to_string(), Value::Bool(false));
-        m.insert("fetchTickers".to_string(), Value::Bool(false));
+        m.insert("fetchTicker".to_string(), Value::Bool(true));
+        m.insert("fetchTickers".to_string(), Value::Bool(true));
         m.insert("fetchTime".to_string(), Value::Bool(true));
         m.insert("fetchTrades".to_string(), Value::Bool(true));
         m.insert("fetchTradingFee".to_string(), Value::Bool(false));
@@ -391,18 +391,42 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Int(1));
-        m.insert("time".to_string(), Value::Int(1));
+        m.insert("ping".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("depth".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(100), Value::Int(1)]), Value::List(vec![Value::Int(500), Value::Int(5)]), Value::List(vec![Value::Int(1000), Value::Int(10)]), Value::List(vec![Value::Int(5000), Value::Int(50)])]));
     m
 }));
-        m.insert("trades".to_string(), Value::Int(1));
-        m.insert("aggTrades".to_string(), Value::Int(1));
-        m.insert("historicalTrades".to_string(), Value::Int(5));
-        m.insert("klines".to_string(), Value::Int(1));
+        m.insert("trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("aggTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("historicalTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("klines".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("ticker/24hr".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -421,22 +445,38 @@ impl TokocryptoCore {
         m.insert("noSymbol".to_string(), Value::Int(2));
     m
 }));
-        m.insert("exchangeInfo".to_string(), Value::Int(10));
+        m.insert("exchangeInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
         m.insert("put".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("userDataStream".to_string(), Value::Int(1));
+        m.insert("userDataStream".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("userDataStream".to_string(), Value::Int(1));
+        m.insert("userDataStream".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("userDataStream".to_string(), Value::Int(1));
+        m.insert("userDataStream".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -445,12 +485,36 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("open/v1/common/time".to_string(), Value::Int(1));
-        m.insert("open/v1/common/symbols".to_string(), Value::Int(1));
-        m.insert("open/v1/market/depth".to_string(), Value::Int(1));
-        m.insert("open/v1/market/trades".to_string(), Value::Int(1));
-        m.insert("open/v1/market/agg-trades".to_string(), Value::Int(1));
-        m.insert("open/v1/market/klines".to_string(), Value::Int(1));
+        m.insert("open/v1/common/time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/common/symbols".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/market/depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/market/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/market/agg-trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/market/klines".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -459,23 +523,75 @@ impl TokocryptoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("open/v1/orders/detail".to_string(), Value::Int(1));
-        m.insert("open/v1/orders".to_string(), Value::Int(1));
-        m.insert("open/v1/account/spot".to_string(), Value::Int(1));
-        m.insert("open/v1/account/spot/asset".to_string(), Value::Int(1));
-        m.insert("open/v1/orders/trades".to_string(), Value::Int(1));
-        m.insert("open/v1/withdraws".to_string(), Value::Int(1));
-        m.insert("open/v1/deposits".to_string(), Value::Int(1));
-        m.insert("open/v1/deposits/address".to_string(), Value::Int(1));
+        m.insert("open/v1/orders/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/account/spot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/account/spot/asset".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/orders/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/withdraws".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/deposits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/deposits/address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("open/v1/orders".to_string(), Value::Int(1));
-        m.insert("open/v1/orders/cancel".to_string(), Value::Int(1));
-        m.insert("open/v1/orders/oco".to_string(), Value::Int(1));
-        m.insert("open/v1/withdraws".to_string(), Value::Int(1));
-        m.insert("open/v1/user-data-stream".to_string(), Value::Int(1));
+        m.insert("open/v1/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/orders/cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/orders/oco".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/withdraws".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/user-data-stream".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -1095,8 +1211,8 @@ impl TokocryptoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1038: bool = true;
-            while { if !__for_first_1038 { i = add(&i, &Value::Int(1)); } __for_first_1038 = false; is_less_than(&i, &get_array_length(&list)) } {
+            let mut __for_first_1041: bool = true;
+            while { if !__for_first_1041 { i = add(&i, &Value::Int(1)); } __for_first_1041 = false; is_less_than(&i, &get_array_length(&list)) } {
             let mut market: Value = get_value(&list, &i);
             let mut market: Value = get_value(&list, &i);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
@@ -1115,8 +1231,8 @@ impl TokocryptoCore {
             let mut permissions: Value = self.safe_value_k(market.clone(), "permissions", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1037: bool = true;
-                while { if !__for_first_1037 { j = add(&j, &Value::Int(1)); } __for_first_1037 = false; is_less_than(&j, &get_array_length(&permissions)) } {
+                let mut __for_first_1040: bool = true;
+                while { if !__for_first_1040 { j = add(&j, &Value::Int(1)); } __for_first_1040 = false; is_less_than(&j, &get_array_length(&permissions)) } {
                 if is_equal(&get_value(&permissions, &j), &Value::Str("TRD_GRP_003".to_string())) {
                     active = Value::Bool(false);
                     break;
@@ -1592,10 +1708,7 @@ impl TokocryptoCore {
         //         }
         //     ]
         //
-        let mut responseList: Value = Value::List(vec![]);
-        if !is_equal(&response, &Value::Null) {
-            responseList = response.clone();
-        }
+        let mut responseList: Value = self.to_array(response.clone());
         return self.parse_trades(responseList.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1859,7 +1972,12 @@ impl TokocryptoCore {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
+        let mut data: Value = Value::List(vec![]);
+        if is_true(&Value::Bool(is_array(&response))) {
+            data = response.clone();
+        }  else {
+            data = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        }
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1917,8 +2035,8 @@ impl TokocryptoCore {
         let mut balances: Value = self.safe_value_k(data.clone(), "accountAssets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1039: bool = true;
-            while { if !__for_first_1039 { i = add(&i, &Value::Int(1)); } __for_first_1039 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1042: bool = true;
+            while { if !__for_first_1042 { i = add(&i, &Value::Int(1)); } __for_first_1042 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -3286,11 +3404,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return get_value(&config, &Value::Str("noPoolId".to_string()));
         }  else if is_true(&(Value::Bool(in_op(&config, &Value::Str("byLimit".to_string()))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("limit".to_string()))))) {
             let mut limit: Value = get_value(&params, &Value::Str("limit".to_string()));
-            let mut byLimit: Value = get_value(&config, &Value::Str("byLimit".to_string()));
+            let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1040: bool = true;
-                while { if !__for_first_1040 { i = add(&i, &Value::Int(1)); } __for_first_1040 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
+                let mut __for_first_1043: bool = true;
+                while { if !__for_first_1043 { i = add(&i, &Value::Int(1)); } __for_first_1043 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
                 let mut entry: Value = get_value(&byLimit, &i);
                 let mut entry: Value = get_value(&byLimit, &i);
                 if is_less_than_or_equal(&limit, &get_value(&entry, &Value::Int(0))) {

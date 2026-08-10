@@ -259,7 +259,7 @@ impl crate::exchange::DerivedExchange for ToobitCore {
 
 impl crate::exchange_generated::ExchangeBase for ToobitCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -475,8 +475,8 @@ impl ToobitCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_596: bool = true;
-                while { if !__for_first_596 { i = add(&i, &Value::Int(1)); } __for_first_596 = false; is_less_than(&i, &get_array_length(&message)) } {
+                let mut __for_first_610: bool = true;
+                while { if !__for_first_610 { i = add(&i, &Value::Int(1)); } __for_first_610 = false; is_less_than(&i, &get_array_length(&message)) } {
                 let mut item: Value = get_value(&message, &i);
                 let mut item: Value = get_value(&message, &i);
                 let mut event: Value = self.safe_string_k(item.clone(), "e", &[]);
@@ -497,7 +497,7 @@ impl ToobitCore {
  * @method
  * @name toobit#watchTrades
  * @description watches information on multiple trades made in a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -520,7 +520,7 @@ impl ToobitCore {
  * @method
  * @name toobit#watchTradesForSymbols
  * @description get the list of most recent trades for a list of symbols
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
  * @param {string[]} symbols unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -543,8 +543,8 @@ impl ToobitCore {
         let mut subParams: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_597: bool = true;
-            while { if !__for_first_597 { i = add(&i, &Value::Int(1)); } __for_first_597 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_611: bool = true;
+            while { if !__for_first_611 { i = add(&i, &Value::Int(1)); } __for_first_611 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -610,8 +610,8 @@ impl ToobitCore {
         let mut parsed: Value = self.parse_ws_trades(data.clone(), &[market.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_598: bool = true;
-            while { if !__for_first_598 { i = add(&i, &Value::Int(1)); } __for_first_598 = false; is_less_than(&i, &get_array_length(&parsed)) } {
+            let mut __for_first_612: bool = true;
+            while { if !__for_first_612 { i = add(&i, &Value::Int(1)); } __for_first_612 = false; is_less_than(&i, &get_array_length(&parsed)) } {
             let mut trade: Value = get_value(&parsed, &i);
             add_element_to_object(&mut trade, &Value::Str("symbol".to_string()), symbol.clone());
             crate::set_value(&mut parsed, &i, trade.clone());
@@ -633,7 +633,8 @@ impl ToobitCore {
  * @method
  * @name toobit#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -660,7 +661,8 @@ impl ToobitCore {
  * @method
  * @name toobit#watchOHLCVForSymbols
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
  * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
@@ -687,8 +689,8 @@ impl ToobitCore {
         let mut selectedTimeframe: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_599: bool = true;
-            while { if !__for_first_599 { i = add(&i, &Value::Int(1)); } __for_first_599 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_613: bool = true;
+            while { if !__for_first_613 { i = add(&i, &Value::Int(1)); } __for_first_613 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolStr: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
@@ -767,16 +769,19 @@ impl ToobitCore {
     m
 }));
         }
-        if !is_true(&(Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)))) {
+        let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
+        if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer(get_value(&self.options, &Value::Str("ws".to_string())), Value::Str("OHLCVLimit".to_string()), &[Value::Int(1000)]);
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit.clone()));
+            stored = ArrayCacheByTimestamp::new(limit.clone());
+            if !is_equal(&timeframe, &Value::Null) {
+                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            }
         }
-        let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_600: bool = true;
-            while { if !__for_first_600 { i = add(&i, &Value::Int(1)); } __for_first_600 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_614: bool = true;
+            while { if !__for_first_614 { i = add(&i, &Value::Int(1)); } __for_first_614 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut parsed: Value = self.parse_ws_ohlcv(get_value(&data, &i), &[market.clone()]);
             stored.append(parsed.clone());
         }
@@ -810,7 +815,8 @@ impl ToobitCore {
 /*
  * @method
  * @name toobit#watchTicker
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -834,7 +840,8 @@ impl ToobitCore {
 /*
  * @method
  * @name toobit#watchTickers
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -854,8 +861,8 @@ impl ToobitCore {
         let mut subParams: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_601: bool = true;
-            while { if !__for_first_601 { i = add(&i, &Value::Int(1)); } __for_first_601 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_615: bool = true;
+            while { if !__for_first_615 { i = add(&i, &Value::Int(1)); } __for_first_615 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -925,20 +932,27 @@ impl ToobitCore {
         //    }
         //
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
+        if is_equal(&data, &Value::Null) {
+            return;
+        }
         let mut newTickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_602: bool = true;
-            while { if !__for_first_602 { i = add(&i, &Value::Int(1)); } __for_first_602 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_616: bool = true;
+            while { if !__for_first_616 { i = add(&i, &Value::Int(1)); } __for_first_616 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = get_value(&data, &i);
             let mut ticker: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_ws_ticker(ticker.clone(), &[]);
             let mut symbol: Value = get_value(&parsed, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut self.tickers.clone(), &symbol, parsed.clone());
-            add_element_to_object(&mut newTickers, &symbol, parsed.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut self.tickers.clone(), &symbol, parsed.clone());
+            }
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut newTickers, &symbol, parsed.clone());
+            }
             let mut messageHash: Value = add(&Value::Str("ticker::".to_string()), &symbol);
             client.resolve(&[parsed.clone(), messageHash.clone()]);
         }
@@ -957,7 +971,10 @@ impl ToobitCore {
  * @method
  * @name toobit#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -978,11 +995,14 @@ impl ToobitCore {
  * @method
  * @name toobit#watchOrderBookForSymbols
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1000,8 +1020,8 @@ impl ToobitCore {
         let mut subParams: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_603: bool = true;
-            while { if !__for_first_603 { i = add(&i, &Value::Int(1)); } __for_first_603 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_617: bool = true;
+            while { if !__for_first_617 { i = add(&i, &Value::Int(1)); } __for_first_617 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1059,8 +1079,8 @@ impl ToobitCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_604: bool = true;
-            while { if !__for_first_604 { i = add(&i, &Value::Int(1)); } __for_first_604 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_618: bool = true;
+            while { if !__for_first_618 { i = add(&i, &Value::Int(1)); } __for_first_618 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut messageHash: Value = add(&add(&add(&Value::Str("orderBook::".to_string()), &symbol), &Value::Str("::".to_string())), &Value::Str("diffDepth".to_string()));
@@ -1123,8 +1143,8 @@ impl ToobitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_605: bool = true;
-            while { if !__for_first_605 { i = add(&i, &Value::Int(1)); } __for_first_605 = false; is_less_than(&i, &length) } {
+            let mut __for_first_619: bool = true;
+            while { if !__for_first_619 { i = add(&i, &Value::Int(1)); } __for_first_619 = false; is_less_than(&i, &length) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "s", &[]);
@@ -1150,7 +1170,8 @@ impl ToobitCore {
  * @method
  * @name toobit#watchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
+ * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -1173,6 +1194,9 @@ impl ToobitCore {
         let mut swapMessageHash: Value = Value::Str("contract:balance".to_string());
         let mut messageHash: Value = ternary(is_true(&isSpot), spotMessageHash.clone(), swapMessageHash.clone());
         let mut subscriptionHash: Value = ternary(is_true(&isSpot), spotSubHash.clone(), swapSubHash.clone());
+        if is_equal(&subscriptionHash, &Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchBalance() requires a subscription hash".to_string()))));
+        }
         let mut url: Value = self.get_user_stream_url();
         let mut client: Value = self.client(&[url.clone()]);
         self.set_balance_cache(client.clone(), marketType.clone(), &[subscriptionHash.clone(), params.clone()]);
@@ -1188,7 +1212,7 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash))) {
+        if is_true(&(is_equal(&subscriptionHash, &Value::Null))) || is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash)))) {
             return;
         }
         let mut type_var: Value = ternary(is_true(&(is_equal(&marketType, &Value::Str("spot".to_string())))), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
@@ -1248,8 +1272,8 @@ impl ToobitCore {
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_606: bool = true;
-            while { if !__for_first_606 { i = add(&i, &Value::Int(1)); } __for_first_606 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_620: bool = true;
+            while { if !__for_first_620 { i = add(&i, &Value::Int(1)); } __for_first_620 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
@@ -1258,7 +1282,9 @@ impl ToobitCore {
             add_element_to_object(&mut account, &Value::Str("info".to_string()), balance.clone());
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "l", &[]));
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "f", &[]));
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
+            if is_true(&(!is_equal(&type_var, &Value::Null))) && is_true(&(!is_equal(&code, &Value::Null))) {
+                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
+            }
         }
         }
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance.clone(), &type_var, __be_tmp); };
@@ -1292,7 +1318,8 @@ impl ToobitCore {
  * @method
  * @name toobit#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update
+ * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-order-update
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-order
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1429,7 +1456,8 @@ impl ToobitCore {
  * @method
  * @name toobit#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push
+ * @see https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1523,7 +1551,7 @@ impl ToobitCore {
 /*
  * @method
  * @name toobit#watchPositions
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update
+ * @see https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-position-update
  * @description watch all open positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {int} [since] the earliest time in ms to fetch positions for
@@ -1546,6 +1574,9 @@ impl ToobitCore {
         let mut messageHash: Value = Value::Str("".to_string());
         if !is_true(&self.is_empty(symbols.clone())) {
             symbols = self.market_symbols(&[symbols.clone()]);
+            if is_equal(&symbols, &Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchPositions() symbols is required".to_string()))));
+            }
             messageHash = add(&Value::Str("::".to_string()), &join(&symbols, &Value::Str(",".to_string())));
         }
         let mut url: Value = self.get_user_stream_url();
@@ -1601,8 +1632,8 @@ impl ToobitCore {
         let mut cache: Value = get_value(&self.positions, &type_var);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_607: bool = true;
-            while { if !__for_first_607 { i = add(&i, &Value::Int(1)); } __for_first_607 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_621: bool = true;
+            while { if !__for_first_621 { i = add(&i, &Value::Int(1)); } __for_first_621 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             cache.append(position.clone());
@@ -1658,8 +1689,8 @@ impl ToobitCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_608: bool = true;
-            while { if !__for_first_608 { i = add(&i, &Value::Int(1)); } __for_first_608 = false; is_less_than(&i, &get_array_length(&message)) } {
+            let mut __for_first_622: bool = true;
+            while { if !__for_first_622 { i = add(&i, &Value::Int(1)); } __for_first_622 = false; is_less_than(&i, &get_array_length(&message)) } {
             let mut rawPosition: Value = get_value(&message, &i);
             let mut rawPosition: Value = get_value(&message, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
@@ -1673,8 +1704,8 @@ impl ToobitCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), add(&accountType, &Value::Str(":positions::".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_609: bool = true;
-            while { if !__for_first_609 { i = add(&i, &Value::Int(1)); } __for_first_609 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_623: bool = true;
+            while { if !__for_first_623 { i = add(&i, &Value::Int(1)); } __for_first_623 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1696,7 +1727,7 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[Value::Null]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[]));
         m.insert("notional".to_string(), self.omit_zero(self.safe_string_k(position.clone(), "pv", &[])));
         m.insert("marginMode".to_string(), self.safe_string_lower(position.clone(), Value::Str("mt".to_string()), &[]));
         m.insert("liquidationPrice".to_string(), self.safe_string_k(position.clone(), "f", &[]));
@@ -1787,8 +1818,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_610: bool = true;
-                while { if !__for_first_610 { i = add(&i, &Value::Int(1)); } __for_first_610 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+                let mut __for_first_624: bool = true;
+                while { if !__for_first_624 { i = add(&i, &Value::Int(1)); } __for_first_624 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
                 let mut messageHash: Value = get_value(&messageHashes, &i);
                 let mut messageHash: Value = get_value(&messageHashes, &i);
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
@@ -1822,7 +1853,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if !is_equal(&code, &Value::Null) {
             let mut desc: Value = self.safe_string_k(message.clone(), "desc", &[]);
             let mut msg: Value = add(&add(&add(&add(&self.id, &Value::Str(" code: ".to_string())), &code), &Value::Str(" message: ".to_string())), &desc);
-            let mut exception = Value::from(crate::exchange_errors::exchange_error(            msg)); // c# fix
+            let mut exception = Value::from(crate::exchange_errors::exchange_error(msg)); // c# fix
             client.reject(&[exception.clone()]);
             return Value::Bool(true);
         }

@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BittradeCore {
 
 impl crate::exchange_generated::ExchangeBase for BittradeCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -424,6 +424,9 @@ impl BittradeCore {
             m
         })]);
         let mut ch: Value = self.safe_string_k(message.clone(), "ch", &[]);
+        if is_equal(&ch, &Value::Null) {
+            return message;
+        }
         let mut parts: Value = split(&ch, &Value::Str(".".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -525,6 +528,9 @@ impl BittradeCore {
             m
         })]);
         let mut ch: Value = self.safe_string_k(message.clone(), "ch", &[]);
+        if is_equal(&ch, &Value::Null) {
+            return message;
+        }
         let mut parts: Value = split(&ch, &Value::Str(".".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -537,8 +543,8 @@ impl BittradeCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_168: bool = true;
-            while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_156: bool = true;
+            while { if !__for_first_156 { i = add(&i, &Value::Int(1)); } __for_first_156 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut trade: Value = self.parse_trade(get_value(&data, &i), &[market.clone()]);
             tradesCache.append(trade.clone());
         }
@@ -626,6 +632,9 @@ impl BittradeCore {
         //     }
         //
         let mut ch: Value = self.safe_string_k(message.clone(), "ch", &[]);
+        if is_equal(&ch, &Value::Null) {
+            return;
+        }
         let mut parts: Value = split(&ch, &Value::Str(".".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -655,7 +664,7 @@ impl BittradeCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -741,8 +750,8 @@ impl BittradeCore {
         let mut messages: Value = get_value(&orderbook, &Value::Str("cache".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_169: bool = true;
-            while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&messages)) } {
+            let mut __for_first_157: bool = true;
+            while { if !__for_first_157 { i = add(&i, &Value::Int(1)); } __for_first_157 = false; is_less_than(&i, &get_array_length(&messages)) } {
             self.handle_order_book_message(client.clone(), get_value(&messages, &i), orderbook.clone());
         }
         }
@@ -803,8 +812,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_170: bool = true;
-            while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_158: bool = true;
+            while { if !__for_first_158 { i = add(&i, &Value::Int(1)); } __for_first_158 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -837,6 +846,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })]);
         let mut seqNum: Value = self.safe_integer_k(tick.clone(), "seqNum", &[]);
         let mut prevSeqNum: Value = self.safe_integer_k(tick.clone(), "prevSeqNum", &[]);
+        if is_true(&(is_equal(&prevSeqNum, &Value::Null))) || is_true(&(is_equal(&seqNum, &Value::Null))) {
+            return orderbook;
+        }
         if is_true(&(is_less_than_or_equal(&prevSeqNum, &get_value(&orderbook, &Value::Str("nonce".to_string()))))) && is_true(&(is_greater_than(&seqNum, &get_value(&orderbook, &Value::Str("nonce".to_string()))))) {
             let mut asks: Value = self.safe_value_k(tick.clone(), "asks", &[Value::List(vec![])]);
             let mut bids: Value = self.safe_value_k(tick.clone(), "bids", &[Value::List(vec![])]);
@@ -891,6 +903,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
         let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
+        if is_equal(&symbol, &Value::Null) {
+            return;
+        }
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
         if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
             remove(&mut self.orderbooks.clone(), &symbol);
@@ -913,6 +928,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
+        if is_equal(&id, &Value::Null) {
+            return message;
+        }
         let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
         let mut subscription: Value = self.safe_value(subscriptionsById.clone(), id.clone(), &[]);
         if !is_equal(&subscription, &Value::Null) {
@@ -1007,6 +1025,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut status: Value = self.safe_string_k(message.clone(), "status", &[]);
         if is_equal(&status, &Value::Str("error".to_string())) {
             let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
+            if is_equal(&id, &Value::Null) {
+                return Value::Bool(false);
+            }
             let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
             let mut subscription: Value = self.safe_value(subscriptionsById.clone(), id.clone(), &[]);
             if !is_equal(&subscription, &Value::Null) {

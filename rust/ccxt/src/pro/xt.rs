@@ -258,12 +258,13 @@ impl crate::exchange::DerivedExchange for XtCore {
 
 impl crate::exchange_generated::ExchangeBase for XtCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "get_listen_key" => self.get_listen_key(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
+                "handle_funding_rate" => self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_ohlcv" => self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_order" => self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -276,12 +277,14 @@ impl crate::exchange_generated::ExchangeBase for XtCore {
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "subscribe" => self.subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
                 "un_subscribe" => self.un_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args.get(5..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_funding_rate" => self.un_watch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "un_watch_order_book" => self.un_watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "un_watch_ticker" => self.un_watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "un_watch_tickers" => self.un_watch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_balance" => self.watch_balance(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_funding_rate" => self.watch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_my_trades" => self.watch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
@@ -328,6 +331,8 @@ impl XtCore {
         m.insert("watchOrders".to_string(), Value::Bool(true));
         m.insert("watchMyTrades".to_string(), Value::Bool(true));
         m.insert("watchPositions".to_string(), Value::Bool(true));
+        m.insert("watchFundingRate".to_string(), Value::Bool(true));
+        m.insert("unWatchFundingRate".to_string(), Value::Bool(true));
     m
 }));
         m.insert("urls".to_string(), Value::Map({
@@ -386,8 +391,8 @@ impl XtCore {
  * @method
  * @description required for private endpoints
  * @param {string} isContract true for contract trades
- * @see https://doc.xt.com/#websocket_privategetToken
- * @see https://doc.xt.com/#futures_user_websocket_v2base
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/GetWsToken
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
  * @returns {string} listen key / access token
  */
     pub async fn get_listen_key(&mut self, mut isContract: Value) -> Value {
@@ -443,8 +448,8 @@ impl XtCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_662: bool = true;
-            while { if !__for_first_662 { i = add(&i, &Value::Int(1)); } __for_first_662 = false; is_less_than(&i, &get_array_length(&cache)) } {
+            let mut __for_first_678: bool = true;
+            while { if !__for_first_678 { i = add(&i, &Value::Int(1)); } __for_first_678 = false; is_less_than(&i, &get_array_length(&cache)) } {
             let mut delta: Value = get_value(&cache, &i);
             let mut delta: Value = get_value(&cache, &i);
             let mut deltaNonce: Value = self.safe_integer2(delta.clone(), Value::Str("i".to_string()), Value::Str("u".to_string()), &[]);
@@ -466,8 +471,8 @@ impl XtCore {
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_663: bool = true;
-            while { if !__for_first_663 { i = add(&i, &Value::Int(1)); } __for_first_663 = false; is_less_than(&i, &get_array_length(&obBids)) } {
+            let mut __for_first_679: bool = true;
+            while { if !__for_first_679 { i = add(&i, &Value::Int(1)); } __for_first_679 = false; is_less_than(&i, &get_array_length(&obBids)) } {
             let mut bid: Value = get_value(&obBids, &i);
             let mut bid: Value = get_value(&obBids, &i);
             let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
@@ -477,8 +482,8 @@ impl XtCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_664: bool = true;
-            while { if !__for_first_664 { i = add(&i, &Value::Int(1)); } __for_first_664 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
+            let mut __for_first_680: bool = true;
+            while { if !__for_first_680 { i = add(&i, &Value::Int(1)); } __for_first_680 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
             let mut ask: Value = get_value(&obAsks, &i);
             let mut ask: Value = get_value(&obAsks, &i);
             let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
@@ -492,8 +497,8 @@ impl XtCore {
  * @ignore
  * @method
  * @description Connects to a websocket channel
- * @see https://doc.xt.com/#websocket_privaterequestFormat
- * @see https://doc.xt.com/#futures_market_websocket_v2base
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
  * @param {string} name name of the channel
  * @param {string} access public or private
  * @param {string} methodName the name of the CCXT class method
@@ -557,8 +562,8 @@ impl XtCore {
  * @ignore
  * @method
  * @description Connects to a websocket channel
- * @see https://doc.xt.com/#websocket_privaterequestFormat
- * @see https://doc.xt.com/#futures_market_websocket_v2base
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/RequestMessageFormat
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/General_WSS_information
  * @param {string} messageHash the message hash of the subscription
  * @param {string} name name of the channel
  * @param {string} access public or private
@@ -638,11 +643,10 @@ impl XtCore {
  * @method
  * @name xt#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publictickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
@@ -668,11 +672,10 @@ impl XtCore {
  * @method
  * @name xt#unWatchTicker
  * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publictickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
- * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
@@ -699,11 +702,10 @@ impl XtCore {
  * @method
  * @name xt#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publicallTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} [symbols] unified market symbols
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
@@ -736,11 +738,10 @@ impl XtCore {
  * @method
  * @name xt#unWatchTickers
  * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://doc.xt.com/#websocket_publicallTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
- * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Ticker
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/AggTicker
  * @param {string} [symbols] unified market symbols
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
@@ -773,13 +774,13 @@ impl XtCore {
  * @method
  * @name xt#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://doc.xt.com/#websocket_publicsymbolKline
- * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
  * @param {int} [since] not used by xt watchOHLCV
  * @param {int} [limit] not used by xt watchOHLCV
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -808,11 +809,11 @@ impl XtCore {
  * @method
  * @name xt#unWatchOHLCV
  * @description stops watching historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://doc.xt.com/#websocket_publicsymbolKline
- * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/Kline
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/Kline
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -841,12 +842,12 @@ impl XtCore {
  * @method
  * @name xt#watchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://doc.xt.com/#websocket_publicdealRecord
- * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
     pub async fn watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -874,10 +875,10 @@ impl XtCore {
  * @method
  * @name xt#unWatchTrades
  * @description stops watching the list of most recent trades for a particular symbol
- * @see https://doc.xt.com/#websocket_publicdealRecord
- * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/TradeRecord
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/TradeRecord
  * @param {string} symbol unified symbol of the market to fetch trades for
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
     pub async fn un_watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -900,15 +901,15 @@ impl XtCore {
  * @method
  * @name xt#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://doc.xt.com/#websocket_publiclimitDepth
- * @see https://doc.xt.com/#websocket_publicincreDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] not used by xt watchOrderBook
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.levels] 5, 10, 20, or 50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -936,12 +937,12 @@ impl XtCore {
  * @method
  * @name xt#unWatchOrderBook
  * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://doc.xt.com/#websocket_publiclimitDepth
- * @see https://doc.xt.com/#websocket_publicincreDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
- * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/LimitedDepth
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Public/IncrementalDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/LimitedDepth
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/IncrementalDepth
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.levels] 5, 10, 20, or 50
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
  */
@@ -970,12 +971,12 @@ impl XtCore {
  * @method
  * @name xt#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://doc.xt.com/#websocket_privateorderChange
- * @see https://doc.xt.com/#futures_user_websocket_v2order
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderChange
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/UserOrder
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] not used by xt watchOrders
  * @param {int} [limit] the maximum number of orders to return
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
     pub async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -1007,12 +1008,12 @@ impl XtCore {
  * @method
  * @name xt#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://doc.xt.com/#websocket_privateorderDeal
- * @see https://doc.xt.com/#futures_user_websocket_v2trade
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/OrderFilled
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/Transactions
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of  orde structures to retrieve
- * @param {object} params extra parameters specific to the kucoin api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
@@ -1044,9 +1045,9 @@ impl XtCore {
  * @method
  * @name xt#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://doc.xt.com/#websocket_privatebalanceChange
- * @see https://doc.xt.com/#futures_user_websocket_v2balance
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @see https://doc.xt.com/docs/spot/WebSocket%20Private/BalanceChange
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/BalanceChange
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn watch_balance(&mut self, optional_args: &[Value]) -> Value {
@@ -1066,7 +1067,7 @@ impl XtCore {
 /*
  * @method
  * @name xt#watchPositions
- * @see https://doc.xt.com/#futures_user_websocket_v2position
+ * @see https://doc.xt.com/docs/futures/UserWebsocket/ChangePosition
  * @description watch all open positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {number} [since] since timestamp
@@ -1105,6 +1106,97 @@ impl XtCore {
     Value::Null
 }
 
+/*
+ * @method
+ * @name xt#watchFundingRate
+ * @description watch the current funding rate
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+ */
+    pub async fn watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol.clone());
+        if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
+            panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" watchFundingRate() supports swap contracts only".to_string()))));
+        }
+        let mut name: Value = add(&Value::Str("fund_rate@".to_string()), &get_value(&market, &Value::Str("id".to_string())));
+        return self.subscribe(name.clone(), Value::Str("public".to_string()), Value::Str("watchFundingRate".to_string()), &[market.clone(), Value::Null, params.clone()]).await;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name xt#unWatchFundingRate
+ * @description stops watching the funding rate
+ * @see https://doc.xt.com/docs/futures/WebsocKetV2/FundRate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+ */
+    pub async fn un_watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol.clone());
+        if !is_true(&get_value(&market, &Value::Str("swap".to_string()))) {
+            panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" unWatchFundingRate() supports swap contracts only".to_string()))));
+        }
+        let mut name: Value = add(&Value::Str("fund_rate@".to_string()), &get_value(&market, &Value::Str("id".to_string())));
+        let mut messageHash: Value = add(&Value::Str("unsubscribe::".to_string()), &name);
+        return self.un_subscribe(messageHash.clone(), name.clone(), Value::Str("public".to_string()), Value::Str("unWatchFundingRate".to_string()), Value::Str("fund_rate".to_string()), &[market.clone(), Value::Null, params.clone()]).await;
+
+    Value::Null
+}
+
+    pub fn handle_funding_rate(&self, mut client: Value, mut message: Value) -> Value {
+        //
+        //     {
+        //         "topic": "fund_rate",
+        //         "event": "fund_rate@btc_usdt",
+        //         "data": {
+        //             "s": "btc_usdt",  // symbol
+        //             "r": "0.01",      // funding rate
+        //             "t": 123124124    // timestamp
+        //         }
+        //     }
+        //
+        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
+        let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
+        if !is_equal(&marketId, &Value::Null) {
+            let mut raw: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("symbol".to_string(), marketId.clone());
+                    m.insert("fundingRate".to_string(), self.safe_string_k(data.clone(), "r", &[]));
+                m
+            });
+            let mut fundingRate: Value = self.parse_funding_rate(raw.clone(), &[]);
+            let mut timestamp: Value = self.safe_integer_k(data.clone(), "t", &[]);
+            add_element_to_object(&mut fundingRate, &Value::Str("timestamp".to_string()), timestamp.clone());
+            add_element_to_object(&mut fundingRate, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
+            let mut symbol: Value = get_value(&fundingRate, &Value::Str("symbol".to_string()));
+            add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+            let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
+            let mut messageHash: Value = add(&event, &Value::Str("::contract".to_string()));
+            client.resolve(&[fundingRate.clone(), messageHash.clone()]);
+        }
+        return message;
+
+    Value::Null
+}
+
     pub fn set_positions_cache(&mut self, mut client: Value) {
         if is_equal(&self.positions, &Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
@@ -1125,8 +1217,8 @@ impl XtCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_665: bool = true;
-            while { if !__for_first_665 { i = add(&i, &Value::Int(1)); } __for_first_665 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_681: bool = true;
+            while { if !__for_first_681 { i = add(&i, &Value::Int(1)); } __for_first_681 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
@@ -1189,8 +1281,8 @@ impl XtCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("position::contract".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_666: bool = true;
-            while { if !__for_first_666 { i = add(&i, &Value::Int(1)); } __for_first_666 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_682: bool = true;
+            while { if !__for_first_682 { i = add(&i, &Value::Int(1)); } __for_first_682 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1361,8 +1453,8 @@ impl XtCore {
         let mut newTickers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { i = add(&i, &Value::Int(1)); } __for_first_667 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_683: bool = true;
+            while { if !__for_first_683 { i = add(&i, &Value::Int(1)); } __for_first_683 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut tickerData: Value = get_value(&data, &i);
             let mut tickerData: Value = get_value(&data, &i);
             let mut ticker: Value = self.parse_ticker(tickerData.clone(), &[]);
@@ -1377,8 +1469,8 @@ impl XtCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), add(&messageHashStart, &Value::Str("::".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_668: bool = true;
-            while { if !__for_first_668 { i = add(&i, &Value::Int(1)); } __for_first_668 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_684: bool = true;
+            while { if !__for_first_684 { i = add(&i, &Value::Int(1)); } __for_first_684 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1623,8 +1715,8 @@ impl XtCore {
                 let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_669: bool = true;
-                    while { if !__for_first_669 { i = add(&i, &Value::Int(1)); } __for_first_669 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
+                    let mut __for_first_685: bool = true;
+                    while { if !__for_first_685 { i = add(&i, &Value::Int(1)); } __for_first_685 = false; is_less_than(&i, &get_array_length(&obAsks)) } {
                     let mut ask: Value = get_value(&obAsks, &i);
                     let mut ask: Value = get_value(&obAsks, &i);
                     let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
@@ -1637,8 +1729,8 @@ impl XtCore {
                 let mut bids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_670: bool = true;
-                    while { if !__for_first_670 { i = add(&i, &Value::Int(1)); } __for_first_670 = false; is_less_than(&i, &get_array_length(&obBids)) } {
+                    let mut __for_first_686: bool = true;
+                    while { if !__for_first_686 { i = add(&i, &Value::Int(1)); } __for_first_686 = false; is_less_than(&i, &get_array_length(&obBids)) } {
                     let mut bid: Value = get_value(&obBids, &i);
                     let mut bid: Value = get_value(&obBids, &i);
                     let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
@@ -1916,7 +2008,9 @@ impl XtCore {
         add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(data.clone(), "availableBalance", &[]));
         add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "f", &[]));
         add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string2(data.clone(), Value::Str("b".to_string()), Value::Str("walletBalance".to_string()), &[]));
-        add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+        if !is_equal(&code, &Value::Null) {
+            add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+        }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         let mut tradeType: Value = ternary(is_true(&(Value::Bool(in_op(&data, &Value::Str("coin".to_string()))))), Value::Str("contract".to_string()), Value::Str("spot".to_string()));
         client.resolve(&[self.balance.clone(), add(&Value::Str("balance::".to_string()), &tradeType)]);
@@ -1996,6 +2090,7 @@ impl XtCore {
                     m.insert("balance".to_string(), Value::Null.clone());
                     m.insert("order".to_string(), Value::Null.clone());
                     m.insert("position".to_string(), Value::Null.clone());
+                    m.insert("fund_rate".to_string(), Value::Null.clone());
                 m
             });
             let mut method: Value = ternary(is_true(&(is_equal(&topic, &Value::Null))), Value::Null, self.safe_value(methods.clone(), topic.clone(), &[]));
@@ -2061,8 +2156,8 @@ impl XtCore {
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_671: bool = true;
-            while { if !__for_first_671 { j = add(&j, &Value::Int(1)); } __for_first_671 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
+            let mut __for_first_687: bool = true;
+            while { if !__for_first_687 { j = add(&j, &Value::Int(1)); } __for_first_687 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &j);
             let mut unsubHash: Value = get_value(&messageHashes, &j);
             let mut subHash: Value = get_value(&subMessageHashes, &j);

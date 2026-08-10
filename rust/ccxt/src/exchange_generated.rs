@@ -26,14 +26,14 @@ pub trait ExchangeBase:
     /// methods, falling through to `call_dynamic_base` for base-only methods.
     /// The single required method — every override reaches the core statically.
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>;
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>;
 
     /// Route `method(args)` to the derived override by name, with a per-method
     /// re-entry guard (so a base method calling its own name falls through to
     /// the base body instead of looping). Replaces `Exchange::dispatch_to_derived`
     /// — no stored pointer; `call_dynamic` is a static trait call.
     fn dispatch_to_derived<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = Option<crate::Value>> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = Option<crate::Value>> + Send + 'a>>
     {
         Box::pin(async move {
             if !self.dispatch_guard_enter(method) { return None; }
@@ -74,6 +74,7 @@ pub trait ExchangeBase:
         m.insert("swap".to_string(), Value::Null);
         m.insert("future".to_string(), Value::Null);
         m.insert("option".to_string(), Value::Null);
+        m.insert("index".to_string(), Value::Null);
         m.insert("addMargin".to_string(), Value::Null);
         m.insert("borrowCrossMargin".to_string(), Value::Null);
         m.insert("borrowIsolatedMargin".to_string(), Value::Null);
@@ -675,8 +676,8 @@ pub trait ExchangeBase:
     fn handle_deltas(&self, mut orderbook: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_70: bool = true;
-            while { if !__for_first_70 { i = add(&i, &Value::Int(1)); } __for_first_70 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_71: bool = true;
+            while { if !__for_first_71 { i = add(&i, &Value::Int(1)); } __for_first_71 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(orderbook.clone(), get_value(&deltas, &i));
         }
         }
@@ -692,8 +693,8 @@ pub trait ExchangeBase:
         let mut countOrIdKey = get_arg(optional_args, 2, Value::Int(2));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_71: bool = true;
-            while { if !__for_first_71 { i = add(&i, &Value::Int(1)); } __for_first_71 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_72: bool = true;
+            while { if !__for_first_72 { i = add(&i, &Value::Int(1)); } __for_first_72 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             let mut bidAsk: Value = self.parse_order_book_bid_ask(get_value(&deltas, &i), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
             bookSide.store_array(bidAsk);
         }
@@ -710,8 +711,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_72: bool = true;
-            while { if !__for_first_72 { i = add(&i, &Value::Int(1)); } __for_first_72 = false; is_less_than(&i, &get_array_length(&arraysOfArrays)) } {
+            let mut __for_first_73: bool = true;
+            while { if !__for_first_73 { i = add(&i, &Value::Int(1)); } __for_first_73 = false; is_less_than(&i, &get_array_length(&arraysOfArrays)) } {
             result = self.array_concat(result.clone(), get_value(&arraysOfArrays, &i));
         }
         }
@@ -728,8 +729,8 @@ pub trait ExchangeBase:
         let mut keys: Value = object_keys(&timeframes);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_73: bool = true;
-            while { if !__for_first_73 { i = add(&i, &Value::Int(1)); } __for_first_73 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_74: bool = true;
+            while { if !__for_first_74 { i = add(&i, &Value::Int(1)); } __for_first_74 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_equal(&get_value(&timeframes, &key), &timeframe) {
@@ -916,8 +917,8 @@ pub trait ExchangeBase:
         let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_74: bool = true;
-            while { if !__for_first_74 { i = add(&i, &Value::Int(1)); } __for_first_74 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_75: bool = true;
+            while { if !__for_first_75 { i = add(&i, &Value::Int(1)); } __for_first_75 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             if is_greater_than_or_equal(&get_index_of(&messageHash, &element), &Value::Int(0)) {
@@ -985,8 +986,8 @@ pub trait ExchangeBase:
             result = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_75: bool = true;
-                while { if !__for_first_75 { i = add(&i, &Value::Int(1)); } __for_first_75 = false; is_less_than(&i, &get_array_length(&parsedArray)) } {
+                let mut __for_first_76: bool = true;
+                while { if !__for_first_76 { i = add(&i, &Value::Int(1)); } __for_first_76 = false; is_less_than(&i, &get_array_length(&parsedArray)) } {
                 let mut entry: Value = get_value(&parsedArray, &i);
                 let mut entry: Value = get_value(&parsedArray, &i);
                 let mut value: Value = self.safe_value(entry.clone(), key.clone(), &[]);
@@ -1022,8 +1023,8 @@ pub trait ExchangeBase:
             result = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_76: bool = true;
-                while { if !__for_first_76 { i = add(&i, &Value::Int(1)); } __for_first_76 = false; is_less_than(&i, &get_array_length(&parsedArray)) } {
+                let mut __for_first_77: bool = true;
+                while { if !__for_first_77 { i = add(&i, &Value::Int(1)); } __for_first_77 = false; is_less_than(&i, &get_array_length(&parsedArray)) } {
                 let mut entry: Value = get_value(&parsedArray, &i);
                 let mut entry: Value = get_value(&parsedArray, &i);
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
@@ -1126,7 +1127,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    async fn fetch_accounts(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_accounts(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1134,9 +1135,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchAccounts() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn watch_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1149,9 +1150,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchLiquidations() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_liquidations_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    fn watch_liquidations_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1161,9 +1162,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchLiquidationsForSymbols() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_my_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn watch_my_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1176,9 +1177,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyLiquidations() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_my_liquidations_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    fn watch_my_liquidations_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1188,9 +1189,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyLiquidationsForSymbols() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn un_watch_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1199,9 +1200,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn un_watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1209,9 +1210,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTrades() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    fn un_watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1219,9 +1220,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTradesForSymbols() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> Value {
+    fn watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -1231,9 +1232,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOHLCVForSymbols() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> Value {
+    fn un_watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1241,9 +1242,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOHLCVForSymbols() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    fn un_watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1251,9 +1252,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOrderBookForSymbols() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_positions(&mut self, optional_args: &[Value]) -> Value {
+    fn un_watch_positions(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1262,9 +1263,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchPositions() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn un_watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1272,9 +1273,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTicker() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn un_watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1282,9 +1283,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMarkPrice() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
+    fn un_watch_mark_prices(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1293,9 +1294,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMarkPrices() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_deposit_addresses(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_deposit_addresses(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposit_addresses", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1309,9 +1310,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositAddresses() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_margin_mode(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_margin_mode(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_margin_mode", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1329,9 +1330,9 @@ pub trait ExchangeBase:
         }
 
     Value::Null
-}
+} }
 
-    async fn fetch_margin_modes(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_margin_modes(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_margin_modes", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1345,9 +1346,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarginModes () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1355,9 +1356,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOrderBook() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_time(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_time(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_time", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1370,9 +1371,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTime() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_trading_limits(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_trading_limits(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1381,7 +1382,7 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingLimits() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_currency(self, ...))
@@ -1400,8 +1401,8 @@ pub trait ExchangeBase:
         let mut arr: Value = self.to_array(rawCurrencies.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_77: bool = true;
-            while { if !__for_first_77 { i = add(&i, &Value::Int(1)); } __for_first_77 = false; is_less_than(&i, &get_array_length(&arr)) } {
+            let mut __for_first_78: bool = true;
+            while { if !__for_first_78 { i = add(&i, &Value::Int(1)); } __for_first_78 = false; is_less_than(&i, &get_array_length(&arr)) } {
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_currency(self, get_value(&arr, &i));
             if is_equal(&parsed, &Value::Null) {
                 continue;
@@ -1428,8 +1429,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_78: bool = true;
-            while { if !__for_first_78 { i = add(&i, &Value::Int(1)); } __for_first_78 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_79: bool = true;
+            while { if !__for_first_79 { i = add(&i, &Value::Int(1)); } __for_first_79 = false; is_less_than(&i, &get_array_length(&markets)) } {
             append_to_array(&mut result, <Self as crate::exchange_generated::ExchangeBase>::parse_market(self, get_value(&markets, &i)));
         }
         }
@@ -1520,7 +1521,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    async fn fetch_cross_borrow_rates(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_cross_borrow_rates(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1528,9 +1529,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCrossBorrowRates() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_isolated_borrow_rates(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_isolated_borrow_rates(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1538,7 +1539,7 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchIsolatedBorrowRates() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_market_leverage_tiers(self, ...))
@@ -1550,7 +1551,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    async fn fetch_leverage_tiers(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_leverage_tiers(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_leverage_tiers", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1564,7 +1565,7 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverageTiers() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn parse_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_position(self, ...))
@@ -1631,7 +1632,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    async fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_funding_rates(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_funding_rates", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1645,9 +1646,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRates() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_funding_intervals(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_funding_intervals(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_funding_intervals", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1661,9 +1662,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingIntervals() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1671,9 +1672,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchFundingRate() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_funding_rates(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1682,9 +1683,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchFundingRates() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
+    fn un_watch_funding_rates(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1693,9 +1694,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchFundingRates() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_funding_rates_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    fn watch_funding_rates_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1703,9 +1704,9 @@ pub trait ExchangeBase:
         return self.watch_funding_rates(&[symbols.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
+    fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("transfer", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.push(amount.clone()); __args.push(fromAccount.clone()); __args.push(toAccount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1718,9 +1719,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" transfer() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
+    fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("withdraw", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.push(amount.clone()); __args.push(address.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1734,9 +1735,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" withdraw() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    fn create_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1744,9 +1745,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createDepositAddress() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn set_leverage(&mut self, mut leverage: Value, optional_args: &[Value]) -> Value {
+    fn set_leverage(&mut self, mut leverage: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("set_leverage", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(leverage.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1760,9 +1761,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setLeverage() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_leverage(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_leverage(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_leverage", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1780,9 +1781,9 @@ pub trait ExchangeBase:
         }
 
     Value::Null
-}
+} }
 
-    async fn fetch_leverages(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_leverages(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_leverages", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1796,9 +1797,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverages() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
+    fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("set_position_mode", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(hedged.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1812,9 +1813,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setPositionMode() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn add_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn add_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("add_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1827,9 +1828,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" addMargin() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn reduce_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn reduce_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("reduce_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1842,9 +1843,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" reduceMargin() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn set_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn set_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1852,9 +1853,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setMargin() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_long_short_ratio(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_long_short_ratio(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeframe = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1863,9 +1864,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLongShortRatio() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_long_short_ratio_history(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_long_short_ratio_history(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut timeframe = get_arg(optional_args, 1, Value::Null);
         let mut since = get_arg(optional_args, 2, Value::Null);
@@ -1877,9 +1878,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLongShortRatioHistory() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_margin_adjustment_history(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_margin_adjustment_history(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut type_var = get_arg(optional_args, 1, Value::Null);
         let mut since = get_arg(optional_args, 2, Value::Null);
@@ -1891,9 +1892,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> Value {
+    fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("set_margin_mode", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(marginMode.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1907,9 +1908,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setMarginMode() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_deposit_addresses_by_network(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    fn fetch_deposit_addresses_by_network(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposit_addresses_by_network", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1922,9 +1923,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositAddressesByNetwork() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_open_interest_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_open_interest_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1h".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1935,9 +1936,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenInterestHistory() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_open_interests(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_open_interests(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_open_interests", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1951,9 +1952,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenInterests() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn sign_in(&mut self, optional_args: &[Value]) -> Value {
+    fn sign_in(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("sign_in", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -1966,9 +1967,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" signIn() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_payment_methods(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_payment_methods(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1976,7 +1977,7 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPaymentMethods() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn parse_to_int(&self, mut number: Value) -> Value {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
@@ -2114,8 +2115,8 @@ pub trait ExchangeBase:
         let mut subTypes: Value = Value::List(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_80: bool = true;
-            while { if !__for_first_80 { i = add(&i, &Value::Int(1)); } __for_first_80 = false; is_less_than(&i, &get_array_length(&unifiedMarketTypes)) } {
+            let mut __for_first_81: bool = true;
+            while { if !__for_first_81 { i = add(&i, &Value::Int(1)); } __for_first_81 = false; is_less_than(&i, &get_array_length(&unifiedMarketTypes)) } {
             let mut marketType: Value = get_value(&unifiedMarketTypes, &i);
             let mut marketType: Value = get_value(&unifiedMarketTypes, &i);
             // if marketType is not filled for this exchange, don't add that in `features`
@@ -2131,8 +2132,8 @@ pub trait ExchangeBase:
 }));
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_79: bool = true;
-                        while { if !__for_first_79 { j = add(&j, &Value::Int(1)); } __for_first_79 = false; is_less_than(&j, &get_array_length(&subTypes)) } {
+                        let mut __for_first_80: bool = true;
+                        while { if !__for_first_80 { j = add(&j, &Value::Int(1)); } __for_first_80 = false; is_less_than(&j, &get_array_length(&subTypes)) } {
                         let mut subType: Value = get_value(&subTypes, &j);
                         let mut subType: Value = get_value(&subTypes, &j);
                         { let __be_tmp = self.features_mapper(initialFeatures.clone(), marketType.clone(), &[subType.clone()]); add_element_to_object(get_value_mut(&mut self.features, &marketType), &subType, __be_tmp); };
@@ -2182,8 +2183,8 @@ pub trait ExchangeBase:
         let mut keys: Value = object_keys(&featuresObj);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_81: bool = true;
-            while { if !__for_first_81 { i = add(&i, &Value::Int(1)); } __for_first_81 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_82: bool = true;
+            while { if !__for_first_82 { i = add(&i, &Value::Int(1)); } __for_first_82 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut featureBlock: Value = get_value(&featuresObj, &key);
@@ -2359,6 +2360,13 @@ pub trait ExchangeBase:
 }));
     m
 }));
+        m.insert("backwardSupportedNetworkCodes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("ARB".to_string(), Value::Str("ARBITRUM".to_string()));
+        m.insert("ARBONE".to_string(), Value::Str("ARBITRUM".to_string()));
+        m.insert("ARBNOVA".to_string(), Value::Str("ARBITRUM_NOVA".to_string()));
+    m
+}));
     m
 });
 
@@ -2432,8 +2440,8 @@ pub trait ExchangeBase:
         if !is_equal(&length, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_82: bool = true;
-                while { if !__for_first_82 { i = add(&i, &Value::Int(1)); } __for_first_82 = false; is_less_than(&i, &length) } {
+                let mut __for_first_83: bool = true;
+                while { if !__for_first_83 { i = add(&i, &Value::Int(1)); } __for_first_83 = false; is_less_than(&i, &length) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 let mut network: Value = get_value(&networks, &key);
@@ -2672,8 +2680,8 @@ pub trait ExchangeBase:
         let mut marketValues: Value = self.sort_by(self.to_array(markets.clone()), Value::Str("spot".to_string()), &[Value::Bool(true), Value::Bool(true)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_84: bool = true;
-            while { if !__for_first_84 { i = add(&i, &Value::Int(1)); } __for_first_84 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+            let mut __for_first_85: bool = true;
+            while { if !__for_first_85 { i = add(&i, &Value::Int(1)); } __for_first_85 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
             let mut value: Value = get_value(&marketValues, &i);
             let mut value: Value = get_value(&marketValues, &i);
             if is_true(&Value::Bool(in_op(&self.markets_by_id, &get_value(&value, &Value::Str("id".to_string()))))) {
@@ -2693,8 +2701,8 @@ pub trait ExchangeBase:
             let mut valueKeys: Value = object_keys(&value);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_83: bool = true;
-                while { if !__for_first_83 { j = add(&j, &Value::Int(1)); } __for_first_83 = false; is_less_than(&j, &get_array_length(&valueKeys)) } {
+                let mut __for_first_84: bool = true;
+                while { if !__for_first_84 { j = add(&j, &Value::Int(1)); } __for_first_84 = false; is_less_than(&j, &get_array_length(&valueKeys)) } {
                 let mut valueKey: Value = get_value(&valueKeys, &j);
                 let mut valueKey: Value = get_value(&valueKeys, &j);
                 if !is_equal(&get_value(&value, &valueKey), &Value::Null) {
@@ -2736,8 +2744,8 @@ pub trait ExchangeBase:
             let mut quoteCurrencies: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_85: bool = true;
-                while { if !__for_first_85 { i = add(&i, &Value::Int(1)); } __for_first_85 = false; is_less_than(&i, &get_array_length(&values)) } {
+                let mut __for_first_86: bool = true;
+                while { if !__for_first_86 { i = add(&i, &Value::Int(1)); } __for_first_86 = false; is_less_than(&i, &get_array_length(&values)) } {
                 let mut market: Value = get_value(&values, &i);
                 let mut market: Value = get_value(&values, &i);
                 let mut defaultCurrencyPrecision: Value = ternary(is_true(&(is_equal(&self.precisionMode, &Value::Int(crate::runtime::DECIMAL_PLACES)))), Value::Int(8), self.parse_number(Value::Str("1e-8".to_string()), &[]));
@@ -2779,16 +2787,16 @@ pub trait ExchangeBase:
             let mut resultingCurrencies: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_87: bool = true;
-                while { if !__for_first_87 { i = add(&i, &Value::Int(1)); } __for_first_87 = false; is_less_than(&i, &get_array_length(&codes)) } {
+                let mut __for_first_88: bool = true;
+                while { if !__for_first_88 { i = add(&i, &Value::Int(1)); } __for_first_88 = false; is_less_than(&i, &get_array_length(&codes)) } {
                 let mut code: Value = get_value(&codes, &i);
                 let mut code: Value = get_value(&codes, &i);
                 let mut groupedCurrenciesCode: Value = self.safe_list(groupedCurrencies.clone(), code.clone(), &[Value::List(vec![])]);
                 let mut highestPrecisionCurrency: Value = self.safe_value(groupedCurrenciesCode.clone(), Value::Int(0), &[]);
                 {
                                         let mut j: Value = Value::Int(1);
-                    let mut __for_first_86: bool = true;
-                    while { if !__for_first_86 { j = add(&j, &Value::Int(1)); } __for_first_86 = false; is_less_than(&j, &get_array_length(&groupedCurrenciesCode)) } {
+                    let mut __for_first_87: bool = true;
+                    while { if !__for_first_87 { j = add(&j, &Value::Int(1)); } __for_first_87 = false; is_less_than(&j, &get_array_length(&groupedCurrenciesCode)) } {
                     let mut currentCurrency: Value = get_value(&groupedCurrenciesCode, &j);
                     let mut currentCurrency: Value = get_value(&groupedCurrenciesCode, &j);
                     if is_equal(&self.precisionMode, &Value::Int(crate::runtime::TICK_SIZE)) {
@@ -2838,8 +2846,8 @@ pub trait ExchangeBase:
         let mut sourceExchangeHelpers: Value = self.safe_list(get_value(&sourceExchange, &Value::Str("options".to_string())), Value::Str("marketHelperProps".to_string()), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_88: bool = true;
-            while { if !__for_first_88 { i = add(&i, &Value::Int(1)); } __for_first_88 = false; is_less_than(&i, &get_array_length(&sourceExchangeHelpers)) } {
+            let mut __for_first_89: bool = true;
+            while { if !__for_first_89 { i = add(&i, &Value::Int(1)); } __for_first_89 = false; is_less_than(&i, &get_array_length(&sourceExchangeHelpers)) } {
             let mut helper: Value = get_value(&sourceExchangeHelpers, &i);
             let mut helper: Value = get_value(&sourceExchangeHelpers, &i);
             if !is_equal(&get_value(&get_value(&sourceExchange, &Value::Str("options".to_string())), &helper), &Value::Null) {
@@ -2881,8 +2889,8 @@ pub trait ExchangeBase:
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_89: bool = true;
-            while { if !__for_first_89 { i = add(&i, &Value::Int(1)); } __for_first_89 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_90: bool = true;
+            while { if !__for_first_90 { i = add(&i, &Value::Int(1)); } __for_first_90 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut total: Value = self.safe_string_k(get_value(&balance, &code), "total", &[]);
@@ -2994,8 +3002,8 @@ pub trait ExchangeBase:
                 }
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_91: bool = true;
-                    while { if !__for_first_91 { i = add(&i, &Value::Int(1)); } __for_first_91 = false; is_less_than(&i, &get_array_length(&trades)) } {
+                    let mut __for_first_92: bool = true;
+                    while { if !__for_first_92 { i = add(&i, &Value::Int(1)); } __for_first_92 = false; is_less_than(&i, &get_array_length(&trades)) } {
                     let mut trade: Value = get_value(&trades, &i);
                     let mut trade: Value = get_value(&trades, &i);
                     let mut tradeAmount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
@@ -3025,8 +3033,8 @@ pub trait ExchangeBase:
                         if !is_equal(&tradeFees, &Value::Null) {
                             {
                                                                 let mut j: Value = Value::Int(0);
-                                let mut __for_first_90: bool = true;
-                                while { if !__for_first_90 { j = add(&j, &Value::Int(1)); } __for_first_90 = false; is_less_than(&j, &get_array_length(&tradeFees)) } {
+                                let mut __for_first_91: bool = true;
+                                while { if !__for_first_91 { j = add(&j, &Value::Int(1)); } __for_first_91 = false; is_less_than(&j, &get_array_length(&tradeFees)) } {
                                 let mut tradeFee: Value = get_value(&tradeFees, &j);
                                 let mut tradeFee: Value = get_value(&tradeFees, &j);
                                 append_to_array(&mut fees, self.extend(Value::Map({
@@ -3060,8 +3068,8 @@ pub trait ExchangeBase:
             let mut reducedLength: Value = get_array_length(&reducedFees);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_92: bool = true;
-                while { if !__for_first_92 { i = add(&i, &Value::Int(1)); } __for_first_92 = false; is_less_than(&i, &reducedLength) } {
+                let mut __for_first_93: bool = true;
+                while { if !__for_first_93 { i = add(&i, &Value::Int(1)); } __for_first_93 = false; is_less_than(&i, &reducedLength) } {
                 { let __be_tmp = self.safe_number_k(get_value(&reducedFees, &i), "cost", &[]); add_element_to_object(get_value_mut(&mut reducedFees, &i), &Value::Str("cost".to_string()), __be_tmp); };
                 if is_true(&Value::Bool(in_op(&get_value(&reducedFees, &i), &Value::Str("rate".to_string())))) {
                     { let __be_tmp = self.safe_number_k(get_value(&reducedFees, &i), "rate", &[]); add_element_to_object(get_value_mut(&mut reducedFees, &i), &Value::Str("rate".to_string()), __be_tmp); };
@@ -3152,8 +3160,8 @@ pub trait ExchangeBase:
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_94: bool = true;
-            while { if !__for_first_94 { i = add(&i, &Value::Int(1)); } __for_first_94 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_95: bool = true;
+            while { if !__for_first_95 { i = add(&i, &Value::Int(1)); } __for_first_95 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut entry: Value = get_value(&trades, &i);
             let mut entry: Value = get_value(&trades, &i);
             { let __be_tmp = self.safe_number_k(entry.clone(), "amount", &[]); add_element_to_object(&mut entry, &Value::Str("amount".to_string()), __be_tmp); };
@@ -3170,8 +3178,8 @@ pub trait ExchangeBase:
             let mut entryFees: Value = self.safe_list_k(entry.clone(), "fees", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_93: bool = true;
-                while { if !__for_first_93 { j = add(&j, &Value::Int(1)); } __for_first_93 = false; is_less_than(&j, &get_array_length(&entryFees)) } {
+                let mut __for_first_94: bool = true;
+                while { if !__for_first_94 { j = add(&j, &Value::Int(1)); } __for_first_94 = false; is_less_than(&j, &get_array_length(&entryFees)) } {
                 { let __be_tmp = self.safe_number_k(get_value(&entryFees, &j), "cost", &[]); add_element_to_object(get_value_mut(&mut entryFees, &j), &Value::Str("cost".to_string()), __be_tmp); };
             }
             }
@@ -3272,8 +3280,8 @@ pub trait ExchangeBase:
         if is_true(&Value::Bool(is_array(&orders))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_95: bool = true;
-                while { if !__for_first_95 { i = add(&i, &Value::Int(1)); } __for_first_95 = false; is_less_than(&i, &get_array_length(&orders)) } {
+                let mut __for_first_96: bool = true;
+                while { if !__for_first_96 { i = add(&i, &Value::Int(1)); } __for_first_96 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_order(self, get_value(&orders, &i), &[market.clone()]); // don't inline this call
                 let mut order: Value = self.extend(parsed.clone(), &[params.clone()]);
                 append_to_array(&mut results, order.clone());
@@ -3283,8 +3291,8 @@ pub trait ExchangeBase:
             let mut ids: Value = object_keys(&orders);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_96: bool = true;
-                while { if !__for_first_96 { i = add(&i, &Value::Int(1)); } __for_first_96 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                let mut __for_first_97: bool = true;
+                while { if !__for_first_97 { i = add(&i, &Value::Int(1)); } __for_first_97 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 let mut id: Value = get_value(&ids, &i);
                 let mut id: Value = get_value(&ids, &i);
                 let mut idExtended: Value = self.extend(Value::Map({
@@ -3483,8 +3491,8 @@ pub trait ExchangeBase:
             let mut reducedLength: Value = get_array_length(&reducedFees);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_97: bool = true;
-                while { if !__for_first_97 { i = add(&i, &Value::Int(1)); } __for_first_97 = false; is_less_than(&i, &reducedLength) } {
+                let mut __for_first_98: bool = true;
+                while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &reducedLength) } {
                 { let __be_tmp = self.parse_fee_numeric(get_value(&reducedFees, &i)); add_element_to_object(&mut reducedFees, &i, __be_tmp); };
             }
             }
@@ -3527,8 +3535,8 @@ pub trait ExchangeBase:
         let mut length: Value = get_array_length(&arr);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_98: bool = true;
-            while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &length) } {
+            let mut __for_first_99: bool = true;
+            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &length) } {
             let mut current: Value = get_value(&arr, &i);
             let mut current: Value = get_value(&arr, &i);
             if is_less_than_or_equal(&providedValue, &current) {
@@ -3546,8 +3554,8 @@ pub trait ExchangeBase:
         let mut keys: Value = object_keys(&obj);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_99: bool = true;
-            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_100: bool = true;
+            while { if !__for_first_100 { i = add(&i, &Value::Int(1)); } __for_first_100 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut item: Value = get_value(&obj, &key);
@@ -3576,8 +3584,8 @@ pub trait ExchangeBase:
         let mut keys: Value = object_keys(&dict);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_100: bool = true;
-            while { if !__for_first_100 { i = add(&i, &Value::Int(1)); } __for_first_100 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_101: bool = true;
+            while { if !__for_first_101 { i = add(&i, &Value::Int(1)); } __for_first_101 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&dict, &key);
@@ -3650,8 +3658,8 @@ pub trait ExchangeBase:
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_101: bool = true;
-            while { if !__for_first_101 { i = add(&i, &Value::Int(1)); } __for_first_101 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_102: bool = true;
+            while { if !__for_first_102 { i = add(&i, &Value::Int(1)); } __for_first_102 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = get_value(&fees, &i);
             let mut fee: Value = get_value(&fees, &i);
             let mut code: Value = self.safe_string_k(fee.clone(), "currency", &[]);
@@ -3689,8 +3697,8 @@ pub trait ExchangeBase:
         let mut feeValues: Value = object_values(&reduced);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_102: bool = true;
-            while { if !__for_first_102 { i = add(&i, &Value::Int(1)); } __for_first_102 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
+            let mut __for_first_103: bool = true;
+            while { if !__for_first_103 { i = add(&i, &Value::Int(1)); } __for_first_103 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
             let mut reducedFeeValues: Value = object_values(&get_value(&feeValues, &i));
             result = self.array_concat(result.clone(), reducedFeeValues.clone());
         }
@@ -3799,7 +3807,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    async fn fetch_borrow_rate(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn fetch_borrow_rate(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3807,9 +3815,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn repay_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn repay_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("repay_cross_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -3822,9 +3830,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" repayCrossMargin is not support yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn repay_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn repay_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("repay_isolated_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(code.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -3837,9 +3845,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" repayIsolatedMargin is not support yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn borrow_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn borrow_cross_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("borrow_cross_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -3852,9 +3860,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" borrowCrossMargin is not support yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn borrow_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn borrow_isolated_margin(&mut self, mut symbol: Value, mut code: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("borrow_isolated_margin", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(code.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -3867,9 +3875,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" borrowIsolatedMargin is not support yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn borrow_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn borrow_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3878,9 +3886,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn repay_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn repay_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3889,9 +3897,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_ohlcv", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -3911,9 +3919,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchOHLCV() is not supported yet".to_string())), &message)));
 
     Value::Null
-}
+} }
 
-    async fn fetch_spot_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_spot_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3924,9 +3932,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSpotOHLCV() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_contract_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_contract_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3937,9 +3945,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchContractOHLCV() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_ohlcv_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_ohlcv_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3954,9 +3962,9 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.".to_string())), &message)));
 
     Value::Null
-}
+} }
 
-    async fn watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3967,7 +3975,7 @@ pub trait ExchangeBase:
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOHLCV() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn convert_trading_view_to_ohlcv(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
         let mut timestamp = get_arg(optional_args, 0, Value::Str("t".to_string()));
@@ -3986,8 +3994,8 @@ pub trait ExchangeBase:
         let mut volumes: Value = self.safe_list(ohlcvs.clone(), volume.clone(), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_103: bool = true;
-            while { if !__for_first_103 { i = add(&i, &Value::Int(1)); } __for_first_103 = false; is_less_than(&i, &get_array_length(&timestamps)) } {
+            let mut __for_first_104: bool = true;
+            while { if !__for_first_104 { i = add(&i, &Value::Int(1)); } __for_first_104 = false; is_less_than(&i, &get_array_length(&timestamps)) } {
             append_to_array(&mut result, Value::List(vec![ternary(is_true(&ms), self.safe_integer(timestamps.clone(), i.clone(), &[]), self.safe_timestamp(timestamps.clone(), i.clone(), &[])), self.safe_value(opens.clone(), i.clone(), &[]), self.safe_value(highs.clone(), i.clone(), &[]), self.safe_value(lows.clone(), i.clone(), &[]), self.safe_value(closes.clone(), i.clone(), &[]), self.safe_value(volumes.clone(), i.clone(), &[])]));
         }
         }
@@ -4016,8 +4024,8 @@ pub trait ExchangeBase:
         add_element_to_object(&mut result, &volume, Value::List(vec![]));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_104: bool = true;
-            while { if !__for_first_104 { i = add(&i, &Value::Int(1)); } __for_first_104 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+            let mut __for_first_105: bool = true;
+            while { if !__for_first_105 { i = add(&i, &Value::Int(1)); } __for_first_105 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             let mut ts: Value = ternary(is_true(&ms), get_value(&get_value(&ohlcvs, &i), &Value::Int(0)), self.parse_to_int(divide(&get_value(&get_value(&ohlcvs, &i), &Value::Int(0)), &Value::Int(1000))));
             let mut resultTimestamp: Value = get_value(&result, &timestamp);
             append_to_array(&mut resultTimestamp, ts.clone());
@@ -4044,7 +4052,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    async fn fetch_web_endpoint(&mut self, mut method: Value, mut endpointMethod: Value, mut returnAsJson: Value, optional_args: &[Value]) -> Value {
+    fn fetch_web_endpoint(&mut self, mut method: Value, mut endpointMethod: Value, mut returnAsJson: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut startRegex = get_arg(optional_args, 0, Value::Null);
         let mut endRegex = get_arg(optional_args, 1, Value::Null);
         let mut errorMessage: Value = Value::Str("".to_string());
@@ -4106,7 +4114,7 @@ pub trait ExchangeBase:
         }  else {
             panic!("{}", crate::exchange_errors::bad_response(errorMessage));
         }
-}
+} }
 
     fn market_ids(&self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
@@ -4121,8 +4129,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_105: bool = true;
-            while { if !__for_first_105 { i = add(&i, &Value::Int(1)); } __for_first_105 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_106: bool = true;
+            while { if !__for_first_106 { i = add(&i, &Value::Int(1)); } __for_first_106 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut id: Value = self.market_id(get_value(&symbols, &i));
             if !is_equal(&id, &Value::Null) {
                 append_to_array(&mut result, id.clone());
@@ -4142,8 +4150,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_106: bool = true;
-            while { if !__for_first_106 { i = add(&i, &Value::Int(1)); } __for_first_106 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_107: bool = true;
+            while { if !__for_first_107 { i = add(&i, &Value::Int(1)); } __for_first_107 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut id: Value = self.currency_id(get_value(&codes, &i));
             if !is_equal(&id, &Value::Null) {
                 append_to_array(&mut result, id.clone());
@@ -4163,8 +4171,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_107: bool = true;
-            while { if !__for_first_107 { i = add(&i, &Value::Int(1)); } __for_first_107 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_108: bool = true;
+            while { if !__for_first_108 { i = add(&i, &Value::Int(1)); } __for_first_108 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             append_to_array(&mut result, self.market(get_value(&symbols, &i)));
         }
         }
@@ -4207,8 +4215,8 @@ pub trait ExchangeBase:
         let mut isLinearSubType: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_108: bool = true;
-            while { if !__for_first_108 { i = add(&i, &Value::Int(1)); } __for_first_108 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_109: bool = true;
+            while { if !__for_first_109 { i = add(&i, &Value::Int(1)); } __for_first_109 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             if is_true(&sameTypeOnly) && is_true(&(!is_equal(&marketType, &Value::Null))) {
                 if !is_equal(&get_value(&market, &Value::Str("type".to_string())), &marketType) {
@@ -4244,8 +4252,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_109: bool = true;
-            while { if !__for_first_109 { i = add(&i, &Value::Int(1)); } __for_first_109 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_110: bool = true;
+            while { if !__for_first_110 { i = add(&i, &Value::Int(1)); } __for_first_110 = false; is_less_than(&i, &get_array_length(&codes)) } {
             append_to_array(&mut result, self.common_currency_code(get_value(&codes, &i)));
         }
         }
@@ -4262,8 +4270,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_110: bool = true;
-            while { if !__for_first_110 { i = add(&i, &Value::Int(1)); } __for_first_110 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
+            let mut __for_first_111: bool = true;
+            while { if !__for_first_111 { i = add(&i, &Value::Int(1)); } __for_first_111 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
             append_to_array(&mut result, self.parse_order_book_bid_ask(get_value(&bidasks, &i), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]));
         }
         }
@@ -4280,8 +4288,8 @@ pub trait ExchangeBase:
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_111: bool = true;
-            while { if !__for_first_111 { i = add(&i, &Value::Int(1)); } __for_first_111 = false; is_less_than(&i, &get_array_length(&objects)) } {
+            let mut __for_first_112: bool = true;
+            while { if !__for_first_112 { i = add(&i, &Value::Int(1)); } __for_first_112 = false; is_less_than(&i, &get_array_length(&objects)) } {
             let mut objectValue: Value = self.safe_string(get_value(&objects, &i), key.clone(), &[]);
             if is_equal(&objectValue, &value) {
                 append_to_array(&mut result, get_value(&objects, &i));
@@ -4386,8 +4394,8 @@ pub trait ExchangeBase:
         let mut keys: Value = object_keys(&replacements);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_112: bool = true;
-            while { if !__for_first_112 { i = add(&i, &Value::Int(1)); } __for_first_112 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_113: bool = true;
+            while { if !__for_first_113 { i = add(&i, &Value::Int(1)); } __for_first_113 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut baseCoin: Value = get_value(&keys, &i);
             let mut baseCoin: Value = get_value(&keys, &i);
             let mut entry: Value = get_value(&replacements, &baseCoin);
@@ -4451,8 +4459,8 @@ pub trait ExchangeBase:
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_113: bool = true;
-            while { if !__for_first_113 { i = add(&i, &Value::Int(1)); } __for_first_113 = false; is_less_than(&i, &get_array_length(&currenciesToCheck)) } {
+            let mut __for_first_114: bool = true;
+            while { if !__for_first_114 { i = add(&i, &Value::Int(1)); } __for_first_114 = false; is_less_than(&i, &get_array_length(&currenciesToCheck)) } {
             let mut networks: Value = self.safe_dict_k(get_value(&currenciesToCheck, &i), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4461,6 +4469,14 @@ pub trait ExchangeBase:
                 return self.safe_string_k(get_value(&networks, &networkCode), "id", &[]);
             }
         }
+        }
+        // before returning the original input, try to match if it's backward-maintained networkCode
+        let mut oldCodes: Value = self.safe_dict_k(self.options.clone(), "backwardSupportedNetworkCodes", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        if is_true(&Value::Bool(in_op(&oldCodes, &networkCode))) {
+            return self.network_code_to_id(get_value(&oldCodes, &networkCode), &[currencyCode.clone()]);
         }
         return networkCode;
 
@@ -4643,8 +4659,8 @@ pub trait ExchangeBase:
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_114: bool = true;
-            while { if !__for_first_114 { i = add(&i, &Value::Int(1)); } __for_first_114 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+            let mut __for_first_115: bool = true;
+            while { if !__for_first_115 { i = add(&i, &Value::Int(1)); } __for_first_115 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             append_to_array(&mut results, <Self as crate::exchange_generated::ExchangeBase>::parse_ohlcv(self, get_value(&ohlcvs, &i), &[market.clone()]));
         }
         }
@@ -4671,8 +4687,8 @@ pub trait ExchangeBase:
         if is_true(&Value::Bool(is_array(&response))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_115: bool = true;
-                while { if !__for_first_115 { i = add(&i, &Value::Int(1)); } __for_first_115 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_116: bool = true;
+                while { if !__for_first_116 { i = add(&i, &Value::Int(1)); } __for_first_116 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut item: Value = get_value(&response, &i);
                 let mut item: Value = get_value(&response, &i);
                 let mut id: Value = ternary(is_true(&(is_equal(&marketIdKey, &Value::Null))), Value::Null, self.safe_string(item.clone(), marketIdKey.clone(), &[]));
@@ -4688,8 +4704,8 @@ pub trait ExchangeBase:
             let mut keys: Value = object_keys(&response);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_116: bool = true;
-                while { if !__for_first_116 { i = add(&i, &Value::Int(1)); } __for_first_116 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_117: bool = true;
+                while { if !__for_first_117 { i = add(&i, &Value::Int(1)); } __for_first_117 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut marketId: Value = get_value(&keys, &i);
                 let mut marketId: Value = get_value(&keys, &i);
                 let mut item: Value = get_value(&response, &marketId);
@@ -4708,7 +4724,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    async fn load_trading_limits(&mut self, optional_args: &[Value]) -> Value {
+    fn load_trading_limits(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut reload = get_arg(optional_args, 1, Value::Bool(false));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -4725,8 +4741,8 @@ pub trait ExchangeBase:
                 }
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_117: bool = true;
-                    while { if !__for_first_117 { i = add(&i, &Value::Int(1)); } __for_first_117 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
+                    let mut __for_first_118: bool = true;
+                    while { if !__for_first_118 { i = add(&i, &Value::Int(1)); } __for_first_118 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
                     let mut symbol: Value = get_value(&symbolsArray, &i);
                     let mut symbol: Value = get_value(&symbolsArray, &i);
                     { let __be_tmp = self.deep_extend(get_value(&markets, &symbol), &[get_value(&response, &symbol)]); add_element_to_object(&mut markets, &symbol, __be_tmp); };
@@ -4738,7 +4754,7 @@ pub trait ExchangeBase:
         return self.markets.clone();
 
     Value::Null
-}
+} }
 
     fn safe_position(&self, mut position: Value) -> Value {
         // simplified version of: /pull/12765/
@@ -4776,13 +4792,13 @@ pub trait ExchangeBase:
     m
 }));
         symbols = self.market_symbols(&[symbols.clone()]);
-        positions = self.to_array(positions.clone());
+        let mut positionsArray: Value = self.to_array(positions.clone());
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_118: bool = true;
-            while { if !__for_first_118 { i = add(&i, &Value::Int(1)); } __for_first_118 = false; is_less_than(&i, &get_array_length(&positions)) } {
-            let mut position: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_position(self, get_value(&positions, &i), &[]), &[params.clone()]);
+            let mut __for_first_119: bool = true;
+            while { if !__for_first_119 { i = add(&i, &Value::Int(1)); } __for_first_119 = false; is_less_than(&i, &get_array_length(&positionsArray)) } {
+            let mut position: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_position(self, get_value(&positionsArray, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, position.clone());
         }
         }
@@ -4811,13 +4827,13 @@ pub trait ExchangeBase:
     m
 }));
         symbols = self.market_symbols(&[symbols.clone()]);
-        ranks = self.to_array(ranks.clone());
+        let mut ranksArray: Value = self.to_array(ranks.clone());
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_119: bool = true;
-            while { if !__for_first_119 { i = add(&i, &Value::Int(1)); } __for_first_119 = false; is_less_than(&i, &get_array_length(&ranks)) } {
-            let mut rank: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_adl_rank(self, get_value(&ranks, &i), &[]), &[params.clone()]);
+            let mut __for_first_120: bool = true;
+            while { if !__for_first_120 { i = add(&i, &Value::Int(1)); } __for_first_120 = false; is_less_than(&i, &get_array_length(&ranksArray)) } {
+            let mut rank: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_adl_rank(self, get_value(&ranksArray, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, rank.clone());
         }
         }
@@ -4831,13 +4847,13 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        accounts = self.to_array(accounts.clone());
+        let mut accountsArray: Value = self.to_array(accounts.clone());
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_120: bool = true;
-            while { if !__for_first_120 { i = add(&i, &Value::Int(1)); } __for_first_120 = false; is_less_than(&i, &get_array_length(&accounts)) } {
-            let mut account: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_account(self, get_value(&accounts, &i)), &[params.clone()]);
+            let mut __for_first_121: bool = true;
+            while { if !__for_first_121 { i = add(&i, &Value::Int(1)); } __for_first_121 = false; is_less_than(&i, &get_array_length(&accountsArray)) } {
+            let mut account: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_account(self, get_value(&accountsArray, &i)), &[params.clone()]);
             append_to_array(&mut result, account.clone());
         }
         }
@@ -4854,17 +4870,17 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        trades = self.to_array(trades.clone());
+        let mut tradesArray: Value = self.to_array(trades.clone());
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_121: bool = true;
-            while { if !__for_first_121 { i = add(&i, &Value::Int(1)); } __for_first_121 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_122: bool = true;
+            while { if !__for_first_122 { i = add(&i, &Value::Int(1)); } __for_first_122 = false; is_less_than(&i, &get_array_length(&tradesArray)) } {
             let mut parsed: Value = Value::Null;
             if is_true(&isWs) {
-                parsed = self.parse_ws_trade(get_value(&trades, &i), &[market.clone()]);
+                parsed = self.parse_ws_trade(get_value(&tradesArray, &i), &[market.clone()]);
             }  else {
-                parsed = <Self as crate::exchange_generated::ExchangeBase>::parse_trade(self, get_value(&trades, &i), &[market.clone()]);
+                parsed = <Self as crate::exchange_generated::ExchangeBase>::parse_trade(self, get_value(&tradesArray, &i), &[market.clone()]);
             }
             let mut trade: Value = self.extend(parsed.clone(), &[params.clone()]);
             append_to_array(&mut result, trade.clone());
@@ -4911,13 +4927,13 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        transactions = self.to_array(transactions.clone());
+        let mut transactionsArray: Value = self.to_array(transactions.clone());
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_122: bool = true;
-            while { if !__for_first_122 { i = add(&i, &Value::Int(1)); } __for_first_122 = false; is_less_than(&i, &get_array_length(&transactions)) } {
-            let mut transaction: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_transaction(self, get_value(&transactions, &i), &[currency.clone()]), &[params.clone()]);
+            let mut __for_first_123: bool = true;
+            while { if !__for_first_123 { i = add(&i, &Value::Int(1)); } __for_first_123 = false; is_less_than(&i, &get_array_length(&transactionsArray)) } {
+            let mut transaction: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_transaction(self, get_value(&transactionsArray, &i), &[currency.clone()]), &[params.clone()]);
             append_to_array(&mut result, transaction.clone());
         }
         }
@@ -4936,13 +4952,13 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        transfers = self.to_array(transfers.clone());
+        let mut transfersArray: Value = self.to_array(transfers.clone());
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_123: bool = true;
-            while { if !__for_first_123 { i = add(&i, &Value::Int(1)); } __for_first_123 = false; is_less_than(&i, &get_array_length(&transfers)) } {
-            let mut transfer: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_transfer(self, get_value(&transfers, &i), &[currency.clone()]), &[params.clone()]);
+            let mut __for_first_124: bool = true;
+            while { if !__for_first_124 { i = add(&i, &Value::Int(1)); } __for_first_124 = false; is_less_than(&i, &get_array_length(&transfersArray)) } {
+            let mut transfer: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_transfer(self, get_value(&transfersArray, &i), &[currency.clone()]), &[params.clone()]);
             append_to_array(&mut result, transfer.clone());
         }
         }
@@ -4965,14 +4981,14 @@ pub trait ExchangeBase:
         let mut arrayData: Value = self.to_array(data.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_125: bool = true;
-            while { if !__for_first_125 { i = add(&i, &Value::Int(1)); } __for_first_125 = false; is_less_than(&i, &get_array_length(&arrayData)) } {
+            let mut __for_first_126: bool = true;
+            while { if !__for_first_126 { i = add(&i, &Value::Int(1)); } __for_first_126 = false; is_less_than(&i, &get_array_length(&arrayData)) } {
             let mut itemOrItems: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_ledger_entry(self, get_value(&arrayData, &i), &[currency.clone()]);
             if is_true(&Value::Bool(is_array(&itemOrItems))) {
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_124: bool = true;
-                    while { if !__for_first_124 { j = add(&j, &Value::Int(1)); } __for_first_124 = false; is_less_than(&j, &get_array_length(&itemOrItems)) } {
+                    let mut __for_first_125: bool = true;
+                    while { if !__for_first_125 { j = add(&j, &Value::Int(1)); } __for_first_125 = false; is_less_than(&j, &get_array_length(&itemOrItems)) } {
                     append_to_array(&mut result, self.extend(get_value(&itemOrItems, &j), &[params.clone()]));
                 }
                 }
@@ -5143,8 +5159,8 @@ pub trait ExchangeBase:
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_126: bool = true;
-            while { if !__for_first_126 { i = add(&i, &Value::Int(1)); } __for_first_126 = false; is_less_than(&i, &get_array_length(&newArray)) } {
+            let mut __for_first_127: bool = true;
+            while { if !__for_first_127 { i = add(&i, &Value::Int(1)); } __for_first_127 = false; is_less_than(&i, &get_array_length(&newArray)) } {
             append_to_array(&mut results, get_value(&get_value(&newArray, &i), &key));
         }
         }
@@ -5195,8 +5211,8 @@ pub trait ExchangeBase:
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_127: bool = true;
-            while { if !__for_first_127 { i = add(&i, &Value::Int(1)); } __for_first_127 = false; is_less_than(&i, &get_array_length(&objects)) } {
+            let mut __for_first_128: bool = true;
+            while { if !__for_first_128 { i = add(&i, &Value::Int(1)); } __for_first_128 = false; is_less_than(&i, &get_array_length(&objects)) } {
             if is_true(&self.in_array(get_value(&get_value(&objects, &i), &key), values.clone())) {
                 append_to_array(&mut results, get_value(&objects, &i));
             }
@@ -5227,8 +5243,8 @@ pub trait ExchangeBase:
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_128: bool = true;
-            while { if !__for_first_128 { i = add(&i, &Value::Int(1)); } __for_first_128 = false; is_less_than(&i, &get_array_length(&objects)) } {
+            let mut __for_first_129: bool = true;
+            while { if !__for_first_129 { i = add(&i, &Value::Int(1)); } __for_first_129 = false; is_less_than(&i, &get_array_length(&objects)) } {
             if !is_true(&self.in_array(get_value(&get_value(&objects, &i), &key), values.clone())) {
                 append_to_array(&mut results, get_value(&objects, &i));
             }
@@ -5243,7 +5259,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    async fn fetch2(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
+    fn fetch2(&mut self, mut path: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -5268,8 +5284,8 @@ pub trait ExchangeBase:
         let mut fetchDataCacheEnabled: Value = Value::Bool(is_greater_than(&self.fetchHistoryCacheSize, &Value::Int(0)));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_129: bool = true;
-            while { if !__for_first_129 { i = add(&i, &Value::Int(1)); } __for_first_129 = false; is_less_than(&i, &add(&retries, &Value::Int(1))) } {
+            let mut __for_first_130: bool = true;
+            while { if !__for_first_130 { i = add(&i, &Value::Int(1)); } __for_first_130 = false; is_less_than(&i, &add(&retries, &Value::Int(1))) } {
             if is_true(&fetchDataCacheEnabled) {
                 fetchData = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -5323,9 +5339,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return Value::Null;
 
     Value::Null
-}
+} }
 
-    async fn request(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
+    fn request(&mut self, mut path: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -5341,9 +5357,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.fetch2(path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone(), config.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn load_accounts(&mut self, optional_args: &[Value]) -> Value {
+    fn load_accounts(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut reload = get_arg(optional_args, 0, Value::Bool(false));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5362,7 +5378,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.accounts.clone();
 
     Value::Null
-}
+} }
 
     fn build_ohlcvc(&self, mut trades: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
@@ -5388,8 +5404,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut skipZeroPrices: Value = self.safe_bool_k(options.clone(), "skipZeroPrices", &[Value::Bool(true)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_130: bool = true;
-            while { if !__for_first_130 { i = add(&i, &Value::Int(1)); } __for_first_130 = false; is_less_than(&i, &oldest) } {
+            let mut __for_first_131: bool = true;
+            while { if !__for_first_131 { i = add(&i, &Value::Int(1)); } __for_first_131 = false; is_less_than(&i, &oldest) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut ts: Value = get_value(&trade, &Value::Str("timestamp".to_string()));
@@ -5449,7 +5465,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn fetch_borrow_interest(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_borrow_interest(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut symbol = get_arg(optional_args, 1, Value::Null);
         let mut since = get_arg(optional_args, 2, Value::Null);
@@ -5461,9 +5477,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBorrowInterest() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_ledger(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_ledger(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_ledger", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -5479,9 +5495,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLedger() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_ledger_entry(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn fetch_ledger_entry(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5490,7 +5506,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLedgerEntry() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn parse_order_book_bid_ask(&self, mut bidask: Value, optional_args: &[Value]) -> Value {
         let mut priceKey = get_arg(optional_args, 0, Value::Int(0));
@@ -5552,8 +5568,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_131: bool = true;
-                        while { if !__for_first_131 { i = add(&i, &Value::Int(1)); } __for_first_131 = false; is_less_than(&i, &get_array_length(&markets)) } {
+                        let mut __for_first_132: bool = true;
+                        while { if !__for_first_132 { i = add(&i, &Value::Int(1)); } __for_first_132 = false; is_less_than(&i, &get_array_length(&markets)) } {
                         let mut currentMarket: Value = get_value(&markets, &i);
                         let mut currentMarket: Value = get_value(&markets, &i);
                         if is_true(&get_value(&currentMarket, &marketType)) {
@@ -5632,8 +5648,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&self.requiredCredentials);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_132: bool = true;
-            while { if !__for_first_132 { i = add(&i, &Value::Int(1)); } __for_first_132 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_133: bool = true;
+            while { if !__for_first_133 { i = add(&i, &Value::Int(1)); } __for_first_133 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_true(&get_value(&self.requiredCredentials, &key)) && !is_true(&self.prop(&key)) {
@@ -5660,7 +5676,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_balance(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_balance", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -5673,9 +5689,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalance() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_balance_ws(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_balance_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5683,7 +5699,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalanceWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn parse_balance(&self, mut response: Value) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_balance(self, ...))
@@ -5694,7 +5710,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn watch_balance(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_balance(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5702,9 +5718,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchBalance() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_partial_balance(&mut self, mut part: Value, optional_args: &[Value]) -> Value {
+    fn fetch_partial_balance(&mut self, mut part: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5713,9 +5729,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return get_value(&balance, &part);
 
     Value::Null
-}
+} }
 
-    async fn fetch_free_balance(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_free_balance(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5723,9 +5739,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.fetch_partial_balance(Value::Str("free".to_string()), &[params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn fetch_used_balance(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_used_balance(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5733,9 +5749,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.fetch_partial_balance(Value::Str("used".to_string()), &[params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn fetch_total_balance(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_total_balance(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5743,9 +5759,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.fetch_partial_balance(Value::Str("total".to_string()), &[params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn fetch_status(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_status(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_status", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -5758,9 +5774,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchStatus() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_transaction_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    fn fetch_transaction_fee(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5771,9 +5787,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.fetch_transaction_fees(&[Value::List(vec![code.clone()]), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn fetch_transaction_fees(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_transaction_fees(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5782,9 +5798,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransactionFees() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposit_withdraw_fees", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -5798,9 +5814,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositWithdrawFees() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_deposit_withdraw_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    fn fetch_deposit_withdraw_fee(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposit_withdraw_fee", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -5817,7 +5833,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.safe_value(fees.clone(), code.clone(), &[]);
 
     Value::Null
-}
+} }
 
     fn get_supported_mapping(&self, mut key: Value, optional_args: &[Value]) -> Value {
         let mut mapping = get_arg(optional_args, 0, Value::Map({
@@ -5833,7 +5849,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn fetch_cross_borrow_rate(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    fn fetch_cross_borrow_rate(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5850,9 +5866,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return rate;
 
     Value::Null
-}
+} }
 
-    async fn fetch_isolated_borrow_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_isolated_borrow_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5869,7 +5885,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return rate;
 
     Value::Null
-}
+} }
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
@@ -6066,8 +6082,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&broad);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_133: bool = true;
-            while { if !__for_first_133 { i = add(&i, &Value::Int(1)); } __for_first_133 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_134: bool = true;
+            while { if !__for_first_134 { i = add(&i, &Value::Int(1)); } __for_first_134 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if !is_equal(&string, &Value::Null) {
@@ -6101,7 +6117,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn fetch_spot_tickers(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_spot_tickers(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6110,9 +6126,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSpotTickers() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_contract_tickers(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_contract_tickers(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6121,9 +6137,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchContractTickers() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_order_books(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_order_books(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -6133,9 +6149,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBooks() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_tickers(&mut self, optional_args: &[Value]) -> Value {
+    fn un_watch_tickers(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6144,9 +6160,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTickers() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn un_watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6154,9 +6170,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchFundingRate() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_twap_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut duration: Value, optional_args: &[Value]) -> Value {
+    fn create_twap_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut duration: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6164,9 +6180,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTwapOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_convert_trade(&mut self, mut id: Value, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
+    fn create_convert_trade(&mut self, mut id: Value, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6175,9 +6191,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createConvertTrade() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_convert_trade(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn fetch_convert_trade(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6186,9 +6202,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertTrade() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_convert_trade_history(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_convert_trade_history(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6199,9 +6215,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertTradeHistory() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_position_mode(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_position_mode(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_position_mode", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6215,9 +6231,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionMode() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_adl_rank(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_adl_rank(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6225,9 +6241,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchADLRank() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_positions_adl_rank(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_positions_adl_rank(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_positions_adl_rank", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6241,9 +6257,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsADLRank() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_position_adl_rank(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_position_adl_rank(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_position_adl_rank", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6269,7 +6285,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 
     Value::Null
-}
+} }
 
     fn set_take_profit_and_stop_loss_params(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -6334,7 +6350,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn create_spot_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    fn create_spot_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6342,9 +6358,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createSpotOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_contract_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    fn create_contract_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6352,9 +6368,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createContractOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn cancel_spot_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn cancel_spot_order(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6363,9 +6379,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelSpotOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn cancel_contract_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn cancel_contract_order(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6374,9 +6390,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelContractOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn cancel_all_spot_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn cancel_all_spot_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6385,9 +6401,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllSpotOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn cancel_all_contract_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn cancel_all_contract_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6396,9 +6412,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllContractOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
+    fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6406,9 +6422,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrdersAfter() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn cancel_orders_for_symbols(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    fn cancel_orders_for_symbols(&mut self, mut orders: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6416,9 +6432,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrdersForSymbols() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_my_liquidations(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_my_liquidations(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6429,9 +6445,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyLiquidations() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_liquidations(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -6441,9 +6457,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLiquidations() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_greeks(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_greeks(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6451,9 +6467,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchGreeks() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_all_greeks(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_all_greeks(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6462,9 +6478,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchAllGreeks() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_option_chain(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    fn fetch_option_chain(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6472,9 +6488,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOptionChain() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_option(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_option(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6482,9 +6498,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOption() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_convert_quote(&mut self, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
+    fn fetch_convert_quote(&mut self, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6493,9 +6509,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertQuote() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_deposits_withdrawals(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_deposits_withdrawals(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposits_withdrawals", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6511,9 +6527,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositsWithdrawals() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_deposits(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_deposits(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposits", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6529,9 +6545,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDeposits() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_withdrawals(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_withdrawals", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6547,9 +6563,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchWithdrawals() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_deposits_ws(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_deposits_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6560,9 +6576,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositsWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_withdrawals_ws(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_withdrawals_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6573,9 +6589,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchWithdrawalsWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_funding_rate_history(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_funding_rate_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6591,9 +6607,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRateHistory() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_funding_history(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_funding_history(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6604,7 +6620,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingHistory() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn parse_last_price(&self, mut price: Value, optional_args: &[Value]) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_last_price(self, ...))
@@ -6616,7 +6632,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    fn fetch_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_deposit_address", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -6650,9 +6666,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 
     Value::Null
-}
+} }
 
-    async fn fetch_contract_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    fn fetch_contract_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6660,7 +6676,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchContractDepositAddress() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn account(&self) -> Value {
         return Value::Map({
@@ -6723,8 +6739,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("defaultType".to_string()), Value::Str("defaultSubType".to_string()), &[Value::Str("spot".to_string())]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_134: bool = true;
-                while { if !__for_first_134 { i = add(&i, &Value::Int(1)); } __for_first_134 = false; is_less_than(&i, &get_array_length(&marketsList)) } {
+                let mut __for_first_135: bool = true;
+                while { if !__for_first_135 { i = add(&i, &Value::Int(1)); } __for_first_135 = false; is_less_than(&i, &get_array_length(&marketsList)) } {
                 let mut market: Value = get_value(&marketsList, &i);
                 let mut market: Value = get_value(&marketsList, &i);
                 if is_true(&get_value(&market, &defaultType)) {
@@ -6756,8 +6772,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut leverageSuffixes: Value = Value::List(vec![Value::Str("2L".to_string()), Value::Str("2S".to_string()), Value::Str("3L".to_string()), Value::Str("3S".to_string()), Value::Str("4L".to_string()), Value::Str("4S".to_string()), Value::Str("5L".to_string()), Value::Str("5S".to_string()), Value::Str("UP".to_string()), Value::Str("DOWN".to_string()), Value::Str("BULL".to_string()), Value::Str("BEAR".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_135: bool = true;
-            while { if !__for_first_135 { i = add(&i, &Value::Int(1)); } __for_first_135 = false; is_less_than(&i, &get_array_length(&leverageSuffixes)) } {
+            let mut __for_first_136: bool = true;
+            while { if !__for_first_136 { i = add(&i, &Value::Int(1)); } __for_first_136 = false; is_less_than(&i, &get_array_length(&leverageSuffixes)) } {
             let mut leverageSuffix: Value = get_value(&leverageSuffixes, &i);
             let mut leverageSuffix: Value = get_value(&leverageSuffixes, &i);
             if is_true(&Value::Bool(ends_with(&currencyCode, &leverageSuffix))) {
@@ -6932,8 +6948,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut parsedPrecision: Value = Value::Str("0.".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_136: bool = true;
-                while { if !__for_first_136 { i = add(&i, &Value::Int(1)); } __for_first_136 = false; is_less_than(&i, &subtract(&precisionNumber, &Value::Int(1))) } {
+                let mut __for_first_137: bool = true;
+                while { if !__for_first_137 { i = add(&i, &Value::Int(1)); } __for_first_137 = false; is_less_than(&i, &subtract(&precisionNumber, &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
             }
             }
@@ -6942,8 +6958,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut parsedPrecision: Value = Value::Str("1".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_137: bool = true;
-                while { if !__for_first_137 { i = add(&i, &Value::Int(1)); } __for_first_137 = false; is_less_than(&i, &subtract(&multiply(&precisionNumber, &negate(&Value::Int(1))), &Value::Int(1))) } {
+                let mut __for_first_138: bool = true;
+                while { if !__for_first_138 { i = add(&i, &Value::Int(1)); } __for_first_138 = false; is_less_than(&i, &subtract(&multiply(&precisionNumber, &negate(&Value::Int(1))), &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
             }
             }
@@ -6975,8 +6991,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut parsedPrecision: Value = Value::Str("1".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_138: bool = true;
-                while { if !__for_first_138 { i = add(&i, &Value::Int(1)); } __for_first_138 = false; is_less_than(&i, &subtract(&positivePrecision, &Value::Int(1))) } {
+                let mut __for_first_139: bool = true;
+                while { if !__for_first_139 { i = add(&i, &Value::Int(1)); } __for_first_139 = false; is_less_than(&i, &subtract(&positivePrecision, &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
             }
             }
@@ -6984,7 +7000,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    async fn load_time_difference(&mut self, optional_args: &[Value]) -> Value {
+    fn load_time_difference(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6998,7 +7014,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return get_value(&self.options, &Value::Str("timeDifference".to_string()));
 
     Value::Null
-}
+} }
 
     fn implode_hostname(&self, mut url: Value) -> Value {
         return self.implode_params(url.clone(), Value::Map({
@@ -7010,7 +7026,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn fetch_market_leverage_tiers(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_market_leverage_tiers(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_market_leverage_tiers", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -7032,9 +7048,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 
     Value::Null
-}
+} }
 
-    async fn create_sub_account(&mut self, mut name: Value, optional_args: &[Value]) -> Value {
+    fn create_sub_account(&mut self, mut name: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7042,7 +7058,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createSubAccount() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn safe_currency_code(&self, mut currencyId: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
@@ -7112,8 +7128,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&Value::Bool(is_array(&pricesData))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_139: bool = true;
-                while { if !__for_first_139 { i = add(&i, &Value::Int(1)); } __for_first_139 = false; is_less_than(&i, &get_array_length(&pricesData)) } {
+                let mut __for_first_140: bool = true;
+                while { if !__for_first_140 { i = add(&i, &Value::Int(1)); } __for_first_140 = false; is_less_than(&i, &get_array_length(&pricesData)) } {
                 let mut priceData: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, get_value(&pricesData, &i), &[]), &[params.clone()]);
                 append_to_array(&mut results, priceData.clone());
             }
@@ -7122,8 +7138,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut marketIds: Value = object_keys(&pricesData);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_140: bool = true;
-                while { if !__for_first_140 { i = add(&i, &Value::Int(1)); } __for_first_140 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_141: bool = true;
+                while { if !__for_first_141 { i = add(&i, &Value::Int(1)); } __for_first_141 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -7170,8 +7186,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&Value::Bool(is_array(&tickers))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_141: bool = true;
-                while { if !__for_first_141 { i = add(&i, &Value::Int(1)); } __for_first_141 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+                let mut __for_first_142: bool = true;
+                while { if !__for_first_142 { i = add(&i, &Value::Int(1)); } __for_first_142 = false; is_less_than(&i, &get_array_length(&tickers)) } {
                 let mut parsedTicker: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, get_value(&tickers, &i), &[]);
                 let mut ticker: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
                 append_to_array(&mut results, ticker.clone());
@@ -7181,8 +7197,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut marketIds: Value = object_keys(&tickers);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_142: bool = true;
-                while { if !__for_first_142 { i = add(&i, &Value::Int(1)); } __for_first_142 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_143: bool = true;
+                while { if !__for_first_143 { i = add(&i, &Value::Int(1)); } __for_first_143 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -7208,8 +7224,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_143: bool = true;
-            while { if !__for_first_143 { i = add(&i, &Value::Int(1)); } __for_first_143 = false; is_less_than(&i, &get_array_length(&addresses)) } {
+            let mut __for_first_144: bool = true;
+            while { if !__for_first_144 { i = add(&i, &Value::Int(1)); } __for_first_144 = false; is_less_than(&i, &get_array_length(&addresses)) } {
             let mut address: Value = self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_deposit_address(self, get_value(&addresses, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, address.clone());
         }
@@ -7230,8 +7246,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut interests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_144: bool = true;
-            while { if !__for_first_144 { i = add(&i, &Value::Int(1)); } __for_first_144 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_145: bool = true;
+            while { if !__for_first_145 { i = add(&i, &Value::Int(1)); } __for_first_145 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut row: Value = get_value(&response, &i);
             let mut row: Value = get_value(&response, &i);
             append_to_array(&mut interests, <Self as crate::exchange_generated::ExchangeBase>::parse_borrow_interest(self, row.clone(), &[market.clone()]));
@@ -7256,8 +7272,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_145: bool = true;
-            while { if !__for_first_145 { i = add(&i, &Value::Int(1)); } __for_first_145 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_146: bool = true;
+            while { if !__for_first_146 { i = add(&i, &Value::Int(1)); } __for_first_146 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
             let mut borrowRate: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_borrow_rate(self, item.clone(), &[]);
@@ -7277,8 +7293,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_146: bool = true;
-            while { if !__for_first_146 { i = add(&i, &Value::Int(1)); } __for_first_146 = false; is_less_than(&i, &get_array_length(&info)) } {
+            let mut __for_first_147: bool = true;
+            while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut item: Value = get_value(&info, &i);
             let mut item: Value = get_value(&info, &i);
             let mut borrowRate: Value = self.parse_isolated_borrow_rate(item.clone(), &[]);
@@ -7298,8 +7314,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_147: bool = true;
-            while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_148: bool = true;
+            while { if !__for_first_148 { i = add(&i, &Value::Int(1)); } __for_first_148 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             append_to_array(&mut rates, <Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate_history(self, entry.clone(), &[market.clone()]));
@@ -7340,8 +7356,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_148: bool = true;
-            while { if !__for_first_148 { i = add(&i, &Value::Int(1)); } __for_first_148 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_149: bool = true;
+            while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_funding_rate(self, entry.clone(), &[]);
@@ -7369,8 +7385,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_149: bool = true;
-            while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_150: bool = true;
+            while { if !__for_first_150 { i = add(&i, &Value::Int(1)); } __for_first_150 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             append_to_array(&mut rates, self.parse_long_short_ratio(entry.clone(), &[market.clone()]));
@@ -7534,7 +7550,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn fetch_last_prices(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_last_prices(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7543,9 +7559,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLastPrices() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_trading_fees(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_trading_fees(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_trading_fees", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -7558,9 +7574,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFees() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_trading_fees_ws(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_trading_fees_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7568,9 +7584,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFeesWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_convert_currencies(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_convert_currencies(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7578,7 +7594,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertCurrencies() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn parse_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_open_interest(self, ...))
@@ -7598,8 +7614,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_150: bool = true;
-            while { if !__for_first_150 { i = add(&i, &Value::Int(1)); } __for_first_150 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_151: bool = true;
+            while { if !__for_first_151 { i = add(&i, &Value::Int(1)); } __for_first_151 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry.clone(), &[]);
@@ -7620,8 +7636,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut interests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_151: bool = true;
-            while { if !__for_first_151 { i = add(&i, &Value::Int(1)); } __for_first_151 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_152: bool = true;
+            while { if !__for_first_152 { i = add(&i, &Value::Int(1)); } __for_first_152 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut entry: Value = get_value(&response, &i);
             let mut interest: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, entry.clone(), &[market.clone()]);
@@ -7635,7 +7651,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn fetch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_funding_rate", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -7664,9 +7680,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 
     Value::Null
-}
+} }
 
-    async fn fetch_funding_interval(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_funding_interval(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_funding_interval", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -7695,9 +7711,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 
     Value::Null
-}
+} }
 
-    async fn fetch_mark_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_mark_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -7726,9 +7742,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkOHLCV () is not supported yet".to_string()))));
         }
-}
+} }
 
-    async fn fetch_index_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_index_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -7757,9 +7773,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchIndexOHLCV () is not supported yet".to_string()))));
         }
-}
+} }
 
-    async fn fetch_premium_index_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_premium_index_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_premium_index_ohlcv", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -7793,7 +7809,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPremiumIndexOHLCV () is not supported yet".to_string()))));
         }
-}
+} }
 
     fn handle_time_in_force(&self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -7906,8 +7922,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_152: bool = true;
-            while { if !__for_first_152 { i = add(&i, &Value::Int(1)); } __for_first_152 = false; is_less_than(&i, &get_array_length(&responseKeys)) } {
+            let mut __for_first_153: bool = true;
+            while { if !__for_first_153 { i = add(&i, &Value::Int(1)); } __for_first_153 = false; is_less_than(&i, &get_array_length(&responseKeys)) } {
             let mut entry: Value = get_value(&responseKeys, &i);
             let mut entry: Value = get_value(&responseKeys, &i);
             let mut dictionary: Value = ternary(is_true(&isArray), entry.clone(), get_value(&response, &entry));
@@ -7983,8 +7999,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut currencyCode: Value = self.safe_string_k(currency.clone(), "code", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_153: bool = true;
-            while { if !__for_first_153 { i = add(&i, &Value::Int(1)); } __for_first_153 = false; is_less_than(&i, &numNetworks) } {
+            let mut __for_first_154: bool = true;
+            while { if !__for_first_154 { i = add(&i, &Value::Int(1)); } __for_first_154 = false; is_less_than(&i, &numNetworks) } {
             let mut network: Value = get_value(&networkKeys, &i);
             let mut network: Value = get_value(&networkKeys, &i);
             if is_equal(&network, &currencyCode) {
@@ -8025,8 +8041,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_154: bool = true;
-            while { if !__for_first_154 { i = add(&i, &Value::Int(1)); } __for_first_154 = false; is_less_than(&i, &get_array_length(&incomes)) } {
+            let mut __for_first_155: bool = true;
+            while { if !__for_first_155 { i = add(&i, &Value::Int(1)); } __for_first_155 = false; is_less_than(&i, &get_array_length(&incomes)) } {
             let mut entry: Value = get_value(&incomes, &i);
             let mut entry: Value = get_value(&incomes, &i);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_income(self, entry.clone(), &[market.clone()]);
@@ -8068,8 +8084,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_155: bool = true;
-            while { if !__for_first_155 { i = add(&i, &Value::Int(1)); } __for_first_155 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+            let mut __for_first_156: bool = true;
+            while { if !__for_first_156 { i = add(&i, &Value::Int(1)); } __for_first_156 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             append_to_array(&mut results, self.parse_ws_ohlcv(get_value(&ohlcvs, &i), &[market.clone()]));
         }
         }
@@ -8078,7 +8094,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn fetch_transactions(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_transactions(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8102,7 +8118,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransactions () is not supported yet".to_string()))));
         }
-}
+} }
 
     fn filter_by_array_positions(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
@@ -8162,7 +8178,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn fetch_paginated_call_dynamic(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
+    fn fetch_paginated_call_dynamic(&mut self, mut method: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8261,9 +8277,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.filter_by_since_limit(sortedRes.clone(), &[since.clone(), limit.clone(), key.clone()]);
 
     Value::Null
-}
+} }
 
-    async fn safe_deterministic_call(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
+    fn safe_deterministic_call(&mut self, mut method: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8296,9 +8312,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return Value::List(vec![]);
 
     Value::Null
-}
+} }
 
-    async fn fetch_paginated_call_deterministic(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
+    fn fetch_paginated_call_deterministic(&mut self, mut method: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8320,13 +8336,21 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut time: Value = multiply(&self.parse_timeframe(timeframe.clone()), &Value::Int(1000));
         maxEntriesPerRequest = self.require_value(maxEntriesPerRequest.clone(), &[Value::Str("fetchPaginatedCallDeterministic() maxEntriesPerRequest is required".to_string())]);
         let mut step: Value = multiply(&time, &maxEntriesPerRequest);
+        let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("till".to_string()), &[]); // do not omit it here
         let mut currentSince: Value = subtract(&subtract(&current, &(multiply(&maxCalls, &step))), &Value::Int(1));
         if !is_equal(&since, &Value::Null) {
-            currentSince = crate::runtime::Math::max(&currentSince, &since);
+            if !is_equal(&until, &Value::Null) {
+                // the recent-window floor below would jump past a fully-historical [ since, until ]
+                // range and return an empty result - requiredCalls is validated against maxCalls
+                // further down, so anchoring at since directly is safe here,
+                // see https://github.com/ccxt/ccxt/issues/26252
+                currentSince = since.clone();
+            }  else {
+                currentSince = crate::runtime::Math::max(&currentSince, &since);
+            }
         }  else {
             currentSince = crate::runtime::Math::max(&currentSince, &Value::Int(1241440531000)); // avoid timestamps older than 2009
         }
-        let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".to_string()), Value::Str("till".to_string()), &[]); // do not omit it here
         if !is_equal(&until, &Value::Null) {
             if is_equal(&since, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPaginatedCallDeterministic() requires a since argument when until is set".to_string()))));
@@ -8338,8 +8362,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_156: bool = true;
-            while { if !__for_first_156 { i = add(&i, &Value::Int(1)); } __for_first_156 = false; is_less_than(&i, &maxCalls) } {
+            let mut __for_first_157: bool = true;
+            while { if !__for_first_157 { i = add(&i, &Value::Int(1)); } __for_first_157 = false; is_less_than(&i, &maxCalls) } {
             if is_true(&(!is_equal(&until, &Value::Null))) && is_true(&(is_greater_than_or_equal(&currentSince, &until))) {
                 break;
             }
@@ -8354,8 +8378,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_157: bool = true;
-            while { if !__for_first_157 { i = add(&i, &Value::Int(1)); } __for_first_157 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_158: bool = true;
+            while { if !__for_first_158 { i = add(&i, &Value::Int(1)); } __for_first_158 = false; is_less_than(&i, &get_array_length(&results)) } {
             result = self.array_concat(result.clone(), get_value(&results, &i));
         }
         }
@@ -8364,9 +8388,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.filter_by_since_limit(uniqueResults.clone(), &[since.clone(), limit.clone(), key.clone()]);
 
     Value::Null
-}
+} }
 
-    async fn fetch_paginated_call_cursor(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
+// the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
+// undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
+    fn fetch_paginated_call_cursor(&mut self, mut method: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8403,7 +8429,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }  else if is_equal(&method, &Value::Str("getLeverageTiersPaginated".to_string())) || is_equal(&method, &Value::Str("fetchPositions".to_string())) {
                     response = self.call_method(method.clone(), &[symbol.clone(), params.clone()]).await;
                 }  else if is_equal(&method, &Value::Str("fetchOpenInterestHistory".to_string())) {
-                    if is_equal(&symbol, &Value::Null) {
+                    if !is_string(&symbol) {
                         panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchPaginatedCallCursor() requires a symbol argument".to_string()))));
                     }
                     if is_equal(&timeframe, &Value::Null) {
@@ -8435,8 +8461,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 cursorValue = Value::Null; // search for the cursor
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_158: bool = true;
-                    while { if !__for_first_158 { j = add(&j, &Value::Int(1)); } __for_first_158 = false; is_less_than(&j, &responseLength) } {
+                    let mut __for_first_159: bool = true;
+                    while { if !__for_first_159 { j = add(&j, &Value::Int(1)); } __for_first_159 = false; is_less_than(&j, &responseLength) } {
                     let mut index: Value = subtract(&subtract(&responseLength, &j), &Value::Int(1));
                     let mut entry: Value = self.safe_dict(response.clone(), index.clone(), &[]);
                     let mut info: Value = self.safe_dict_k(entry.clone(), "info", &[]);
@@ -8465,9 +8491,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.filter_by_since_limit(sorted.clone(), &[since.clone(), limit.clone(), key.clone()]);
 
     Value::Null
-}
+} }
 
-    async fn fetch_paginated_call_incremental(&mut self, mut method: Value, optional_args: &[Value]) -> Value {
+    fn fetch_paginated_call_incremental(&mut self, mut method: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8508,7 +8534,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.filter_by_since_limit(sorted.clone(), &[since.clone(), limit.clone(), key.clone()]);
 
     Value::Null
-}
+} }
 
     fn sort_cursor_paginated_result(&self, mut result: Value) -> Value {
         let mut first: Value = self.safe_value(result.clone(), Value::Int(0), &[]);
@@ -8534,8 +8560,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut uniqueResult: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_159: bool = true;
-            while { if !__for_first_159 { i = add(&i, &Value::Int(1)); } __for_first_159 = false; is_less_than(&i, &get_array_length(&input)) } {
+            let mut __for_first_160: bool = true;
+            while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&input)) } {
             let mut entry: Value = get_value(&input, &i);
             let mut entry: Value = get_value(&input, &i);
             let mut uniqValue: Value = ternary(is_true(&fallbackToTimestamp), self.safe_string_n(entry.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("timestamp".to_string()), Value::Int(0)]), &[]), self.safe_string_k(entry.clone(), "id", &[]));
@@ -8561,8 +8587,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_160: bool = true;
-            while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&input)) } {
+            let mut __for_first_161: bool = true;
+            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&input)) } {
             let mut entry: Value = get_value(&input, &i);
             let mut entry: Value = get_value(&input, &i);
             let mut id: Value = self.safe_string_k(entry.clone(), "id", &[]);
@@ -8596,8 +8622,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_161: bool = true;
-            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_162: bool = true;
+            while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if !is_true(&self.in_array(key.clone(), removeKeys.clone())) {
@@ -8671,8 +8697,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_162: bool = true;
-            while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&liquidations)) } {
+            let mut __for_first_163: bool = true;
+            while { if !__for_first_163 { i = add(&i, &Value::Int(1)); } __for_first_163 = false; is_less_than(&i, &get_array_length(&liquidations)) } {
             let mut entry: Value = get_value(&liquidations, &i);
             let mut entry: Value = get_value(&liquidations, &i);
             let mut parsed: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_liquidation(self, entry.clone(), &[market.clone()]);
@@ -8709,8 +8735,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&Value::Bool(is_array(&greeks))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_163: bool = true;
-                while { if !__for_first_163 { i = add(&i, &Value::Int(1)); } __for_first_163 = false; is_less_than(&i, &get_array_length(&greeks)) } {
+                let mut __for_first_164: bool = true;
+                while { if !__for_first_164 { i = add(&i, &Value::Int(1)); } __for_first_164 = false; is_less_than(&i, &get_array_length(&greeks)) } {
                 let mut parsedTicker: Value = <Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, get_value(&greeks, &i), &[]);
                 let mut greek: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
                 append_to_array(&mut results, greek.clone());
@@ -8720,8 +8746,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut marketIds: Value = object_keys(&greeks);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_164: bool = true;
-                while { if !__for_first_164 { i = add(&i, &Value::Int(1)); } __for_first_164 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_165: bool = true;
+                while { if !__for_first_165 { i = add(&i, &Value::Int(1)); } __for_first_165 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -8754,8 +8780,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_165: bool = true;
-            while { if !__for_first_165 { i = add(&i, &Value::Int(1)); } __for_first_165 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_166: bool = true;
+            while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut info: Value = get_value(&response, &i);
             let mut currencyId: Value = ternary(is_true(&(is_equal(&currencyKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), currencyKey.clone(), &[]));
@@ -8783,8 +8809,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_166: bool = true;
-            while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_167: bool = true;
+            while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
@@ -8822,8 +8848,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_167: bool = true;
-            while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_168: bool = true;
+            while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
@@ -8858,16 +8884,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        conversions = self.to_array(conversions.clone());
+        let mut conversionsArray: Value = self.to_array(conversions.clone());
         let mut result: Value = Value::List(vec![]);
         let mut fromCurrency: Value = Value::Null;
         let mut toCurrency: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_168: bool = true;
-            while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&conversions)) } {
-            let mut entry: Value = get_value(&conversions, &i);
-            let mut entry: Value = get_value(&conversions, &i);
+            let mut __for_first_169: bool = true;
+            while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&conversionsArray)) } {
+            let mut entry: Value = get_value(&conversionsArray, &i);
+            let mut entry: Value = get_value(&conversionsArray, &i);
             let mut fromId: Value = ternary(is_true(&(is_equal(&fromCurrencyKey, &Value::Null))), Value::Null, self.safe_string(entry.clone(), fromCurrencyKey.clone(), &[]));
             let mut toId: Value = ternary(is_true(&(is_equal(&toCurrencyKey, &Value::Null))), Value::Null, self.safe_string(entry.clone(), toCurrencyKey.clone(), &[]));
             if !is_equal(&fromId, &Value::Null) {
@@ -9003,11 +9029,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn load_markets_and_sign_in(&mut self) -> Value {
+    fn load_markets_and_sign_in(&mut self) -> impl ::std::future::Future<Output = Value> + Send { async move {
         promise_all(&Value::List(vec![self.load_markets(&[]).await, self.sign_in(&[]).await])).await;
 
     Value::Null
-}
+} }
 
     fn parse_margin_modification(&self, mut data: Value, optional_args: &[Value]) -> Value {
         // virtual-dispatch (static: DerivedExchange::parse_margin_modification(self, ...))
@@ -9032,8 +9058,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_169: bool = true;
-            while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_170: bool = true;
+            while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = ternary(is_true(&(is_equal(&symbolKey, &Value::Null))), Value::Null, self.safe_string(info.clone(), symbolKey.clone(), &[]));
@@ -9048,7 +9074,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn fetch_transfer(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn fetch_transfer(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9057,9 +9083,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransfer () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_transfers(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_transfers(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -9070,9 +9096,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransfers () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9081,9 +9107,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOHLCV () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn withdraw_ws(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
+    fn withdraw_ws(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut tag = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9092,9 +9118,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" withdrawWs () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
+    fn un_watch_my_trades(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9103,9 +9129,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMyTrades () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_orders_by_status_ws(&mut self, mut status: Value, optional_args: &[Value]) -> Value {
+    fn fetch_orders_by_status_ws(&mut self, mut status: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -9116,9 +9142,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrdersByStatusWs () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn un_watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
+    fn un_watch_bids_asks(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9127,7 +9153,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchBidsAsks () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
     fn clean_unsubscription(&self, mut client: Value, mut subHash: Value, mut unsubHash: Value, optional_args: &[Value]) {
         let mut subHashIsPrefix = get_arg(optional_args, 0, Value::Bool(false));
@@ -9146,8 +9172,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut clientSubscriptions: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_170: bool = true;
-                while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&clientSubscriptions)) } {
+                let mut __for_first_171: bool = true;
+                while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&clientSubscriptions)) } {
                 let mut sub: Value = get_value(&clientSubscriptions, &i);
                 let mut sub: Value = get_value(&clientSubscriptions, &i);
                 if is_true(&(!is_equal(&sub, &Value::Null))) && is_true(&(!is_equal(&subHash, &Value::Null))) && is_true(&Value::Bool(starts_with(&sub, &subHash))) {
@@ -9158,8 +9184,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut clientFutures: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_171: bool = true;
-                while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&clientFutures)) } {
+                let mut __for_first_172: bool = true;
+                while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&clientFutures)) } {
                 let mut future: Value = get_value(&clientFutures, &i);
                 let mut future: Value = get_value(&clientFutures, &i);
                 if is_true(&(!is_equal(&future, &Value::Null))) && is_true(&(!is_equal(&subHash, &Value::Null))) && is_true(&Value::Bool(starts_with(&future, &subHash))) {
@@ -9180,8 +9206,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut symbolsAndTimeframes: Value = self.safe_list_k(subscription.clone(), "symbolsAndTimeframes", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_172: bool = true;
-                while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+                let mut __for_first_173: bool = true;
+                while { if !__for_first_173 { i = add(&i, &Value::Int(1)); } __for_first_173 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
                 let mut symbolAndTimeFrame: Value = get_value(&symbolsAndTimeframes, &i);
                 let mut symbolAndTimeFrame: Value = get_value(&symbolsAndTimeframes, &i);
                 let mut symbol: Value = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(0), &[]);
@@ -9202,8 +9228,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else if is_greater_than(&symbolsLength, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_173: bool = true;
-                while { if !__for_first_173 { i = add(&i, &Value::Int(1)); } __for_first_173 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_174: bool = true;
+                while { if !__for_first_174 { i = add(&i, &Value::Int(1)); } __for_first_174 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 if is_equal(&topic, &Value::Str("trades".to_string())) {
@@ -9235,8 +9261,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut clients: Value = object_values(&self.clients);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_174: bool = true;
-                    while { if !__for_first_174 { i = add(&i, &Value::Int(1)); } __for_first_174 = false; is_less_than(&i, &get_array_length(&clients)) } {
+                    let mut __for_first_175: bool = true;
+                    while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&clients)) } {
                     let mut client: Value = get_value(&clients, &i);
                     let mut client: Value = get_value(&clients, &i);
                     let mut futures: Value = get_value(&client, &Value::Str("futures".to_string()));
@@ -9249,8 +9275,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut tickerSymbols: Value = object_keys(&self.tickers);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_175: bool = true;
-                    while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&tickerSymbols)) } {
+                    let mut __for_first_176: bool = true;
+                    while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &get_array_length(&tickerSymbols)) } {
                     let mut tickerSymbol: Value = get_value(&tickerSymbols, &i);
                     let mut tickerSymbol: Value = get_value(&tickerSymbols, &i);
                     if is_true(&Value::Bool(in_op(&self.tickers, &tickerSymbol))) {
@@ -9262,8 +9288,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut bidsaskSymbols: Value = object_keys(&self.bidsasks);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_176: bool = true;
-                    while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &get_array_length(&bidsaskSymbols)) } {
+                    let mut __for_first_177: bool = true;
+                    while { if !__for_first_177 { i = add(&i, &Value::Int(1)); } __for_first_177 = false; is_less_than(&i, &get_array_length(&bidsaskSymbols)) } {
                     let mut bidsaskSymbol: Value = get_value(&bidsaskSymbols, &i);
                     let mut bidsaskSymbol: Value = get_value(&bidsaskSymbols, &i);
                     if is_true(&Value::Bool(in_op(&self.bidsasks, &bidsaskSymbol))) {
@@ -9304,7 +9330,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    async fn is_uta_enabled(&mut self, optional_args: &[Value]) -> Value {
+    fn is_uta_enabled(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9312,8 +9338,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return Value::Bool(false);
 
     Value::Null
-}
-    async fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+} }
+    fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut side = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9322,9 +9348,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" closePosition() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn close_all_positions(&mut self, optional_args: &[Value]) -> Value {
+    fn close_all_positions(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9332,9 +9358,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" closeAllPositions() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn edit_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    fn edit_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9342,9 +9368,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" editOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -9355,9 +9381,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCanceledAndClosedOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_position_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_position_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_position_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -9385,9 +9411,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionHistory () is not supported yet".to_string()))));
         }
-}
+} }
 
-    async fn fetch_positions_history(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_positions_history(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_positions_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -9403,9 +9429,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsHistory () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_positions_risk(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_positions_risk(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9414,9 +9440,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsRisk() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_positions_for_symbol(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_positions_for_symbol(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9424,9 +9450,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsForSymbol() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_positions_for_symbol_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_positions_for_symbol_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9434,9 +9460,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsForSymbol() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_position(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_position(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9445,9 +9471,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchPosition() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_my_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    fn watch_my_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9457,9 +9483,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyTradesForSymbols() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    fn watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9469,9 +9495,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTradesForSymbols() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_bids_asks(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9480,9 +9506,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBidsAsks() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9503,9 +9529,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 
     Value::Null
-}
+} }
 
-    async fn fetch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_mark_prices(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9514,9 +9540,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkPrices() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_bids_asks(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9525,9 +9551,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchBidsAsks() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9535,9 +9561,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMarkPrice () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_mark_prices(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9546,9 +9572,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMarkPrices () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_l3_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_l3_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9557,9 +9583,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchL3OrderBook() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9568,9 +9594,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrderBookForSymbols() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_orders_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+    fn watch_orders_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9580,9 +9606,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrdersForSymbols() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn cancel_all_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+    fn cancel_all_orders_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9591,9 +9617,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrdersWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn cancel_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn cancel_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9602,9 +9628,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrderWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn cancel_orders_ws(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    fn cancel_orders_ws(&mut self, mut ids: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9613,9 +9639,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrdersWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_limit_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    fn create_limit_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9623,9 +9649,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    fn create_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9633,9 +9659,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_limit_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    fn create_limit_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9643,9 +9669,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_market_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_market_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9653,9 +9679,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_market_order_with_cost_ws(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    fn create_market_order_with_cost_ws(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9676,9 +9702,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCostWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9687,9 +9713,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_market_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_market_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9697,9 +9723,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_order_with_take_profit_and_stop_loss_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_order_with_take_profit_and_stop_loss_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfit = get_arg(optional_args, 1, Value::Null);
         let mut stopLoss = get_arg(optional_args, 2, Value::Null);
@@ -9736,9 +9762,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLossWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9747,9 +9773,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_orders_ws(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    fn create_orders_ws(&mut self, mut orders: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9757,9 +9783,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrdersWs () is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_post_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_post_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9776,9 +9802,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_reduce_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_reduce_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9795,9 +9821,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_stop_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+    fn create_stop_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9813,9 +9839,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_stop_loss_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_stop_loss_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut stopLossPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9849,9 +9875,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLossOrderWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_stop_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+    fn create_stop_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9867,9 +9893,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[Value::Null, query.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_stop_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_stop_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9890,9 +9916,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_take_profit_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_take_profit_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfitPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -9926,9 +9952,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTakeProfitOrderWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_trailing_amount_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_trailing_amount_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut trailingAmount = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
@@ -9963,9 +9989,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingAmountOrderWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_trailing_percent_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_trailing_percent_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut trailingPercent = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
@@ -10000,9 +10026,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingPercentOrderWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_trigger_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_trigger_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10036,9 +10062,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTriggerOrderWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn edit_order_ws(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
+    fn edit_order_ws(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10049,9 +10075,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn fetch_closed_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_closed_orders_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10066,9 +10092,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchClosedOrdersWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_my_trades_ws(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_my_trades_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10079,9 +10105,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTradesWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_open_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_open_orders_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10096,9 +10122,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrdersWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_order_book_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_order_book_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10107,9 +10133,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBookWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn fetch_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10118,9 +10144,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_orders_ws(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_orders_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10131,9 +10157,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrdersWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_position_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_position_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10141,9 +10167,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_positions_ws(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_positions_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10152,9 +10178,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_ticker_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_ticker_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10175,9 +10201,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 
     Value::Null
-}
+} }
 
-    async fn fetch_tickers_ws(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_tickers_ws(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10186,9 +10212,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickersWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_trades_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_trades_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10198,10 +10224,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradesWs() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 
-    async fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_trades", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10216,9 +10242,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTrades() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10228,9 +10254,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTrades() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_order_book", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10244,9 +10270,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBook() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_rest_order_book_safe(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_rest_order_book_safe(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10255,8 +10281,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut fetchSnapshotMaxRetries: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("maxRetries".to_string()), &[Value::Int(3)]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_177: bool = true;
-            while { if !__for_first_177 { i = add(&i, &Value::Int(1)); } __for_first_177 = false; is_less_than(&i, &fetchSnapshotMaxRetries) } {
+            let mut __for_first_178: bool = true;
+            while { if !__for_first_178 { i = add(&i, &Value::Int(1)); } __for_first_178 = false; is_less_than(&i, &fetchSnapshotMaxRetries) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut orderBook: Value = self.fetch_order_book(symbol.clone(), &[limit.clone(), params.clone()]).await;
                 return orderBook.clone();
@@ -10271,9 +10297,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return Value::Null;
 
     Value::Null
-}
+} }
 
-    async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10282,9 +10308,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrderBook() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_open_interest", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10302,9 +10328,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 
     Value::Null
-}
+} }
 
-    async fn fetch_l2_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_l2_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10319,9 +10345,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 })]);
 
     Value::Null
-}
+} }
 
-    async fn edit_limit_buy_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn edit_limit_buy_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10330,9 +10356,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.edit_limit_order(id.clone(), symbol.clone(), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn edit_limit_sell_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn edit_limit_sell_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10341,9 +10367,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.edit_limit_order(id.clone(), symbol.clone(), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn edit_limit_order(&mut self, mut id: Value, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn edit_limit_order(&mut self, mut id: Value, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10352,9 +10378,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.edit_order(id.clone(), symbol.clone(), Value::Str("limit".to_string()), side.clone(), &[amount.clone(), price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
+    fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("edit_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.push(symbol.clone()); __args.push(type_var.clone()); __args.push(side.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10370,9 +10396,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn edit_order_with_client_order_id(&mut self, mut clientOrderId: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
+    fn edit_order_with_client_order_id(&mut self, mut clientOrderId: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10387,9 +10413,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.edit_order(Value::Str("".to_string()), symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), extendedParams.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_position", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10402,9 +10428,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPosition() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_positions(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_positions(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10415,9 +10441,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchPositions() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_position_for_symbols(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_position_for_symbols(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -10428,9 +10454,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.watch_positions(&[symbols.clone(), since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn fetch_positions(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_positions(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_positions", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10444,9 +10470,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_ticker", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10472,9 +10498,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 
     Value::Null
-}
+} }
 
-    async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10482,9 +10508,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTicker() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_tickers(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_tickers", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10498,9 +10524,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickers() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_tickers(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10509,9 +10535,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTickers() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn fetch_order(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10525,7 +10551,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -10536,7 +10562,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    async fn fetch_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
+    fn fetch_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10550,9 +10576,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.fetch_order(Value::Str("".to_string()), &[symbol.clone(), extendedParams.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn fetch_order_status(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn fetch_order_status(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10564,9 +10590,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return get_value(&order, &Value::Str("status".to_string()));
 
     Value::Null
-}
+} }
 
-    async fn fetch_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    fn fetch_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10574,9 +10600,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.fetch_order(self.safe_string_k(order.clone(), "id", &[]), &[self.safe_string_k(order.clone(), "symbol", &[]), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("create_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.push(type_var.clone()); __args.push(side.clone()); __args.push(amount.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10590,9 +10616,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_trailing_amount_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_trailing_amount_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut trailingAmount = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
@@ -10627,9 +10653,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingAmountOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_trailing_percent_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_trailing_percent_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut trailingPercent = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
@@ -10664,9 +10690,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingPercentOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_market_order_with_cost(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    fn create_market_order_with_cost(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10687,9 +10713,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCost() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10709,9 +10735,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10731,9 +10757,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketSellOrderWithCost() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_trigger_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_trigger_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10767,9 +10793,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTriggerOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_stop_loss_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_stop_loss_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut stopLossPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10803,9 +10829,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLossOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_take_profit_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_take_profit_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfitPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -10839,9 +10865,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTakeProfitOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_order_with_take_profit_and_stop_loss(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_order_with_take_profit_and_stop_loss(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfit = get_arg(optional_args, 1, Value::Null);
         let mut stopLoss = get_arg(optional_args, 2, Value::Null);
@@ -10878,9 +10904,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLoss() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("create_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(orders.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10893,9 +10919,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn cancel_order(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("cancel_order", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(id.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10909,7 +10935,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrder() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -10920,7 +10946,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    async fn cancel_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
+    fn cancel_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10934,9 +10960,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.cancel_order(Value::Str("".to_string()), &[symbol.clone(), extendedParams.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("cancel_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(ids.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10950,7 +10976,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
 /*
  * @method
@@ -10961,7 +10987,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    async fn cancel_orders_with_client_order_ids(&mut self, mut clientOrderIds: Value, optional_args: &[Value]) -> Value {
+    fn cancel_orders_with_client_order_ids(&mut self, mut clientOrderIds: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10975,9 +11001,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.cancel_orders(Value::List(vec![]), &[symbol.clone(), extendedParams.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn cancel_all_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn cancel_all_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("cancel_all_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -10991,9 +11017,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn cancel_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
+    fn cancel_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11001,9 +11027,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.cancel_order(self.safe_string_k(order.clone(), "id", &[]), &[self.safe_string_k(order.clone(), "symbol", &[]), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn fetch_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -11022,9 +11048,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -11035,9 +11061,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderTrades() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -11048,9 +11074,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_open_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_open_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_open_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -11070,9 +11096,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_closed_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_closed_orders", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -11092,9 +11118,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchClosedOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -11105,9 +11131,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCanceledOrders() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
+    fn fetch_my_trades(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_my_trades", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -11123,9 +11149,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTrades() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
+    fn watch_my_trades(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -11136,9 +11162,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyTrades() is not supported yet".to_string()))));
 
     Value::Null
-}
+} }
 
-    async fn create_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    fn create_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11146,9 +11172,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11157,9 +11183,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_limit_buy_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    fn create_limit_buy_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11167,9 +11193,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), Value::Str("limit".to_string()), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_limit_sell_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    fn create_limit_sell_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11177,9 +11203,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), Value::Str("limit".to_string()), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_market_buy_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_market_buy_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11187,9 +11213,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_market_sell_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_market_sell_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11197,9 +11223,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_post_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_post_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11216,9 +11242,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_reduce_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_reduce_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11235,9 +11261,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_stop_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn create_stop_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -11258,9 +11284,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_stop_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+    fn create_stop_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11276,9 +11302,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), query.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn create_stop_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
+    fn create_stop_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11294,9 +11320,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[Value::Null, query.clone()]).await;
 
     Value::Null
-}
+} }
 
-    async fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    fn fetch_trading_fee(&mut self, mut symbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
         if let Some(__v) = self.dispatch_to_derived("fetch_trading_fee", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
@@ -11313,10 +11339,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         return self.safe_dict(fees.clone(), symbol.clone(), &[]);
 
     Value::Null
-}
+} }
     /// Base-method fall-through for a core's `call_dynamic`.
     fn call_dynamic_base<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {

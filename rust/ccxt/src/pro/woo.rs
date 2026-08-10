@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for WooCore {
 
 impl crate::exchange_generated::ExchangeBase for WooCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -489,7 +489,7 @@ impl WooCore {
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -589,6 +589,9 @@ impl WooCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
+        if is_equal(&topic, &Value::Null) {
+            return;
+        }
         let mut method: Value = self.safe_string(split(&topic, &Value::Str("@".to_string())), Value::Int(1), &[]);
         if is_equal(&method, &Value::Str("orderbookupdate".to_string())) {
             if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
@@ -601,21 +604,26 @@ impl WooCore {
             }  else {
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     let mut ts: Value = self.safe_integer_k(message.clone(), "ts", &[]);
+                    if is_equal(&ts, &Value::Null) {
+                        return true;
+                    }
                     if is_greater_than(&ts, &timestamp) {
                         self.handle_order_book_message(client.clone(), message.clone(), orderbook.clone());
                         client.resolve(&[orderbook.clone(), topic.clone()]);
                     }
-                 #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+                 #[allow(unreachable_code)] { false }}));
+match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
                     remove(&mut self.orderbooks.clone(), &symbol);
-                    remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
+                    if !is_equal(&topic, &Value::Null) {
+                        remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
+                    }
                     client.reject(&[e.clone(), topic.clone()]);
-                }
+                 } }
             }
         }  else {
             if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
                 let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
-                let mut subscription: Value = get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
+                let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), topic.clone(), &[]);
                 let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit.clone()]);
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -634,6 +642,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit.clone()]);
         let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]); // watchOrderBook
+        if is_equal(&symbol, &Value::Null) {
+            return;
+        }
         if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
             remove(&mut self.orderbooks.clone(), &symbol);
         }
@@ -655,16 +666,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_equal(&self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]), &Value::Null) {
                 return Value::Null;
             }
-            let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+            let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
             orderbook.reset(snapshot.clone());
             let mut messages: Value = get_value(&orderbook, &Value::Str("cache".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_645: bool = true;
-                while { if !__for_first_645 { i = add(&i, &Value::Int(1)); } __for_first_645 = false; is_less_than(&i, &get_array_length(&messages)) } {
+                let mut __for_first_661: bool = true;
+                while { if !__for_first_661 { i = add(&i, &Value::Int(1)); } __for_first_661 = false; is_less_than(&i, &get_array_length(&messages)) } {
                 let mut messageItem: Value = get_value(&messages, &i);
                 let mut messageItem: Value = get_value(&messages, &i);
                 let mut ts: Value = self.safe_integer_k(messageItem.clone(), "ts", &[]);
+                if is_equal(&ts, &Value::Null) {
+                    continue;
+                }
                 if is_less_than(&ts, &get_value(&orderbook, &Value::Str("timestamp".to_string()))) {
                     continue;
                 }  else {
@@ -672,7 +686,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             }
-            add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+            }
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
         }
 
@@ -700,8 +716,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_646: bool = true;
-            while { if !__for_first_646 { i = add(&i, &Value::Int(1)); } __for_first_646 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_662: bool = true;
+            while { if !__for_first_662 { i = add(&i, &Value::Int(1)); } __for_first_662 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -925,8 +941,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_647: bool = true;
-            while { if !__for_first_647 { i = add(&i, &Value::Int(1)); } __for_first_647 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_663: bool = true;
+            while { if !__for_first_663 { i = add(&i, &Value::Int(1)); } __for_first_663 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut marketId: Value = self.safe_string_k(get_value(&data, &i), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let __ws_arg_2 = self.extend(get_value(&data, &i), &[Value::Map({
@@ -1032,14 +1048,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_648: bool = true;
-            while { if !__for_first_648 { i = add(&i, &Value::Int(1)); } __for_first_648 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_664: bool = true;
+            while { if !__for_first_664 { i = add(&i, &Value::Int(1)); } __for_first_664 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ticker: Value = self.safe_dict(data.clone(), i.clone(), &[]);
+            if is_equal(&ticker, &Value::Null) {
+                continue;
+            }
             add_element_to_object(&mut ticker, &Value::Str("ts".to_string()), timestamp.clone());
             let mut parsedTicker: Value = self.parse_ws_bid_ask(ticker.clone(), &[]);
             let mut symbol: Value = get_value(&parsedTicker, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut self.bidsasks.clone(), &symbol, parsedTicker.clone());
-            add_element_to_object(&mut result, &symbol, parsedTicker.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut self.bidsasks.clone(), &symbol, parsedTicker.clone());
+            }
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut result, &symbol, parsedTicker.clone());
+            }
         }
         }
         client.resolve(&[result.clone(), topic.clone()]);
@@ -1175,11 +1198,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
-        let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
+        let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            if !is_equal(&symbol, &Value::Null) && !is_equal(&timeframe, &Value::Null) {
+                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            }
         }
         stored.append(parsed.clone());
         client.resolve(&[stored.clone(), topic.clone()]);
@@ -1719,8 +1744,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&Value::Bool(is_array(&data))) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_649: bool = true;
-                while { if !__for_first_649 { i = add(&i, &Value::Int(1)); } __for_first_649 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_665: bool = true;
+                while { if !__for_first_665 { i = add(&i, &Value::Int(1)); } __for_first_665 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut order: Value = get_value(&data, &i);
                 let mut order: Value = get_value(&data, &i);
                 let mut tradeId: Value = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
@@ -1844,10 +1869,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Value = Value::List(vec![]);
         symbols = self.market_symbols(&[symbols.clone()]);
         if !is_true(&self.is_empty(symbols.clone())) {
+            if is_equal(&symbols, &Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchPositions() symbols is required".to_string()))));
+            }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_650: bool = true;
-                while { if !__for_first_650 { i = add(&i, &Value::Int(1)); } __for_first_650 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_666: bool = true;
+                while { if !__for_first_666 { i = add(&i, &Value::Int(1)); } __for_first_666 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                if is_equal(&symbols, &Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchPositions() symbols is required".to_string()))));
+                }
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, add(&Value::Str("positions::".to_string()), &symbol));
@@ -1900,12 +1931,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_651: bool = true;
-            while { if !__for_first_651 { i = add(&i, &Value::Int(1)); } __for_first_651 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_667: bool = true;
+            while { if !__for_first_667 { i = add(&i, &Value::Int(1)); } __for_first_667 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
-            if is_greater_than(&contracts, &Value::Int(0)) {
+            if is_true(&(!is_equal(&contracts, &Value::Null))) && is_true(&(is_greater_than(&contracts, &Value::Int(0)))) {
                 cache.append(position.clone());
             }
         }
@@ -1962,8 +1993,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_652: bool = true;
-            while { if !__for_first_652 { i = add(&i, &Value::Int(1)); } __for_first_652 = false; is_less_than(&i, &get_array_length(&postitionsIds)) } {
+            let mut __for_first_668: bool = true;
+            while { if !__for_first_668 { i = add(&i, &Value::Int(1)); } __for_first_668 = false; is_less_than(&i, &get_array_length(&postitionsIds)) } {
             let mut marketId: Value = get_value(&postitionsIds, &i);
             let mut marketId: Value = get_value(&postitionsIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -2047,20 +2078,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __be_tmp = self.iso8601(ts.clone()); add_element_to_object(&mut self.balance.clone(), &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_653: bool = true;
-            while { if !__for_first_653 { i = add(&i, &Value::Int(1)); } __for_first_653 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_669: bool = true;
+            while { if !__for_first_669 { i = add(&i, &Value::Int(1)); } __for_first_669 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&balances, &key);
             let mut value: Value = get_value(&balances, &key);
             let mut code: Value = self.safe_currency_code(key.clone(), &[]);
-            let mut account: Value = ternary(is_true(&(Value::Bool(in_op(&self.balance, &code)))), get_value(&self.balance, &code), self.account());
+            let mut account: Value = self.account();
+            if is_true(&(!is_equal(&code, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.balance, &code)))) {
+                account = get_value(&self.balance, &code);
+            }
             let mut total: Value = self.safe_string_k(value.clone(), "holding", &[]);
             let mut used: Value = self.safe_string_k(value.clone(), "frozen", &[]);
             add_element_to_object(&mut account, &Value::Str("total".to_string()), total.clone());
             add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
             add_element_to_object(&mut account, &Value::Str("free".to_string()), crate::precise::Precise::stringSub(&total, &used));
-            add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
@@ -2117,7 +2153,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         let mut fundingRate: Value = self.parse_funding_rate(data.clone(), &[]);
         let mut symbol: Value = get_value(&fundingRate, &Value::Str("symbol".to_string()));
-        add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+        if !is_equal(&symbol, &Value::Null) {
+            add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+        }
         let mut messageHash: Value = self.safe_string_k(message.clone(), "topic", &[]);
         client.resolve(&[fundingRate.clone(), messageHash.clone()]);
 }
@@ -2177,8 +2215,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut unsubMessageHashes: Value = self.safe_list_k(subscription.clone(), "unsubMessageHashes", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_654: bool = true;
-            while { if !__for_first_654 { i = add(&i, &Value::Int(1)); } __for_first_654 = false; is_less_than(&i, &get_array_length(&subMessageHashes)) } {
+            let mut __for_first_670: bool = true;
+            while { if !__for_first_670 { i = add(&i, &Value::Int(1)); } __for_first_670 = false; is_less_than(&i, &get_array_length(&subMessageHashes)) } {
             let mut subHash: Value = get_value(&subMessageHashes, &i);
             let mut subHash: Value = get_value(&subMessageHashes, &i);
             let mut unsubHash: Value = get_value(&unsubMessageHashes, &i);
@@ -2231,6 +2269,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut splitLength: Value = get_array_length(&splitTopic);
             if is_equal(&splitLength, &Value::Int(2)) {
                 let mut name: Value = self.safe_string(splitTopic.clone(), Value::Int(1), &[]);
+                if is_equal(&name, &Value::Null) {
+                    return;
+                }
                 method = self.safe_value(methods.clone(), name.clone(), &[]);
                 if !is_equal(&method, &Value::Null) {
                     method.call(&[client.clone(), message.clone()]);

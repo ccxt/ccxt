@@ -177,7 +177,7 @@ impl crate::exchange::DerivedExchange for BitsoCore {
 
 impl crate::exchange_generated::ExchangeBase for BitsoCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -404,14 +404,226 @@ impl BitsoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("available_books".to_string()), Value::Str("catalogues".to_string()), Value::Str("ticker".to_string()), Value::Str("order_book".to_string()), Value::Str("trades".to_string()), Value::Str("ohlc".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("available_books".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("catalogues".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order_book".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ohlc".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("account_status".to_string()), Value::Str("balance".to_string()), Value::Str("fees".to_string()), Value::Str("fundings".to_string()), Value::Str("fundings/{fid}".to_string()), Value::Str("funding_destination".to_string()), Value::Str("kyc_documents".to_string()), Value::Str("ledger".to_string()), Value::Str("ledger/trades".to_string()), Value::Str("ledger/fees".to_string()), Value::Str("ledger/fundings".to_string()), Value::Str("ledger/withdrawals".to_string()), Value::Str("mx_bank_codes".to_string()), Value::Str("open_orders".to_string()), Value::Str("order_trades/{oid}".to_string()), Value::Str("orders/{oid}".to_string()), Value::Str("user_trades".to_string()), Value::Str("user_trades/{tid}".to_string()), Value::Str("withdrawals/".to_string()), Value::Str("withdrawals/{wid}".to_string())]));
-        m.insert("post".to_string(), Value::List(vec![Value::Str("bitcoin_withdrawal".to_string()), Value::Str("debit_card_withdrawal".to_string()), Value::Str("ether_withdrawal".to_string()), Value::Str("orders".to_string()), Value::Str("phone_number".to_string()), Value::Str("phone_verification".to_string()), Value::Str("phone_withdrawal".to_string()), Value::Str("spei_withdrawal".to_string()), Value::Str("ripple_withdrawal".to_string()), Value::Str("bcash_withdrawal".to_string()), Value::Str("litecoin_withdrawal".to_string())]));
-        m.insert("delete".to_string(), Value::List(vec![Value::Str("orders".to_string()), Value::Str("orders/{oid}".to_string()), Value::Str("orders/all".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("account_status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("fees".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("fundings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("fundings/{fid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("funding_destination".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("kyc_documents".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ledger".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ledger/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ledger/fees".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ledger/fundings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ledger/withdrawals".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("mx_bank_codes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order_trades/{oid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders/{oid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user_trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user_trades/{tid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("withdrawals/".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("withdrawals/{wid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("bitcoin_withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("debit_card_withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ether_withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("phone_number".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("phone_verification".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("phone_withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spei_withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ripple_withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("bcash_withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("litecoin_withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("delete".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders/{oid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orders/all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
     m
@@ -749,8 +961,8 @@ impl BitsoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_380: bool = true;
-            while { if !__for_first_380 { i = add(&i, &Value::Int(1)); } __for_first_380 = false; is_less_than(&i, &get_array_length(&markets)) } {
+            let mut __for_first_383: bool = true;
+            while { if !__for_first_383 { i = add(&i, &Value::Int(1)); } __for_first_383 = false; is_less_than(&i, &get_array_length(&markets)) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "book", &[]);
@@ -786,8 +998,8 @@ impl BitsoCore {
             let mut makerFees: Value = Value::List(vec![]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_379: bool = true;
-                while { if !__for_first_379 { j = add(&j, &Value::Int(1)); } __for_first_379 = false; is_less_than(&j, &get_array_length(&feeTiers)) } {
+                let mut __for_first_382: bool = true;
+                while { if !__for_first_382 { j = add(&j, &Value::Int(1)); } __for_first_382 = false; is_less_than(&j, &get_array_length(&feeTiers)) } {
                 let mut tier: Value = get_value(&feeTiers, &j);
                 let mut tier: Value = get_value(&feeTiers, &j);
                 let mut volume: Value = self.safe_number_k(tier.clone(), "volume", &[]);
@@ -986,8 +1198,8 @@ impl BitsoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_381: bool = true;
-            while { if !__for_first_381 { i = add(&i, &Value::Int(1)); } __for_first_381 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_384: bool = true;
+            while { if !__for_first_384 { i = add(&i, &Value::Int(1)); } __for_first_384 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1359,7 +1571,8 @@ impl BitsoCore {
         });
         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_trades(&[__ws_arg_5]).await;
-        return self.parse_trades(get_value(&response, &Value::Str("payload".to_string())), &[market.clone(), since.clone(), limit.clone()]);
+        let mut payload: Value = self.safe_list_k(response.clone(), "payload", &[Value::List(vec![])]);
+        return self.parse_trades(payload.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1435,8 +1648,8 @@ impl BitsoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_382: bool = true;
-            while { if !__for_first_382 { i = add(&i, &Value::Int(1)); } __for_first_382 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_385: bool = true;
+            while { if !__for_first_385 { i = add(&i, &Value::Int(1)); } __for_first_385 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = get_value(&fees, &i);
             let mut fee: Value = get_value(&fees, &i);
             let mut marketId: Value = self.safe_string_k(fee.clone(), "book", &[]);
@@ -1507,7 +1720,8 @@ impl BitsoCore {
         });
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_user_trades(&[__ws_arg_6]).await;
-        return self.parse_trades(get_value(&response, &Value::Str("payload".to_string())), &[market.clone(), since.clone(), limit.clone()]);
+        let mut payload: Value = self.safe_list_k(response.clone(), "payload", &[Value::List(vec![])]);
+        return self.parse_trades(payload.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1548,7 +1762,11 @@ impl BitsoCore {
         }
         let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_7]).await;
-        let mut id: Value = self.safe_string(get_value(&response, &Value::Str("payload".to_string())), Value::Str("oid".to_string()), &[]);
+        let mut payload: Value = self.safe_dict_k(response.clone(), "payload", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut id: Value = self.safe_string_k(payload.clone(), "oid", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1644,8 +1862,8 @@ impl BitsoCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_383: bool = true;
-            while { if !__for_first_383 { i = add(&i, &Value::Int(1)); } __for_first_383 = false; is_less_than(&i, &get_array_length(&payload)) } {
+            let mut __for_first_386: bool = true;
+            while { if !__for_first_386 { i = add(&i, &Value::Int(1)); } __for_first_386 = false; is_less_than(&i, &get_array_length(&payload)) } {
             let mut id: Value = get_value(&payload, &i);
             let mut id: Value = get_value(&payload, &i);
             append_to_array(&mut orders, self.parse_order(id.clone(), &[market.clone()]));
@@ -1685,8 +1903,8 @@ impl BitsoCore {
         let mut canceledOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_384: bool = true;
-            while { if !__for_first_384 { i = add(&i, &Value::Int(1)); } __for_first_384 = false; is_less_than(&i, &get_array_length(&payload)) } {
+            let mut __for_first_387: bool = true;
+            while { if !__for_first_387 { i = add(&i, &Value::Int(1)); } __for_first_387 = false; is_less_than(&i, &get_array_length(&payload)) } {
             let mut order: Value = self.parse_order(get_value(&payload, &i), &[]);
             append_to_array(&mut canceledOrders, order.clone());
         }
@@ -1811,7 +2029,8 @@ impl BitsoCore {
         });
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_open_orders(&[__ws_arg_10]).await;
-        let mut orders: Value = self.parse_orders(get_value(&response, &Value::Str("payload".to_string())), &[market.clone(), since.clone(), limit.clone()]);
+        let mut payload: Value = self.safe_list_k(response.clone(), "payload", &[Value::List(vec![])]);
+        let mut orders: Value = self.parse_orders(payload.clone(), &[market.clone(), since.clone(), limit.clone()]);
         return orders;
 
     Value::Null
@@ -1843,7 +2062,7 @@ impl BitsoCore {
         })]).await;
         let mut payload: Value = self.safe_value_k(response.clone(), "payload", &[]);
         if is_true(&Value::Bool(is_array(&payload))) {
-            let mut numOrders: Value = get_array_length(&get_value(&response, &Value::Str("payload".to_string())));
+            let mut numOrders: Value = get_array_length(&payload);
             if is_equal(&numOrders, &Value::Int(1)) {
                 return self.parse_order(get_value(&payload, &Value::Int(0)), &[]);
             }
@@ -1884,7 +2103,8 @@ impl BitsoCore {
         });
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_order_trades_oid(&[__ws_arg_11]).await;
-        return self.parse_trades(get_value(&response, &Value::Str("payload".to_string())), &[market.clone()]);
+        let mut payload: Value = self.safe_list_k(response.clone(), "payload", &[Value::List(vec![])]);
+        return self.parse_trades(payload.clone(), &[market.clone()]);
 
     Value::Null
 }
@@ -2028,7 +2248,11 @@ impl BitsoCore {
         });
         let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_funding_destination(&[__ws_arg_13]).await;
-        let mut address: Value = self.safe_string(get_value(&response, &Value::Str("payload".to_string())), Value::Str("account_identifier".to_string()), &[]);
+        let mut payload: Value = self.safe_dict_k(response.clone(), "payload", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut address: Value = self.safe_string_k(payload.clone(), "account_identifier", &[]);
         let mut tag: Value = Value::Null;
         if is_greater_than_or_equal(&get_index_of(&address, &Value::Str("?dt=".to_string())), &Value::Int(0)) {
             let mut parts: Value = split(&address, &Value::Str("?dt=".to_string()));
@@ -2123,8 +2347,8 @@ impl BitsoCore {
         let mut depositFees: Value = self.safe_value_k(payload.clone(), "deposit_fees", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_385: bool = true;
-            while { if !__for_first_385 { i = add(&i, &Value::Int(1)); } __for_first_385 = false; is_less_than(&i, &get_array_length(&depositFees)) } {
+            let mut __for_first_388: bool = true;
+            while { if !__for_first_388 { i = add(&i, &Value::Int(1)); } __for_first_388 = false; is_less_than(&i, &get_array_length(&depositFees)) } {
             let mut depositFee: Value = get_value(&depositFees, &i);
             let mut depositFee: Value = get_value(&depositFees, &i);
             let mut currencyId: Value = self.safe_string_k(depositFee.clone(), "currency", &[]);
@@ -2152,8 +2376,8 @@ impl BitsoCore {
         let mut currencyIds: Value = object_keys(&withdrawalFees);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_386: bool = true;
-            while { if !__for_first_386 { i = add(&i, &Value::Int(1)); } __for_first_386 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_389: bool = true;
+            while { if !__for_first_389 { i = add(&i, &Value::Int(1)); } __for_first_389 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2300,8 +2524,8 @@ impl BitsoCore {
         let mut withdrawalResponse: Value = self.safe_value_k(response.clone(), "withdrawal_fees", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_387: bool = true;
-            while { if !__for_first_387 { i = add(&i, &Value::Int(1)); } __for_first_387 = false; is_less_than(&i, &get_array_length(&depositResponse)) } {
+            let mut __for_first_390: bool = true;
+            while { if !__for_first_390 { i = add(&i, &Value::Int(1)); } __for_first_390 = false; is_less_than(&i, &get_array_length(&depositResponse)) } {
             let mut entry: Value = get_value(&depositResponse, &i);
             let mut entry: Value = get_value(&depositResponse, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -2336,8 +2560,8 @@ impl BitsoCore {
         let mut withdrawalKeys: Value = object_keys(&withdrawalResponse);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_388: bool = true;
-            while { if !__for_first_388 { i = add(&i, &Value::Int(1)); } __for_first_388 = false; is_less_than(&i, &get_array_length(&withdrawalKeys)) } {
+            let mut __for_first_391: bool = true;
+            while { if !__for_first_391 { i = add(&i, &Value::Int(1)); } __for_first_391 = false; is_less_than(&i, &get_array_length(&withdrawalKeys)) } {
             let mut currencyId: Value = get_value(&withdrawalKeys, &i);
             let mut currencyId: Value = get_value(&withdrawalKeys, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);

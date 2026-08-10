@@ -121,27 +121,26 @@ async fn main() {
         None => println!("cadence: {} s, until Ctrl+C\n", every.as_secs()),
     }
     let books: SharedBooks = Arc::new(RwLock::new(HashMap::new()));
-    let local = tokio::task::LocalSet::new();
-    local
-        .run_until(async {
-            let spot = tokio::task::spawn_local(run_fetcher(SPOT, books.clone(), every, rounds));
-            let swap = tokio::task::spawn_local(run_fetcher(SWAP, books.clone(), every, rounds));
-            let printer = tokio::task::spawn_local(run_printer(books.clone(), every));
-            let _ = spot.await;
-            let _ = swap.await;
-            // Bounded run: the fetchers finished their rounds — print one final
-            // reading (both books are guaranteed in the map by now), then stop.
-            printer.abort();
-            let map = books.read().await;
-            if let (Some(spot), Some(swap)) = (map.get(SPOT), map.get(SWAP)) {
-                let diff = swap.mid() - spot.mid();
-                println!(
-                    "\nfinal: spot mid={:.2}  perp mid={:.2}  diff={:+.2} USDT",
-                    spot.mid(),
-                    swap.mid(),
-                    diff,
-                );
-            }
-        })
-        .await;
+    // The exchange futures carry a `Send` guarantee (the trait surface is
+    // emitted as `impl Future + Send` / `Pin<Box<dyn Future + Send>>`), so the
+    // fetchers go through plain `tokio::spawn` and run on the multi-threaded
+    // runtime — genuinely parallel tasks, one exchange instance per task.
+    let spot = tokio::spawn(run_fetcher(SPOT, books.clone(), every, rounds));
+    let swap = tokio::spawn(run_fetcher(SWAP, books.clone(), every, rounds));
+    let printer = tokio::spawn(run_printer(books.clone(), every));
+    let _ = spot.await;
+    let _ = swap.await;
+    // Bounded run: the fetchers finished their rounds — print one final
+    // reading (both books are guaranteed in the map by now), then stop.
+    printer.abort();
+    let map = books.read().await;
+    if let (Some(spot), Some(swap)) = (map.get(SPOT), map.get(SWAP)) {
+        let diff = swap.mid() - spot.mid();
+        println!(
+            "\nfinal: spot mid={:.2}  perp mid={:.2}  diff={:+.2} USDT",
+            spot.mid(),
+            swap.mid(),
+            diff,
+        );
+    }
 }

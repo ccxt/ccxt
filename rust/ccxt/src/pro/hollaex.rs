@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for HollaexCore {
 
 impl crate::exchange_generated::ExchangeBase for HollaexCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -365,7 +365,7 @@ impl HollaexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -410,6 +410,9 @@ impl HollaexCore {
         let mut channel: Value = self.safe_string_k(message.clone(), "topic", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        if is_equal(&symbol, &Value::Null) {
+            return;
+        }
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
         let mut timestamp: Value = self.safe_string_k(data.clone(), "timestamp", &[]);
         let mut timestampMs: Value = self.parse8601(timestamp.clone());
@@ -420,6 +423,9 @@ impl HollaexCore {
             add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
         }  else {
             orderbook = get_value(&self.orderbooks, &symbol);
+            if is_equal(&orderbook, &Value::Null) {
+                return;
+            }
             orderbook.reset(snapshot.clone());
         }
         let mut messageHash: Value = add(&add(&channel, &Value::Str(":".to_string())), &marketId);
@@ -489,8 +495,8 @@ impl HollaexCore {
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_391: bool = true;
-            while { if !__for_first_391 { j = add(&j, &Value::Int(1)); } __for_first_391 = false; is_less_than(&j, &get_array_length(&parsedTrades)) } {
+            let mut __for_first_389: bool = true;
+            while { if !__for_first_389 { j = add(&j, &Value::Int(1)); } __for_first_389 = false; is_less_than(&j, &get_array_length(&parsedTrades)) } {
             stored.append(get_value(&parsedTrades, &j));
         }
         }
@@ -580,8 +586,8 @@ impl HollaexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_392: bool = true;
-            while { if !__for_first_392 { i = add(&i, &Value::Int(1)); } __for_first_392 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_390: bool = true;
+            while { if !__for_first_390 { i = add(&i, &Value::Int(1)); } __for_first_390 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut parsed: Value = self.parse_trade(trade.clone(), &[]);
@@ -589,7 +595,9 @@ impl HollaexCore {
             let mut symbol: Value = get_value(&trade, &Value::Str("symbol".to_string()));
             let mut market: Value = self.market(symbol.clone());
             let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
-            add_element_to_object(&mut marketIds, &marketId, Value::Bool(true));
+            if !is_equal(&marketId, &Value::Null) {
+                add_element_to_object(&mut marketIds, &marketId, Value::Bool(true));
+            }
         }
         }
         // non-symbol specific
@@ -597,8 +605,8 @@ impl HollaexCore {
         let mut keys: Value = object_keys(&marketIds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_393: bool = true;
-            while { if !__for_first_393 { i = add(&i, &Value::Int(1)); } __for_first_393 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_391: bool = true;
+            while { if !__for_first_391 { i = add(&i, &Value::Int(1)); } __for_first_391 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut messageHash: Value = add(&add(&channel, &Value::Str(":".to_string())), &marketId);
@@ -731,8 +739,8 @@ impl HollaexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_394: bool = true;
-            while { if !__for_first_394 { i = add(&i, &Value::Int(1)); } __for_first_394 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
+            let mut __for_first_392: bool = true;
+            while { if !__for_first_392 { i = add(&i, &Value::Int(1)); } __for_first_392 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
             let mut order: Value = get_value(&rawOrders, &i);
             let mut order: Value = get_value(&rawOrders, &i);
             let mut parsed: Value = self.parse_order(order.clone(), &[]);
@@ -740,7 +748,9 @@ impl HollaexCore {
             let mut symbol: Value = get_value(&order, &Value::Str("symbol".to_string()));
             let mut market: Value = self.market(symbol.clone());
             let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
-            add_element_to_object(&mut marketIds, &marketId, Value::Bool(true));
+            if !is_equal(&marketId, &Value::Null) {
+                add_element_to_object(&mut marketIds, &marketId, Value::Bool(true));
+            }
         }
         }
         // non-symbol specific
@@ -748,8 +758,8 @@ impl HollaexCore {
         let mut keys: Value = object_keys(&marketIds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_395: bool = true;
-            while { if !__for_first_395 { i = add(&i, &Value::Int(1)); } __for_first_395 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_393: bool = true;
+            while { if !__for_first_393 { i = add(&i, &Value::Int(1)); } __for_first_393 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut messageHash: Value = add(&add(&channel, &Value::Str(":".to_string())), &marketId);
@@ -803,18 +813,23 @@ impl HollaexCore {
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance.clone(), &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_396: bool = true;
-            while { if !__for_first_396 { i = add(&i, &Value::Int(1)); } __for_first_396 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_394: bool = true;
+            while { if !__for_first_394 { i = add(&i, &Value::Int(1)); } __for_first_394 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut parts: Value = split(&key, &Value::Str("_".to_string()));
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut account: Value = ternary(is_true(&(Value::Bool(in_op(&self.balance, &code)))), get_value(&self.balance, &code), self.account());
+            let mut account: Value = self.account();
+            if is_true(&(!is_equal(&code, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.balance, &code)))) {
+                account = get_value(&self.balance, &code);
+            }
             let mut second: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
             let mut freeOrTotal: Value = ternary(is_true(&(is_equal(&second, &Value::Str("available".to_string())))), Value::Str("free".to_string()), Value::Str("total".to_string()));
             add_element_to_object(&mut account, &freeOrTotal, self.safe_string(data.clone(), key.clone(), &[]));
-            add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
@@ -849,6 +864,9 @@ impl HollaexCore {
         if is_equal(&expires, &Value::Null) {
             let mut timeout: Value = crate::runtime::parse_int(&to_string_val(&(divide(&self.timeout, &Value::Int(1000)))));
             expires = self.sum(&[self.seconds(), timeout.clone()]);
+            if is_equal(&expires, &Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchPrivate() expires is required".to_string()))));
+            }
             expires = to_string_val(&expires);
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message

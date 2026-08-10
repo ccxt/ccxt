@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BitvavoCore {
 
 impl crate::exchange_generated::ExchangeBase for BitvavoCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -284,12 +284,22 @@ impl crate::exchange_generated::ExchangeBase for BitvavoCore {
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_order_book_message" => self.handle_order_book_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_unsubscription_status" => self.handle_unsubscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "request_id" => self.request_id(),
+                "un_watch_channels" => self.un_watch_channels(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_ohlcv_for_symbols" => self.un_watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_order_book" => self.un_watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_order_book_for_symbols" => self.un_watch_order_book_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "un_watch_trades_for_symbols" => self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_bids_asks" => self.watch_bids_asks(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_my_trades" => self.watch_my_trades(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_ohlcv_for_symbols" => self.watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_order_book_for_symbols" => self.watch_order_book_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_order_book_snapshot" => self.watch_order_book_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "watch_orders" => self.watch_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_public" => self.watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
@@ -298,6 +308,7 @@ impl crate::exchange_generated::ExchangeBase for BitvavoCore {
                 "watch_ticker" => self.watch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_tickers" => self.watch_tickers(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
                 "watch_trades" => self.watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
+                "watch_trades_for_symbols" => self.watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
                 "withdraw_ws" => self.withdraw_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]).await,
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
@@ -325,13 +336,22 @@ impl BitvavoCore {
         m.insert("cancelOrdersWs".to_string(), Value::Bool(false));
         m.insert("fetchTradesWs".to_string(), Value::Bool(false));
         m.insert("watchOrderBook".to_string(), Value::Bool(true));
+        m.insert("watchOrderBookForSymbols".to_string(), Value::Bool(true));
         m.insert("watchTrades".to_string(), Value::Bool(true));
+        m.insert("watchTradesForSymbols".to_string(), Value::Bool(true));
         m.insert("watchTicker".to_string(), Value::Bool(true));
         m.insert("watchTickers".to_string(), Value::Bool(true));
         m.insert("watchBidsAsks".to_string(), Value::Bool(true));
         m.insert("watchOHLCV".to_string(), Value::Bool(true));
+        m.insert("watchOHLCVForSymbols".to_string(), Value::Bool(true));
         m.insert("watchOrders".to_string(), Value::Bool(true));
         m.insert("watchMyTrades".to_string(), Value::Bool(true));
+        m.insert("unWatchOrderBook".to_string(), Value::Bool(true));
+        m.insert("unWatchOrderBookForSymbols".to_string(), Value::Bool(true));
+        m.insert("unWatchTrades".to_string(), Value::Bool(true));
+        m.insert("unWatchTradesForSymbols".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCV".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCVForSymbols".to_string(), Value::Bool(true));
         m.insert("cancelAllOrdersWs".to_string(), Value::Bool(true));
         m.insert("cancelOrderWs".to_string(), Value::Bool(true));
         m.insert("createOrderWs".to_string(), Value::Bool(true));
@@ -422,8 +442,8 @@ impl BitvavoCore {
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_171: bool = true;
-            while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_159: bool = true;
+            while { if !__for_first_159 { i = add(&i, &Value::Int(1)); } __for_first_159 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut args, get_value(&market, &Value::Str("id".to_string())));
         }
@@ -519,8 +539,8 @@ impl BitvavoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_172: bool = true;
-            while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_160: bool = true;
+            while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut data: Value = get_value(&tickers, &i);
             let mut data: Value = get_value(&tickers, &i);
             let mut marketId: Value = self.safe_string_k(data.clone(), "market", &[]);
@@ -568,8 +588,8 @@ impl BitvavoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_173: bool = true;
-            while { if !__for_first_173 { i = add(&i, &Value::Int(1)); } __for_first_173 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_161: bool = true;
+            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut data: Value = get_value(&tickers, &i);
             let mut data: Value = get_value(&tickers, &i);
             let mut ticker: Value = self.parse_ws_bid_ask(data.clone(), &[]);
@@ -661,6 +681,129 @@ impl BitvavoCore {
         tradesArray.append(trade.clone());
         add_element_to_object(&mut self.trades.clone(), &symbol, tradesArray.clone());
         client.resolve(&[tradesArray.clone(), messageHash.clone()]);
+}
+
+/*
+ * @method
+ * @name bitvavo#watchTradesForSymbols
+ * @description get the list of most recent trades for a list of symbols
+ * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+ * @param {string[]} symbols unified symbols of the markets to fetch trades for
+ * @param {int} [since] timestamp in ms of the earliest trade to fetch
+ * @param {int} [limit] the maximum amount of trades to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+ */
+    pub async fn watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
+        let mut name: Value = Value::Str("trades".to_string());
+        let mut marketIds: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_162: bool = true;
+            while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut market: Value = self.market(get_value(&symbols, &i));
+            append_to_array(&mut marketIds, get_value(&market, &Value::Str("id".to_string())));
+            append_to_array(&mut messageHashes, add(&add(&name, &Value::Str("@".to_string())), &get_value(&market, &Value::Str("id".to_string()))));
+        }
+        }
+        let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("action".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("channels".to_string(), Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), name.clone());
+        m.insert("markets".to_string(), marketIds.clone());
+    m
+})]));
+            m
+        });
+        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut trades: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
+        if is_true(&self.newUpdates) {
+            let mut first: Value = self.safe_value(trades.clone(), Value::Int(0), &[]);
+            let mut tradeSymbol: Value = self.safe_string_k(first.clone(), "symbol", &[]);
+            limit = trades.get_limit(tradeSymbol.clone(), limit.clone());
+        }
+        return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".to_string()), Value::Bool(true)]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name bitvavo#unWatchTrades
+ * @description stop watching the list of most recent trades for a particular symbol
+ * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+ * @param {string} symbol unified symbol of the market to stop watching the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.un_watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name bitvavo#unWatchTradesForSymbols
+ * @description stop watching the list of most recent trades for a list of symbols
+ * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+ * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
+        let mut name: Value = Value::Str("trades".to_string());
+        let mut marketIds: Value = Value::List(vec![]);
+        let mut subMessageHashes: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_163: bool = true;
+            while { if !__for_first_163 { i = add(&i, &Value::Int(1)); } __for_first_163 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut market: Value = self.market(get_value(&symbols, &i));
+            append_to_array(&mut marketIds, get_value(&market, &Value::Str("id".to_string())));
+            append_to_array(&mut subMessageHashes, add(&add(&name, &Value::Str("@".to_string())), &get_value(&market, &Value::Str("id".to_string()))));
+        }
+        }
+        let mut channels: Value = Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), name.clone());
+        m.insert("markets".to_string(), marketIds.clone());
+    m
+})]);
+        let mut subscriptionArgs: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbols".to_string(), symbols.clone());
+            m
+        });
+        return self.un_watch_channels(Value::Str("trades".to_string()), channels.clone(), subMessageHashes.clone(), subscriptionArgs.clone(), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
@@ -769,8 +912,8 @@ impl BitvavoCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_174: bool = true;
-            while { if !__for_first_174 { i = add(&i, &Value::Int(1)); } __for_first_174 = false; is_less_than(&i, &get_array_length(&candles)) } {
+            let mut __for_first_164: bool = true;
+            while { if !__for_first_164 { i = add(&i, &Value::Int(1)); } __for_first_164 = false; is_less_than(&i, &get_array_length(&candles)) } {
             let mut candle: Value = get_value(&candles, &i);
             let mut candle: Value = get_value(&candles, &i);
             let mut parsed: Value = self.parse_ohlcv(candle.clone(), &[market.clone()]);
@@ -778,6 +921,182 @@ impl BitvavoCore {
         }
         }
         client.resolve(&[stored.clone(), messageHash.clone()]);
+        // watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
+        client.resolve(&[Value::List(vec![symbol.clone(), timeframe.clone(), stored.clone()]), add(&Value::Str("multi:".to_string()), &messageHash)]);
+}
+
+/*
+ * @method
+ * @name bitvavo#watchOHLCVForSymbols
+ * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
+ * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+ * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+ * @param {int} [since] timestamp in ms of the earliest candle to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
+ */
+    pub async fn watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> Value {
+        let mut since = get_arg(optional_args, 0, Value::Null);
+        let mut limit = get_arg(optional_args, 1, Value::Null);
+        let mut params = get_arg(optional_args, 2, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut name: Value = Value::Str("candles".to_string());
+        let mut messageHashes: Value = Value::List(vec![]);
+        let mut marketIdsByInterval: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_165: bool = true;
+            while { if !__for_first_165 { i = add(&i, &Value::Int(1)); } __for_first_165 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
+            let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
+            let mut market: Value = self.market(get_value(&symbolAndTimeframe, &Value::Int(0)));
+            let mut timeframeString: Value = get_value(&symbolAndTimeframe, &Value::Int(1));
+            let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframeString.clone(), &[timeframeString.clone()]);
+            if !is_true(&(Value::Bool(in_op(&marketIdsByInterval, &interval)))) {
+                add_element_to_object(&mut marketIdsByInterval, &interval, Value::List(vec![]));
+            }
+            let mut intervalIds: Value = get_value(&marketIdsByInterval, &interval);
+            append_to_array(&mut intervalIds, get_value(&market, &Value::Str("id".to_string())));
+            crate::set_value(&mut marketIdsByInterval, &interval, intervalIds.clone());
+            append_to_array(&mut messageHashes, add(&add(&add(&add(&add(&Value::Str("multi:".to_string()), &name), &Value::Str("@".to_string())), &get_value(&market, &Value::Str("id".to_string()))), &Value::Str("_".to_string())), &interval));
+        }
+        }
+        let mut channels: Value = Value::List(vec![]);
+        let mut intervals: Value = object_keys(&marketIdsByInterval);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_166: bool = true;
+            while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&intervals)) } {
+            let mut interval: Value = get_value(&intervals, &i);
+            let mut interval: Value = get_value(&intervals, &i);
+            append_to_array(&mut channels, Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("name".to_string(), name.clone());
+                    m.insert("interval".to_string(), Value::List(vec![interval.clone()]));
+                    m.insert("markets".to_string(), get_value(&marketIdsByInterval, &interval));
+                m
+            }));
+        }
+        }
+        let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("action".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("channels".to_string(), channels.clone());
+            m
+        });
+        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut symboltimeframecandlesVariable = self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
+        let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
+        let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
+        let mut candles: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(2));
+        if is_true(&self.newUpdates) {
+            limit = candles.get_limit(symbol.clone(), limit.clone());
+        }
+        let mut filtered: Value = self.filter_by_since_limit(candles.clone(), &[since.clone(), limit.clone(), Value::Int(0), Value::Bool(true)]);
+        return self.create_ohlcv_object(symbol.clone(), timeframe.clone(), filtered.clone());
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name bitvavo#unWatchOHLCV
+ * @description stop watching historical candlestick data for a market
+ * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+ * @param {string} symbol unified symbol of the market to stop watching the candles for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.un_watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[params.clone()]).await;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name bitvavo#unWatchOHLCVForSymbols
+ * @description stop watching historical candlestick data for multiple markets
+ * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+ * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to stop watching the candles for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut name: Value = Value::Str("candles".to_string());
+        let mut subMessageHashes: Value = Value::List(vec![]);
+        let mut marketIdsByInterval: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_167: bool = true;
+            while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
+            let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
+            let mut market: Value = self.market(get_value(&symbolAndTimeframe, &Value::Int(0)));
+            let mut timeframeString: Value = get_value(&symbolAndTimeframe, &Value::Int(1));
+            let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframeString.clone(), &[timeframeString.clone()]);
+            if !is_true(&(Value::Bool(in_op(&marketIdsByInterval, &interval)))) {
+                add_element_to_object(&mut marketIdsByInterval, &interval, Value::List(vec![]));
+            }
+            let mut intervalIds: Value = get_value(&marketIdsByInterval, &interval);
+            append_to_array(&mut intervalIds, get_value(&market, &Value::Str("id".to_string())));
+            crate::set_value(&mut marketIdsByInterval, &interval, intervalIds.clone());
+            // both the single-symbol and the multi-symbol watch hashes must be released
+            append_to_array(&mut subMessageHashes, add(&add(&add(&add(&name, &Value::Str("@".to_string())), &get_value(&market, &Value::Str("id".to_string()))), &Value::Str("_".to_string())), &interval));
+            append_to_array(&mut subMessageHashes, add(&add(&add(&add(&add(&Value::Str("multi:".to_string()), &name), &Value::Str("@".to_string())), &get_value(&market, &Value::Str("id".to_string()))), &Value::Str("_".to_string())), &interval));
+        }
+        }
+        let mut channels: Value = Value::List(vec![]);
+        let mut intervals: Value = object_keys(&marketIdsByInterval);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_168: bool = true;
+            while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&intervals)) } {
+            let mut interval: Value = get_value(&intervals, &i);
+            let mut interval: Value = get_value(&intervals, &i);
+            append_to_array(&mut channels, Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("name".to_string(), name.clone());
+                    m.insert("interval".to_string(), Value::List(vec![interval.clone()]));
+                    m.insert("markets".to_string(), get_value(&marketIdsByInterval, &interval));
+                m
+            }));
+        }
+        }
+        let mut subscriptionArgs: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbolsAndTimeframes".to_string(), symbolsAndTimeframes.clone());
+            m
+        });
+        return self.un_watch_channels(Value::Str("ohlcv".to_string()), channels.clone(), subMessageHashes.clone(), subscriptionArgs.clone(), &[params.clone()]).await;
+
+    Value::Null
 }
 
 /*
@@ -787,7 +1106,7 @@ impl BitvavoCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -832,6 +1151,132 @@ impl BitvavoCore {
     Value::Null
 }
 
+/*
+ * @method
+ * @name bitvavo#watchOrderBookForSymbols
+ * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+ * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+ * @param {string[]} symbols unified symbols of the markets to fetch the order book for
+ * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+ */
+    pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+        let mut limit = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
+        let mut name: Value = Value::Str("book".to_string());
+        let mut marketIds: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_169: bool = true;
+            while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut market: Value = self.market(get_value(&symbols, &i));
+            append_to_array(&mut marketIds, get_value(&market, &Value::Str("id".to_string())));
+            append_to_array(&mut messageHashes, add(&add(&name, &Value::Str("@".to_string())), &get_value(&market, &Value::Str("id".to_string()))));
+        }
+        }
+        let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("action".to_string(), Value::Str("subscribe".to_string()));
+                m.insert("channels".to_string(), Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), name.clone());
+        m.insert("markets".to_string(), marketIds.clone());
+    m
+})]));
+            m
+        });
+        // the per-market snapshot machinery reads the marketId from the buffered
+        // delta messages, so the shared subscription only carries the common fields
+        let mut subscription: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("name".to_string(), name.clone());
+                m.insert("symbols".to_string(), symbols.clone());
+                m.insert("limit".to_string(), limit.clone());
+                m.insert("params".to_string(), params.clone());
+            m
+        });
+        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut orderbook: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone(), subscription.clone()]).await;
+        return orderbook.limit();
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name bitvavo#unWatchOrderBook
+ * @description stop watching the order book for a particular symbol
+ * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+ * @param {string} symbol unified symbol of the market to stop watching the order book for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.un_watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name bitvavo#unWatchOrderBookForSymbols
+ * @description stop watching the order book for multiple markets
+ * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+ * @param {string[]} symbols unified symbols of the markets to stop watching the order book for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
+        let mut name: Value = Value::Str("book".to_string());
+        let mut marketIds: Value = Value::List(vec![]);
+        let mut subMessageHashes: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_170: bool = true;
+            while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut market: Value = self.market(get_value(&symbols, &i));
+            append_to_array(&mut marketIds, get_value(&market, &Value::Str("id".to_string())));
+            append_to_array(&mut subMessageHashes, add(&add(&name, &Value::Str("@".to_string())), &get_value(&market, &Value::Str("id".to_string()))));
+        }
+        }
+        let mut channels: Value = Value::List(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), name.clone());
+        m.insert("markets".to_string(), marketIds.clone());
+    m
+})]);
+        let mut subscriptionArgs: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbols".to_string(), symbols.clone());
+            m
+        });
+        return self.un_watch_channels(Value::Str("orderbook".to_string()), channels.clone(), subMessageHashes.clone(), subscriptionArgs.clone(), &[params.clone()]).await;
+
+    Value::Null
+}
+
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
         let mut price: Value = self.safe_float(delta.clone(), Value::Int(0), &[]);
         let mut amount: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
@@ -841,8 +1286,8 @@ impl BitvavoCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_175: bool = true;
-            while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_171: bool = true;
+            while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -901,9 +1346,12 @@ impl BitvavoCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut watchingOrderBookSnapshot: Value = self.safe_value_k(subscription.clone(), "watchingOrderBookSnapshot", &[]);
+            // multi-symbol watches share one subscription object, so the
+            // snapshot-in-flight flag must be tracked per market
+            let mut flagKey: Value = add(&Value::Str("watchingOrderBookSnapshot@".to_string()), &marketId);
+            let mut watchingOrderBookSnapshot: Value = self.safe_value(subscription.clone(), flagKey.clone(), &[]);
             if is_equal(&watchingOrderBookSnapshot, &Value::Null) {
-                add_element_to_object(&mut subscription, &Value::Str("watchingOrderBookSnapshot".to_string()), Value::Bool(true));
+                add_element_to_object(&mut subscription, &flagKey, Value::Bool(true));
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash, subscription.clone());
                 let mut options: Value = self.safe_value_k(self.options.clone(), "watchOrderBookSnapshot", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -922,7 +1370,13 @@ impl BitvavoCore {
 
     pub async fn watch_order_book_snapshot(&mut self, mut client: Value, mut message: Value, mut subscription: Value) -> Value {
         let mut params: Value = self.safe_value_k(subscription.clone(), "params", &[]);
-        let mut marketId: Value = self.safe_string_k(subscription.clone(), "marketId", &[]);
+        // multi-symbol watches share one subscription object without a marketId,
+        // in that case the buffered delta message identifies the market
+        let mut marketId: Value = self.safe_string2(subscription.clone(), Value::Str("marketId".to_string()), Value::Str("market".to_string()), &[self.safe_string_k(message.clone(), "market", &[])]);
+        let mut snapshotSymbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
+        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &snapshotSymbol)))) {
+            return Value::Null;
+        }
         let mut name: Value = Value::Str("getBook".to_string());
         let mut messageHash: Value = add(&add(&name, &Value::Str("@".to_string())), &marketId);
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
@@ -967,7 +1421,10 @@ impl BitvavoCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
         let mut name: Value = Value::Str("book".to_string());
         let mut messageHash: Value = add(&add(&name, &Value::Str("@".to_string())), &marketId);
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
+        if is_equal(&orderbook, &Value::Null) {
+            return;
+        }
         let mut snapshot: Value = self.parse_order_book(response.clone(), symbol.clone(), &[]);
         add_element_to_object(&mut snapshot, &Value::Str("nonce".to_string()), self.safe_integer_k(response.clone(), "nonce", &[]));
         orderbook.reset(snapshot.clone());
@@ -975,8 +1432,8 @@ impl BitvavoCore {
         let mut messages: Value = get_value(&orderbook, &Value::Str("cache".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_176: bool = true;
-            while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &get_array_length(&messages)) } {
+            let mut __for_first_172: bool = true;
+            while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&messages)) } {
             let mut messageItem: Value = get_value(&messages, &i);
             let mut messageItem: Value = get_value(&messages, &i);
             self.handle_order_book_message(client.clone(), messageItem.clone(), orderbook.clone());
@@ -984,6 +1441,13 @@ impl BitvavoCore {
         }
         add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
+        // getBook is a one-shot request but this.watch tracks it as a persistent
+        // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
+        // instead of suppressing the request as an already-active subscription
+        let mut snapshotHash: Value = add(&Value::Str("getBook@".to_string()), &marketId);
+        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &snapshotHash))) {
+            remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &snapshotHash);
+        }
 }
 
     pub fn handle_order_book_subscription(&self, mut client: Value, mut message: Value, mut subscription: Value) {
@@ -1002,8 +1466,8 @@ impl BitvavoCore {
         let mut name: Value = Value::Str("book".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_177: bool = true;
-            while { if !__for_first_177 { i = add(&i, &Value::Int(1)); } __for_first_177 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_173: bool = true;
+            while { if !__for_first_173 { i = add(&i, &Value::Int(1)); } __for_first_173 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = self.safe_string(marketIds.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
             let mut messageHash: Value = add(&add(&name, &Value::Str("@".to_string())), &marketId);
@@ -1012,10 +1476,91 @@ impl BitvavoCore {
                 let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
                 if !is_equal(&method, &Value::Null) {
                     method.call(&[client.clone(), message.clone(), subscription.clone()]);
+                }  else if !is_equal(&subscription, &Value::Null) {
+                    // multi-symbol watches share one subscription object without a
+                    // per-market method - initialize the order book directly
+                    let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
+                    { let __be_tmp = self.order_book(&[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
                 }
             }
         }
         }
+}
+
+    pub async fn un_watch_channels(&mut self, mut topic: Value, mut channels: Value, mut subMessageHashes: Value, mut subscriptionArgs: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("action".to_string(), Value::Str("unsubscribe".to_string()));
+                m.insert("channels".to_string(), channels.clone());
+            m
+        });
+        let mut unsubHashes: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_174: bool = true;
+            while { if !__for_first_174 { i = add(&i, &Value::Int(1)); } __for_first_174 = false; is_less_than(&i, &get_array_length(&subMessageHashes)) } {
+            append_to_array(&mut unsubHashes, add(&Value::Str("unsubscribe:".to_string()), &get_value(&subMessageHashes, &i)));
+        }
+        }
+        let mut subscription: Value = self.extend(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), topic.clone());
+                m.insert("subMessageHashes".to_string(), subMessageHashes.clone());
+                m.insert("unsubHashes".to_string(), unsubHashes.clone());
+            m
+        }), &[subscriptionArgs.clone()]);
+        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        return self.watch_multiple(url.clone(), unsubHashes.clone(), &[message.clone(), unsubHashes.clone(), subscription.clone()]).await;
+
+    Value::Null
+}
+
+    pub fn handle_unsubscription_status(&mut self, mut client: Value, mut message: Value) -> Value {
+        //
+        //     {
+        //         "event": "unsubscribed",
+        //         "subscriptions": {}
+        //     }
+        //
+        // the confirmation carries the remaining subscriptions without identifying
+        // which unsubscribe request it belongs to, so settle every pending unsubscription
+        let mut keys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_175: bool = true;
+            while { if !__for_first_175 { i = add(&i, &Value::Int(1)); } __for_first_175 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut key: Value = get_value(&keys, &i);
+            let mut key: Value = get_value(&keys, &i);
+            if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &key)))) {
+                continue;
+            }
+            if !is_true(&Value::Bool(starts_with(&key, &Value::Str("unsubscribe:".to_string())))) {
+                continue;
+            }
+            let mut subscription: Value = get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &key);
+            let mut subHash: Value = replace_str(&key, &Value::Str("unsubscribe:".to_string()), &Value::Str("".to_string()));
+            self.clean_cache(subscription.clone());
+            self.clean_unsubscription(client.clone(), subHash.clone(), key.clone(), &[]);
+            // bitvavo resolves-and-deletes the data futures on every message, so at
+            // unsubscribe time the sub future is usually already gone and cleanUnsubscription
+            // stashes the error in client.rejections instead - that stale entry
+            // would immediately reject the next subscribe's fresh future, so clear it here
+            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("rejections".to_string())), &subHash))) {
+                remove(&mut get_value(&client, &Value::Str("rejections".to_string())), &subHash);
+            }
+        }
+        }
+        return message;
+
+    Value::Null
 }
 
 /*
@@ -1130,7 +1675,7 @@ impl BitvavoCore {
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
  * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
  * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -1171,7 +1716,7 @@ impl BitvavoCore {
  * @param {string} side 'buy' or 'sell'
  * @param {float} [amount] how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_order_ws(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
@@ -1198,7 +1743,7 @@ impl BitvavoCore {
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
@@ -1223,7 +1768,7 @@ impl BitvavoCore {
  * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
  * @description cancel all open orders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_all_orders_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -1286,7 +1831,7 @@ impl BitvavoCore {
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
@@ -1323,7 +1868,7 @@ impl BitvavoCore {
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of  orde structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_orders_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -1375,7 +1920,7 @@ impl BitvavoCore {
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_open_orders_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -1414,7 +1959,7 @@ impl BitvavoCore {
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
     pub async fn fetch_my_trades_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -1478,7 +2023,7 @@ impl BitvavoCore {
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw_ws(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
@@ -1526,7 +2071,7 @@ impl BitvavoCore {
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_withdrawals_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -1585,7 +2130,7 @@ impl BitvavoCore {
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1615,7 +2160,7 @@ impl BitvavoCore {
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn fetch_deposits_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -1668,7 +2213,7 @@ impl BitvavoCore {
  * @name bitvavo#fetchTradingFeesWs
  * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
  * @description fetch the trading fees for multiple markets
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
     pub async fn fetch_trading_fees_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -1690,7 +2235,7 @@ impl BitvavoCore {
  * @name bitvavo#fetchMarketsWs
  * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
  * @description retrieves data on all markets for bitvavo
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
     pub async fn fetch_markets_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -1708,7 +2253,7 @@ impl BitvavoCore {
  * @name bitvavo#fetchCurrenciesWs
  * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
  * @description fetches all available currencies on an exchange
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
     pub async fn fetch_currencies_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -1775,7 +2320,7 @@ impl BitvavoCore {
  * @name bitvavo#fetchBalanceWs
  * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
  */
     pub async fn fetch_balance_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -2014,8 +2559,8 @@ impl BitvavoCore {
         let mut names: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_178: bool = true;
-            while { if !__for_first_178 { i = add(&i, &Value::Int(1)); } __for_first_178 = false; is_less_than(&i, &get_array_length(&names)) } {
+            let mut __for_first_176: bool = true;
+            while { if !__for_first_176 { i = add(&i, &Value::Int(1)); } __for_first_176 = false; is_less_than(&i, &get_array_length(&names)) } {
             let mut name: Value = get_value(&names, &i);
             let mut name: Value = get_value(&names, &i);
             let mut method: Value = self.safe_value(methods.clone(), name.clone(), &[]);
@@ -2182,6 +2727,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribed".to_string(), Value::Null.clone());
+                m.insert("unsubscribed".to_string(), Value::Null.clone());
                 m.insert("book".to_string(), Value::Null.clone());
                 m.insert("getBook".to_string(), Value::Null.clone());
                 m.insert("trade".to_string(), Value::Null.clone());

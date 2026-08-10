@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for DeriveCore {
 
 impl crate::exchange_generated::ExchangeBase for DeriveCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -400,7 +400,7 @@ impl DeriveCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -499,7 +499,7 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = add(&add(&Value::Str("ticker.".to_string()), &get_value(&market, &Value::Str("id".to_string()))), &Value::Str(".100".to_string()));
+        let mut topic: Value = add(&add(&Value::Str("ticker_slim.".to_string()), &get_value(&market, &Value::Str("id".to_string()))), &Value::Str(".100".to_string())); // the venue deprecated the fat ticker channel in favor of ticker_slim
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".to_string()));
@@ -593,8 +593,40 @@ impl DeriveCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut topic: Value = self.safe_value_k(params.clone(), "channel", &[]);
-        let mut ticker: Value = self.parse_ticker(data.clone(), &[]);
+        let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
+        let mut ticker: Value = Value::Null;
+        if !is_equal(&topic, &Value::Null) && is_true(&Value::Bool(starts_with(&topic, &Value::Str("ticker_slim".to_string())))) {
+            // the slim payload uses short keys and does not carry the instrument name,
+            // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+            let mut parts: Value = split(&topic, &Value::Str(".".to_string()));
+            let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
+            let mut market: Value = self.safe_market(&[marketId.clone()]);
+            let mut stats: Value = self.safe_dict_k(data.clone(), "stats", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
+            ticker = self.safe_ticker(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+                    m.insert("timestamp".to_string(), self.safe_integer_k(data.clone(), "t", &[]));
+                    m.insert("datetime".to_string(), self.iso8601(self.safe_integer_k(data.clone(), "t", &[])));
+                    m.insert("bid".to_string(), self.safe_string_k(data.clone(), "b", &[]));
+                    m.insert("bidVolume".to_string(), self.safe_string_k(data.clone(), "B", &[]));
+                    m.insert("ask".to_string(), self.safe_string_k(data.clone(), "a", &[]));
+                    m.insert("askVolume".to_string(), self.safe_string_k(data.clone(), "A", &[]));
+                    m.insert("high".to_string(), self.safe_string_k(stats.clone(), "h", &[]));
+                    m.insert("low".to_string(), self.safe_string_k(stats.clone(), "l", &[]));
+                    m.insert("baseVolume".to_string(), self.safe_string_k(stats.clone(), "c", &[]));
+                    m.insert("quoteVolume".to_string(), self.safe_string_k(stats.clone(), "v", &[]));
+                    m.insert("percentage".to_string(), self.safe_string_k(stats.clone(), "p", &[]));
+                    m.insert("markPrice".to_string(), self.safe_string_k(data.clone(), "M", &[]));
+                    m.insert("indexPrice".to_string(), self.safe_string_k(data.clone(), "I", &[]));
+                    m.insert("info".to_string(), rawData.clone());
+                m
+            }), &[market.clone()]);
+        }  else {
+            ticker = self.parse_ticker(data.clone(), &[]);
+        }
         let mut tickerSymbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
         if !is_equal(&tickerSymbol, &Value::Null) {
             add_element_to_object(&mut self.tickers.clone(), &tickerSymbol, ticker.clone());
@@ -755,8 +787,8 @@ impl DeriveCore {
             let mut topics: Value = object_keys(&status);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_311: bool = true;
-                while { if !__for_first_311 { i = add(&i, &Value::Int(1)); } __for_first_311 = false; is_less_than(&i, &get_array_length(&topics)) } {
+                let mut __for_first_309: bool = true;
+                while { if !__for_first_309 { i = add(&i, &Value::Int(1)); } __for_first_309 = false; is_less_than(&i, &get_array_length(&topics)) } {
                 let mut topic: Value = get_value(&topics, &i);
                 let mut topic: Value = get_value(&topics, &i);
                 if is_greater_than_or_equal(&get_index_of(&topic, &Value::Str("orderbook".to_string())), &Value::Int(0)) {
@@ -841,8 +873,8 @@ impl DeriveCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_312: bool = true;
-            while { if !__for_first_312 { i = add(&i, &Value::Int(1)); } __for_first_312 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_310: bool = true;
+            while { if !__for_first_310 { i = add(&i, &Value::Int(1)); } __for_first_310 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut trade: Value = self.parse_trade(get_value(&data, &i), &[]);
             tradesArray.append(trade.clone());
         }
@@ -1018,8 +1050,8 @@ impl DeriveCore {
         let mut rawOrders: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_313: bool = true;
-            while { if !__for_first_313 { i = add(&i, &Value::Int(1)); } __for_first_313 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
+            let mut __for_first_311: bool = true;
+            while { if !__for_first_311 { i = add(&i, &Value::Int(1)); } __for_first_311 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
             let mut data: Value = get_value(&rawOrders, &i);
             let mut data: Value = get_value(&rawOrders, &i);
             let mut parsed: Value = self.parse_order(data.clone(), &[]);
@@ -1129,8 +1161,8 @@ impl DeriveCore {
         let mut rawTrades: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_314: bool = true;
-            while { if !__for_first_314 { i = add(&i, &Value::Int(1)); } __for_first_314 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_312: bool = true;
+            while { if !__for_first_312 { i = add(&i, &Value::Int(1)); } __for_first_312 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut trade: Value = self.parse_trade(message.clone(), &[]);
             myTrades.append(trade.clone());
             client.resolve(&[myTrades.clone(), topic.clone()]);
@@ -1184,6 +1216,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderbook".to_string(), Value::Null.clone());
                 m.insert("ticker".to_string(), Value::Null.clone());
+                m.insert("ticker_slim".to_string(), Value::Null.clone());
                 m.insert("trades".to_string(), Value::Null.clone());
                 m.insert("orders".to_string(), Value::Null.clone());
                 m.insert("mytrades".to_string(), Value::Null.clone());

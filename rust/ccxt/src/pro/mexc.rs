@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for MexcCore {
 
 impl crate::exchange_generated::ExchangeBase for MexcCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -410,12 +410,10 @@ impl MexcCore {
  * @method
  * @name mexc#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/individual-symbol-book-ticker-streams // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/get-a-single-ticker // swap
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -523,8 +521,10 @@ impl MexcCore {
             ticker = self.parse_ws_ticker(rawTicker.clone(), &[market.clone()]);
             add_element_to_object(&mut ticker, &Value::Str("timestamp".to_string()), timestamp.clone());
             add_element_to_object(&mut ticker, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
-        }  else {
+        }  else if !is_equal(&rawTicker, &Value::Null) {
             ticker = self.parse_ticker(rawTicker.clone(), &[market.clone()]);
+        }  else {
+            return;
         }
         add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
@@ -535,12 +535,9 @@ impl MexcCore {
  * @method
  * @name mexc#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/tickers
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
@@ -653,7 +650,7 @@ impl MexcCore {
         //         "s": "BTCUSDT"
         //     }
         //
-        let mut data: Value = self.safe_list2(message.clone(), Value::Str("data".to_string()), Value::Str("d".to_string()), &[]);
+        let mut data: Value = self.safe_list2(message.clone(), Value::Str("data".to_string()), Value::Str("d".to_string()), &[Value::List(vec![])]);
         let mut channel: Value = self.safe_string_k(message.clone(), "c", &[Value::Str("".to_string())]);
         let mut marketId: Value = self.safe_string_k(message.clone(), "s", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -666,8 +663,8 @@ impl MexcCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { i = add(&i, &Value::Int(1)); } __for_first_490 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_488: bool = true;
+            while { if !__for_first_488 { i = add(&i, &Value::Int(1)); } __for_first_488 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut ticker: Value = Value::Null;
@@ -677,7 +674,9 @@ impl MexcCore {
                 ticker = self.parse_ticker(entry.clone(), &[]);
             }
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            }
             append_to_array(&mut result, ticker.clone());
             let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
             client.resolve(&[ticker.clone(), messageHash.clone()]);
@@ -754,7 +753,7 @@ impl MexcCore {
 /*
  * @method
  * @name mexc#watchBidsAsks
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/individual-symbol-book-ticker-streams
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -774,7 +773,7 @@ impl MexcCore {
         if is_equal(&symbols, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchBidsAsks required symbols argument".to_string()))));
         }
-        let mut markets: Value = self.markets_for_symbols(&[symbols.clone()]);
+        let mut markets: Value = self.require_value(self.markets_for_symbols(&[symbols.clone()]), &[Value::Str("watchBidsAsks() markets is required".to_string())]);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBidsAsks".to_string()), &[get_value(&markets, &Value::Int(0)), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isSpot: Value = Value::Bool(is_equal(&marketType, &Value::Str("spot".to_string())));
         if !is_true(&isSpot) {
@@ -784,8 +783,8 @@ impl MexcCore {
         let mut topics: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_491: bool = true;
-            while { if !__for_first_491 { i = add(&i, &Value::Int(1)); } __for_first_491 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_489: bool = true;
+            while { if !__for_first_489 { i = add(&i, &Value::Int(1)); } __for_first_489 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             if is_true(&isSpot) {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut topics, add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &get_value(&market, &Value::Str("id".to_string()))));
@@ -953,7 +952,8 @@ impl MexcCore {
 /*
  * @method
  * @name mexc#watchOHLCV
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/k-line-streams // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/k-line-data // swap
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -995,6 +995,7 @@ impl MexcCore {
             });
             ohlcv = self.watch_swap_public(channel.clone(), messageHash.clone(), requestParams.clone(), &[params.clone()]).await;
         }
+        ohlcv = self.require_value(ohlcv.clone(), &[Value::Str("watchOHLCV() ohlcv is required".to_string())]);
         if is_true(&self.newUpdates) {
             limit = ohlcv.get_limit(symbol.clone(), limit.clone());
         }
@@ -1098,15 +1099,18 @@ impl MexcCore {
             parsed = self.parse_ws_ohlcv(rawOhlcv.clone(), &[market.clone()]);
         }
         let mut messageHash: Value = add(&add(&add(&Value::Str("candles:".to_string()), &symbol), &Value::Str(":".to_string())), &timeframe);
-        { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
-        let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
+        let mut symbolOhlcvs: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        add_element_to_object(&mut self.ohlcvs.clone(), &symbol, symbolOhlcvs.clone());
+        let mut stored: Value = self.safe_value(symbolOhlcvs.clone(), timeframe.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            if !is_equal(&timeframe, &Value::Null) {
+                add_element_to_object(&mut symbolOhlcvs, &timeframe, stored.clone());
+            }
         }
         stored.append(parsed.clone());
         client.resolve(&[stored.clone(), messageHash.clone()]);
@@ -1171,14 +1175,14 @@ impl MexcCore {
 /*
  * @method
  * @name mexc#watchOrderBook
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/diffdepth-stream // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/order-book-depth // swap
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.frequency] the frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1207,6 +1211,7 @@ impl MexcCore {
             });
             orderbook = self.watch_swap_public(channel.clone(), messageHash.clone(), requestParams.clone(), &[params.clone()]).await;
         }
+        orderbook = self.require_value(orderbook.clone(), &[Value::Str("watchOrderBook() orderbook is required".to_string())]);
         return orderbook.limit();
 
     Value::Null
@@ -1216,7 +1221,7 @@ impl MexcCore {
         // spot
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
-        let mut msg: Value = self.safe_string_k(message.clone(), "msg", &[]);
+        let mut msg: Value = self.safe_string_k(message.clone(), "msg", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&msg, &Value::Str("@".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1231,16 +1236,22 @@ impl MexcCore {
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
         let mut firstDelta: Value = self.safe_value(cache.clone(), Value::Int(0), &[]);
         let mut firstDeltaNonce: Value = self.safe_integer_n(firstDelta.clone(), Value::List(vec![Value::Str("r".to_string()), Value::Str("version".to_string()), Value::Str("fromVersion".to_string())]), &[]);
+        if is_true(&(is_equal(&nonce, &Value::Null))) || is_true(&(is_equal(&firstDeltaNonce, &Value::Null))) {
+            return negate(&Value::Int(1));
+        }
         if is_less_than(&nonce, &subtract(&firstDeltaNonce, &Value::Int(1))) {
             return negate(&Value::Int(1));
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_492: bool = true;
-            while { if !__for_first_492 { i = add(&i, &Value::Int(1)); } __for_first_492 = false; is_less_than(&i, &get_array_length(&cache)) } {
+            let mut __for_first_490: bool = true;
+            while { if !__for_first_490 { i = add(&i, &Value::Int(1)); } __for_first_490 = false; is_less_than(&i, &get_array_length(&cache)) } {
             let mut delta: Value = get_value(&cache, &i);
             let mut delta: Value = get_value(&cache, &i);
             let mut deltaNonce: Value = self.safe_integer_n(delta.clone(), Value::List(vec![Value::Str("r".to_string()), Value::Str("version".to_string()), Value::Str("fromVersion".to_string())]), &[]);
+            if is_equal(&deltaNonce, &Value::Null) {
+                continue;
+            }
             if is_greater_than_or_equal(&deltaNonce, &nonce) {
                 return i;
             }
@@ -1363,8 +1374,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_bookside_delta(&self, mut bookside: Value, mut bidasks: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_493: bool = true;
-            while { if !__for_first_493 { i = add(&i, &Value::Int(1)); } __for_first_493 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
+            let mut __for_first_491: bool = true;
+            while { if !__for_first_491 { i = add(&i, &Value::Int(1)); } __for_first_491 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
             let mut bidask: Value = get_value(&bidasks, &i);
             let mut bidask: Value = get_value(&bidasks, &i);
             if is_true(&Value::Bool(is_array(&bidask))) {
@@ -1381,7 +1392,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut existingNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
         let mut deltaNonce: Value = self.safe_integer_n(delta.clone(), Value::List(vec![Value::Str("r".to_string()), Value::Str("version".to_string()), Value::Str("fromVersion".to_string())]), &[]);
-        if is_less_than(&deltaNonce, &existingNonce) {
+        if is_true(&(!is_equal(&deltaNonce, &Value::Null))) && is_true(&(!is_equal(&existingNonce, &Value::Null))) && is_true(&(is_less_than(&deltaNonce, &existingNonce))) {
             return;
         }
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), deltaNonce.clone());
@@ -1396,8 +1407,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 /*
  * @method
  * @name mexc#watchTrades
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/trade-streams // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/deal // swap
  * @description get the list of most recent trades for a particular symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1431,6 +1442,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             trades = self.watch_swap_public(channel.clone(), messageHash.clone(), requestParams.clone(), &[params.clone()]).await;
         }
+        trades = self.require_value(trades.clone(), &[Value::Str("watchTrades() trades is required".to_string())]);
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
         }
@@ -1507,8 +1519,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_494: bool = true;
-            while { if !__for_first_494 { j = add(&j, &Value::Int(1)); } __for_first_494 = false; is_less_than(&j, &get_array_length(&trades)) } {
+            let mut __for_first_492: bool = true;
+            while { if !__for_first_492 { j = add(&j, &Value::Int(1)); } __for_first_492 = false; is_less_than(&j, &get_array_length(&trades)) } {
             let mut parsedTrade: Value = Value::Null;
             if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
                 parsedTrade = self.parse_ws_trade(get_value(&trades, &j), &[market.clone()]);
@@ -1524,8 +1536,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 /*
  * @method
  * @name mexc#watchMyTrades
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-deals
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-deals // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/fill-details // swap
  * @description watches information on multiple trades made by the user
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1560,6 +1572,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             trades = self.watch_swap_private(messageHash.clone(), &[params.clone()]).await;
         }
+        trades = self.require_value(trades.clone(), &[Value::Str("watchMyTrades() trades is required".to_string())]);
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
         }
@@ -1613,8 +1626,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut trade: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
             trade = self.parse_ws_trade(data.clone(), &[market.clone()]);
-        }  else {
+        }  else if !is_equal(&data, &Value::Null) {
             trade = self.parse_trade(data.clone(), &[market.clone()]);
+        }  else {
+            return;
         }
         let mut trades: Value = self.myTrades.clone();
         if is_equal(&trades, &Value::Null) {
@@ -1721,14 +1736,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 /*
  * @method
  * @name mexc#watchOrders
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-orders
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-orders // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/order // swap
  * @description watches information on multiple orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'margin'
+ * @param {string|undefined} params.type the type of orders to retrieve, can be 'spot' or 'swap'
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn watch_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -1758,6 +1773,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             orders = self.watch_swap_private(messageHash.clone(), &[params.clone()]).await;
         }
+        orders = self.require_value(orders.clone(), &[Value::Str("watchOrders() orders is required".to_string())]);
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
         }
@@ -1852,8 +1868,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_equal(&sendTime, &Value::Null) {
                 add_element_to_object(&mut parsed, &Value::Str("lastTradeTimestamp".to_string()), sendTime.clone());
             }
-        }  else {
+        }  else if !is_equal(&data, &Value::Null) {
             parsed = self.parse_order(data.clone(), &[market.clone()]);
+        }  else {
+            return;
         }
         let mut orders: Value = self.orders.clone();
         if is_equal(&orders, &Value::Null) {
@@ -2039,7 +2057,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 /*
  * @method
  * @name mexc#watchBalance
- * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update
+ * @see https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-update // spot
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/assets // swap
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -2120,7 +2139,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut account: Value = self.account();
         add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string2(data.clone(), Value::Str("balanceAmount".to_string()), Value::Str("availableBalance".to_string()), &[]));
         add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string2(data.clone(), Value::Str("frozenBalance".to_string()), Value::Str("frozenAmount".to_string()), &[]));
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
+        if !is_equal(&code, &Value::Null) {
+            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
+        }
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance.clone(), &type_var, __be_tmp); };
         client.resolve(&[get_value(&self.balance, &type_var), messageHash.clone()]);
 }
@@ -2129,7 +2150,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name mexc#watchFundingRate
  * @description watch the current funding rate
- * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -2159,7 +2180,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name mexc#unWatchFundingRate
  * @description unWatches the current funding rate for a symbol
- * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+ * @see https://www.mexc.com/api-docs/futures/websocket-api/funding-rate
  * @param {string} symbol unified symbol of the market
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -2209,7 +2230,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         let mut fundingRate: Value = self.parse_funding_rate(data.clone(), &[]);
         let mut symbol: Value = get_value(&fundingRate, &Value::Str("symbol".to_string()));
-        add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+        if !is_equal(&symbol, &Value::Null) {
+            add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+        }
         let mut messageHash: Value = add(&Value::Str("fundingRate:".to_string()), &symbol);
         client.resolve(&[fundingRate.clone(), messageHash.clone()]);
 }
@@ -2329,7 +2352,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_equal(&symbols, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchBidsAsks required symbols argument".to_string()))));
         }
-        let mut markets: Value = self.markets_for_symbols(&[symbols.clone()]);
+        let mut markets: Value = self.require_value(self.markets_for_symbols(&[symbols.clone()]), &[Value::Str("unWatchBidsAsks() markets is required".to_string())]);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBidsAsks".to_string()), &[get_value(&markets, &Value::Int(0)), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isSpot: Value = Value::Bool(is_equal(&marketType, &Value::Str("spot".to_string())));
         if !is_true(&isSpot) {
@@ -2339,8 +2362,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut topics: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_495: bool = true;
-            while { if !__for_first_495 { i = add(&i, &Value::Int(1)); } __for_first_495 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_493: bool = true;
+            while { if !__for_first_493 { i = add(&i, &Value::Int(1)); } __for_first_493 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             if is_true(&isSpot) {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut topics, add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &get_value(&market, &Value::Str("id".to_string()))));
@@ -2506,8 +2529,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_unsubscriptions(&mut self, mut client: Value, mut messageHashes: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_497: bool = true;
-            while { if !__for_first_497 { i = add(&i, &Value::Int(1)); } __for_first_497 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_495: bool = true;
+            while { if !__for_first_495 { i = add(&i, &Value::Int(1)); } __for_first_495 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut subMessageHash: Value = replace_str(&messageHash, &Value::Str("unsubscribe:".to_string()), &Value::Str("".to_string()));
@@ -2519,8 +2542,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut symbols: Value = object_keys(&self.tickers);
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_496: bool = true;
-                        while { if !__for_first_496 { j = add(&j, &Value::Int(1)); } __for_first_496 = false; is_less_than(&j, &get_array_length(&symbols)) } {
+                        let mut __for_first_494: bool = true;
+                        while { if !__for_first_494 { j = add(&j, &Value::Int(1)); } __for_first_494 = false; is_less_than(&j, &get_array_length(&symbols)) } {
                         remove(&mut self.tickers.clone(), &get_value(&symbols, &j));
                     }
                     }
@@ -2535,10 +2558,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else if is_greater_than_or_equal(&get_index_of(&messageHash, &Value::Str("candles".to_string())), &Value::Int(0)) {
                 let mut splitHashes: Value = split(&messageHash, &Value::Str(":".to_string()));
                 let mut symbol: Value = self.safe_string(splitHashes.clone(), Value::Int(2), &[]);
-                if is_greater_than(&get_array_length(&splitHashes), &Value::Int(4)) {
+                let mut splitHashesLength: Value = get_array_length(&splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                if is_greater_than(&splitHashesLength, &Value::Int(4)) {
                     symbol = add(&symbol, &add(&Value::Str(":".to_string()), &self.safe_string(splitHashes.clone(), Value::Int(3), &[])));
                 }
-                if is_true(&Value::Bool(in_op(&self.ohlcvs, &symbol))) {
+                if is_true(&(!is_equal(&symbol, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
                     remove(&mut self.ohlcvs.clone(), &symbol);
                 }
             }  else if is_greater_than_or_equal(&get_index_of(&messageHash, &Value::Str("orderbook".to_string())), &Value::Int(0)) {
@@ -2571,7 +2595,30 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&listenKey, &Value::Null) {
             return listenKey;
         }
-        let mut response: Value = self.parent.spot_private_post_user_data_stream(&[params.clone()]).await;
+        // guard against concurrent listenKey requests with a future on the base
+        // spot ws client - the first caller fetches the listenKey, concurrent
+        // callers wait on the future and resume when the listenKey is ready,
+        // otherwise the user-data subscriptions would be split across two connections
+        let __ws_arg_6 = get_value(&self.urls, &Value::Str("api".to_string()));
+        let mut client: Value = self.client(&[get_value(&get_value(&__ws_arg_6, &Value::Str("ws".to_string())), &Value::Str("spot".to_string()))]);
+        let mut messageHash: Value = Value::Str("authenticate:listenKey".to_string());
+        let mut isFetching: Value = self.safe_bool_k(self.options.clone(), "listenKeyFetching", &[Value::Bool(false)]);
+        if is_true(&isFetching) {
+            client.future(&[messageHash.clone()]);
+            return self.safe_string_k(self.options.clone(), "listenKey", &[]);
+        }
+        add_element_to_object(&mut self.options, &Value::Str("listenKeyFetching".to_string()), Value::Bool(true));
+        client.future(&[messageHash.clone()]); // created ahead of the request below, so concurrent callers can find it
+        let mut response: Value = Value::Null;
+        let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+            response = self.parent.spot_private_post_user_data_stream(&[params.clone()]).await;
+         #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+            add_element_to_object(&mut self.options, &Value::Str("listenKeyFetching".to_string()), Value::Bool(false));
+            client.reject(&[e.clone(), messageHash.clone()]);
+            panic!("{}", e);
+        }
+        add_element_to_object(&mut self.options, &Value::Str("listenKeyFetching".to_string()), Value::Bool(false));
         //
         //    {
         //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
@@ -2579,6 +2626,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         listenKey = self.safe_string_k(response.clone(), "listenKey", &[]);
         add_element_to_object(&mut self.options, &Value::Str("listenKey".to_string()), listenKey.clone());
+        client.resolve(&[listenKey.clone(), messageHash.clone()]);
         let mut listenKeyRefreshRate: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1200000)]);
         self.delay(listenKeyRefreshRate.clone(), &[Value::Null.clone(), listenKey.clone(), params.clone()]).await;
         return listenKey;
@@ -2600,8 +2648,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
-            self.parent.spot_private_put_user_data_stream(&[__ws_arg_6]).await;
+            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            self.parent.spot_private_put_user_data_stream(&[__ws_arg_7]).await;
             let mut listenKeyRefreshRate: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1200000)]);
             self.delay(listenKeyRefreshRate.clone(), &[Value::Null.clone(), listenKey.clone(), params.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2669,7 +2717,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //       "windowEnd":"1754737980"
         //    }
         // }
-        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
+        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut channelParts: Value = split(&channel, &Value::Str("@".to_string()));
         let mut channelId: Value = self.safe_string(channelParts.clone(), Value::Int(1), &[]);
         if is_equal(&channelId, &Value::Str("public.kline.v3.api.pb".to_string())) {
@@ -2715,7 +2763,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             channel = self.safe_string_k(message.clone(), "channel", &[]);
         }  else {
             let mut parts: Value = split(&c, &Value::Str("@".to_string()));
-            channel = self.safe_string(parts.clone(), Value::Int(1), &[]);
+            channel = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".to_string())]);
         }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2740,7 +2788,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("push.funding.rate".to_string(), Value::Null.clone());
             m
         });
-        if is_true(&Value::Bool(in_op(&methods, &channel))) {
+        if is_true(&(!is_equal(&channel, &Value::Null))) && is_true(&(Value::Bool(in_op(&methods, &channel)))) {
             let mut method: Value = get_value(&methods, &channel);
             let mut method: Value = get_value(&methods, &channel);
             method.call(&[client.clone(), message.clone()]);

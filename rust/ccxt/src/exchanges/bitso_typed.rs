@@ -203,6 +203,12 @@ impl Bitso {
         Ok(Balances::from_value(v))
     }
 
+    /// Typed wrapper around `fetchStatus`.
+    pub async fn fetch_status(&mut self, params: Value) -> crate::Result<Status> {
+        let v = crate::runtime::call_typed(self.core_mut().fetch_status(&[params])).await?;
+        Ok(Status::from_value(v))
+    }
+
     /// Typed wrapper around `fetchCrossBorrowRate`.
     pub async fn fetch_cross_borrow_rate(&mut self, code: &str, params: Value) -> crate::Result<BorrowRate> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_cross_borrow_rate(Value::Str(code.to_string()), &[params])).await?;
@@ -645,6 +651,12 @@ impl Bitso {
     pub async fn cancel_all_orders(&mut self, symbol: Option<&str>, params: Value) -> crate::Result<Vec<Order>> {
         let v = crate::runtime::call_typed(self.core_mut().cancel_all_orders(&[symbol.map(|s| Value::Str(s.to_string())).unwrap_or(Value::Null), params])).await?;
         Ok(vec_from_value(&v, Order::from_value))
+    }
+
+    /// Typed wrapper around `cancelUnifiedOrder`.
+    pub async fn cancel_unified_order(&mut self, order: Value, params: Value) -> crate::Result<Order> {
+        let v = crate::runtime::call_typed(self.core_mut().cancel_unified_order(order, &[params])).await?;
+        Ok(Order::from_value(v))
     }
 
     /// Typed wrapper around `fetchOrders`.

@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for DeepcoinCore {
 
 impl crate::exchange_generated::ExchangeBase for DeepcoinCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -1090,7 +1090,7 @@ impl DeepcoinCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1211,8 +1211,8 @@ impl DeepcoinCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_298: bool = true;
-            while { if !__for_first_298 { i = add(&i, &Value::Int(1)); } __for_first_298 = false; is_less_than(&i, &get_array_length(&entries)) } {
+            let mut __for_first_296: bool = true;
+            while { if !__for_first_296 { i = add(&i, &Value::Int(1)); } __for_first_296 = false; is_less_than(&i, &get_array_length(&entries)) } {
             let mut entry: Value = get_value(&entries, &i);
             let mut entry: Value = get_value(&entries, &i);
             let mut entryData: Value = self.safe_dict_k(entry.clone(), "d", &[Value::Map({
@@ -1237,8 +1237,8 @@ impl DeepcoinCore {
         let mut cachedMessages: Value = get_value(&orderbook, &Value::Str("cache".to_string()));
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_299: bool = true;
-            while { if !__for_first_299 { j = add(&j, &Value::Int(1)); } __for_first_299 = false; is_less_than(&j, &get_array_length(&cachedMessages)) } {
+            let mut __for_first_297: bool = true;
+            while { if !__for_first_297 { j = add(&j, &Value::Int(1)); } __for_first_297 = false; is_less_than(&j, &get_array_length(&cachedMessages)) } {
             let mut cachedMessage: Value = get_value(&cachedMessages, &j);
             let mut cachedMessage: Value = get_value(&cachedMessages, &j);
             self.handle_order_book_message(client.clone(), cachedMessage.clone(), orderbook.clone());
@@ -1582,8 +1582,8 @@ impl DeepcoinCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_300: bool = true;
-                while { if !__for_first_300 { i = add(&i, &Value::Int(1)); } __for_first_300 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_298: bool = true;
+                while { if !__for_first_298 { i = add(&i, &Value::Int(1)); } __for_first_298 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbolMessageHash: Value = add(&add(&messageHash, &Value::Str("::".to_string())), &symbol);

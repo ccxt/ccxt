@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for BybitCore {
 
 impl crate::exchange_generated::ExchangeBase for BybitCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -484,7 +484,7 @@ impl BybitCore {
 }));
         m.insert("watchMyTrades".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("filterExecTypes".to_string(), Value::List(vec![Value::Str("Trade".to_string()), Value::Str("AdlTrade".to_string()), Value::Str("BustTrade".to_string()), Value::Str("Settle".to_string())]));
+        m.insert("execType".to_string(), Value::List(vec![Value::Str("Trade".to_string()), Value::Str("AdlTrade".to_string()), Value::Str("BustTrade".to_string()), Value::Str("Settle".to_string())]));
     m
 }));
         m.insert("spot".to_string(), Value::Map({
@@ -854,8 +854,8 @@ impl BybitCore {
         let mut topics: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_198: bool = true;
-            while { if !__for_first_198 { i = add(&i, &Value::Int(1)); } __for_first_198 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_196: bool = true;
+            while { if !__for_first_196 { i = add(&i, &Value::Int(1)); } __for_first_196 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             append_to_array(&mut topics, add(&add(&topic, &Value::Str(".".to_string())), &marketId));
@@ -907,8 +907,8 @@ impl BybitCore {
         let mut topics: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_199: bool = true;
-            while { if !__for_first_199 { i = add(&i, &Value::Int(1)); } __for_first_199 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_197: bool = true;
+            while { if !__for_first_197 { i = add(&i, &Value::Int(1)); } __for_first_197 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut symbol: Value = get_value(&symbols, &i);
@@ -1127,8 +1127,8 @@ impl BybitCore {
         let mut topics: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_200: bool = true;
-            while { if !__for_first_200 { i = add(&i, &Value::Int(1)); } __for_first_200 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_198: bool = true;
+            while { if !__for_first_198 { i = add(&i, &Value::Int(1)); } __for_first_198 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut topic: Value = add(&Value::Str("orderbook.1.".to_string()), &marketId);
@@ -1226,8 +1226,8 @@ impl BybitCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_201: bool = true;
-            while { if !__for_first_201 { i = add(&i, &Value::Int(1)); } __for_first_201 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_199: bool = true;
+            while { if !__for_first_199 { i = add(&i, &Value::Int(1)); } __for_first_199 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut market: Value = self.market(get_value(&data, &Value::Int(0)));
@@ -1278,8 +1278,8 @@ impl BybitCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_202: bool = true;
-            while { if !__for_first_202 { i = add(&i, &Value::Int(1)); } __for_first_202 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
+            let mut __for_first_200: bool = true;
+            while { if !__for_first_200 { i = add(&i, &Value::Int(1)); } __for_first_200 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut market: Value = self.market(get_value(&data, &Value::Int(0)));
@@ -1378,8 +1378,8 @@ impl BybitCore {
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_203: bool = true;
-            while { if !__for_first_203 { i = add(&i, &Value::Int(1)); } __for_first_203 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_201: bool = true;
+            while { if !__for_first_201 { i = add(&i, &Value::Int(1)); } __for_first_201 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut parsed: Value = self.parse_ws_ohlcv(get_value(&data, &i), &[market.clone()]);
             stored.append(parsed.clone());
         }
@@ -1441,7 +1441,7 @@ impl BybitCore {
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1482,8 +1482,8 @@ impl BybitCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_204: bool = true;
-            while { if !__for_first_204 { i = add(&i, &Value::Int(1)); } __for_first_204 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_202: bool = true;
+            while { if !__for_first_202 { i = add(&i, &Value::Int(1)); } __for_first_202 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut marketId: Value = self.market_id(symbol.clone());
@@ -1532,8 +1532,8 @@ impl BybitCore {
         let mut topics: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_205: bool = true;
-            while { if !__for_first_205 { i = add(&i, &Value::Int(1)); } __for_first_205 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_203: bool = true;
+            while { if !__for_first_203 { i = add(&i, &Value::Int(1)); } __for_first_203 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1657,8 +1657,8 @@ impl BybitCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_206: bool = true;
-            while { if !__for_first_206 { i = add(&i, &Value::Int(1)); } __for_first_206 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_204: bool = true;
+            while { if !__for_first_204 { i = add(&i, &Value::Int(1)); } __for_first_204 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1719,8 +1719,8 @@ impl BybitCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_207: bool = true;
-            while { if !__for_first_207 { i = add(&i, &Value::Int(1)); } __for_first_207 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_205: bool = true;
+            while { if !__for_first_205 { i = add(&i, &Value::Int(1)); } __for_first_205 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1765,8 +1765,8 @@ impl BybitCore {
         let mut subMessageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_208: bool = true;
-            while { if !__for_first_208 { i = add(&i, &Value::Int(1)); } __for_first_208 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_206: bool = true;
+            while { if !__for_first_206 { i = add(&i, &Value::Int(1)); } __for_first_206 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1841,8 +1841,8 @@ impl BybitCore {
         }
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_209: bool = true;
-            while { if !__for_first_209 { j = add(&j, &Value::Int(1)); } __for_first_209 = false; is_less_than(&j, &get_array_length(&trades)) } {
+            let mut __for_first_207: bool = true;
+            while { if !__for_first_207 { j = add(&j, &Value::Int(1)); } __for_first_207 = false; is_less_than(&j, &get_array_length(&trades)) } {
             let mut parsed: Value = self.parse_ws_trade(get_value(&trades, &j), &[market.clone()]);
             stored.append(parsed.clone());
         }
@@ -2142,11 +2142,26 @@ impl BybitCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut filterExecTypes: Value = self.handle_option(Value::Str("watchMyTrades".to_string()), Value::Str("filterExecTypes".to_string()), &[Value::List(vec![])]);
+        // the option was renamed from filterExecTypes to execType to mirror
+        // the exchange's own field name, the old key is still read as a
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        let mut execTypeOption: Value = self.handle_option(Value::Str("watchMyTrades".to_string()), Value::Str("execType".to_string()), &[]);
+        if is_equal(&execTypeOption, &Value::Null) {
+            execTypeOption = self.handle_option(Value::Str("watchMyTrades".to_string()), Value::Str("filterExecTypes".to_string()), &[]);
+        }
+        let mut execTypes: Value = Value::Null;
+        if is_string(&execTypeOption) {
+            // a single execution type is accepted as a plain string as well
+            execTypes = Value::List(vec![execTypeOption.clone()]);
+        }  else {
+            execTypes = execTypeOption.clone();
+        }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_210: bool = true;
-            while { if !__for_first_210 { i = add(&i, &Value::Int(1)); } __for_first_210 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_208: bool = true;
+            while { if !__for_first_208 { i = add(&i, &Value::Int(1)); } __for_first_208 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawTrade: Value = get_value(&data, &i);
             let mut rawTrade: Value = get_value(&data, &i);
             let mut parsed: Value = Value::Null;
@@ -2158,7 +2173,7 @@ impl BybitCore {
                 if is_true(&executionFast) {
                     execType = Value::Str("Trade".to_string());
                 }
-                if !is_true(&self.in_array(execType.clone(), filterExecTypes.clone())) {
+                if is_true(&(!is_equal(&execTypes, &Value::Null))) && !is_true(&self.in_array(execType.clone(), execTypes.clone())) {
                     continue;
                 }
                 parsed = self.parse_trade(rawTrade.clone(), &[]);
@@ -2174,8 +2189,8 @@ impl BybitCore {
         let mut keys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_211: bool = true;
-            while { if !__for_first_211 { i = add(&i, &Value::Int(1)); } __for_first_211 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_209: bool = true;
+            while { if !__for_first_209 { i = add(&i, &Value::Int(1)); } __for_first_209 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut currentMessageHash: Value = add(&Value::Str("myTrades:".to_string()), &get_value(&keys, &i));
             client.resolve(&[trades.clone(), currentMessageHash.clone()]);
         }
@@ -2271,14 +2286,14 @@ impl BybitCore {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_213: bool = true;
-            while { if !__for_first_213 { i = add(&i, &Value::Int(1)); } __for_first_213 = false; is_less_than(&i, &get_array_length(&promises)) } {
+            let mut __for_first_211: bool = true;
+            while { if !__for_first_211 { i = add(&i, &Value::Int(1)); } __for_first_211 = false; is_less_than(&i, &get_array_length(&promises)) } {
             let mut positions: Value = get_value(&promises, &i);
             let mut positions: Value = get_value(&promises, &i);
             {
                                 let mut ii: Value = Value::Int(0);
-                let mut __for_first_212: bool = true;
-                while { if !__for_first_212 { ii = add(&ii, &Value::Int(1)); } __for_first_212 = false; is_less_than(&ii, &get_array_length(&positions)) } {
+                let mut __for_first_210: bool = true;
+                while { if !__for_first_210 { ii = add(&ii, &Value::Int(1)); } __for_first_210 = false; is_less_than(&ii, &get_array_length(&positions)) } {
                 let mut position: Value = get_value(&positions, &ii);
                 let mut position: Value = get_value(&positions, &ii);
                 cache.append(position.clone());
@@ -2344,8 +2359,8 @@ impl BybitCore {
         let mut rawPositions: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_214: bool = true;
-            while { if !__for_first_214 { i = add(&i, &Value::Int(1)); } __for_first_214 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
+            let mut __for_first_212: bool = true;
+            while { if !__for_first_212 { i = add(&i, &Value::Int(1)); } __for_first_212 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
@@ -2370,8 +2385,8 @@ impl BybitCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("positions::".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_215: bool = true;
-            while { if !__for_first_215 { i = add(&i, &Value::Int(1)); } __for_first_215 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_213: bool = true;
+            while { if !__for_first_213 { i = add(&i, &Value::Int(1)); } __for_first_213 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -2491,8 +2506,8 @@ impl BybitCore {
             let mut rawLiquidations: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_216: bool = true;
-                while { if !__for_first_216 { i = add(&i, &Value::Int(1)); } __for_first_216 = false; is_less_than(&i, &get_array_length(&rawLiquidations)) } {
+                let mut __for_first_214: bool = true;
+                while { if !__for_first_214 { i = add(&i, &Value::Int(1)); } __for_first_214 = false; is_less_than(&i, &get_array_length(&rawLiquidations)) } {
                 let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
                 let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
                 let mut marketId: Value = self.safe_string_k(rawLiquidation.clone(), "s", &[]);
@@ -2791,8 +2806,8 @@ impl BybitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_217: bool = true;
-            while { if !__for_first_217 { i = add(&i, &Value::Int(1)); } __for_first_217 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
+            let mut __for_first_215: bool = true;
+            while { if !__for_first_215 { i = add(&i, &Value::Int(1)); } __for_first_215 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
             let mut parsed: Value = self.parse_order(get_value(&rawOrders, &i), &[]);
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
@@ -2810,8 +2825,8 @@ impl BybitCore {
         let mut symbolsArray: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_218: bool = true;
-            while { if !__for_first_218 { i = add(&i, &Value::Int(1)); } __for_first_218 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
+            let mut __for_first_216: bool = true;
+            while { if !__for_first_216 { i = add(&i, &Value::Int(1)); } __for_first_216 = false; is_less_than(&i, &get_array_length(&symbolsArray)) } {
             let mut currentMessageHash: Value = add(&Value::Str("orders:".to_string()), &get_value(&symbolsArray, &i));
             client.resolve(&[orders.clone(), currentMessageHash.clone()]);
         }
@@ -3046,8 +3061,8 @@ impl BybitCore {
             let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_219: bool = true;
-                while { if !__for_first_219 { i = add(&i, &Value::Int(1)); } __for_first_219 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_217: bool = true;
+                while { if !__for_first_217 { i = add(&i, &Value::Int(1)); } __for_first_217 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut B: Value = self.safe_value_k(get_value(&data, &i), "B", &[Value::List(vec![])]);
                 rawBalances = self.array_concat(rawBalances.clone(), B.clone());
             }
@@ -3061,8 +3076,8 @@ impl BybitCore {
             })]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_220: bool = true;
-                while { if !__for_first_220 { i = add(&i, &Value::Int(1)); } __for_first_220 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_218: bool = true;
+                while { if !__for_first_218 { i = add(&i, &Value::Int(1)); } __for_first_218 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut result: Value = self.safe_value(data.clone(), Value::Int(0), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -3075,8 +3090,8 @@ impl BybitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_221: bool = true;
-            while { if !__for_first_221 { i = add(&i, &Value::Int(1)); } __for_first_221 = false; is_less_than(&i, &get_array_length(&rawBalances)) } {
+            let mut __for_first_219: bool = true;
+            while { if !__for_first_219 { i = add(&i, &Value::Int(1)); } __for_first_219 = false; is_less_than(&i, &get_array_length(&rawBalances)) } {
             self.parse_ws_balance(get_value(&rawBalances, &i), &[account.clone()]);
         }
         }
@@ -3135,9 +3150,22 @@ impl BybitCore {
         let mut account: Value = self.account();
         let mut currencyId: Value = self.safe_string2(balance.clone(), Value::Str("a".to_string()), Value::Str("coin".to_string()), &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_n(balance.clone(), Value::List(vec![Value::Str("availableToWithdraw".to_string()), Value::Str("f".to_string()), Value::Str("free".to_string()), Value::Str("availableToWithdraw".to_string())]), &[]));
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string2(balance.clone(), Value::Str("l".to_string()), Value::Str("locked".to_string()), &[]));
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "walletBalance", &[]));
+        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_n(balance.clone(), Value::List(vec![Value::Str("availableToWithdraw".to_string()), Value::Str("f".to_string()), Value::Str("free".to_string())]), &[]));
+        let mut used: Value = self.safe_string2(balance.clone(), Value::Str("l".to_string()), Value::Str("locked".to_string()), &[]);
+        if !is_equal(&used, &Value::Null) {
+            add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
+        }  else {
+            // the unified account wallet stream has no locked field, the margin
+            // lives in the per coin initial margin fields, so the used amount
+            // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
+            let mut totalPositionIm: Value = self.safe_string_k(balance.clone(), "totalPositionIM", &[Value::Str("0".to_string())]);
+            let mut totalOrderIm: Value = self.safe_string_k(balance.clone(), "totalOrderIM", &[Value::Str("0".to_string())]);
+            add_element_to_object(&mut account, &Value::Str("used".to_string()), crate::precise::Precise::stringAdd(&totalPositionIm, &totalOrderIm));
+        }
+        // on the unified rows the free amount and the margin are both measured
+        // against the equity, which includes the unrealized pnl, so the equity
+        // is the consistent total, the spot rows fall back to the wallet balance
+        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string2(balance.clone(), Value::Str("equity".to_string()), Value::Str("walletBalance".to_string()), &[]));
         if !is_equal(&accountType, &Value::Null) {
             if is_equal(&self.safe_value(self.balance.clone(), accountType.clone(), &[]), &Value::Null) {
                 add_element_to_object(&mut self.balance.clone(), &accountType, Value::Map({
@@ -3145,9 +3173,13 @@ impl BybitCore {
     m
 }));
             }
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &code, account.clone());
+            if is_true(&(!is_equal(&accountType, &Value::Null))) && is_true(&(!is_equal(&code, &Value::Null))) {
+                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &code, account.clone());
+            }
         }  else {
-            add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            }
         }
 }
 
@@ -3302,14 +3334,27 @@ impl BybitCore {
             return Value::Bool(false);
          #[allow(unreachable_code)] { Value::Null }}));
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
-            if is_true(&is_instance(&error, &Value::Str("AuthenticationError".to_string()))) {
-                let mut messageHash: Value = Value::Str("authenticated".to_string());
+            let mut messageHash: Value = self.safe_string2(message.clone(), Value::Str("req_id".to_string()), Value::Str("reqId".to_string()), &[]);
+            if !is_equal(&messageHash, &Value::Null) {
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-                if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
-                    remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
+            }  else if is_true(&is_instance(&error, &Value::Str("AuthenticationError".to_string()))) {
+                let mut authenticatedHash: Value = Value::Str("authenticated".to_string());
+                client.reject(&[Value::from(error.clone()), authenticatedHash.clone()]);
+                if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &authenticatedHash))) {
+                    remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &authenticatedHash);
+                }
+                let mut op: Value = self.safe_string_k(message.clone(), "op", &[]);
+                if is_true(&(!is_equal(&op, &Value::Null))) && is_true(&(!is_equal(&op, &Value::Str("auth".to_string())))) {
+                    // an operation response that carries no reqId, e.g. bybit
+                    // omits it on some permission rejections of trade ops,
+                    // would leave the awaiting future pending forever, and
+                    // since nothing on this client can proceed without
+                    // authentication, reject everything pending, mirroring the
+                    // behavior of unattributable non auth errors, see
+                    // https://github.com/ccxt/ccxt/issues/29361
+                    client.reject(&[Value::from(error.clone())]);
                 }
             }  else {
-                let mut messageHash: Value = self.safe_string2(message.clone(), Value::Str("req_id".to_string()), Value::Str("reqId".to_string()), &[]);
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             }
             return Value::Bool(true);
@@ -3384,8 +3429,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_222: bool = true;
-            while { if !__for_first_222 { i = add(&i, &Value::Int(1)); } __for_first_222 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_220: bool = true;
+            while { if !__for_first_220 { i = add(&i, &Value::Int(1)); } __for_first_220 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_greater_than_or_equal(&get_index_of(&topic, &key), &Value::Int(0)) {
@@ -3504,8 +3549,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_224: bool = true;
-            while { if !__for_first_224 { i = add(&i, &Value::Int(1)); } __for_first_224 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_222: bool = true;
+            while { if !__for_first_222 { i = add(&i, &Value::Int(1)); } __for_first_222 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut messageHash: Value = get_value(&keys, &i);
             let mut messageHash: Value = get_value(&keys, &i);
             if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)))) {
@@ -3521,8 +3566,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_223: bool = true;
-                    while { if !__for_first_223 { j = add(&j, &Value::Int(1)); } __for_first_223 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
+                    let mut __for_first_221: bool = true;
+                    while { if !__for_first_221 { j = add(&j, &Value::Int(1)); } __for_first_221 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
                     let mut unsubHash: Value = get_value(&messageHashes, &j);
                     let mut unsubHash: Value = get_value(&messageHashes, &j);
                     let mut subHash: Value = get_value(&subMessageHashes, &j);

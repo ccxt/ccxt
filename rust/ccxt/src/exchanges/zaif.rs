@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for ZaifCore {
 
 impl crate::exchange_generated::ExchangeBase for ZaifCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -308,14 +308,46 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("depth/{pair}".to_string(), Value::Int(1));
-        m.insert("currencies/{pair}".to_string(), Value::Int(1));
-        m.insert("currencies/all".to_string(), Value::Int(1));
-        m.insert("currency_pairs/{pair}".to_string(), Value::Int(1));
-        m.insert("currency_pairs/all".to_string(), Value::Int(1));
-        m.insert("last_price/{pair}".to_string(), Value::Int(1));
-        m.insert("ticker/{pair}".to_string(), Value::Int(1));
-        m.insert("trades/{pair}".to_string(), Value::Int(1));
+        m.insert("depth/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("currencies/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("currencies/all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("currency_pairs/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("currency_pairs/all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("last_price/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ticker/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trades/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -324,17 +356,61 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("active_orders".to_string(), Value::Int(5));
-        m.insert("cancel_order".to_string(), Value::Int(5));
-        m.insert("deposit_history".to_string(), Value::Int(5));
-        m.insert("get_id_info".to_string(), Value::Int(5));
-        m.insert("get_info".to_string(), Value::Int(10));
-        m.insert("get_info2".to_string(), Value::Int(5));
-        m.insert("get_personal_info".to_string(), Value::Int(5));
-        m.insert("trade".to_string(), Value::Int(5));
-        m.insert("trade_history".to_string(), Value::Int(50));
-        m.insert("withdraw".to_string(), Value::Int(5));
-        m.insert("withdraw_history".to_string(), Value::Int(5));
+        m.insert("active_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("cancel_order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("deposit_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("get_id_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("get_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("get_info2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("get_personal_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("trade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("trade_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
+        m.insert("withdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("withdraw_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
     m
 }));
     m
@@ -343,10 +419,26 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("createInvoice".to_string(), Value::Int(1));
-        m.insert("getInvoice".to_string(), Value::Int(1));
-        m.insert("getInvoiceIdsByOrderNumber".to_string(), Value::Int(1));
-        m.insert("cancelInvoice".to_string(), Value::Int(1));
+        m.insert("createInvoice".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("getInvoice".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("getInvoiceIdsByOrderNumber".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("cancelInvoice".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -355,12 +447,36 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get_positions".to_string(), Value::Int(66));
-        m.insert("position_history".to_string(), Value::Int(66));
-        m.insert("active_positions".to_string(), Value::Int(5));
-        m.insert("create_position".to_string(), Value::Int(33));
-        m.insert("change_position".to_string(), Value::Int(33));
-        m.insert("cancel_position".to_string(), Value::Int(33));
+        m.insert("get_positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(66));
+    m
+}));
+        m.insert("position_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(66));
+    m
+}));
+        m.insert("active_positions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("create_position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(33));
+    m
+}));
+        m.insert("change_position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(33));
+    m
+}));
+        m.insert("cancel_position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(33));
+    m
+}));
     m
 }));
     m
@@ -369,11 +485,31 @@ impl ZaifCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("groups/{group_id}".to_string(), Value::Int(1));
-        m.insert("last_price/{group_id}/{pair}".to_string(), Value::Int(1));
-        m.insert("ticker/{group_id}/{pair}".to_string(), Value::Int(1));
-        m.insert("trades/{group_id}/{pair}".to_string(), Value::Int(1));
-        m.insert("depth/{group_id}/{pair}".to_string(), Value::Int(1));
+        m.insert("groups/{group_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("last_price/{group_id}/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ticker/{group_id}/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trades/{group_id}/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("depth/{group_id}/{pair}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -595,8 +731,8 @@ impl ZaifCore {
         let mut currencyIds: Value = object_keys(&funds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1103: bool = true;
-            while { if !__for_first_1103 { i = add(&i, &Value::Int(1)); } __for_first_1103 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_1108: bool = true;
+            while { if !__for_first_1108 { i = add(&i, &Value::Int(1)); } __for_first_1108 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -833,14 +969,18 @@ impl ZaifCore {
         //          }, ...
         //      ]
         //
-        let mut numTrades: Value = get_array_length(&response);
+        let mut trades: Value = self.to_array(response.clone());
+        let mut numTrades: Value = get_array_length(&trades);
         if is_equal(&numTrades, &Value::Int(1)) {
-            let mut firstTrade: Value = get_value(&response, &Value::Int(0));
+            let mut firstTrade: Value = self.safe_dict(trades.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             if !is_true(&get_array_length(&object_keys(&firstTrade))) {
-                response = Value::List(vec![]);
+                trades = Value::List(vec![]);
             }
         }
-        return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
+        return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -881,10 +1021,14 @@ impl ZaifCore {
         });
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_trade(&[__ws_arg_3]).await;
+        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("id".to_string(), to_string_val(&get_value(&get_value(&response, &Value::Str("return".to_string())), &Value::Str("order_id".to_string()))));
+        m.insert("id".to_string(), to_string_val(&get_value(&data, &Value::Str("order_id".to_string()))));
     m
 }), &[market.clone()]);
 
@@ -1031,7 +1175,11 @@ impl ZaifCore {
         }
         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_active_orders(&[__ws_arg_5]).await;
-        return self.parse_orders(get_value(&response, &Value::Str("return".to_string())), &[market.clone(), since.clone(), limit.clone()]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1069,7 +1217,11 @@ impl ZaifCore {
         }
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_trade_history(&[__ws_arg_6]).await;
-        return self.parse_orders(get_value(&response, &Value::Str("return".to_string())), &[market.clone(), since.clone(), limit.clone()]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }

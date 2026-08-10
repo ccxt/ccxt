@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for WhitebitCore {
 
 impl crate::exchange_generated::ExchangeBase for WhitebitCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -268,6 +268,7 @@ impl crate::exchange_generated::ExchangeBase for WhitebitCore {
                 "handle_ohlcv" => self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_ticker" => self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await,
                 "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
                 "parse_ws_order_type" => self.parse_ws_order_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
@@ -444,8 +445,8 @@ impl WhitebitCore {
         let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_639: bool = true;
-            while { if !__for_first_639 { i = add(&i, &Value::Int(1)); } __for_first_639 = false; is_less_than(&i, &get_array_length(&params)) } {
+            let mut __for_first_653: bool = true;
+            while { if !__for_first_653 { i = add(&i, &Value::Int(1)); } __for_first_653 = false; is_less_than(&i, &get_array_length(&params)) } {
             let mut data: Value = get_value(&params, &i);
             let mut data: Value = get_value(&params, &i);
             let mut marketId: Value = self.safe_string(data.clone(), Value::Int(7), &[]);
@@ -484,7 +485,7 @@ impl WhitebitCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -589,8 +590,8 @@ impl WhitebitCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_640: bool = true;
-            while { if !__for_first_640 { i = add(&i, &Value::Int(1)); } __for_first_640 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_654: bool = true;
+            while { if !__for_first_654 { i = add(&i, &Value::Int(1)); } __for_first_654 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -648,8 +649,8 @@ impl WhitebitCore {
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_641: bool = true;
-            while { if !__for_first_641 { i = add(&i, &Value::Int(1)); } __for_first_641 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_655: bool = true;
+            while { if !__for_first_655 { i = add(&i, &Value::Int(1)); } __for_first_655 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut messageHashes, add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
             append_to_array(&mut args, get_value(&market, &Value::Str("id".to_string())));
@@ -691,7 +692,7 @@ impl WhitebitCore {
         //
         let mut tickers: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
         let mut marketId: Value = self.safe_string(tickers.clone(), Value::Int(0), &[]);
-        let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null]);
+        let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut rawTicker: Value = self.safe_value(tickers.clone(), Value::Int(1), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -706,8 +707,8 @@ impl WhitebitCore {
         let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_642: bool = true;
-            while { if !__for_first_642 { i = add(&i, &Value::Int(1)); } __for_first_642 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_656: bool = true;
+            while { if !__for_first_656 { i = add(&i, &Value::Int(1)); } __for_first_656 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut currentMessageHash: Value = get_value(&messageHashes, &i);
             let mut currentMessageHash: Value = get_value(&messageHashes, &i);
             if is_greater_than_or_equal(&get_index_of(&currentMessageHash, &Value::Str("tickers".to_string())), &Value::Int(0)) && is_greater_than_or_equal(&get_index_of(&currentMessageHash, &symbol), &Value::Int(0)) {
@@ -803,8 +804,8 @@ impl WhitebitCore {
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_643: bool = true;
-            while { if !__for_first_643 { j = add(&j, &Value::Int(1)); } __for_first_643 = false; is_less_than(&j, &get_array_length(&parsedTrades)) } {
+            let mut __for_first_657: bool = true;
+            while { if !__for_first_657 { j = add(&j, &Value::Int(1)); } __for_first_657 = false; is_less_than(&j, &get_array_length(&parsedTrades)) } {
             stored.append(get_value(&parsedTrades, &j));
         }
         }
@@ -864,7 +865,10 @@ impl WhitebitCore {
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ],
         //       "id": null
         //   }
@@ -893,7 +897,10 @@ impl WhitebitCore {
         //         "56.78", // price
         //         "0.16717", // amount
         //         "0.0094919126", // fee
-        //         '' // client order id
+        //         '', // client order id
+        //         "2", // side, 1 = sell, 2 = buy
+        //         "2", // role, 1 = maker, 2 = taker
+        //         "LTC" // fee asset
         //    ]
         //
         let mut orderId: Value = self.safe_string(trade.clone(), Value::Int(3), &[]);
@@ -906,12 +913,28 @@ impl WhitebitCore {
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_string(trade.clone(), Value::Int(6), &[]);
         if !is_equal(&feeCost, &Value::Null) {
+            let mut feeCurrencyId: Value = self.safe_string(trade.clone(), Value::Int(10), &[]);
+            let mut feeCurrencyCode: Value = ternary(is_true(&(!is_equal(&feeCurrencyId, &Value::Null))), self.safe_currency_code(feeCurrencyId.clone(), &[]), get_value(&market, &Value::Str("quote".to_string())));
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCost.clone());
-                    m.insert("currency".to_string(), get_value(&market, &Value::Str("quote".to_string())));
+                    m.insert("currency".to_string(), feeCurrencyCode.clone());
                 m
             });
+        }
+        let mut rawSide: Value = self.safe_integer(trade.clone(), Value::Int(8), &[]);
+        let mut side: Value = Value::Null;
+        if is_equal(&rawSide, &Value::Int(1)) {
+            side = Value::Str("sell".to_string());
+        }  else if is_equal(&rawSide, &Value::Int(2)) {
+            side = Value::Str("buy".to_string());
+        }
+        let mut role: Value = self.safe_integer(trade.clone(), Value::Int(9), &[]);
+        let mut takerOrMaker: Value = Value::Null;
+        if is_equal(&role, &Value::Int(1)) {
+            takerOrMaker = Value::Str("maker".to_string());
+        }  else if is_equal(&role, &Value::Int(2)) {
+            takerOrMaker = Value::Str("taker".to_string());
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -922,8 +945,8 @@ impl WhitebitCore {
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
         m.insert("order".to_string(), orderId.clone());
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), Value::Null);
-        m.insert("takerOrMaker".to_string(), Value::Null);
+        m.insert("side".to_string(), side.clone());
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
         m.insert("price".to_string(), price.clone());
         m.insert("amount".to_string(), amount.clone());
         m.insert("cost".to_string(), Value::Null);
@@ -1147,6 +1170,8 @@ impl WhitebitCore {
  * @see https://docs.whitebit.com/private/websocket/#balance-margin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+ * @param {bool} [params.fetchBalanceSnapshot] whether to fetch the initial balance snapshot over REST, default is true
+ * @param {bool} [params.awaitBalanceSnapshot] whether to wait for the balance snapshot before providing updates, default is true
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn watch_balance(&mut self, optional_args: &[Value]) -> Value {
@@ -1168,13 +1193,55 @@ impl WhitebitCore {
             method = Value::Str("balanceMargin_subscribe".to_string());
             messageHash = add(&messageHash, &Value::Str("margin".to_string()));
         }
-        let mut currencies: Value = object_keys(&self.currencies);
-        return self.watch_private(messageHash.clone(), method.clone(), &[currencies.clone(), params.clone()]).await;
+        let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
+        let mut client: Value = self.client(&[url.clone()]);
+        self.set_balance_cache(client.clone(), type_var.clone(), messageHash.clone());
+        let mut fetchBalanceSnapshot: Value = Value::Null;
+        let mut awaitBalanceSnapshot: Value = Value::Null;
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchBalance".to_string()), Value::Str("fetchBalanceSnapshot".to_string()), &[Value::Bool(true)]); fetchBalanceSnapshot = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchBalance".to_string()), Value::Str("awaitBalanceSnapshot".to_string()), &[Value::Bool(true)]); awaitBalanceSnapshot = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        if is_true(&fetchBalanceSnapshot) && is_true(&awaitBalanceSnapshot) {
+            client.future(&[add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()))]);
+        }
+        return self.watch_private(messageHash.clone(), method.clone(), &[Value::List(vec![]), params.clone()]).await;
+
+    Value::Null
+}
+
+    pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value, mut subscriptionHash: Value) {
+        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash))) {
+            return;
+        }
+        let mut fetchBalanceSnapshot: Value = self.handle_option(Value::Str("watchBalance".to_string()), Value::Str("fetchBalanceSnapshot".to_string()), &[Value::Bool(true)]);
+        if is_true(&fetchBalanceSnapshot) {
+            let mut messageHash: Value = add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()));
+            if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
+                client.future(&[messageHash.clone()]);
+                self.spawn(&[Value::Null.clone(), client.clone(), messageHash.clone(), type_var.clone(), subscriptionHash.clone()]);
+            }
+        }
+}
+
+    pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut type_var: Value, mut subscriptionHash: Value) -> Value {
+        let mut response: Value = self.fetch_balance(&[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("type".to_string(), type_var.clone());
+            m
+        })]).await;
+        { let __t = self.extend(response.clone(), &[self.balance.clone()]); self.balance = __t; }
+        // don't remove the future from the .futures cache
+        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+            let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);
+            future.resolve(&[]);
+            client.resolve(&[self.balance.clone(), subscriptionHash.clone()]);
+        }
 
     Value::Null
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
+        //
+        // spot
         //
         //   {
         //       "method":"balanceSpot_update",
@@ -1183,24 +1250,81 @@ impl WhitebitCore {
         //             "LTC":{
         //                "available":"0.16587",
         //                "freeze":"0"
+        //             },
+        //             "BTC":{
+        //                "available":"0.005",
+        //                "freeze":"0.001"
         //             }
         //          }
         //       ],
         //       "id":null
         //   }
         //
+        // margin
+        //
+        //   {
+        //       "method":"balanceMargin_update",
+        //       "params":[
+        //          {
+        //             "a":"USDT",         // asset
+        //             "B":"0.00538073",   // total balance
+        //             "b":"0",            // borrowed
+        //             "av":"0.00538073",  // available without borrowing
+        //             "ab":"28.43739825"  // available with borrowing
+        //          }
+        //       ],
+        //       "id":null
+        //   }
+        //
         let mut method: Value = self.safe_string_k(message.clone(), "method", &[]);
-        let mut data: Value = self.safe_value_k(message.clone(), "params", &[]);
-        let mut balanceDict: Value = self.safe_value(data.clone(), Value::Int(0), &[]);
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), balanceDict.clone());
-        let mut keys: Value = object_keys(&balanceDict);
-        let mut currencyId: Value = self.safe_value(keys.clone(), Value::Int(0), &[]);
-        let mut rawBalance: Value = self.safe_value(balanceDict.clone(), currencyId.clone(), &[]);
-        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-        let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(rawBalance.clone(), "available", &[]));
-        add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(rawBalance.clone(), "freeze", &[]));
-        add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+        if is_equal(&method, &Value::Null) {
+            return;
+        }
+        let mut isMargin: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&method, &Value::Str("Margin".to_string())), &Value::Int(0)));
+        let mut data: Value = self.safe_list_k(message.clone(), "params", &[Value::List(vec![])]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { i = add(&i, &Value::Int(1)); } __for_first_659 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut balanceDict: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
+            add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), balanceDict.clone());
+            if is_true(&isMargin) {
+                let mut currencyId: Value = self.safe_string_k(balanceDict.clone(), "a", &[]);
+                let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+                let mut account: Value = self.account();
+                add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balanceDict.clone(), "av", &[]));
+                add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balanceDict.clone(), "B", &[]));
+                add_element_to_object(&mut account, &Value::Str("debt".to_string()), self.safe_string_k(balanceDict.clone(), "b", &[]));
+                if !is_equal(&code, &Value::Null) {
+                    add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                }
+            }  else {
+                let mut keys: Value = object_keys(&balanceDict);
+                {
+                                        let mut j: Value = Value::Int(0);
+                    let mut __for_first_658: bool = true;
+                    while { if !__for_first_658 { j = add(&j, &Value::Int(1)); } __for_first_658 = false; is_less_than(&j, &get_array_length(&keys)) } {
+                    let mut currencyId: Value = get_value(&keys, &j);
+                    let mut currencyId: Value = get_value(&keys, &j);
+                    let mut rawBalance: Value = self.safe_dict(balanceDict.clone(), currencyId.clone(), &[Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                        m
+                    })]);
+                    let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+                    let mut account: Value = self.account();
+                    add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(rawBalance.clone(), "available", &[]));
+                    add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(rawBalance.clone(), "freeze", &[]));
+                    if !is_equal(&code, &Value::Null) {
+                        add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                    }
+                }
+                }
+            }
+        }
+        }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         let mut messageHash: Value = Value::Str("wallet:".to_string());
         if is_greater_than_or_equal(&get_index_of(&method, &Value::Str("Spot".to_string())), &Value::Int(0)) {
@@ -1253,7 +1377,9 @@ impl WhitebitCore {
             });
             let mut market: Value = self.market(symbol.clone());
             let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
-            add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
+            if !is_equal(&marketId, &Value::Null) {
+                add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
+            }
             marketIds = Value::List(vec![marketId.clone()]);
             if is_true(&isNested) {
                 marketIds = Value::List(vec![marketIds.clone()]);
@@ -1277,7 +1403,9 @@ impl WhitebitCore {
             let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
             let mut isSubscribed: Value = self.safe_bool(subscription.clone(), marketId.clone(), &[Value::Bool(false)]);
             if !is_true(&isSubscribed) {
-                add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
+                if !is_equal(&marketId, &Value::Null) {
+                    add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
+                }
                 hasSymbolSubscription = Value::Bool(false);
             }
             if is_true(&hasSymbolSubscription) {
@@ -1464,8 +1592,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut values: Value = object_values(&subs);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_644: bool = true;
-            while { if !__for_first_644 { i = add(&i, &Value::Int(1)); } __for_first_644 = false; is_less_than(&i, &get_array_length(&values)) } {
+            let mut __for_first_660: bool = true;
+            while { if !__for_first_660 { i = add(&i, &Value::Int(1)); } __for_first_660 = false; is_less_than(&i, &get_array_length(&values)) } {
             let mut subscription: Value = get_value(&values, &i);
             let mut subscription: Value = get_value(&values, &i);
             if !is_equal(&subscription, &Value::Bool(true)) {

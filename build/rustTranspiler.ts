@@ -477,6 +477,51 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * A trait-default `async fn` desugars to an opaque RPITIT that makes NO
+     * `Send` promise to callers — even when every body is in fact `Send` —
+     * which forces every consumer future onto `spawn_local`. Rewrite each
+     * trait-default `async fn` into the explicit RPITIT form that carries
+     * the guarantee in the trait contract:
+     *   fn m(..) -> R { body }            (async fn)
+     *     ⇒ fn m(..) -> impl Future<Output = R> + Send { async move { body } }
+     * Zero-cost (same static dispatch, no boxing); the compiler then CHECKS
+     * every default body against the bound, so a genuinely non-Send body is
+     * a compile error, not a runtime surprise. Apply AFTER `pub`-stripping
+     * and AFTER `boxRecursiveAsyncCalls(isTrait)` (recursion participants
+     * are already `fn .. -> Pin<Box<dyn Future + Send + '_>>` by then and
+     * are not matched here).
+     */
+    sendifyTraitAsyncFns(content: string): string {
+        let result = '';
+        let idx = 0;
+        const re = /\basync\s+fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(content)) !== null) {
+            if (m.index < idx) { re.lastIndex = idx; continue; }
+            const braceIdx = content.indexOf('{', m.index + m[0].length);
+            if (braceIdx < 0) break;
+            const end = this.findMatchingBrace(content, braceIdx);
+            const sig = content.slice(m.index, braceIdx);
+            const rm = sig.match(/->\s*([^{]+?)\s*$/);
+            const retType = rm ? rm[1].trim() : '()';
+            let newSig = sig.replace(/\basync\s+fn\s+/, 'fn ');
+            if (rm) {
+                newSig = newSig.replace(/->\s*[^{]+?\s*$/,
+                    `-> impl ::std::future::Future<Output = ${retType}> + Send `);
+            } else {
+                newSig = newSig.trimEnd()
+                    + ` -> impl ::std::future::Future<Output = ()> + Send `;
+            }
+            result += content.slice(idx, m.index) + newSig
+                + '{ async move {' + content.slice(braceIdx + 1, end) + '} }';
+            idx = end + 1;
+            re.lastIndex = idx;
+        }
+        result += content.slice(idx);
+        return result;
+    }
+
+    /**
      * Rust forbids a direct cycle of `async fn`s (the future would be
      * infinitely sized) — `error[E0733]: recursion in an async fn
      * requires boxing`. When an exchange file contains a cycle of async
@@ -566,10 +611,10 @@ class RustTranspilerBuilder {
                 const retRe = /->\s*([^{]+?)\s*$/;
                 if (retRe.test(newHeader)) {
                     newHeader = newHeader.replace(retRe,
-                        `-> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ${f.retType}> + 'ccxt_rec>> `);
+                        `-> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ${f.retType}> + Send + 'ccxt_rec>> `);
                 } else {
                     newHeader = newHeader.replace(/\s*$/,
-                        ` -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ${f.retType}> + 'ccxt_rec>> `);
+                        ` -> ::std::pin::Pin<Box<dyn ::std::future::Future<Output = ${f.retType}> + Send + 'ccxt_rec>> `);
                 }
                 const newBody = '{ Box::pin(async move {' + body + '}) }';
                 result = result.slice(0, f.fnStart) + newHeader + newBody + result.slice(f.bodyEnd + 1);
@@ -2554,7 +2599,44 @@ class RustTranspilerBuilder {
      * The catch body is preserved either way. Used by the test-main
      * pipeline so `try { createOrder } catch { capture }` keeps working.
      */
-    rewriteTryCatchAsync(content: string): string {
+    /**
+     * Innermost `fn` containing `idx` returns `()` (no `->` in its header)?
+     * Drives the void-aware try/catch emission below: WS handlers
+     * (`handleOrderBook(client, message)` → `fn ...(...) {`) are unit fns, so
+     * the `return __try_ok` / `return Value::Null` plumbing the Value flavor
+     * emits would not type-check there (E0308).
+     */
+    private isEnclosingFnVoid(content: string, idx: number): boolean {
+        const re = /\b(?:pub\s+)?(?:async\s+)?fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*(?:<[^>]*>)?\s*\(/g;
+        let m: RegExpExecArray | null;
+        let best: boolean | null = null;
+        while ((m = re.exec(content)) !== null) {
+            if (m.index > idx) break;
+            // paren-match the parameter list.
+            let depth = 1, j = m.index + m[0].length, inStr = false, esc = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (esc) { esc = false; j++; continue; }
+                if (c === '\\' && inStr) { esc = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) { if (c === '(') depth++; else if (c === ')') depth--; }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) continue;
+            const braceIdx = content.indexOf('{', j);
+            if (braceIdx < 0) continue;
+            const end = this.findMatchingBrace(content, braceIdx);
+            if (braceIdx < idx && end > idx) {
+                // innermost wins — later (nested) matches overwrite.
+                best = !content.slice(j + 1, braceIdx).includes('->');
+            }
+            re.lastIndex = j;
+        }
+        return best === true;
+    }
+
+    rewriteTryCatchAsync(content: string, enclosingVoid: boolean | null = null): string {
         const marker = 'let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {';
         let out = '';
         let i = 0;
@@ -2611,9 +2693,14 @@ class RustTranspilerBuilder {
                     consumeEnd = k + 1;
                 }
             }
+            // Void context (unit-returning WS handlers): the enclosing fn has
+            // no return type, so the Value-shaped plumbing below would not
+            // type-check. Detect once per occurrence; recursion inherits it
+            // (a nested try/catch lives in the same enclosing fn).
+            const isVoid = enclosingVoid !== null ? enclosingVoid : this.isEnclosingFnVoid(content, idx);
             // Recurse so nested try/catch in either body is handled too.
-            let tryBody     = this.rewriteTryCatchAsync(inner);
-            const catchPart = this.rewriteTryCatchAsync(catchBody);
+            let tryBody     = this.rewriteTryCatchAsync(inner, isVoid);
+            const catchPart = this.rewriteTryCatchAsync(catchBody, isVoid);
             // Inside an `async {}` catch_unwind block, `return ident;`
             // tries to move out of an outer-scope variable that the
             // catch arm and code after the match also need to read.
@@ -2623,7 +2710,9 @@ class RustTranspilerBuilder {
             // setUserAbstraction in hyperliquid.ts for the canonical
             // shape: `let response = undefined; try { response = ...;
             // return response; } catch { ... } return response;`.
-            tryBody = tryBody.replace(/\breturn\s+([A-Za-z_][A-Za-z_0-9]*)\s*;/g, 'return $1.clone();');
+            if (!isVoid) {
+                tryBody = tryBody.replace(/\breturn\s+([A-Za-z_][A-Za-z_0-9]*)\s*;/g, 'return $1.clone();');
+            }
             // `break` / `continue` in the try body would refer to an
             // outer loop — wrapping it in `async {}` or a closure
             // changes their target. Fall back to a plain block in that
@@ -2645,6 +2734,24 @@ class RustTranspilerBuilder {
                 // convert it to a `Value` so the catch body (which treats
                 // `e` as an error object) type-checks.
                 const hasReturn = /\breturn\b/.test(inner);
+                if (isVoid && hasReturn) {
+                    // Unit fn with `return;` guards in the try body (the WS
+                    // handler shape). Encode "the try body early-returned" as
+                    // a bool: `return;` → `return true;`, falling off the end
+                    // → `false`. The match then early-returns from the
+                    // ENCLOSING fn only when the try body really did — code
+                    // after the try/catch keeps running otherwise (unlike the
+                    // Value flavor, which is only used at fn tail).
+                    const voidBody = tryBody.replace(/\breturn\s*;/g, 'return true;');
+                    if (inner.includes('.await')) {
+                        out += `let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {${voidBody} #[allow(unreachable_code)] { false }})).await;\n`;
+                    } else {
+                        out += `let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {${voidBody} #[allow(unreachable_code)] { false }}));\n`;
+                    }
+                    out += `match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) => { let ${errName}: Value = panic_to_value(_try_err); ${catchPart} } }`;
+                    i = consumeEnd;
+                    continue;
+                }
                 if (inner.includes('.await')) {
                     out += `let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {${tryBody} #[allow(unreachable_code)] { Value::Null }})).await;\n`;
                 } else {
@@ -4062,6 +4169,12 @@ class RustTranspilerBuilder {
         const re = /\bpub\s+async\s+fn\s+([a-z_][a-z0-9_]*)\s*\(/g;
         let m: RegExpExecArray | null;
         while ((m = re.exec(content)) !== null) out[m[1]] = true;
+        // Also match the desugared async forms the Send-guarantee passes emit:
+        // `fn m(..) -> impl ::std::future::Future<..> + Send` (sendified trait
+        // defaults) and `fn m<'ccxt_rec>(..) -> Pin<Box<dyn Future + Send + '_>>`
+        // (recursion-boxed). Both ARE async methods — callers must `.await`.
+        const futRe = /\b(?:pub\s+)?fn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>]*>)?\s*\(([^)]*)\)\s*->\s*(?:impl ::std::future::Future|::std::pin::Pin<Box<dyn ::std::future::Future)/g;
+        while ((m = futRe.exec(content)) !== null) out[m[1]] = true;
         return out;
     }
 
@@ -4509,6 +4622,12 @@ class RustTranspilerBuilder {
                 const re = /\b(?:pub )?async fn ([a-z_][a-z0-9_]*)\(/g;
                 let m: RegExpExecArray | null;
                 while ((m = re.exec(src)) !== null) s.add(m[1]);
+                // The Send-guarantee passes desugar trait-default `async fn`s
+                // into `fn m(..) -> impl Future + Send` / recursion-boxed
+                // `fn m<'_>(..) -> Pin<Box<dyn Future + Send + '_>>` — still
+                // async methods; call sites need their `.await`.
+                const futRe = /\b(?:pub\s+)?fn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>]*>)?\s*\(([^)]*)\)\s*->\s*(?:impl ::std::future::Future|::std::pin::Pin<Box<dyn ::std::future::Future)/g;
+                while ((m = futRe.exec(src)) !== null) s.add(m[1]);
             } catch (_) { /* base not generated yet — fall back to empty */ }
         }
         return s;
@@ -4836,14 +4955,14 @@ class RustTranspilerBuilder {
     /// methods, falling through to \`call_dynamic_base\` for base-only methods.
     /// The single required method — every override reaches the core statically.
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>;
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>;
 
     /// Route \`method(args)\` to the derived override by name, with a per-method
     /// re-entry guard (so a base method calling its own name falls through to
     /// the base body instead of looping). Replaces \`Exchange::dispatch_to_derived\`
     /// — no stored pointer; \`call_dynamic\` is a static trait call.
     fn dispatch_to_derived<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = Option<crate::Value>> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = Option<crate::Value>> + Send + 'a>>
     {
         Box::pin(async move {
             if !self.dispatch_guard_enter(method) { return None; }
@@ -4909,7 +5028,7 @@ class RustTranspilerBuilder {
         arms.sort();
         return `    /// Prediction-base fall-through for a prediction Core's \`call_dynamic\`.
     fn call_dynamic_prediction_base<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -4956,7 +5075,7 @@ ${arms.join('\n')}
         arms.sort();
         return `    /// Base-method fall-through for a core's \`call_dynamic\`.
     fn call_dynamic_base<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -5053,7 +5172,7 @@ ${isBase
             : `                // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).\n                _ => self.call_dynamic_base(method, args).await,`;
         return `impl crate::exchange_generated::ExchangeBase for ${coreName} {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -6430,6 +6549,14 @@ impl std::ops::DerefMut for ${coreName} {
         let traitBody = (isExchangeBase || isPredictionBase)
             ? basePart.replace(/\bpub\s+(async\s+)?fn\s+/g, (_m, a) => `${a || ''}fn `)
             : basePart;
+        // Desugar the trait-default `async fn`s to `-> impl Future + Send` so
+        // the Send guarantee is part of the trait contract (see the pass doc).
+        // Keep the pre-desugar text: the `call_dynamic_*` emitters detect
+        // async-ness from the `async fn` keyword when collecting signatures.
+        const traitBodyForSigs = traitBody;
+        if (isExchangeBase || isPredictionBase) {
+            traitBody = this.sendifyTraitAsyncFns(traitBody);
+        }
         if (isPredictionBase) {
             // Route PredictionExchange field access through the accessors.
             const f = PRED_FIELDS.join('|');
@@ -6476,8 +6603,8 @@ impl std::ops::DerefMut for ${coreName} {
             traitBody,
             // call_dynamic_base — base-only async methods (cancelOrderWith…) that
             // a core's `call_dynamic` falls through to.
-            isExchangeBase ? this.emitCallDynamicBaseTrait(traitBody)
-                : isPredictionBase ? this.emitCallDynamicPredictionBase(traitBody)
+            isExchangeBase ? this.emitCallDynamicBaseTrait(traitBodyForSigs)
+                : isPredictionBase ? this.emitCallDynamicPredictionBase(traitBodyForSigs)
                 : this.emitCallDynamicForBase(basePart),
             '}',
             '',

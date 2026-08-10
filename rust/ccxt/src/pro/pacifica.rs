@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for PacificaCore {
 
 impl crate::exchange_generated::ExchangeBase for PacificaCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -315,7 +315,7 @@ impl PacificaCore {
         m.insert("cancelOrdersWs".to_string(), Value::Bool(true));
         m.insert("cancelAllOrdersWs".to_string(), Value::Bool(true));
         m.insert("createOrderWs".to_string(), Value::Bool(true));
-        m.insert("createOrdersWs".to_string(), Value::Bool(true));
+        m.insert("createOrdersWs".to_string(), Value::Bool(false));
         m.insert("editOrderWs".to_string(), Value::Bool(true));
         m.insert("watchBalance".to_string(), Value::Bool(false));
         m.insert("watchMyTrades".to_string(), Value::Bool(true));
@@ -406,7 +406,7 @@ impl PacificaCore {
         if !is_equal(&key, &Value::Null) {
             add_element_to_object(&mut headers, &Value::Str("PF-API-KEY".to_string()), key.clone());
         }  else {
-            if !is_equal(&self.handle_option(Value::Str("setupApiKeyHeaders".to_string()), Value::Str("apiKey".to_string()), &[Value::Null]), &Value::Null) {
+            if !is_equal(&self.handle_option(Value::Str("setupApiKeyHeaders".to_string()), Value::Str("apiKey".to_string()), &[]), &Value::Null) {
                 add_element_to_object(&mut headers, &Value::Str("PF-API-KEY".to_string()), get_value(&self.options, &Value::Str("apiKey".to_string())));
             }
         }
@@ -663,11 +663,11 @@ impl PacificaCore {
         let mut ordersToReturn: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_559: bool = true;
-            while { if !__for_first_559 { i = add(&i, &Value::Int(1)); } __for_first_559 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_573: bool = true;
+            while { if !__for_first_573 { i = add(&i, &Value::Int(1)); } __for_first_573 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut order: Value = get_value(&results, &i);
             let mut order: Value = get_value(&results, &i);
-            let mut error: Value = self.safe_string_k(order.clone(), "error", &[Value::Null]);
+            let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
             let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -823,7 +823,7 @@ impl PacificaCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -837,7 +837,7 @@ impl PacificaCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut aggLevel: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrderBook".to_string()), Value::Str("aggLevel".to_string()), &[Value::Int(1)]); aggLevel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("aggLevel".to_string()), &[Value::Int(1)]); aggLevel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = ternary(is_true(&(isTestnet)), Value::Str("test".to_string()), Value::Str("api".to_string()));
@@ -881,7 +881,7 @@ impl PacificaCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut aggLevel: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrderBook".to_string()), Value::Str("aggLevel".to_string()), &[Value::Int(1)]); aggLevel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("aggLevel".to_string()), &[Value::Int(1)]); aggLevel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut subMessageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
         let mut messageHash: Value = add(&Value::Str("unsubscribe:".to_string()), &subMessageHash);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
@@ -1197,8 +1197,8 @@ impl PacificaCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_560: bool = true;
-            while { if !__for_first_560 { i = add(&i, &Value::Int(1)); } __for_first_560 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_574: bool = true;
+            while { if !__for_first_574 { i = add(&i, &Value::Int(1)); } __for_first_574 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut info: Value = get_value(&data, &i);
             let mut info: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
@@ -1264,21 +1264,23 @@ impl PacificaCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_561: bool = true;
-            while { if !__for_first_561 { i = add(&i, &Value::Int(1)); } __for_first_561 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_575: bool = true;
+            while { if !__for_first_575 { i = add(&i, &Value::Int(1)); } __for_first_575 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawTrade: Value = get_value(&data, &i);
             let mut rawTrade: Value = get_value(&data, &i);
             let mut parsed: Value = self.parse_ws_trade(rawTrade.clone(), &[]);
             let mut symbol: Value = get_value(&parsed, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+            }
             trades.append(parsed.clone());
         }
         }
         let mut keys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_562: bool = true;
-            while { if !__for_first_562 { i = add(&i, &Value::Int(1)); } __for_first_562 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_576: bool = true;
+            while { if !__for_first_576 { i = add(&i, &Value::Int(1)); } __for_first_576 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut currentMessageHash: Value = add(&Value::Str("myTrades:".to_string()), &get_value(&keys, &i));
             client.resolve(&[trades.clone(), currentMessageHash.clone()]);
         }
@@ -1411,9 +1413,12 @@ impl PacificaCore {
         let mut trades: Value = get_value(&self.trades, &symbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_563: bool = true;
-            while { if !__for_first_563 { i = add(&i, &Value::Int(1)); } __for_first_563 = false; is_less_than(&i, &get_array_length(&entry)) } {
-            let mut data: Value = self.safe_dict(entry.clone(), i.clone(), &[]);
+            let mut __for_first_577: bool = true;
+            while { if !__for_first_577 { i = add(&i, &Value::Int(1)); } __for_first_577 = false; is_less_than(&i, &get_array_length(&entry)) } {
+            let mut data: Value = self.safe_dict(entry.clone(), i.clone(), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]);
             let mut trade: Value = self.parse_ws_trade(data.clone(), &[]);
             trades.append(trade.clone());
         }
@@ -1634,18 +1639,25 @@ impl PacificaCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut timeframe: Value = self.safe_string_k(data.clone(), "i", &[]);
+        if is_equal(&timeframe, &Value::Null) {
+            return;
+        }
         if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
             add_element_to_object(&mut self.ohlcvs.clone(), &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         }
-        if !is_true(&(Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)))) {
+        let mut symbolOhlcvs: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut ohlcv: Value = self.safe_value(symbolOhlcvs.clone(), timeframe.clone(), &[]);
+        if is_equal(&ohlcv, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            let mut stored = ArrayCacheByTimestamp::new(limit.clone());
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            ohlcv = ArrayCacheByTimestamp::new(limit.clone());
+            add_element_to_object(&mut symbolOhlcvs, &timeframe, ohlcv.clone());
         }
-        let mut ohlcv: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         let mut parsed: Value = self.parse_ohlcv(data.clone(), &[]);
         ohlcv.append(parsed.clone());
         let mut messageHash: Value = add(&add(&add(&Value::Str("candles:".to_string()), &timeframe), &Value::Str(":".to_string())), &symbol);
@@ -1798,21 +1810,23 @@ impl PacificaCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_564: bool = true;
-            while { if !__for_first_564 { i = add(&i, &Value::Int(1)); } __for_first_564 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_578: bool = true;
+            while { if !__for_first_578 { i = add(&i, &Value::Int(1)); } __for_first_578 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut rawOrder: Value = get_value(&data, &i);
             let mut rawOrder: Value = get_value(&data, &i);
             let mut order: Value = self.parse_order(rawOrder.clone(), &[]);
             stored.append(order.clone());
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-            add_element_to_object(&mut marketSymbols, &symbol, Value::Bool(true));
+            if !is_equal(&symbol, &Value::Null) {
+                add_element_to_object(&mut marketSymbols, &symbol, Value::Bool(true));
+            }
         }
         }
         let mut keys: Value = object_keys(&marketSymbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_565: bool = true;
-            while { if !__for_first_565 { i = add(&i, &Value::Int(1)); } __for_first_565 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_579: bool = true;
+            while { if !__for_first_579 { i = add(&i, &Value::Int(1)); } __for_first_579 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut symbol: Value = get_value(&keys, &i);
             let mut symbol: Value = get_value(&keys, &i);
             let mut innerMessageHash: Value = add(&add(&messageHash, &Value::Str(":".to_string())), &symbol);
@@ -1886,8 +1900,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbols: Value = object_keys(&self.tickers);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_566: bool = true;
-            while { if !__for_first_566 { i = add(&i, &Value::Int(1)); } __for_first_566 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_580: bool = true;
+            while { if !__for_first_580 { i = add(&i, &Value::Int(1)); } __for_first_580 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             remove(&mut self.tickers.clone(), &get_value(&symbols, &i));
         }
         }
@@ -1899,11 +1913,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut interval: Value = self.safe_string_k(subscription.clone(), "interval", &[]);
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
+        if is_equal(&timeframe, &Value::Null) {
+            return;
+        }
         let mut subMessageHash: Value = add(&add(&add(&Value::Str("candles:".to_string()), &timeframe), &Value::Str(":".to_string())), &symbol);
         let mut messageHash: Value = add(&Value::Str("unsubscribe:".to_string()), &subMessageHash);
         self.clean_unsubscription(client.clone(), subMessageHash.clone(), messageHash.clone(), &[]);
-        if is_true(&Value::Bool(in_op(&self.ohlcvs, &symbol))) {
-            if is_true(&Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe))) {
+        if is_true(&(!is_equal(&symbol, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
+            if is_true(&(!is_equal(&timeframe, &Value::Null))) && is_true(&(Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)))) {
                 remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
             }
         }
@@ -1997,7 +2014,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
         }
-        let mut postType: Value = self.safe_string_k(message.clone(), "type", &[Value::Null]);
+        let mut postType: Value = self.safe_string_k(message.clone(), "type", &[]);
         let mut topic: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2024,8 +2041,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut keys: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_567: bool = true;
-            while { if !__for_first_567 { i = add(&i, &Value::Int(1)); } __for_first_567 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_581: bool = true;
+            while { if !__for_first_581 { i = add(&i, &Value::Int(1)); } __for_first_581 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_greater_than_or_equal(&get_index_of(&topic, &get_value(&keys, &i)), &Value::Int(0)) {

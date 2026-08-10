@@ -189,7 +189,7 @@ impl crate::exchange::DerivedExchange for NdaxCore {
 
 impl crate::exchange_generated::ExchangeBase for NdaxCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -416,39 +416,171 @@ impl NdaxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Activate2FA".to_string(), Value::Int(1));
-        m.insert("Authenticate2FA".to_string(), Value::Int(1));
-        m.insert("AuthenticateUser".to_string(), Value::Int(1));
-        m.insert("EnableXP2FA".to_string(), Value::Int(1));
-        m.insert("GetL2Snapshot".to_string(), Value::Int(1));
-        m.insert("GetLevel1".to_string(), Value::Int(1));
-        m.insert("GetValidate2FARequiredEndpoints".to_string(), Value::Int(1));
-        m.insert("LogOut".to_string(), Value::Int(1));
-        m.insert("GetTickerHistory".to_string(), Value::Int(1));
-        m.insert("GetProduct".to_string(), Value::Int(1));
-        m.insert("GetProducts".to_string(), Value::Int(1));
-        m.insert("GetInstrument".to_string(), Value::Int(1));
-        m.insert("GetInstruments".to_string(), Value::Int(1));
-        m.insert("GetEarliestTickTime".to_string(), Value::Int(1));
-        m.insert("Ping".to_string(), Value::Int(1));
-        m.insert("assets".to_string(), Value::Int(1));
-        m.insert("orderbook".to_string(), Value::Int(1));
-        m.insert("ticker".to_string(), Value::Int(1));
-        m.insert("summary".to_string(), Value::Int(1));
-        m.insert("trades".to_string(), Value::Int(1));
-        m.insert("GetLastTrades".to_string(), Value::Int(1));
-        m.insert("ConfirmWithdraw".to_string(), Value::Int(1));
-        m.insert("SubscribeLevel1".to_string(), Value::Int(1));
-        m.insert("SubscribeLevel2".to_string(), Value::Int(1));
-        m.insert("SubscribeTicker".to_string(), Value::Int(1));
-        m.insert("SubscribeTrades".to_string(), Value::Int(1));
-        m.insert("SubscribeBlockTrades".to_string(), Value::Int(1));
-        m.insert("UnsubscribeBlockTrades".to_string(), Value::Int(1));
-        m.insert("UnsubscribeLevel1".to_string(), Value::Int(1));
-        m.insert("UnsubscribeLevel2".to_string(), Value::Int(1));
-        m.insert("UnsubscribeTicker".to_string(), Value::Int(1));
-        m.insert("UnsubscribeTrades".to_string(), Value::Int(1));
-        m.insert("Authenticate".to_string(), Value::Int(1));
+        m.insert("Activate2FA".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Authenticate2FA".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("AuthenticateUser".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("EnableXP2FA".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetL2Snapshot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetLevel1".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetValidate2FARequiredEndpoints".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("LogOut".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetTickerHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetProduct".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetProducts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetInstrument".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetInstruments".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetEarliestTickTime".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Ping".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orderbook".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetLastTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ConfirmWithdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("SubscribeLevel1".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("SubscribeLevel2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("SubscribeTicker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("SubscribeTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("SubscribeBlockTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("UnsubscribeBlockTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("UnsubscribeLevel1".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("UnsubscribeLevel2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("UnsubscribeTicker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("UnsubscribeTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Authenticate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -457,81 +589,365 @@ impl NdaxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("GetUserAccountInfos".to_string(), Value::Int(1));
-        m.insert("GetUserAccounts".to_string(), Value::Int(1));
-        m.insert("GetUserAffiliateCount".to_string(), Value::Int(1));
-        m.insert("GetUserAffiliateTag".to_string(), Value::Int(1));
-        m.insert("GetUserConfig".to_string(), Value::Int(1));
-        m.insert("GetAllUnredactedUserConfigsForUser".to_string(), Value::Int(1));
-        m.insert("GetUnredactedUserConfigByKey".to_string(), Value::Int(1));
-        m.insert("GetUserDevices".to_string(), Value::Int(1));
-        m.insert("GetUserReportTickets".to_string(), Value::Int(1));
-        m.insert("GetUserReportWriterResultRecords".to_string(), Value::Int(1));
-        m.insert("GetAccountInfo".to_string(), Value::Int(1));
-        m.insert("GetAccountPositions".to_string(), Value::Int(1));
-        m.insert("GetAllAccountConfigs".to_string(), Value::Int(1));
-        m.insert("GetTreasuryProductsForAccount".to_string(), Value::Int(1));
-        m.insert("GetAccountTrades".to_string(), Value::Int(1));
-        m.insert("GetAccountTransactions".to_string(), Value::Int(1));
-        m.insert("GetOpenTradeReports".to_string(), Value::Int(1));
-        m.insert("GetAllOpenTradeReports".to_string(), Value::Int(1));
-        m.insert("GetTradesHistory".to_string(), Value::Int(1));
-        m.insert("GetOpenOrders".to_string(), Value::Int(1));
-        m.insert("GetOpenQuotes".to_string(), Value::Int(1));
-        m.insert("GetOrderFee".to_string(), Value::Int(1));
-        m.insert("GetOrderHistory".to_string(), Value::Int(1));
-        m.insert("GetOrdersHistory".to_string(), Value::Int(1));
-        m.insert("GetOrderStatus".to_string(), Value::Int(1));
-        m.insert("GetOmsFeeTiers".to_string(), Value::Int(1));
-        m.insert("GetAccountDepositTransactions".to_string(), Value::Int(1));
-        m.insert("GetAccountWithdrawTransactions".to_string(), Value::Int(1));
-        m.insert("GetAllDepositRequestInfoTemplates".to_string(), Value::Int(1));
-        m.insert("GetDepositInfo".to_string(), Value::Int(1));
-        m.insert("GetDepositRequestInfoTemplate".to_string(), Value::Int(1));
-        m.insert("GetDeposits".to_string(), Value::Int(1));
-        m.insert("GetDepositTicket".to_string(), Value::Int(1));
-        m.insert("GetDepositTickets".to_string(), Value::Int(1));
-        m.insert("GetOMSWithdrawFees".to_string(), Value::Int(1));
-        m.insert("GetWithdrawFee".to_string(), Value::Int(1));
-        m.insert("GetWithdraws".to_string(), Value::Int(1));
-        m.insert("GetWithdrawTemplate".to_string(), Value::Int(1));
-        m.insert("GetWithdrawTemplateTypes".to_string(), Value::Int(1));
-        m.insert("GetWithdrawTicket".to_string(), Value::Int(1));
-        m.insert("GetWithdrawTicketAttachment".to_string(), Value::Int(1));
-        m.insert("GetWithdrawTickets".to_string(), Value::Int(1));
-        m.insert("GetDepositTicketAttachment".to_string(), Value::Int(1));
+        m.insert("GetUserAccountInfos".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetUserAccounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetUserAffiliateCount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetUserAffiliateTag".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetUserConfig".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetAllUnredactedUserConfigsForUser".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetUnredactedUserConfigByKey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetUserDevices".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetUserReportTickets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetUserReportWriterResultRecords".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetAccountInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetAccountPositions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetAllAccountConfigs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetTreasuryProductsForAccount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetAccountTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetAccountTransactions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetOpenTradeReports".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetAllOpenTradeReports".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetTradesHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetOpenOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetOpenQuotes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetOrderFee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetOrderHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetOrdersHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetOrderStatus".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetOmsFeeTiers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetAccountDepositTransactions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetAccountWithdrawTransactions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetAllDepositRequestInfoTemplates".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetDepositInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetDepositRequestInfoTemplate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetDeposits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetDepositTicket".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetDepositTickets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetOMSWithdrawFees".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetWithdrawFee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetWithdraws".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetWithdrawTemplate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetWithdrawTemplateTypes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetWithdrawTicket".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetWithdrawTicketAttachment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetWithdrawTickets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetDepositTicketAttachment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("AddUserAffiliateTag".to_string(), Value::Int(1));
-        m.insert("AddDepositTicketAttachment".to_string(), Value::Int(1));
-        m.insert("AddWithdrawTicketAttachment".to_string(), Value::Int(1));
-        m.insert("CancelUserReport".to_string(), Value::Int(1));
-        m.insert("RegisterNewDevice".to_string(), Value::Int(1));
-        m.insert("SubscribeAccountEvents".to_string(), Value::Int(1));
-        m.insert("UpdateUserAffiliateTag".to_string(), Value::Int(1));
-        m.insert("GenerateTradeActivityReport".to_string(), Value::Int(1));
-        m.insert("GenerateTransactionActivityReport".to_string(), Value::Int(1));
-        m.insert("GenerateTreasuryActivityReport".to_string(), Value::Int(1));
-        m.insert("ScheduleTradeActivityReport".to_string(), Value::Int(1));
-        m.insert("ScheduleTransactionActivityReport".to_string(), Value::Int(1));
-        m.insert("ScheduleTreasuryActivityReport".to_string(), Value::Int(1));
-        m.insert("CancelAllOrders".to_string(), Value::Int(1));
-        m.insert("CancelOrder".to_string(), Value::Int(1));
-        m.insert("CancelQuote".to_string(), Value::Int(1));
-        m.insert("CancelReplaceOrder".to_string(), Value::Int(1));
-        m.insert("CreateQuote".to_string(), Value::Int(1));
-        m.insert("ModifyOrder".to_string(), Value::Int(1));
-        m.insert("SendOrder".to_string(), Value::Int(1));
-        m.insert("SubmitBlockTrade".to_string(), Value::Int(1));
-        m.insert("UpdateQuote".to_string(), Value::Int(1));
-        m.insert("CancelWithdraw".to_string(), Value::Int(1));
-        m.insert("CreateDepositTicket".to_string(), Value::Int(1));
-        m.insert("CreateWithdrawTicket".to_string(), Value::Int(1));
-        m.insert("SubmitDepositTicketComment".to_string(), Value::Int(1));
-        m.insert("SubmitWithdrawTicketComment".to_string(), Value::Int(1));
-        m.insert("GetOrderHistoryByOrderId".to_string(), Value::Int(1));
+        m.insert("AddUserAffiliateTag".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("AddDepositTicketAttachment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("AddWithdrawTicketAttachment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("CancelUserReport".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("RegisterNewDevice".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("SubscribeAccountEvents".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("UpdateUserAffiliateTag".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GenerateTradeActivityReport".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GenerateTransactionActivityReport".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GenerateTreasuryActivityReport".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ScheduleTradeActivityReport".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ScheduleTransactionActivityReport".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ScheduleTreasuryActivityReport".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("CancelAllOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("CancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("CancelQuote".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("CancelReplaceOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("CreateQuote".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ModifyOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("SendOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("SubmitBlockTrade".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("UpdateQuote".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("CancelWithdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("CreateDepositTicket".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("CreateWithdrawTicket".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("SubmitDepositTicketComment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("SubmitWithdrawTicketComment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("GetOrderHistoryByOrderId".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -1000,8 +1416,8 @@ impl NdaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_950: bool = true;
-            while { if !__for_first_950 { i = add(&i, &Value::Int(1)); } __for_first_950 = false; is_less_than(&i, &get_array_length(&orderbook)) } {
+            let mut __for_first_953: bool = true;
+            while { if !__for_first_953 { i = add(&i, &Value::Int(1)); } __for_first_953 = false; is_less_than(&i, &get_array_length(&orderbook)) } {
             let mut level: Value = get_value(&orderbook, &i);
             let mut level: Value = get_value(&orderbook, &i);
             if is_equal(&timestamp, &Value::Null) {
@@ -1290,7 +1706,18 @@ impl NdaxCore {
         }
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_get_ticker_history(&[__ws_arg_6]).await;
-        return self.parse_ohlc_vs(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
+        //
+        //     [
+        //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
+        //         [1607299320000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299260000],
+        //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
+        //     ]
+        //
+        let mut candles: Value = Value::List(vec![]);
+        if is_true(&Value::Bool(is_array(&response))) {
+            candles = response.clone();
+        }
+        return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }
@@ -1544,8 +1971,8 @@ impl NdaxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_951: bool = true;
-            while { if !__for_first_951 { i = add(&i, &Value::Int(1)); } __for_first_951 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_954: bool = true;
+            while { if !__for_first_954 { i = add(&i, &Value::Int(1)); } __for_first_954 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut accountId: Value = self.safe_string(response.clone(), i.clone(), &[]);
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1572,8 +1999,8 @@ impl NdaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_952: bool = true;
-            while { if !__for_first_952 { i = add(&i, &Value::Int(1)); } __for_first_952 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_955: bool = true;
+            while { if !__for_first_955 { i = add(&i, &Value::Int(1)); } __for_first_955 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "ProductId", &[]);

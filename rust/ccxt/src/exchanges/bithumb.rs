@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for BithumbCore {
 
 impl crate::exchange_generated::ExchangeBase for BithumbCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -334,12 +334,158 @@ impl BithumbCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("ticker/ALL_{quoteId}".to_string()), Value::Str("ticker/{baseId}_{quoteId}".to_string()), Value::Str("orderbook/ALL_{quoteId}".to_string()), Value::Str("orderbook/{baseId}_{quoteId}".to_string()), Value::Str("transaction_history/{baseId}_{quoteId}".to_string()), Value::Str("network-info".to_string()), Value::Str("assetsstatus/multichain/ALL".to_string()), Value::Str("assetsstatus/multichain/{currency}".to_string()), Value::Str("withdraw/minimum/ALL".to_string()), Value::Str("withdraw/minimum/{currency}".to_string()), Value::Str("assetsstatus/ALL".to_string()), Value::Str("assetsstatus/{baseId}".to_string()), Value::Str("candlestick/{baseId}_{quoteId}/{interval}".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("ticker/ALL_{quoteId}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ticker/{baseId}_{quoteId}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orderbook/ALL_{quoteId}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("orderbook/{baseId}_{quoteId}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("transaction_history/{baseId}_{quoteId}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("network-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("assetsstatus/multichain/ALL".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("assetsstatus/multichain/{currency}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("withdraw/minimum/ALL".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("withdraw/minimum/{currency}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("assetsstatus/ALL".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("assetsstatus/{baseId}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("candlestick/{baseId}_{quoteId}/{interval}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("post".to_string(), Value::List(vec![Value::Str("info/account".to_string()), Value::Str("info/balance".to_string()), Value::Str("info/wallet_address".to_string()), Value::Str("info/ticker".to_string()), Value::Str("info/orders".to_string()), Value::Str("info/user_transactions".to_string()), Value::Str("info/order_detail".to_string()), Value::Str("trade/place".to_string()), Value::Str("trade/cancel".to_string()), Value::Str("trade/btc_withdrawal".to_string()), Value::Str("trade/krw_deposit".to_string()), Value::Str("trade/krw_withdrawal".to_string()), Value::Str("trade/market_buy".to_string()), Value::Str("trade/market_sell".to_string()), Value::Str("trade/stop_limit".to_string())]));
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/balance".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/wallet_address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/user_transactions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("info/order_detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/place".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/btc_withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/krw_deposit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/krw_withdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/market_buy".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/market_sell".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trade/stop_limit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
     m
@@ -546,8 +692,8 @@ impl BithumbCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_354: bool = true;
-            while { if !__for_first_354 { i = add(&i, &Value::Int(1)); } __for_first_354 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_357: bool = true;
+            while { if !__for_first_357 { i = add(&i, &Value::Int(1)); } __for_first_357 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("quoteId".to_string(), get_value(&quotes, &i));
@@ -560,8 +706,8 @@ impl BithumbCore {
         let mut results: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_356: bool = true;
-            while { if !__for_first_356 { i = add(&i, &Value::Int(1)); } __for_first_356 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_359: bool = true;
+            while { if !__for_first_359 { i = add(&i, &Value::Int(1)); } __for_first_359 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut quote: Value = get_value(&quotes, &i);
             let mut quote: Value = get_value(&quotes, &i);
             let mut quoteId: Value = quote.clone();
@@ -578,8 +724,8 @@ impl BithumbCore {
             let mut currencyIds: Value = object_keys(&data);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_355: bool = true;
-                while { if !__for_first_355 { j = add(&j, &Value::Int(1)); } __for_first_355 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
+                let mut __for_first_358: bool = true;
+                while { if !__for_first_358 { j = add(&j, &Value::Int(1)); } __for_first_358 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 if is_equal(&currencyId, &Value::Str("date".to_string())) {
@@ -676,8 +822,8 @@ impl BithumbCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_357: bool = true;
-            while { if !__for_first_357 { i = add(&i, &Value::Int(1)); } __for_first_357 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_360: bool = true;
+            while { if !__for_first_360 { i = add(&i, &Value::Int(1)); } __for_first_360 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut account: Value = self.account();
@@ -867,8 +1013,8 @@ impl BithumbCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_358: bool = true;
-            while { if !__for_first_358 { i = add(&i, &Value::Int(1)); } __for_first_358 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_361: bool = true;
+            while { if !__for_first_361 { i = add(&i, &Value::Int(1)); } __for_first_361 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("quoteId".to_string(), get_value(&quotes, &i));
@@ -881,8 +1027,8 @@ impl BithumbCore {
         let mut responses: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_360: bool = true;
-            while { if !__for_first_360 { i = add(&i, &Value::Int(1)); } __for_first_360 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_363: bool = true;
+            while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut quote: Value = get_value(&quotes, &i);
             let mut quote: Value = get_value(&quotes, &i);
             let mut response: Value = get_value(&responses, &i);
@@ -917,8 +1063,8 @@ impl BithumbCore {
             let mut currencyIds: Value = object_keys(&tickers);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_359: bool = true;
-                while { if !__for_first_359 { j = add(&j, &Value::Int(1)); } __for_first_359 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
+                let mut __for_first_362: bool = true;
+                while { if !__for_first_362 { j = add(&j, &Value::Int(1)); } __for_first_362 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut ticker: Value = get_value(&data, &currencyId);
@@ -1695,8 +1841,11 @@ impl BithumbCore {
                 m
             }), &[query.clone()]);
             body = self.urlencode(__ws_arg_14, &[]);
+            // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
+            let mut bodyParts: Value = split(&body, &Value::Str("%20".to_string()));
+            body = join(&bodyParts, &Value::Str("+".to_string()));
             let mut nonce: Value = to_string_val(&self.nonce());
-            let mut auth: Value = add(&add(&add(&add(&endpoint, &Value::Str(" ".to_string())), &body), &Value::Str(" ".to_string())), &nonce); // eslint-disable-line quotes
+            let mut auth: Value = add(&add(&add(&add(&endpoint, &Value::Str("\\".to_string())), &body), &Value::Str("\\".to_string())), &nonce); // eslint-disable-line quotes
             let mut signature: Value = self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha512".to_string()), &[]);
             let mut signature64: Value = self.string_to_base64(signature.clone(), &[]);
             headers = Value::Map({

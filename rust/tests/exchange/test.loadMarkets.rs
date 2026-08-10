@@ -24,9 +24,40 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let mut marketValues: Value = object_values(&markets);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1378: bool = true;
-        while { if !__for_first_1378 { i = add(&i, &Value::Int(1)); } __for_first_1378 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+        let mut __for_first_1423: bool = true;
+        while { if !__for_first_1423 { i = add(&i, &Value::Int(1)); } __for_first_1423 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
         testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&marketValues, &i));
+    }
+    }
+    // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
+    let mut marketTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string()), Value::Str("index".to_string())]);
+    let mut collectedTypes: Value = Value::List(vec![]);
+    let mut allMarkets: Value = object_values(&get_value(&exchange, &Value::Str("markets".to_string())));
+    {
+                let mut i: Value = Value::Int(0);
+        let mut __for_first_1424: bool = true;
+        while { if !__for_first_1424 { i = add(&i, &Value::Int(1)); } __for_first_1424 = false; is_less_than(&i, &get_array_length(&allMarkets)) } {
+        let mut market: Value = get_value(&allMarkets, &i);
+        if !is_true(&exchange.in_array(get_value(&market, &Value::Str("type".to_string())), collectedTypes.clone())) {
+            append_to_array(&mut collectedTypes, get_value(&market, &Value::Str("type".to_string())));
+        }
+    }
+    }
+    {
+                let mut i: Value = Value::Int(0);
+        let mut __for_first_1425: bool = true;
+        while { if !__for_first_1425 { i = add(&i, &Value::Int(1)); } __for_first_1425 = false; is_less_than(&i, &get_array_length(&marketTypes)) } {
+        let mut mType: Value = get_value(&marketTypes, &i);
+        if is_true(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType)) {
+            let mut skipMarketTypes: Value = Value::Bool(is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("optionsNotLoadedByDefault".to_string()))))) && is_equal(&mType, &Value::Str("option".to_string())));
+            assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(mType.clone(), collectedTypes.clone())) || is_true(&skipMarketTypes)))));
+        }  else if is_equal(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType), &Value::Bool(false)) {
+            // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
+            // marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
+            // in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
+            let mut isKnownException: Value = (Value::Bool(in_op(&skippedProperties, &mType)));
+            assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(mType.clone(), collectedTypes.clone())) || is_true(&isKnownException)))));
+        }
     }
     }
     return Value::Bool(true);

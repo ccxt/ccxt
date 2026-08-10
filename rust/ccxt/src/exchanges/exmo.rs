@@ -181,7 +181,7 @@ impl crate::exchange::DerivedExchange for ExmoCore {
 
 impl crate::exchange_generated::ExchangeBase for ExmoCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -277,6 +277,7 @@ impl ExmoCore {
         m.insert("createMarketBuyOrder".to_string(), Value::Bool(true));
         m.insert("createMarketBuyOrderWithCost".to_string(), Value::Bool(true));
         m.insert("createMarketOrderWithCost".to_string(), Value::Bool(true));
+        m.insert("createMarketSellOrderWithCost".to_string(), Value::Bool(true));
         m.insert("createOrder".to_string(), Value::Bool(true));
         m.insert("createStopLimitOrder".to_string(), Value::Bool(true));
         m.insert("createStopMarketOrder".to_string(), Value::Bool(true));
@@ -370,17 +371,281 @@ impl ExmoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("web".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("ctrl/feesAndLimits".to_string()), Value::Str("en/docs/fees".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("ctrl/feesAndLimits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("en/docs/fees".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("get".to_string(), Value::List(vec![Value::Str("currency".to_string()), Value::Str("currency/list/extended".to_string()), Value::Str("order_book".to_string()), Value::Str("pair_settings".to_string()), Value::Str("ticker".to_string()), Value::Str("trades".to_string()), Value::Str("candles_history".to_string()), Value::Str("required_amount".to_string()), Value::Str("payments/providers/crypto/list".to_string())]));
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("currency".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("currency/list/extended".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order_book".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("pair_settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("candles_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("required_amount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("payments/providers/crypto/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("post".to_string(), Value::List(vec![Value::Str("user_info".to_string()), Value::Str("order_create".to_string()), Value::Str("order_cancel".to_string()), Value::Str("stop_market_order_create".to_string()), Value::Str("stop_market_order_cancel".to_string()), Value::Str("user_open_orders".to_string()), Value::Str("user_trades".to_string()), Value::Str("user_cancelled_orders".to_string()), Value::Str("order_trades".to_string()), Value::Str("deposit_address".to_string()), Value::Str("withdraw_crypt".to_string()), Value::Str("withdraw_get_txid".to_string()), Value::Str("excode_create".to_string()), Value::Str("excode_load".to_string()), Value::Str("code_check".to_string()), Value::Str("wallet_history".to_string()), Value::Str("wallet_operations".to_string()), Value::Str("margin/user/order/create".to_string()), Value::Str("margin/user/order/update".to_string()), Value::Str("margin/user/order/cancel".to_string()), Value::Str("margin/user/position/close".to_string()), Value::Str("margin/user/position/margin_add".to_string()), Value::Str("margin/user/position/margin_remove".to_string()), Value::Str("margin/currency/list".to_string()), Value::Str("margin/pair/list".to_string()), Value::Str("margin/settings".to_string()), Value::Str("margin/funding/list".to_string()), Value::Str("margin/user/info".to_string()), Value::Str("margin/user/order/list".to_string()), Value::Str("margin/user/order/history".to_string()), Value::Str("margin/user/order/trades".to_string()), Value::Str("margin/user/order/max_quantity".to_string()), Value::Str("margin/user/position/list".to_string()), Value::Str("margin/user/position/margin_remove_info".to_string()), Value::Str("margin/user/position/margin_add_info".to_string()), Value::Str("margin/user/wallet/list".to_string()), Value::Str("margin/user/wallet/history".to_string()), Value::Str("margin/user/trade/list".to_string()), Value::Str("margin/trades".to_string()), Value::Str("margin/liquidation/feed".to_string())]));
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("user_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order_create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order_cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("stop_market_order_create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("stop_market_order_cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user_open_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user_trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("user_cancelled_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("order_trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("deposit_address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("withdraw_crypt".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("withdraw_get_txid".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("excode_create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("excode_load".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("code_check".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("wallet_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("wallet_operations".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/order/create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/order/update".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/order/cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/position/close".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/position/margin_add".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/position/margin_remove".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/currency/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/pair/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/funding/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/order/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/order/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/order/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/order/max_quantity".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/position/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/position/margin_remove_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/position/margin_add_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/wallet/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/wallet/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/user/trade/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("margin/liquidation/feed".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
     m
 }));
     m
@@ -728,8 +993,8 @@ impl ExmoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_618: bool = true;
-            while { if !__for_first_618 { i = add(&i, &Value::Int(1)); } __for_first_618 = false; is_less_than(&i, &get_array_length(&pairs)) } {
+            let mut __for_first_621: bool = true;
+            while { if !__for_first_621 { i = add(&i, &Value::Int(1)); } __for_first_621 = false; is_less_than(&i, &get_array_length(&pairs)) } {
             let mut pair: Value = get_value(&pairs, &i);
             let mut pair: Value = get_value(&pairs, &i);
             let mut marketId: Value = self.safe_string_k(pair.clone(), "name", &[]);
@@ -786,8 +1051,8 @@ impl ExmoCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_619: bool = true;
-            while { if !__for_first_619 { i = add(&i, &Value::Int(1)); } __for_first_619 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_622: bool = true;
+            while { if !__for_first_622 { i = add(&i, &Value::Int(1)); } __for_first_622 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -896,8 +1161,8 @@ impl ExmoCore {
         let mut cryptoListKeys: Value = object_keys(&cryptoList);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_621: bool = true;
-            while { if !__for_first_621 { i = add(&i, &Value::Int(1)); } __for_first_621 = false; is_less_than(&i, &get_array_length(&cryptoListKeys)) } {
+            let mut __for_first_624: bool = true;
+            while { if !__for_first_624 { i = add(&i, &Value::Int(1)); } __for_first_624 = false; is_less_than(&i, &get_array_length(&cryptoListKeys)) } {
             let mut code: Value = get_value(&cryptoListKeys, &i);
             let mut code: Value = get_value(&cryptoListKeys, &i);
             if !is_equal(&codes, &Value::Null) && !is_true(&self.in_array(code.clone(), codes.clone())) {
@@ -914,8 +1179,8 @@ impl ExmoCore {
             let mut providers: Value = self.safe_value(cryptoList.clone(), currencyId.clone(), &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_620: bool = true;
-                while { if !__for_first_620 { j = add(&j, &Value::Int(1)); } __for_first_620 = false; is_less_than(&j, &get_array_length(&providers)) } {
+                let mut __for_first_623: bool = true;
+                while { if !__for_first_623 { j = add(&j, &Value::Int(1)); } __for_first_623 = false; is_less_than(&j, &get_array_length(&providers)) } {
                 let mut provider: Value = get_value(&providers, &j);
                 let mut provider: Value = get_value(&providers, &j);
                 let mut typeInner: Value = self.safe_string_k(provider.clone(), "type", &[]);
@@ -1003,8 +1268,8 @@ impl ExmoCore {
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_622: bool = true;
-            while { if !__for_first_622 { i = add(&i, &Value::Int(1)); } __for_first_622 = false; is_less_than(&i, &get_array_length(&fee)) } {
+            let mut __for_first_625: bool = true;
+            while { if !__for_first_625 { i = add(&i, &Value::Int(1)); } __for_first_625 = false; is_less_than(&i, &get_array_length(&fee)) } {
             let mut provider: Value = get_value(&fee, &i);
             let mut provider: Value = get_value(&fee, &i);
             let mut type_var: Value = self.safe_string_k(provider.clone(), "type", &[]);
@@ -1113,8 +1378,8 @@ impl ExmoCore {
         let mut newArray: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_623: bool = true;
-            while { if !__for_first_623 { i = add(&i, &Value::Int(1)); } __for_first_623 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
+            let mut __for_first_626: bool = true;
+            while { if !__for_first_626 { i = add(&i, &Value::Int(1)); } __for_first_626 = false; is_less_than(&i, &get_array_length(&currencyList)) } {
             let mut currency: Value = get_value(&currencyList, &i);
             let mut currency: Value = get_value(&currencyList, &i);
             let mut currencyId: Value = self.safe_string_k(currency.clone(), "name", &[]);
@@ -1150,8 +1415,8 @@ impl ExmoCore {
         }  else {
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_624: bool = true;
-                while { if !__for_first_624 { j = add(&j, &Value::Int(1)); } __for_first_624 = false; is_less_than(&j, &get_array_length(&providers)) } {
+                let mut __for_first_627: bool = true;
+                while { if !__for_first_627 { j = add(&j, &Value::Int(1)); } __for_first_627 = false; is_less_than(&j, &get_array_length(&providers)) } {
                 let mut provider: Value = get_value(&providers, &j);
                 let mut provider: Value = get_value(&providers, &j);
                 let mut name: Value = self.safe_string_k(provider.clone(), "name", &[]);
@@ -1307,8 +1572,8 @@ impl ExmoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_625: bool = true;
-            while { if !__for_first_625 { i = add(&i, &Value::Int(1)); } __for_first_625 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_628: bool = true;
+            while { if !__for_first_628 { i = add(&i, &Value::Int(1)); } __for_first_628 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut id: Value = get_value(&keys, &i);
             let mut id: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&spotResponse, &id);
@@ -1491,8 +1756,8 @@ impl ExmoCore {
             let mut currencyIds: Value = object_keys(&wallets);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_626: bool = true;
-                while { if !__for_first_626 { i = add(&i, &Value::Int(1)); } __for_first_626 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+                let mut __for_first_629: bool = true;
+                while { if !__for_first_629 { i = add(&i, &Value::Int(1)); } __for_first_629 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut item: Value = get_value(&wallets, &currencyId);
@@ -1519,8 +1784,8 @@ impl ExmoCore {
             let mut currencyIds: Value = object_keys(&free);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_627: bool = true;
-                while { if !__for_first_627 { i = add(&i, &Value::Int(1)); } __for_first_627 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+                let mut __for_first_630: bool = true;
+                while { if !__for_first_630 { i = add(&i, &Value::Int(1)); } __for_first_630 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut currencyId: Value = get_value(&currencyIds, &i);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1664,12 +1929,16 @@ impl ExmoCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_628: bool = true;
-            while { if !__for_first_628 { i = add(&i, &Value::Int(1)); } __for_first_628 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_631: bool = true;
+            while { if !__for_first_631 { i = add(&i, &Value::Int(1)); } __for_first_631 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
-            add_element_to_object(&mut result, &symbol, self.parse_order_book(get_value(&response, &marketId), symbol.clone(), &[Value::Null, Value::Str("bid".to_string()), Value::Str("ask".to_string())]));
+            let mut rawOrderBook: Value = self.safe_dict(response.clone(), marketId.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            add_element_to_object(&mut result, &symbol, self.parse_order_book(rawOrderBook.clone(), symbol.clone(), &[Value::Null, Value::Str("bid".to_string()), Value::Str("ask".to_string())]));
         }
         }
         return result;
@@ -1765,8 +2034,8 @@ impl ExmoCore {
         let mut marketIds: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_629: bool = true;
-            while { if !__for_first_629 { i = add(&i, &Value::Int(1)); } __for_first_629 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_632: bool = true;
+            while { if !__for_first_632 { i = add(&i, &Value::Int(1)); } __for_first_632 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
@@ -2044,8 +2313,8 @@ impl ExmoCore {
         let mut marketIdsInner: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_630: bool = true;
-            while { if !__for_first_630 { i = add(&i, &Value::Int(1)); } __for_first_630 = false; is_less_than(&i, &get_array_length(&marketIdsInner)) } {
+            let mut __for_first_633: bool = true;
+            while { if !__for_first_633 { i = add(&i, &Value::Int(1)); } __for_first_633 = false; is_less_than(&i, &get_array_length(&marketIdsInner)) } {
             let mut marketId: Value = get_value(&marketIdsInner, &i);
             let mut marketId: Value = get_value(&marketIdsInner, &i);
             let mut resultMarket: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("_".to_string())]);
@@ -2521,8 +2790,8 @@ impl ExmoCore {
             let mut marketIds: Value = object_keys(&response);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_631: bool = true;
-                while { if !__for_first_631 { i = add(&i, &Value::Int(1)); } __for_first_631 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_634: bool = true;
+                while { if !__for_first_634 { i = add(&i, &Value::Int(1)); } __for_first_634 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketInner: Value = self.safe_market(&[marketId.clone()]);
@@ -2751,7 +3020,7 @@ impl ExmoCore {
             self.load_markets(&[]).await;
         }
         let mut marginMode: Value = Value::Null;
-        { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchOrders".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchCanceledOrders".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&marginMode, &Value::Str("cross".to_string())) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" only supports isolated margin".to_string()))));
         }
@@ -2806,8 +3075,8 @@ impl ExmoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_632: bool = true;
-            while { if !__for_first_632 { i = add(&i, &Value::Int(1)); } __for_first_632 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_635: bool = true;
+            while { if !__for_first_635 { i = add(&i, &Value::Int(1)); } __for_first_635 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             if is_equal(&get_value(&order, &Value::Str("status".to_string())), &Value::Str("canceled".to_string())) {
@@ -3195,7 +3464,38 @@ impl ExmoCore {
         }
         let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_wallet_history(&[__ws_arg_21]).await;
-        return self.parse_transactions(get_value(&response, &Value::Str("history".to_string())), &[currency.clone(), since.clone(), limit.clone()]);
+        //
+        //     {
+        //       "result": true,
+        //       "error": "",
+        //       "begin": "1493942400",
+        //       "end": "1494028800",
+        //       "history": [
+        //          {
+        //            "dt": 1461841192,
+        //            "type": "deposit",
+        //            "curr": "RUB",
+        //            "status": "processing",
+        //            "provider": "Qiwi (LA) [12345]",
+        //            "amount": "1",
+        //            "account": "",
+        //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
+        //          },
+        //          {
+        //            "dt": 1463414785,
+        //            "type": "withdrawal",
+        //            "curr": "USD",
+        //            "status": "paid",
+        //            "provider": "EXCODE",
+        //            "amount": "-1",
+        //            "account": "EX-CODE_19371_USDda...",
+        //            "txid": "",
+        //          },
+        //       ],
+        //     }
+        //
+        let mut history: Value = self.safe_list_k(response.clone(), "history", &[Value::List(vec![])]);
+        return self.parse_transactions(history.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
 }

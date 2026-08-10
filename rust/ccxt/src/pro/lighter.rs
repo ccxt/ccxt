@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for LighterCore {
 
 impl crate::exchange_generated::ExchangeBase for LighterCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -480,8 +480,8 @@ impl LighterCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { i = add(&i, &Value::Int(1)); } __for_first_476 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_474: bool = true;
+            while { if !__for_first_474 { i = add(&i, &Value::Int(1)); } __for_first_474 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -563,7 +563,7 @@ impl LighterCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -679,8 +679,8 @@ impl LighterCore {
             let mut marketIds: Value = object_keys(&data);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_477: bool = true;
-                while { if !__for_first_477 { i = add(&i, &Value::Int(1)); } __for_first_477 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_475: bool = true;
+                while { if !__for_first_475 { i = add(&i, &Value::Int(1)); } __for_first_475 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -791,13 +791,13 @@ impl LighterCore {
         if !is_equal(&symbols, &Value::Null) {
             symbolsLength = get_array_length(&symbols);
         }
-        if is_equal(&symbolsLength, &Value::Int(0)) {
+        if is_true(&(is_equal(&symbols, &Value::Null))) || is_true(&(is_equal(&symbolsLength, &Value::Int(0)))) {
             append_to_array(&mut messageHashes, self.get_message_hash(Value::Str("ticker".to_string()), &[]));
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_478: bool = true;
-                while { if !__for_first_478 { i = add(&i, &Value::Int(1)); } __for_first_478 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_476: bool = true;
+                while { if !__for_first_476 { i = add(&i, &Value::Int(1)); } __for_first_476 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()]));
@@ -1041,8 +1041,8 @@ impl LighterCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_479: bool = true;
-            while { if !__for_first_479 { i = add(&i, &Value::Int(1)); } __for_first_479 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_477: bool = true;
+            while { if !__for_first_477 { i = add(&i, &Value::Int(1)); } __for_first_477 = false; is_less_than(&i, &dataLength) } {
             let mut iReversed: Value = subtract(&subtract(&dataLength, &Value::Int(1)), &i);
             let mut trade: Value = self.parse_ws_trade(get_value(&data, &iReversed), &[market.clone()]);
             stored.append(trade.clone());
@@ -1264,8 +1264,8 @@ impl LighterCore {
         let mut messageHash: Value = self.get_message_hash(Value::Str("myTrades".to_string()), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_481: bool = true;
-            while { if !__for_first_481 { i = add(&i, &Value::Int(1)); } __for_first_481 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_479: bool = true;
+            while { if !__for_first_479 { i = add(&i, &Value::Int(1)); } __for_first_479 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1273,8 +1273,8 @@ impl LighterCore {
             let mut tradesLength: Value = get_array_length(&trades);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_480: bool = true;
-                while { if !__for_first_480 { j = add(&j, &Value::Int(1)); } __for_first_480 = false; is_less_than(&j, &tradesLength) } {
+                let mut __for_first_478: bool = true;
+                while { if !__for_first_478 { j = add(&j, &Value::Int(1)); } __for_first_478 = false; is_less_than(&j, &tradesLength) } {
                 let mut jReversed: Value = subtract(&subtract(&tradesLength, &Value::Int(1)), &j);
                 let mut tradeRaw: Value = get_value(&trades, &jReversed);
                 add_element_to_object(&mut tradeRaw, &Value::Str("accountIndex".to_string()), accountIndex.clone());
@@ -1414,6 +1414,9 @@ impl LighterCore {
         let mut price: Value = self.safe_string_k(liquidation.clone(), "price", &[]);
         let mut baseValue: Value = crate::precise::Precise::stringMul(&contracts, &contractSize);
         let mut quoteValue: Value = crate::precise::Precise::stringMul(&baseValue, &price);
+        if is_equal(&market, &Value::Null) {
+            return Value::Null;
+        }
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
@@ -1484,8 +1487,8 @@ impl LighterCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_482: bool = true;
-            while { if !__for_first_482 { i = add(&i, &Value::Int(1)); } __for_first_482 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_480: bool = true;
+            while { if !__for_first_480 { i = add(&i, &Value::Int(1)); } __for_first_480 = false; is_less_than(&i, &dataLength) } {
             let mut iReversed: Value = subtract(&subtract(&dataLength, &Value::Int(1)), &i);
             let mut liquidation: Value = self.parse_ws_liquidation(get_value(&data, &iReversed), &[market.clone()]);
             stored.append(liquidation.clone());
@@ -1641,8 +1644,8 @@ impl LighterCore {
             let mut assetIds: Value = object_keys(&assets);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_483: bool = true;
-                while { if !__for_first_483 { i = add(&i, &Value::Int(1)); } __for_first_483 = false; is_less_than(&i, &get_array_length(&assetIds)) } {
+                let mut __for_first_481: bool = true;
+                while { if !__for_first_481 { i = add(&i, &Value::Int(1)); } __for_first_481 = false; is_less_than(&i, &get_array_length(&assetIds)) } {
                 let mut assetId: Value = get_value(&assetIds, &i);
                 let mut assetId: Value = get_value(&assetIds, &i);
                 let mut asset: Value = get_value(&assets, &assetId);
@@ -1652,7 +1655,9 @@ impl LighterCore {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(asset.clone(), "locked_balance", &[]));
                 add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(asset.clone(), "balance", &[]));
-                add_element_to_object(&mut balance, &code, account.clone());
+                if !is_equal(&code, &Value::Null) {
+                    add_element_to_object(&mut balance, &code, account.clone());
+                }
             }
             }
         }  else {
@@ -1799,16 +1804,16 @@ impl LighterCore {
         let mut messageHash: Value = self.get_message_hash(Value::Str("orders".to_string()), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_485: bool = true;
-            while { if !__for_first_485 { i = add(&i, &Value::Int(1)); } __for_first_485 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_483: bool = true;
+            while { if !__for_first_483 { i = add(&i, &Value::Int(1)); } __for_first_483 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut orders: Value = self.safe_list(data.clone(), marketId.clone(), &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_484: bool = true;
-                while { if !__for_first_484 { j = add(&j, &Value::Int(1)); } __for_first_484 = false; is_less_than(&j, &get_array_length(&orders)) } {
+                let mut __for_first_482: bool = true;
+                while { if !__for_first_482 { j = add(&j, &Value::Int(1)); } __for_first_482 = false; is_less_than(&j, &get_array_length(&orders)) } {
                 let mut order: Value = self.parse_order(get_value(&orders, &j), &[market.clone()]);
                 stored.append(order.clone());
                 let mut symbol: Value = get_value(&order, &Value::Str("symbol".to_string()));
@@ -1932,8 +1937,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_486: bool = true;
-            while { if !__for_first_486 { i = add(&i, &Value::Int(1)); } __for_first_486 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_484: bool = true;
+            while { if !__for_first_484 { i = add(&i, &Value::Int(1)); } __for_first_484 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut subHash: Value = get_value(&subMessageHashes, &i);

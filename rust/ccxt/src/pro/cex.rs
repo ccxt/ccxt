@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for CexCore {
 
 impl crate::exchange_generated::ExchangeBase for CexCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
@@ -452,15 +452,17 @@ impl CexCore {
         let mut currencyIds: Value = object_keys(&freeBalance);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_237: bool = true;
-            while { if !__for_first_237 { i = add(&i, &Value::Int(1)); } __for_first_237 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_235: bool = true;
+            while { if !__for_first_235 { i = add(&i, &Value::Int(1)); } __for_first_235 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(freeBalance.clone(), currencyId.clone(), &[]));
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(usedBalance.clone(), currencyId.clone(), &[]));
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            add_element_to_object(&mut result, &code, account.clone());
+            if !is_equal(&code, &Value::Null) {
+                add_element_to_object(&mut result, &code, account.clone());
+            }
         }
         }
         { let __t = self.safe_balance(result.clone()); self.balance = __t; }
@@ -504,8 +506,8 @@ impl CexCore {
             let mut subscriptionKeys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_238: bool = true;
-                while { if !__for_first_238 { i = add(&i, &Value::Int(1)); } __for_first_238 = false; is_less_than(&i, &get_array_length(&subscriptionKeys)) } {
+                let mut __for_first_236: bool = true;
+                while { if !__for_first_236 { i = add(&i, &Value::Int(1)); } __for_first_236 = false; is_less_than(&i, &get_array_length(&subscriptionKeys)) } {
                 let mut subscriptionKey: Value = get_value(&subscriptionKeys, &i);
                 let mut subscriptionKey: Value = get_value(&subscriptionKeys, &i);
                 if is_equal(&subscriptionKey, &subscriptionHash) {
@@ -599,6 +601,9 @@ impl CexCore {
     pub fn handle_trades_inner(&self, mut client: Value, mut message: Value) {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut symbol: Value = self.safe_string(get_value(&self.options, &Value::Str("watchTrades".to_string())), Value::Str("symbol".to_string()), &[]);
+        if is_equal(&symbol, &Value::Null) {
+            return;
+        }
         if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             add_element_to_object(&mut self.trades.clone(), &symbol, ArrayCache::new(limit.clone()));
@@ -608,8 +613,8 @@ impl CexCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_239: bool = true;
-            while { if !__for_first_239 { i = add(&i, &Value::Int(1)); } __for_first_239 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_237: bool = true;
+            while { if !__for_first_237 { i = add(&i, &Value::Int(1)); } __for_first_237 = false; is_less_than(&i, &dataLength) } {
             let mut index: Value = subtract(&subtract(&dataLength, &Value::Int(1)), &i);
             let mut rawTrade: Value = get_value(&data, &index);
             let mut rawTrade: Value = get_value(&data, &index);
@@ -721,7 +726,7 @@ impl CexCore {
  * @see https://docs.cex.io/#ws-api-ticker-deprecated
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_ticker_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -853,7 +858,7 @@ impl CexCore {
  * @name cex#fetchBalanceWs
  * @see https://docs.cex.io/#ws-api-get-balance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
     pub async fn fetch_balance_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -1069,7 +1074,7 @@ impl CexCore {
         //         "fee_amount": "0.05",
         //         "id": "59091012962"
         //     }
-        // Note symbol and symbol2 are inverse on sell and ammount is in symbol currency.
+        // Note symbol and symbol2 are inverse on sell and amount is in symbol currency.
         //
         let mut side: Value = self.safe_string_k(trade.clone(), "type", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
@@ -1286,10 +1291,16 @@ impl CexCore {
         let mut remainsPrecision: Value = self.safe_string_k(order.clone(), "remains", &[]);
         let mut remaining: Value = Value::Null;
         if !is_equal(&remainsPrecision, &Value::Null) {
+            if is_equal(&market, &Value::Null) {
+                return Value::Null;
+            }
             remaining = self.currency_from_precision(get_value(&market, &Value::Str("base".to_string())), remainsPrecision.clone());
         }
         let mut amount: Value = self.safe_string_k(order.clone(), "amount", &[]);
         if !is_true(&isTransaction) {
+            if is_equal(&market, &Value::Null) {
+                return Value::Null;
+            }
             self.currency_from_precision(get_value(&market, &Value::Str("base".to_string())), amount.clone());
         }
         let mut baseId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
@@ -1396,14 +1407,14 @@ impl CexCore {
         let mut symbol: Value = self.safe_string_k(message.clone(), "oid", &[]); // symbol is set as requestId in watchOrders
         let mut rawOrders: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut myOrders: Value = self.orders.clone();
-        if is_equal(&self.orders, &Value::Null) {
+        if is_equal(&myOrders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             myOrders = ArrayCacheBySymbolById::new(limit.clone());
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_240: bool = true;
-            while { if !__for_first_240 { i = add(&i, &Value::Int(1)); } __for_first_240 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
+            let mut __for_first_238: bool = true;
+            while { if !__for_first_238 { i = add(&i, &Value::Int(1)); } __for_first_238 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
             let mut rawOrder: Value = get_value(&rawOrders, &i);
             let mut rawOrder: Value = get_value(&rawOrders, &i);
             let mut market: Value = self.safe_market(&[symbol.clone()]);
@@ -1428,7 +1439,7 @@ impl CexCore {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
@@ -1573,8 +1584,8 @@ impl CexCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_241: bool = true;
-            while { if !__for_first_241 { i = add(&i, &Value::Int(1)); } __for_first_241 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_239: bool = true;
+            while { if !__for_first_239 { i = add(&i, &Value::Int(1)); } __for_first_239 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1643,6 +1654,9 @@ impl CexCore {
         //     }
         //
         let mut pair: Value = self.safe_string_k(message.clone(), "pair", &[]);
+        if is_equal(&pair, &Value::Null) {
+            return;
+        }
         let mut parts: Value = split(&pair, &Value::Str(":".to_string()));
         let mut baseId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut quoteId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
@@ -1657,8 +1671,8 @@ impl CexCore {
         let mut sorted: Value = self.sort_by(data.clone(), Value::Int(0), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_242: bool = true;
-            while { if !__for_first_242 { i = add(&i, &Value::Int(1)); } __for_first_242 = false; is_less_than(&i, &get_array_length(&sorted)) } {
+            let mut __for_first_240: bool = true;
+            while { if !__for_first_240 { i = add(&i, &Value::Int(1)); } __for_first_240 = false; is_less_than(&i, &get_array_length(&sorted)) } {
             stored.append(self.parse_ohlcv(get_value(&sorted, &i), &[market.clone()]));
         }
         }
@@ -1725,8 +1739,8 @@ impl CexCore {
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &Value::Str("unknown".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_243: bool = true;
-            while { if !__for_first_243 { i = add(&i, &Value::Int(1)); } __for_first_243 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_241: bool = true;
+            while { if !__for_first_241 { i = add(&i, &Value::Int(1)); } __for_first_241 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut ohlcv: Value = Value::List(vec![self.safe_timestamp(get_value(&data, &i), Value::Int(0), &[]), self.safe_number(get_value(&data, &i), Value::Int(1), &[]), self.safe_number(get_value(&data, &i), Value::Int(2), &[]), self.safe_number(get_value(&data, &i), Value::Int(3), &[]), self.safe_number(get_value(&data, &i), Value::Int(4), &[]), self.safe_number(get_value(&data, &i), Value::Int(5), &[])]);
             stored.append(ohlcv.clone());
         }
@@ -1744,7 +1758,7 @@ impl CexCore {
  * @see https://docs.cex.io/#ws-api-get-order
  * @param {string} id the order id
  * @param {string} symbol not used by cex fetchOrder
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
@@ -1789,7 +1803,7 @@ impl CexCore {
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_open_orders_ws(&mut self, optional_args: &[Value]) -> Value {
@@ -1838,7 +1852,7 @@ impl CexCore {
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @param {object} [params] extra parameters specific to the kraken api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
@@ -1890,7 +1904,7 @@ impl CexCore {
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of the currency you want to trade in units of the base currency
  * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
     pub async fn edit_order_ws(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
@@ -1941,8 +1955,8 @@ impl CexCore {
  * @see https://docs.cex.io/#ws-api-order-cancel
  * @description cancels an open order
  * @param {string} id order id
- * @param {string} symbol not used by cex cancelOrder ()
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {string} symbol not used by cancelOrder ()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
@@ -1985,8 +1999,8 @@ impl CexCore {
  * @description cancel multiple orders
  * @see https://docs.cex.io/#ws-api-mass-cancel-place
  * @param {string[]} ids order ids
- * @param {string} symbol not used by cex cancelOrders()
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {string} symbol not used by cancelOrders()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders_ws(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {

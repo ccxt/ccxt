@@ -258,7 +258,7 @@ impl crate::exchange::DerivedExchange for KucoinfuturesCore {
 
 impl crate::exchange_generated::ExchangeBase for KucoinfuturesCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
-        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + 'a>>
+        -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
         Box::pin(async move {
             match method {
