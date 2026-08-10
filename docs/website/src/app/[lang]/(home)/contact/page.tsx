@@ -15,12 +15,14 @@ const CHANNELS: {
   title: string;
   description: string;
   external?: boolean;
+  selectable?: boolean;
 }[] = [
   {
     href: 'mailto:info@ccxt.trade',
     icon: <MailIcon className="size-5" />,
     title: 'info@ccxt.trade',
     description: 'Business inquiries, partnerships, certification or anything that needs a private channel.',
+    selectable: true,
   },
   {
     href: 'https://discord.gg/ccxt',
@@ -69,20 +71,32 @@ export default function ContactPage() {
         </p>
       </div>
       <div className="grid w-full max-w-4xl grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
-        {CHANNELS.map((c) => (
-          <Link
-            key={c.href}
-            href={c.href}
-            {...(c.external ? { target: '_blank', rel: 'noreferrer' } : {})}
-            className="rounded-lg border p-4 transition-colors hover:bg-fd-accent"
-          >
-            <h2 className="mb-1 inline-flex items-center gap-2 font-semibold">
-              {c.icon}
-              {c.title}
-            </h2>
-            <p className="text-sm text-fd-muted-foreground">{c.description}</p>
-          </Link>
-        ))}
+        {CHANNELS.map((c) =>
+          c.selectable ? (
+            <div key={c.href} className="rounded-lg border p-4 transition-colors hover:bg-fd-accent">
+              <h2 className="mb-1 inline-flex items-center gap-2 font-semibold">
+                <Link href={c.href} aria-label={`Email ${c.title}`}>
+                  {c.icon}
+                </Link>
+                <span className="select-all">{c.title}</span>
+              </h2>
+              <p className="text-sm text-fd-muted-foreground">{c.description}</p>
+            </div>
+          ) : (
+            <Link
+              key={c.href}
+              href={c.href}
+              {...(c.external ? { target: '_blank', rel: 'noreferrer' } : {})}
+              className="rounded-lg border p-4 transition-colors hover:bg-fd-accent"
+            >
+              <h2 className="mb-1 inline-flex items-center gap-2 font-semibold">
+                {c.icon}
+                {c.title}
+              </h2>
+              <p className="text-sm text-fd-muted-foreground">{c.description}</p>
+            </Link>
+          )
+        )}
       </div>
     </main>
   );
