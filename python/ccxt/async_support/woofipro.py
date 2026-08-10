@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woofipro import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -121,8 +121,8 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -1006,6 +1006,147 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         rows = self.safe_list(data, 'rows', [])
         return self.parse_funding_rates(rows, symbols)
+
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 64185.4,
+        #         "mark_price": 64171.0,
+        #         "sum_unitary_funding": 26522.3,
+        #         "est_funding_rate": 0.0001,
+        #         "last_funding_rate": 0.00010041,
+        #         "next_funding_time": 1786032000000,
+        #         "open_interest": 110.64612,
+        #         "24h_open": 64105.6,
+        #         "24h_close": 64180.0,
+        #         "24h_high": 64941.0,
+        #         "24h_low": 63837.6,
+        #         "24h_volume": 102.2817,
+        #         "24h_amount": 6595662.199482
+        #     }
+        #
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, '24h_high'),
+            'low': self.safe_string(ticker, '24h_low'),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_string(ticker, '24h_open'),
+            'close': self.safe_string(ticker, '24h_close'),
+            'last': self.safe_string(ticker, '24h_close'),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, '24h_volume'),
+            'quoteVolume': self.safe_string(ticker, '24h_amount'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'info': ticker,
+        }, market)
+
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1786022130191,
+        #     "data": {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 64185.4,
+        #         "mark_price": 64171.0,
+        #         "sum_unitary_funding": 26522.3,
+        #         "est_funding_rate": 0.0001,
+        #         "last_funding_rate": 0.00010041,
+        #         "next_funding_time": 1786032000000,
+        #         "open_interest": 110.64612,
+        #         "24h_open": 64105.6,
+        #         "24h_close": 64180.0,
+        #         "24h_high": 64941.0,
+        #         "24h_low": 63837.6,
+        #         "24h_volume": 102.2817,
+        #         "24h_amount": 6595662.199482
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        data['timestamp'] = self.safe_integer(response, 'timestamp')
+        return self.parse_ticker(data, market)
+
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = await self.v1PublicGetPublicFutures(params)
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1786022130191,
+        #     "data": {
+        #         "rows": [{
+        #             "symbol": "PERP_BTC_USDC",
+        #             "index_price": 64185.4,
+        #             "mark_price": 64171.0,
+        #             "sum_unitary_funding": 26522.3,
+        #             "est_funding_rate": 0.0001,
+        #             "last_funding_rate": 0.00010041,
+        #             "next_funding_time": 1786032000000,
+        #             "open_interest": 110.64612,
+        #             "24h_open": 64105.6,
+        #             "24h_close": 64180.0,
+        #             "24h_high": 64941.0,
+        #             "24h_low": 63837.6,
+        #             "24h_volume": 102.2817,
+        #             "24h_amount": 6595662.199482
+        #         }]
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        result = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            marketId = self.safe_string(row, 'symbol', '')
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+                continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            ticker = self.extend({'timestamp': timestamp}, row)
+            result.append(self.parse_ticker(ticker))
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
