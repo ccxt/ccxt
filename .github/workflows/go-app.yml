@@ -96,7 +96,7 @@ jobs:
         if: env.prediction_modified == 'true'
         run: go build -C go ./v4/prediction
       - name: Build tests
-        run: go -C go build ./tests/main.go
+        run: go -C go build -o tests.bin ./tests/main.go
       - name: Test GO Types
         if: env.important_modified == 'true'
         run: npm run test-types-go
@@ -182,6 +182,7 @@ jobs:
           rm -f ./go/tests/main
           rm -f ./go/v4/ccxt
           rm -f ./go/main
+          rm -f ./go/tests.bin
 
           git add go/
 
@@ -221,12 +222,6 @@ jobs:
         with:
           name: go-files
           path: go/
-      # Cache Go toolchain + module/build caches (ubuntu-latest is ephemeral).
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go/v4/go.mod
-          cache-dependency-path: go/v4/go.sum
       - name: Restore shared_env
         run: ./build/utils/restore_shared_env.sh
       - uses: actions/setup-node@v5
@@ -237,13 +232,15 @@ jobs:
         run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
-      - name: Build
-        run: go build -C go ./v4
-      - name: Build tests
-        run: go build -C go ./tests/main.go
+      - name: Prepare tests binary
+        run: chmod +x go/tests.bin
       - name: Live tests
         if: env.important_modified == 'true'
         run: ./run-tests-simul.sh --go
+        env:
+          GO_TESTS_BINARY: ./go/tests.bin
       - name: Live tests (specific)
         if: env.important_modified == 'false'
         run: ./run-tests-simul.sh --go "${{ env.rest_files }}" "${{ env.ws_files }}"
+        env:
+          GO_TESTS_BINARY: ./go/tests.bin
