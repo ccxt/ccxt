@@ -14,10 +14,10 @@ public partial class BaseExchange
     {
         var wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>());
         var backoff = this.safeDict(wsOptions, "backoff", new Dictionary<string, object>());
-        var baseDelay = (long)(this.safeInteger(backoff, "base", 1000));
-        var factor = (long)(this.safeInteger(backoff, "factor", 2));
-        var maxDelay = (long)(this.safeInteger(backoff, "max", 60000));
-        var stableAfter = (long)(this.safeInteger(backoff, "stableAfter", 30000));
+        var baseDelay = this.safeInteger(backoff, "base", 1000) ?? 1000;
+        var factor = this.safeInteger(backoff, "factor", 2) ?? 2;
+        var maxDelay = this.safeInteger(backoff, "max", 60000) ?? 60000;
+        var stableAfter = this.safeInteger(backoff, "stableAfter", 30000) ?? 30000;
         var now = this.milliseconds();
         long attempts = 0;
         long lastAttempt = 0;
