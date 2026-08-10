@@ -458,9 +458,12 @@ func (this *BitoproCore) HandleTicker(client any, message any) {
 	//         "low24hr": "1179321"
 	//     }
 	//
-	var marketId any = this.SafeString(message, "pair")
+	var marketId any = this.SafeStringLower(message, "pair")
+	if ccxt.IsTrue(ccxt.IsEqual(marketId, nil)) {
+		return // some TICKER frames arrive without a pair - nothing to resolve them against
+	}
 	// market-ids are lowercase in REST API and uppercase in WS API
-	var market any = this.SafeMarket(ccxt.Ternary(ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)), ccxt.ToLower(marketId), nil), nil, "_")
+	var market any = this.SafeMarket(marketId, nil, "_")
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var event any = this.SafeString(message, "event")
 	var messageHash any = ccxt.Add(ccxt.Add(event, ":"), symbol)
@@ -524,16 +527,16 @@ func (this *BitoproCore) WatchBalance(optionalArgs ...any) <-chan any {
 		this.CheckRequiredCredentials()
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes43412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes43412)
+			retRes43712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes43712)
 		}
 		var messageHash any = "ACCOUNT_BALANCE"
 		var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "account-balance")
 		this.Authenticate(url)
 
-		retRes43915 := (<-this.Watch(url, messageHash, nil, messageHash))
-		ccxt.PanicOnError(retRes43915)
-		ch <- retRes43915
+		retRes44215 := (<-this.Watch(url, messageHash, nil, messageHash))
+		ccxt.PanicOnError(retRes44215)
+		ch <- retRes44215
 		return nil
 
 	}()
