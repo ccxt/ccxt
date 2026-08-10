@@ -128,6 +128,8 @@ const GROUPS = Pair{String,Group}[
     # test/live/sandbox_harness.jl and run only when keys.local.json is present.
     "live_resolver" => Group(String[], 0.2,
         "credential resolver deep-merge + parent-bound application (offline, no keys)"),
+    "live_public" => Group(String[], 12.0,
+        "live public endpoints (real network, no keys): loadMarkets/fetchTicker/fetchOHLCV/fetchOrderBook"),
 ]
 
 # The three fixture layers, one group per exchange. Generated rather than
