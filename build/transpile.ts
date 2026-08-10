@@ -1272,6 +1272,11 @@ class Transpiler {
                 if (!(methodName in features) || (!features[methodName].startsWith ('true,') && !features[methodName].startsWith ('\'emulated\','))) {
                     features[methodName] = 'true,';
                 }
+            } else if (!exclusions.includes (methodName) && !derivedMethods.includes (methodName)) {
+                // if code does not contain unified method definition, then we remove (unless false)
+                if (!(methodName in features) || !features[methodName].startsWith ('false,')) {
+                    delete features[methodName];
+                }
             }
         }
     }
