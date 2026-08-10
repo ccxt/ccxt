@@ -4261,14 +4261,23 @@ class woo extends Exchange {
          *
          * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
          *
-         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {string[]} [$symbols] list of unified $market $symbols, the exchange filters server-side when exactly one symbol is provided
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $response = Async\await($this->v3PrivateGetFuturesPositions($params));
+        $symbols = $this->market_symbols($symbols);
+        $request = array();
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        $response = Async\await($this->v3PrivateGetFuturesPositions($this->extend($request, $params)));
         //
         //     {
         //         "success" => true,
@@ -4737,7 +4746,7 @@ class woo extends Exchange {
          *
          * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
          *
-         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {string[]} [$symbols] a list of unified $market $symbols, the exchange filters server-side when exactly one symbol is provided
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
          */
@@ -4745,7 +4754,15 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
-        $response = Async\await($this->v3PrivateGetFuturesPositions($params));
+        $request = array();
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        $response = Async\await($this->v3PrivateGetFuturesPositions($this->extend($request, $params)));
         //
         //     {
         //         "success" => true,
