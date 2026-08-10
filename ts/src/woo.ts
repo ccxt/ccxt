@@ -4061,7 +4061,7 @@ export default class woo extends Exchange {
      * @name woo#fetchPositions
      * @description fetch all open positions
      * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
-     * @param {string[]} [symbols] list of unified market symbols
+     * @param {string[]} [symbols] list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -4069,7 +4069,16 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const response = await this.v3PrivateGetFuturesPositions (params);
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.market (symbols[0]);
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.v3PrivateGetFuturesPositions (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -4513,7 +4522,7 @@ export default class woo extends Exchange {
      * @name woo#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
-     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {string[]} [symbols] a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
@@ -4522,7 +4531,15 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const response = await this.v3PrivateGetFuturesPositions (params);
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                const market = this.market (symbols[0]);
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.v3PrivateGetFuturesPositions (this.extend (request, params));
         //
         //     {
         //         "success": true,
