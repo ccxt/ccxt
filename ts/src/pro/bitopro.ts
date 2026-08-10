@@ -373,8 +373,11 @@ export default class bitopro extends bitoproRest {
         //     }
         //
         const marketId = this.safeString (message, 'pair');
+        if (marketId === undefined) {
+            return; // some TICKER frames arrive without a pair - nothing to resolve them against
+        }
         // market-ids are lowercase in REST API and uppercase in WS API
-        const market = this.safeMarket (marketId !== undefined ? marketId.toLowerCase () : undefined, undefined, '_');
+        const market = this.safeMarket (marketId.toLowerCase (), undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString (message, 'event');
         const messageHash = event + ':' + symbol;
