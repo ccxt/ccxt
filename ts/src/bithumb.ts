@@ -435,7 +435,7 @@ export default class bithumb extends Exchange {
         [ generation, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'generation', 2);
         if (generation === 2) {
             request['isDetails'] = true;
-            const response = await this.publicGetV1MarketAll (this.extend (request, params)) as List;
+            const response = await this.publicGetV1MarketAll (this.extend (request, params));
             //
             //     [
             //         {
