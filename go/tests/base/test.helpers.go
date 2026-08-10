@@ -8,8 +8,26 @@ import (
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
+// snapshotOrderBookSide returns an immutable copy of a live orderbook side so
+// that assertions in generated test code never iterate data a ws goroutine is
+// concurrently mutating; GetDataCopy holds the side read lock for the whole
+// copy. In js, python and php the runtime cannot mutate the book during a
+// synchronous assertion, Go can, so the test lane snapshots at this boundary.
+func snapshotOrderBookSide(collection interface{}, key interface{}, value interface{}) interface{} {
+	if _, isBook := collection.(ccxt.OrderBookInterface); !isBook {
+		return value
+	}
+	if k, isString := key.(string); !isString || (k != "asks" && k != "bids") {
+		return value
+	}
+	if side, isSide := value.(ccxt.IOrderBookSide); isSide {
+		return side.GetDataCopy()
+	}
+	return value
+}
+
 func SafeValue(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
-	return ccxt.SafeValue(obj, key, defaultValue)
+	return snapshotOrderBookSide(obj, key, ccxt.SafeValue(obj, key, defaultValue))
 }
 
 func Add(a interface{}, b interface{}) interface{} {
@@ -29,7 +47,7 @@ func IsInteger(value interface{}) bool {
 }
 
 func GetValue(collection interface{}, key interface{}) interface{} {
-	return ccxt.GetValue(collection, key)
+	return snapshotOrderBookSide(collection, key, ccxt.GetValue(collection, key))
 }
 
 func Multiply(a, b interface{}) interface{} {
