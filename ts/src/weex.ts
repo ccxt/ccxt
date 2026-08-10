@@ -1270,10 +1270,11 @@ export default class weex extends Exchange {
         //         "indexPrice": "2082.75"
         //     }
         //
-        // fetchMarkPrice
+        // fetchMarkPrice (markPrice is copied from the raw 'price' field by fetchMarkPrice before parsing)
         //     {
         //         "symbol": "ETHUSDT",
         //         "price": "1929.18",
+        //         "markPrice": "1929.18",
         //         "time": 1786347445044
         //     }
         //
@@ -1291,7 +1292,7 @@ export default class weex extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const markPrice = this.safeString2 (ticker, 'markPrice', 'price'); // the symbolPrice endpoint returns the mark price under 'price' in fetchMarkPrice
+        const markPrice = this.safeString (ticker, 'markPrice');
         let marketType = 'spot';
         if ((markPrice !== undefined) || ((market !== undefined) && market['contract'])) {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
@@ -1407,7 +1408,10 @@ export default class weex extends Exchange {
         //         "time": 1786347445044
         //     }
         //
-        return this.parseTicker (response, market);
+        // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
+        const ticker: Dict = this.extend ({}, response);
+        ticker['markPrice'] = this.safeString (ticker, 'price');
+        return this.parseTicker (ticker, market);
     }
 
     /**
