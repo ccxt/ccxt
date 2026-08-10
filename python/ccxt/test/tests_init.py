@@ -86,43 +86,53 @@ else:
         return 'SLOW_TEST'
 
     async def timeout_cause_watchdog():
-        # the deadline is anchored to process start, the orchestrator's clock,
+        # deadlines are anchored to process start, the orchestrator's clock,
         # not to main(): under a loaded runner imports alone can consume tens
-        # of seconds and a sleep measured from main() would fire after the
-        # output harvest, printing into a log nobody captures anymore
+        # of seconds. Two shots instead of one because an event loop starved
+        # by runner-wide contention can lag a sleep wakeup past the output
+        # harvest, an early shot at 60 percent of the budget survives heavy
+        # lag and a second at 75 percent refreshes the picture closer to the
+        # deadline. Every line carries fired_at so scheduler drift is
+        # measurable from the logs, and the body prints its own failure
+        # instead of dying silently. stdout is a block-buffered pipe under
+        # the orchestrator and a timed-out child is harvested before it
+        # exits, so every print flushes immediately
         import time
-        elapsed = time.time() - _process_started
-        remaining = (WS_ORCHESTRATOR_BUDGET_SECONDS - WATCHDOG_MARGIN_SECONDS) - elapsed
-        await asyncio.sleep(max(1.0, remaining))
-        import gc
-        import time
-        from ccxt.async_support.base.ws.client import Client as WsClient
-        now = int(time.time() * 1000)
-        clients = [obj for obj in gc.get_objects() if isinstance(obj, WsClient)]
-        if not clients:
-            # stdout is a block-buffered pipe under the test orchestrator and a
-            # timed-out child is harvested before it exits, unflushed lines are
-            # lost, so the watchdog must flush every line immediately
-            print('[TEST_WARNING] TIMEOUT_CAUSE no live ws clients at watchdog fire', flush=True)
-        for client in clients:
-            established = getattr(client, 'connectionEstablished', None)
-            last_message = getattr(client, 'last_message_at', None)
-            futures = getattr(client, 'futures', {}) or {}
-            hashes = list(futures.keys())[:3]
-            error = getattr(client, 'error', None)
-            print(
-                '[TEST_WARNING] TIMEOUT_CAUSE'
-                + ' verdict=' + classify_client(client, now)
-                + ' url=' + str(getattr(client, 'url', '?'))
-                + ' connected=' + str(client.isConnected)
-                + ' connecting=' + str(getattr(client, 'connecting', False))
-                + ' established_age_s=' + (str(round((now - established) / 1000)) if established else 'never')
-                + ' last_msg_age_s=' + (str(round((now - last_message) / 1000)) if last_message else 'none')
-                + ' pending=' + str(len(futures))
-                + ' hashes=' + str(hashes)
-                + (' err=' + repr(error)[:120] if error else ''),
-                flush=True,
-            )
+        for fraction in (0.6, 0.75):
+            target = WS_ORCHESTRATOR_BUDGET_SECONDS * fraction
+            remaining = target - (time.time() - _process_started)
+            if remaining > 0:
+                await asyncio.sleep(remaining)
+            fired_at = ' fired_at=' + str(int(time.time() - _process_started)) + 's'
+            try:
+                import gc
+                from ccxt.async_support.base.ws.client import Client as WsClient
+                now = int(time.time() * 1000)
+                clients = [obj for obj in gc.get_objects() if isinstance(obj, WsClient)]
+                if not clients:
+                    print('[TEST_WARNING] TIMEOUT_CAUSE no live ws clients' + fired_at, flush=True)
+                for client in clients:
+                    established = getattr(client, 'connectionEstablished', None)
+                    last_message = getattr(client, 'last_message_at', None)
+                    futures = getattr(client, 'futures', {}) or {}
+                    hashes = list(futures.keys())[:3]
+                    error = getattr(client, 'error', None)
+                    print(
+                        '[TEST_WARNING] TIMEOUT_CAUSE'
+                        + ' verdict=' + classify_client(client, now)
+                        + ' url=' + str(getattr(client, 'url', '?'))
+                        + ' connected=' + str(client.isConnected)
+                        + ' connecting=' + str(getattr(client, 'connecting', False))
+                        + ' established_age_s=' + (str(round((now - established) / 1000)) if established else 'never')
+                        + ' last_msg_age_s=' + (str(round((now - last_message) / 1000)) if last_message else 'none')
+                        + ' pending=' + str(len(futures))
+                        + ' hashes=' + str(hashes)
+                        + (' err=' + repr(error)[:120] if error else '')
+                        + fired_at,
+                        flush=True,
+                    )
+            except BaseException as watchdog_error:
+                print('[TEST_WARNING] TIMEOUT_CAUSE watchdog_error=' + repr(watchdog_error)[:200] + fired_at, flush=True)
 
     async def main ():
         if _import_watchdog is not None:
