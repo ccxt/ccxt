@@ -2604,7 +2604,11 @@ export default class binance extends binanceRest {
             }
             const tickerMarketId = this.safeString(ticker, 's');
             const tickerMarketsByIdList = this.safeValue(this.markets_by_id, tickerMarketId);
-            const tickerMarketById = this.safeValue(tickerMarketsByIdList, 0);
+            const numTickerMarkets = (tickerMarketsByIdList === undefined) ? 0 : tickerMarketsByIdList.length;
+            // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
+            // blind first pick, the stream url decides; only a unique match, like an
+            // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
+            const tickerMarketById = (numTickerMarkets === 1) ? this.safeValue(tickerMarketsByIdList, 0) : undefined;
             const isSpot = this.isSpotUrl(client);
             const tickerFallbackType = isSpot ? 'spot' : 'contract';
             const tickerMarketType = (tickerMarketById !== undefined) ? tickerMarketById['type'] : tickerFallbackType;
