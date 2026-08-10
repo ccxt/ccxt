@@ -6838,7 +6838,7 @@ export default class binance extends Exchange {
             }
         }
         let clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
-        if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+        if ((market['swap'] || market['future']) && isConditional && !isPortfolioMargin) {
             clientOrderIdRequest = 'clientAlgoId';
         }
         if (clientOrderId === undefined) {
@@ -7000,7 +7000,7 @@ export default class binance extends Exchange {
                 }
             }
             if (stopPrice !== undefined) {
-                if (market['swap'] && !isPortfolioMargin) {
+                if ((market['swap'] || market['future']) && !isPortfolioMargin) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
                 } else {
                     request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
@@ -7159,12 +7159,12 @@ export default class binance extends Exchange {
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+            } else if ((market['swap'] || market['future']) && isConditional && !isPortfolioMargin) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 request['origClientOrderId'] = clientOrderId;
             }
-        } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+        } else if ((market['swap'] || market['future']) && isConditional && !isPortfolioMargin) {
             request['algoId'] = id;
         } else {
             request['orderId'] = id;
@@ -7952,7 +7952,7 @@ export default class binance extends Exchange {
         if (clientOrderId !== undefined) {
             if (market['option']) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (market['swap'] && isConditional && !isPortfolioMargin) {
+            } else if ((market['swap'] || market['future']) && isConditional && !isPortfolioMargin) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 if (isPortfolioMargin && isConditional) {
@@ -7964,7 +7964,7 @@ export default class binance extends Exchange {
         } else {
             if (isPortfolioMargin && isConditional) {
                 request['strategyId'] = id;
-            } else if (market['swap'] && isConditional && !isPortfolioMargin) {
+            } else if ((market['swap'] || market['future']) && isConditional && !isPortfolioMargin) {
                 request['algoId'] = id;
             } else {
                 request['orderId'] = id;
