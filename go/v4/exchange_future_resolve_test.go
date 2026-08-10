@@ -108,7 +108,8 @@ func TestClientResolveRetainsValueWithoutWaiter(t *testing.T) {
 }
 
 // Reject clears retained values so stale pre-error data cannot satisfy a
-// post-error consumer.
+// post-error consumer: the consumer gets the retained error fast, never the
+// pre-error data.
 func TestClientRejectClearsPendingResults(t *testing.T) {
 	client := testResolveClient()
 	hash := "ticker:BTC/USDT"
@@ -117,8 +118,39 @@ func TestClientRejectClearsPendingResults(t *testing.T) {
 	f := client.NewFuture(hash)
 	select {
 	case v := <-f.Await():
-		t.Fatalf("stale pre-error value served after reject: %v", v)
+		if _, isErr := v.(error); !isErr {
+			t.Fatalf("stale pre-error value served after reject: %v", v)
+		}
+	case <-time.After(100 * time.Millisecond):
+		t.Fatalf("retained rejection was not delivered")
+	}
+}
+
+// An error rejected while no consumer future exists is retained, ts parity,
+// and fails the next NewFuture fast, drained exactly once.
+func TestClientRejectRetainedWithoutWaiter(t *testing.T) {
+	client := testResolveClient()
+	hash := "ticker:BTC/USDT"
+	client.Reject(NewError("NetworkError", "boom"), hash)
+	f := client.NewFuture(hash)
+	select {
+	case v := <-f.Await():
+		if _, isErr := v.(error); !isErr {
+			t.Fatalf("expected retained error, got %v", v)
+		}
+	case <-time.After(100 * time.Millisecond):
+		t.Fatalf("retained rejection was not delivered")
+	}
+	// drained once: the next consumer is not poisoned by the old error
+	f2 := client.NewFuture(hash)
+	select {
+	case v := <-f2.Await():
+		t.Fatalf("stale rejection served twice: %v", v)
 	case <-time.After(30 * time.Millisecond):
+	}
+	client.Resolve("fresh", hash)
+	if v := <-f2.Await(); v != "fresh" {
+		t.Fatalf("expected fresh, got %v", v)
 	}
 }
 

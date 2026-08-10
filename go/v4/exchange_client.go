@@ -144,21 +144,23 @@ func (this *Client) NewFuture(messageHash any) *Future {
 		future.Resolve(pending)
 		return future
 	}
+	// a retained rejection fails this consumer fast, symmetric with the
+	// pending drain above: the spent future stays out of the map so the
+	// next consumer is not poisoned by the old error. Rejections shares
+	// FuturesMu, the unlocked read and delete here was a concurrent map
+	// access race with Reject
+	if err, ok := this.Rejections[hash]; ok {
+		delete(this.Rejections, hash)
+		this.FuturesMu.Unlock()
+		future := NewFuture()
+		future.Reject(err.(error))
+		return future
+	}
 	if _, ok := this.Futures[hash]; !ok {
 		this.Futures[hash] = NewFuture()
 	}
 	future := this.Futures[hash]
-	// Rejections shares FuturesMu, the unlocked read and delete here was a
-	// concurrent map access race with Reject
-	var rejection any
-	if err, ok := this.Rejections[hash]; ok {
-		rejection = err
-		delete(this.Rejections, hash)
-	}
 	this.FuturesMu.Unlock()
-	if rejection != nil {
-		future.(*Future).Reject(rejection.(error))
-	}
 	return future.(*Future)
 }
 
@@ -179,6 +181,15 @@ func (this *Client) Reject(err any, messageHash ...any) {
 	if fut, ok := this.Futures[hash.(string)]; ok {
 		fut.(*Future).Reject(err.(error))
 		delete(this.Futures, hash.(string))
+	} else {
+		// ts parity: an error arriving while no consumer future exists is
+		// retained so the next NewFuture fails fast instead of the error
+		// being dropped, the same arrived before waiter class as the
+		// resolve retention above
+		if this.Rejections == nil {
+			this.Rejections = map[string]any{}
+		}
+		this.Rejections[hash.(string)] = err
 	}
 	delete(this.PendingResults, hash.(string))
 	this.FuturesMu.Unlock()
