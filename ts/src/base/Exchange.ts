@@ -2482,7 +2482,9 @@ export class BaseExchange {
         const res = globalThis.SignCreateGroupedOrders (
             request['grouping_type'],
             ordersArr,
-            orders.length,
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
             1, // skip nonce
             request['nonce'],
             request['api_key_index'],

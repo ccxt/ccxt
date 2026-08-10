@@ -1,6 +1,15 @@
 {
     "exchange": "lighter",
-    "skipKeys": ["OrderExpiry", "Nonce", "AccountIndex", "ApiKeyIndex", "Sig", "ExpiredAt", "account_index", "ClientOrderIndex"],
+    "skipKeys": [
+        "OrderExpiry",
+        "Nonce",
+        "AccountIndex",
+        "ApiKeyIndex",
+        "Sig",
+        "ExpiredAt",
+        "account_index",
+        "ClientOrderIndex"
+    ],
     "outputType": "json",
     "disabledGO": true,
     "disabledCS": true,
@@ -106,6 +115,30 @@
                 "output": {
                     "tx_type": 14,
                     "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"MarketIndex\":35,\"ClientOrderIndex\":911280573,\"BaseAmount\":100,\"Price\":60000,\"IsAsk\":0,\"Type\":1,\"TimeInForce\":0,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":0,\"ExpiredAt\":1772175612201,\"Nonce\":6,\"Sig\":\"6cnea3og5elG3CMCxRpldy7yHQI3ettJVkYKl2VcvF4yIT1/RREaD/m8D+KTbCTGAftezZjNtw8KEo9YoAO68WTdDU8d6bq69BcKlQm1kAk=\",\"L2TxAttributes\":{\"1\":130303,\"2\":10,\"3\":10,\"4\":1}}"
+                }
+            },
+            {
+                "description": "create grouped order with attached stopLoss and takeProfit",
+                "method": "createOrder",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    1,
+                    40,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 35
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 45
+                        }
+                    }
+                ],
+                "output": {
+                    "tx_type": 28,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"GroupingType\":3,\"Orders\":[{\"MarketIndex\":35,\"ClientOrderIndex\":0,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":1,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1788702393403},{\"MarketIndex\":35,\"ClientOrderIndex\":0,\"BaseAmount\":0,\"Price\":35000,\"IsAsk\":1,\"Type\":3,\"TimeInForce\":1,\"ReduceOnly\":1,\"TriggerPrice\":35000,\"OrderExpiry\":1788702393403},{\"MarketIndex\":35,\"ClientOrderIndex\":0,\"BaseAmount\":0,\"Price\":45000,\"IsAsk\":1,\"Type\":5,\"TimeInForce\":1,\"ReduceOnly\":1,\"TriggerPrice\":45000,\"OrderExpiry\":1788702393403}],\"ExpiredAt\":1786283792404,\"Nonce\":0,\"Sig\":\"7RnsMBMzoNefmMYJP/saHfzWv1Fo8mt5J7DB8QyPple6XMw3CuEiYidZyyi4qcsbFzqq0WnAd/lB7mgTN5yiP584pm9vAIdaUA4yHgC0+zc=\",\"L2TxAttributes\":{\"1\":130303,\"2\":10,\"3\":10,\"4\":1}}"
                 }
             }
         ],
