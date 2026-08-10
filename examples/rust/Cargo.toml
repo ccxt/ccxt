@@ -10,6 +10,12 @@ tokio = { version = "1", features = ["full"] }
 futures = "0.3"
 async-trait = "0.1"
 
+[features]
+# Opt-in: pulls the transpiled pro/ WebSocket venues into `ccxt`. Only the
+# `watch_orderbook_compare` bin needs it, so the default `cargo build --bins`
+# (and CI) stays on the lighter transpiled-base set.
+ws = ["ccxt/transpiled-ws"]
+
 [[bin]]
 name = "binance_basics"
 path = "src/binance_basics.rs"
@@ -33,6 +39,13 @@ path = "src/binance_typed.rs"
 [[bin]]
 name = "orderbook_diff"
 path = "src/orderbook_diff.rs"
+
+# WebSocket cross-exchange order-book comparison. Gated behind `ws` so the
+# default examples build doesn't compile the pro venues.
+[[bin]]
+name = "watch_orderbook_compare"
+path = "src/watch_orderbook_compare.rs"
+required-features = ["ws"]
 
 # Keep debug symbols in release so `sample`/Instruments can attribute
 # hot frames. Negligible perf impact, larger binary.
