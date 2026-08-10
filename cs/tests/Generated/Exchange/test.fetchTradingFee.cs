@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     {
         object method = "fetchTradingFee";
         object fee = await ((dynamic)exchange).fetchTradingFee(symbol);
-        assert(exchange.isDictionary(fee), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dict. "), exchange.json(fee)));
+        testSharedMethods.assertDictionaryResponse(exchange, method, fee, symbol);
         testTradingFee(exchange, skippedProperties, method, symbol, fee);
         return true;
     }
