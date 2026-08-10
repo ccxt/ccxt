@@ -35,9 +35,14 @@ type Future struct {
 	resolved      bool
 	resolvedValue any
 	resolvedError any
-	mu            sync.Mutex
-	once          sync.Once
-	subscribersMu sync.Mutex
+	// mu guards resolved state AND subscribers together: Await must check
+	// resolved and append its subscriber under the same lock that Resolve
+	// and Reject use to set the state and take the subscriber snapshot,
+	// otherwise a resolve landing between an unlocked check and the append
+	// notifies an empty list, clears it, and the subscriber blocks forever,
+	// see https://github.com/ccxt/ccxt/issues/29586
+	mu   sync.Mutex
+	once sync.Once
 }
 
 // Create new Future
@@ -61,6 +66,8 @@ func (f *Future) Resolve(args ...any) {
 		f.resolved = true
 		f.resolvedValue = value
 		f.resolvedError = nil
+		subscribers := f.subscribers
+		f.subscribers = nil
 		f.mu.Unlock()
 
 		func() {
@@ -76,9 +83,10 @@ func (f *Future) Resolve(args ...any) {
 			}
 		}()
 
-		f.subscribersMu.Lock()
-		// Notify all subscribers
-		for _, sub := range f.subscribers {
+		// notify the snapshot outside the lock, every subscriber channel has
+		// capacity 1 and receives at most this one send, so the non blocking
+		// send cannot drop a wakeup
+		for _, sub := range subscribers {
 			func(sub chan any) {
 				defer func() {
 					if r := recover(); r != nil {
@@ -92,8 +100,6 @@ func (f *Future) Resolve(args ...any) {
 				}
 			}(sub)
 		}
-		f.subscribers = nil // Clear subscribers after notifying them
-		f.subscribersMu.Unlock()
 	})
 }
 
@@ -104,6 +110,8 @@ func (f *Future) Reject(reason any) {
 		f.resolved = true
 		f.resolvedValue = nil
 		f.resolvedError = reason
+		subscribers := f.subscribers
+		f.subscribers = nil
 		f.mu.Unlock()
 
 		func() {
@@ -119,9 +127,8 @@ func (f *Future) Reject(reason any) {
 			}
 		}()
 
-		// Notify all subscribers
-		f.subscribersMu.Lock()
-		for _, sub := range f.subscribers {
+		// notify the snapshot outside the lock, see Resolve
+		for _, sub := range subscribers {
 			func(sub chan any) {
 				defer func() {
 					if r := recover(); r != nil {
@@ -135,8 +142,6 @@ func (f *Future) Reject(reason any) {
 				}
 			}(sub)
 		}
-		f.subscribers = nil // Clear subscribers after notifying them
-		f.subscribersMu.Unlock()
 	})
 }
 
@@ -223,13 +228,13 @@ func (f *Future) Await() <-chan any {
 		f.mu.Unlock()
 		return ch
 	}
-	f.mu.Unlock()
-	f.subscribersMu.Lock()
+	// still unresolved under the same lock, so a concurrent Resolve cannot
+	// have taken its subscriber snapshot yet, the append below is safe
 	if f.subscribers == nil {
 		f.subscribers = make([]chan any, 0)
 	}
 	f.subscribers = append(f.subscribers, ch)
-	f.subscribersMu.Unlock()
+	f.mu.Unlock()
 	// go func() {
 	// 	defer close(ch)
 	// 	// f.mu.Lock()
@@ -296,14 +301,14 @@ func FutureRace(futures []*Future) *Future {
 			}
 			return result
 		}
-		f.mu.Unlock()
-
-		f.subscribersMu.Lock()
+		// same lock spans the resolved check and the subscribe, a resolve
+		// landing in between would otherwise notify an empty list and this
+		// racer would never wake, see https://github.com/ccxt/ccxt/issues/29586
 		if f.subscribers == nil {
 			f.subscribers = make([]chan interface{}, 0)
 		}
 		f.subscribers = append(f.subscribers, sharedCh)
-		f.subscribersMu.Unlock()
+		f.mu.Unlock()
 	}
 
 	// Single goroutine forwards the first resolved/rejected value.
