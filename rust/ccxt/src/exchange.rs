@@ -1001,6 +1001,22 @@ impl Exchange {
 // `self.request_typed(...)`, … on a Core (or inside an `ExchangeBase` default)
 // resolve here. Bodies reach `Exchange` fields via the `DerefMut` bound, other
 // base methods via `ExchangeBase`, and pure `impl Exchange` helpers via `Deref`.
+/// Coerce a `Value` (string, or list of strings) into a `Vec<String>` of
+/// message/subscribe hashes for the WS drive loop.
+fn ws_string_list(v: &Value) -> Vec<String> {
+    match v {
+        Value::Str(s) => vec![s.clone()],
+        Value::Arr(a) => a
+            .iter()
+            .filter_map(|x| match x {
+                Value::Str(s) => Some(s.clone()),
+                _ => None,
+            })
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
 pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn fetch(&mut self, url: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let url_str = match &url { Value::Str(s) => s.clone(), _ => crate::runtime::stringify_param(&url) };
@@ -1020,6 +1036,104 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             Ok(v) => v,
             Err(_) => Value::Null,
         }
+    } }
+
+    // ── WebSocket (pro) drive loop ──────────────────────────────────────────
+    //
+    // Port of the runtime side of `Exchange.watch` / `watchMultiple`. These are
+    // trait methods (not inherent on `Exchange`) so `self` is the concrete Core
+    // and `dispatch_to_derived("handle_message", …)` reaches the venue override.
+    //
+    // Model: `watch` drives synchronously — it connects, sends the subscribe
+    // frame once, then loops reading inbound frames and feeding each to the
+    // venue's `handle_message` (which calls `client.resolve(value, hash)`),
+    // returning as soon as one of the awaited hashes is settled. A repeated
+    // `while true { watch_x().await }` consumer therefore gets one update per
+    // call, exactly like the TS Future model. (Concurrently awaiting two streams
+    // on the *same* socket via join is a known limitation — each drive loop
+    // pulls from the shared frame queue.)
+
+    /// Shared drive loop for `watch` / `watch_multiple`.
+    fn ws_run(
+        &mut self,
+        url: String,
+        hashes: Vec<String>,
+        message: Value,
+        subscribe_hashes: Vec<String>,
+        subscription: Value,
+    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
+        let client = match crate::pro::ws_client::ensure_client(&url).await {
+            Ok(c) => c,
+            Err(e) => panic!("{}", e),
+        };
+        client.note_futures(&hashes);
+        // Subscribe once per hash. Send the message if any subscribe hash was
+        // newly added, or if none were provided (mirrors TS's
+        // `subscribeHashes === undefined || missingSubscriptions.length`).
+        let mut send_subscribe = subscribe_hashes.is_empty();
+        for sh in &subscribe_hashes {
+            if client.subscribe_once(sh, subscription.clone()) {
+                send_subscribe = true;
+            }
+        }
+        if send_subscribe && !matches!(message, Value::Null) {
+            let payload = match &message {
+                Value::Str(s) => s.clone(),
+                v => v.to_json().to_string(),
+            };
+            client.send_text(payload);
+        }
+        loop {
+            if let Some(settled) = client.take_settled(&hashes) {
+                match settled {
+                    Ok(v) => return v,
+                    Err(e) => panic!(
+                        "{}",
+                        match &e {
+                            Value::Str(s) => s.clone(),
+                            v => crate::runtime::stringify_param(v),
+                        }
+                    ),
+                }
+            }
+            let msg = match client.next_message().await {
+                Some(m) => m,
+                None => panic!("[NetworkError] {} websocket connection closed", url),
+            };
+            let client_value = crate::pro::ws_client::client_value(&url);
+            let _ = self
+                .dispatch_to_derived("handle_message", vec![client_value, msg])
+                .await;
+        }
+    } }
+
+    fn watch(
+        &mut self,
+        url: Value,
+        message_hash: Value,
+        optional_args: &[Value],
+    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
+        let url_s = match &url { Value::Str(s) => s.clone(), v => crate::runtime::stringify_param(v) };
+        let hash_s = match &message_hash { Value::Str(s) => s.clone(), v => crate::runtime::stringify_param(v) };
+        let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
+        let subscribe_hash = optional_args.get(1).cloned().unwrap_or(message_hash.clone());
+        let sub_hash_s = match &subscribe_hash { Value::Str(s) => s.clone(), v => crate::runtime::stringify_param(v) };
+        let subscription = optional_args.get(2).cloned().unwrap_or(Value::Null);
+        self.ws_run(url_s, vec![hash_s], message, vec![sub_hash_s], subscription).await
+    } }
+
+    fn watch_multiple(
+        &mut self,
+        url: Value,
+        message_hashes: Value,
+        optional_args: &[Value],
+    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
+        let url_s = match &url { Value::Str(s) => s.clone(), v => crate::runtime::stringify_param(v) };
+        let hashes = ws_string_list(&message_hashes);
+        let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
+        let subscribe_hashes = ws_string_list(&optional_args.get(1).cloned().unwrap_or(Value::Null));
+        let subscription = optional_args.get(2).cloned().unwrap_or(Value::Null);
+        self.ws_run(url_s, hashes, message, subscribe_hashes, subscription).await
     } }
 
     fn fetch_typed(

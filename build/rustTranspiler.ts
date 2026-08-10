@@ -5150,7 +5150,7 @@ ${isBase
     /// `call_dynamic_base` default (base exchange). This replaces the old
     /// inherent `call_dynamic` + the `bind()`/pointer trampoline — dispatch is
     /// now a static trait method (review #1).
-    emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false): string {
+    emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false, hasHandleMessage = false): string {
         const arms: string[] = [];
         for (const { name, isAsync, paramKinds } of sigs) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
@@ -5163,6 +5163,13 @@ ${isBase
                 }
             }
             arms.push(`                "${name}" => self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''},`);
+        }
+        // `handle_message(&mut self, client, message)` returns `()`, so it's
+        // filtered out of `sigs` (dispatch arms must yield a Value). The base
+        // `watch()` drive loop reaches the venue's override via
+        // `dispatch_to_derived("handle_message", …)`, so add a void-wrapping arm.
+        if (hasHandleMessage) {
+            arms.push(`                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },`);
         }
         arms.sort();
         const fallthrough = parentCore
@@ -5694,7 +5701,8 @@ ${proImport}${predImport}`;
         }
         const traitImpl = this.emitDerivedExchangeImpl(coreName, methodNames, methodSigs, parentCore);
         // `impl ExchangeBase for <Core>` — supplies the static `call_dynamic`.
-        const coreDispatchImpl = this.emitCoreDispatchImpl(coreName, methodSigs, parentCore, isPrediction);
+        const hasHandleMessage = /\b(?:pub\s+)?(?:async\s+)?fn\s+handle_message\s*\(/.test(content);
+        const coreDispatchImpl = this.emitCoreDispatchImpl(coreName, methodSigs, parentCore, isPrediction, hasHandleMessage);
         // Prediction Cores reach the four PredictionExchange fields directly via
         // their `exchange: PredictionExchange` field (disjoint sub-field borrows),
         // and supply the `PredictionBase` accessors (review #1).

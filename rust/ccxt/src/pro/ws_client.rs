@@ -42,8 +42,9 @@ pub struct ClientState {
     resolved: Mutex<HashMap<String, Value>>,
     /// messageHash → error (set by `reject`; delivered before/instead of value).
     rejections: Mutex<HashMap<String, Value>>,
-    /// subscribeHash set — a subscribe frame is sent only the first time.
-    subscriptions: Mutex<HashSet<String>>,
+    /// subscribeHash → subscription object (TS `client.subscriptions[hash]`).
+    /// A subscribe frame is sent only the first time a hash is inserted.
+    subscriptions: Mutex<HashMap<String, Value>>,
     /// messageHashes some `watch` call is currently waiting on. Mirrors TS
     /// `client.futures` (read by a few venues' `handle_message`).
     futures: Mutex<HashSet<String>>,
@@ -158,14 +159,31 @@ impl ClientState {
         }
     }
 
-    /// Mark `subscribe_hash` subscribed; returns true the first time (so the
-    /// caller sends the subscribe frame exactly once).
-    pub fn subscribe_once(&self, subscribe_hash: &str) -> bool {
-        self.subscriptions.lock().unwrap().insert(subscribe_hash.to_string())
+    /// Record `subscribe_hash` → `subscription`; returns true the first time
+    /// (so the caller sends the subscribe frame exactly once). Mirrors TS
+    /// `client.subscriptions[subscribeHash] = subscription || true`.
+    pub fn subscribe_once(&self, subscribe_hash: &str, subscription: Value) -> bool {
+        let mut subs = self.subscriptions.lock().unwrap();
+        if subs.contains_key(subscribe_hash) {
+            return false;
+        }
+        let stored = if matches!(subscription, Value::Null) {
+            Value::Bool(true)
+        } else {
+            subscription
+        };
+        subs.insert(subscribe_hash.to_string(), stored);
+        true
+    }
+
+    /// Directly set a subscription entry (TS `client.subscriptions[h] = x`
+    /// written from `handle_message`).
+    pub fn set_subscription(&self, subscribe_hash: &str, subscription: Value) {
+        self.subscriptions.lock().unwrap().insert(subscribe_hash.to_string(), subscription);
     }
 
     pub fn is_subscribed(&self, subscribe_hash: &str) -> bool {
-        self.subscriptions.lock().unwrap().contains(subscribe_hash)
+        self.subscriptions.lock().unwrap().contains_key(subscribe_hash)
     }
 
     pub fn send_text(&self, s: String) -> bool {
@@ -189,13 +207,13 @@ impl ClientState {
         self.futures.lock().unwrap().clear();
     }
 
-    /// Snapshot of `subscriptions` as a `Value::Map { hash: true }` — the shape
-    /// the transpiled `get_value(&client, "subscriptions")` reads.
+    /// Snapshot of `subscriptions` as a `Value::Map { hash: subscription }` —
+    /// the shape the transpiled `get_value(&client, "subscriptions")` reads.
     pub fn subscriptions_value(&self) -> Value {
         let subs = self.subscriptions.lock().unwrap();
         let mut m = indexmap::IndexMap::new();
-        for h in subs.iter() {
-            m.insert(h.clone(), Value::Bool(true));
+        for (h, sub) in subs.iter() {
+            m.insert(h.clone(), sub.clone());
         }
         Value::Map(m)
     }
@@ -236,7 +254,7 @@ pub async fn ensure_client(url: &str) -> Result<Arc<ClientState>, String> {
         notify: Notify::new(),
         resolved: Mutex::new(HashMap::new()),
         rejections: Mutex::new(HashMap::new()),
-        subscriptions: Mutex::new(HashSet::new()),
+        subscriptions: Mutex::new(HashMap::new()),
         futures: Mutex::new(HashSet::new()),
         connected: Mutex::new(true),
         closed: Mutex::new(false),
@@ -298,6 +316,110 @@ pub fn drop_client(url: &str) {
     REGISTRY.lock().unwrap().remove(url);
 }
 
+// ── `Value`-handle bridge ────────────────────────────────────────────────────
+//
+// The transpiled `handle_message(&mut self, client: Value, message: Value)`
+// receives a *client* as a `Value`. We model it as `Value::Map { "url": <url>,
+// "subscriptions": <snapshot>, "futures": <snapshot> }`. The `Value` methods
+// `resolve`/`reject`/`send`/… (in value.rs) extract `url` and route here.
+
+/// Build the client-handle `Value` passed to `handle_message`: the URL plus
+/// live snapshots of `subscriptions` / `futures` (the fields venues read via
+/// `get_value(&client, "subscriptions")`).
+pub fn client_value(url: &str) -> Value {
+    let mut m = indexmap::IndexMap::new();
+    m.insert("url".to_string(), Value::Str(url.to_string()));
+    if let Some(c) = get_client(url) {
+        m.insert("subscriptions".to_string(), c.subscriptions_value());
+        m.insert("futures".to_string(), c.futures_value());
+    } else {
+        m.insert("subscriptions".to_string(), Value::Map(indexmap::IndexMap::new()));
+        m.insert("futures".to_string(), Value::Map(indexmap::IndexMap::new()));
+    }
+    Value::Map(m)
+}
+
+/// Extract the `url` from a client-handle `Value` (`Map{"url": ...}`).
+pub fn url_of(client: &Value) -> Option<String> {
+    match crate::get_value(client, &Value::Str("url".to_string())) {
+        Value::Str(s) => Some(s),
+        _ => None,
+    }
+}
+
+fn hash_str(v: &Value) -> Option<String> {
+    match v {
+        Value::Str(s) => Some(s.clone()),
+        _ => None,
+    }
+}
+
+/// `client.resolve(value, messageHash)` routed by URL. Returns `value`.
+pub fn value_resolve(client: &Value, args: &[Value]) -> Value {
+    let value = args.get(0).cloned().unwrap_or(Value::Null);
+    if let (Some(url), Some(hash)) = (url_of(client), args.get(1).and_then(hash_str)) {
+        if let Some(c) = get_client(&url) {
+            c.resolve(&hash, value.clone());
+        }
+    }
+    value
+}
+
+/// `client.reject(error, messageHash)` routed by URL.
+pub fn value_reject(client: &Value, args: &[Value]) -> Value {
+    let err = args.get(0).cloned().unwrap_or(Value::Null);
+    if let Some(url) = url_of(client) {
+        if let Some(c) = get_client(&url) {
+            match args.get(1).and_then(hash_str) {
+                Some(hash) => c.reject(&hash, err.clone()),
+                // reject with no hash → reject every pending future.
+                None => {
+                    let hashes: Vec<String> = c.futures.lock().unwrap().iter().cloned().collect();
+                    for h in hashes {
+                        c.reject(&h, err.clone());
+                    }
+                }
+            }
+        }
+    }
+    err
+}
+
+/// `client.send(message)` routed by URL. Serialises non-string payloads to JSON.
+pub fn value_send(client: &Value, args: &[Value]) -> Value {
+    if let Some(url) = url_of(client) {
+        if let Some(c) = get_client(&url) {
+            let payload = match args.get(0) {
+                Some(Value::Str(s)) => s.clone(),
+                Some(v) => v.to_json().to_string(),
+                None => String::new(),
+            };
+            c.send_text(payload);
+        }
+    }
+    Value::Null
+}
+
+/// `client.reset(...)` routed by URL.
+pub fn value_reset(client: &Value) -> Value {
+    if let Some(url) = url_of(client) {
+        if let Some(c) = get_client(&url) {
+            c.reset();
+        }
+    }
+    Value::Null
+}
+
+/// `client.on_pong(...)` routed by URL.
+pub fn value_on_pong(client: &Value) -> Value {
+    if let Some(url) = url_of(client) {
+        if let Some(c) = get_client(&url) {
+            c.on_pong();
+        }
+    }
+    Value::Null
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -336,8 +458,8 @@ mod tests {
         let client = ensure_client(&url).await.expect("connect");
 
         // Send a subscribe frame once (idempotent per hash).
-        assert!(client.subscribe_once("ticker:BTC/USDT"));
-        assert!(!client.subscribe_once("ticker:BTC/USDT"));
+        assert!(client.subscribe_once("ticker:BTC/USDT", Value::Null));
+        assert!(!client.subscribe_once("ticker:BTC/USDT", Value::Null));
         assert!(client.send_text("{\"op\":\"subscribe\",\"channel\":\"ticker\"}".to_string()));
 
         // Drive: pull each inbound message, mimic handle_message resolving the
@@ -362,6 +484,73 @@ mod tests {
             &Value::Str("ticker:BTC/USDT".to_string())
         )));
 
+        drop_client(&url);
+    }
+
+    // A minimal Core whose `handle_message` resolves the "ticker" hash with the
+    // inbound message's `last` field — exactly what a real venue's
+    // handle_message does. Lets us drive the *actual* `watch()` runtime end to
+    // end (connect → subscribe → frame → dispatch_to_derived("handle_message")
+    // → resolve → return) against the mock server, independent of venue quirks.
+    struct TestWsCore {
+        exchange: crate::exchange::Exchange,
+    }
+    impl std::ops::Deref for TestWsCore {
+        type Target = crate::exchange::Exchange;
+        fn deref(&self) -> &Self::Target {
+            &self.exchange
+        }
+    }
+    impl std::ops::DerefMut for TestWsCore {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.exchange
+        }
+    }
+    impl crate::exchange::DerivedExchange for TestWsCore {}
+    impl crate::exchange_generated::ExchangeBase for TestWsCore {
+        fn call_dynamic<'a>(
+            &'a mut self,
+            method: &'a str,
+            args: Vec<Value>,
+        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>> {
+            Box::pin(async move {
+                match method {
+                    "handle_message" => {
+                        let client = args.get(0).cloned().unwrap_or(Value::Null);
+                        let message = args.get(1).cloned().unwrap_or(Value::Null);
+                        let last = crate::get_value(&message, &Value::Str("last".to_string()));
+                        // `client.resolve(value, messageHash)` — routes to the registry.
+                        client.resolve(&[last, Value::Str("ticker".to_string())]);
+                        Value::Null
+                    }
+                    _ => self.call_dynamic_base(method, args).await,
+                }
+            })
+        }
+    }
+
+    #[tokio::test]
+    async fn watch_drive_loop_end_to_end() {
+        use crate::exchange::ExchangeRuntime;
+        let url = spawn_mock_server().await;
+        let mut core = TestWsCore {
+            exchange: crate::exchange::Exchange::new(None),
+        };
+        // Drive the real base `watch()`: connect, send subscribe, read frames,
+        // dispatch each to handle_message, return once "ticker" resolves.
+        let result = ExchangeRuntime::watch(
+            &mut core,
+            Value::Str(url.clone()),
+            Value::Str("ticker".to_string()),
+            &[
+                Value::Str("{\"op\":\"subscribe\",\"channel\":\"ticker\"}".to_string()),
+                Value::Str("ticker".to_string()),
+                Value::Null,
+            ],
+        )
+        .await;
+        // First streamed ticker.
+        assert_eq!(result, Value::Str("100.5".to_string()));
         drop_client(&url);
     }
 

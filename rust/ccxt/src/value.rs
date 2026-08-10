@@ -239,16 +239,27 @@ impl Value {
     // `Value::Null` and are placeholders for richer dispatch.
 
     pub fn describe(&self) -> Value { Value::Null }
-    pub fn reject(&self, _args: &[Value]) -> Value { Value::Null }
-    pub fn resolve(&self, _args: &[Value]) -> Value { Value::Null }
-    /// WS stub — transpiled `client.future(messageHash)` returns a
-    /// promise. Until the Client/Future infra is ported, we just hand
-    /// back `Value::Null` so the call sites type-check.
-    pub fn future(&self, _args: &[Value]) -> Value { Value::Null }
-    /// `client.reusable_future(messageHash)` — TS Client method that
-    /// returns a shared Future per message-hash. Stubbed identically
-    /// to `future` until the WS Client port lands.
-    pub fn reusable_future(&self, _msg_hash: Value) -> Value { Value::Null }
+    /// `client.reject(error, messageHash)` — stores a rejection the `watch`
+    /// drive loop delivers to the awaiting caller. Routes by the client
+    /// handle's `url` to the WS registry (no-op on a non-client Value).
+    pub fn reject(&self, args: &[Value]) -> Value {
+        crate::pro::ws_client::value_reject(self, args)
+    }
+    /// `client.resolve(value, messageHash)` — stores the resolved value the
+    /// `watch` drive loop returns. Routes by the client handle's `url`.
+    pub fn resolve(&self, args: &[Value]) -> Value {
+        crate::pro::ws_client::value_resolve(self, args)
+    }
+    /// `client.future(messageHash)` — TS returns a Future for the hash. The
+    /// Rust `watch` drives synchronously (it polls `take_settled`), so the
+    /// future object itself is unused; return the hash so any `.then`-style
+    /// chaining in transpiled code still has a Value to work with.
+    pub fn future(&self, args: &[Value]) -> Value {
+        args.get(0).cloned().unwrap_or(Value::Null)
+    }
+    /// `client.reusable_future(messageHash)` — shared Future per hash; same
+    /// synchronous-drive treatment as `future`.
+    pub fn reusable_future(&self, msg_hash: Value) -> Value { msg_hash }
     /// Field accessor: `cache.hashmap` — same as the WS Cache marker's
     /// hashmap sub-dict. Some transpiled WS code reads this directly
     /// via the JS field-access syntax rather than going through
@@ -259,13 +270,18 @@ impl Value {
         }
         Value::Null
     }
-    /// `client.send(payload)` — WS stub, no-op until Client port lands.
-    pub fn send(&self, _args: &[Value]) -> Value { Value::Null }
+    /// `client.send(payload)` — queues a frame on the WS connection (routed by
+    /// the client handle's `url`). No-op on a non-client Value.
+    pub fn send(&self, args: &[Value]) -> Value {
+        crate::pro::ws_client::value_send(self, args)
+    }
     /// `client.decode_proto_msg(...)` — exchange-specific protobuf
     /// decode helper; stubbed to `Value::Null`.
     pub fn decode_proto_msg(&self, _args: &[Value]) -> Value { Value::Null }
-    /// `client.on_pong(...)` — WS heartbeat hook; stubbed.
-    pub fn on_pong(&self, _args: &[Value]) -> Value { Value::Null }
+    /// `client.on_pong(...)` — WS heartbeat hook; records the pong time.
+    pub fn on_pong(&self, _args: &[Value]) -> Value {
+        crate::pro::ws_client::value_on_pong(self)
+    }
     /// WS stub — transpiled `fn(...args)` over a Value-typed callable.
     pub fn call(&self, _args: &[Value]) -> Value { Value::Null }
     /// `exchange.isDictionary(value)` — transpiled tests treat `exchange`
@@ -1400,6 +1416,11 @@ impl Value {
     /// when called without a snapshot, we just rebind the existing one
     /// (effectively a no-op metadata refresh).
     pub fn reset(&mut self, snapshot: Value) -> Value {
+        // `client.reset(error)` — a WS client handle (carries "url") resets its
+        // registry entry; everything else is an OrderBook snapshot reset.
+        if matches!(&self, Value::Dict(d) if d.contains_key("url") && d.contains_key("subscriptions")) {
+            return crate::pro::ws_client::value_reset(self);
+        }
         book_reset(self, snapshot);
         self.clone()
     }

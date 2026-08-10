@@ -881,22 +881,23 @@ impl Exchange {
     // calls at runtime panic with a clear "WS not yet ported" error so we
     // surface the gap loudly instead of silently no-op'ing.
     //
-    // Once `ts/src/base/ws/Client.ts` is ported, these stubs go away in
-    // favour of the real impls.
-    pub async fn watch(&mut self, _url: Value, _msg_hash: Value, _args: &[Value]) -> Value {
-        panic!("[NotSupported] WS .watch() not yet ported")
+    // `watch()` / `watch_multiple()` are the WS drive loop and live in the
+    // `ExchangeRuntime` trait (generic `self`) so they can dispatch to the
+    // concrete Core's `handle_message` override — see exchange.rs.
+    //
+    // `client(url)` returns the client-handle `Value` (`Map{url, subscriptions,
+    // futures}`) the transpiled `handle_message` reads; the live connection is
+    // established lazily by `watch()`.
+    pub fn client(&mut self, args: &[Value]) -> Value {
+        match args.get(0) {
+            Some(Value::Str(url)) => crate::pro::ws_client::client_value(url),
+            _ => Value::Null,
+        }
     }
-    pub async fn watch_multiple(
-        &mut self,
-        _url: Value,
-        _msg_hashes: Value,
-        _args: &[Value],
-    ) -> Value {
-        panic!("[NotSupported] WS .watch_multiple() not yet ported")
-    }
-    pub fn client(&mut self, _args: &[Value]) -> Value {
-        Value::Null
-    }
+    // `spawn(fn, ...)` / `delay(ms, fn, ...)`: the transpiler lowers the JS
+    // function reference to `Value::Null` (it has no Rust callable to pass), so
+    // these can't invoke the coroutine and are necessarily no-ops. Background
+    // keep-alive/auth-refresh loops that rely on them are a known gap.
     pub fn spawn(&self, _args: &[Value]) -> Value {
         Value::Null
     }
