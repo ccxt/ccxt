@@ -2951,7 +2951,11 @@ public partial class binance : ccxt.binance
             }
             object tickerMarketId = this.safeString(ticker, "s");
             object tickerMarketsByIdList = this.safeValue(this.markets_by_id, tickerMarketId);
-            object tickerMarketById = this.safeValue(tickerMarketsByIdList, 0);
+            object numTickerMarkets = ((bool) isTrue((isEqual(tickerMarketsByIdList, null)))) ? 0 : getArrayLength(tickerMarketsByIdList);
+            // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
+            // blind first pick, the stream url decides; only a unique match, like an
+            // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
+            object tickerMarketById = ((bool) isTrue((isEqual(numTickerMarkets, 1)))) ? this.safeValue(tickerMarketsByIdList, 0) : null;
             object isSpot = this.isSpotUrl(client);
             object tickerFallbackType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
             object tickerMarketType = ((bool) isTrue((!isEqual(tickerMarketById, null)))) ? getValue(tickerMarketById, "type") : tickerFallbackType;
