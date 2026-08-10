@@ -32,8 +32,19 @@ func snapshotFixture() map[string]any {
 }
 
 func indexedSnapshotFixture() map[string]any {
-	// rows use the []any shape with a trailing id, the only shape
-	// getIndexedAsksBids accepts
+	// rows use the []any shape with a trailing numeric count, the shape
+	// getIndexedAsksBids accepts, numeric third elements are the case that
+	// parseOrderBookEntries silently dropped as 3-float rows
+	return map[string]any{
+		"asks":      []any{[]any{101.0, 1.5, 3.0}, []any{102.0, 2.5, 4.0}},
+		"bids":      []any{[]any{100.0, 3.5, 5.0}, []any{99.0, 4.5, 6.0}},
+		"timestamp": int64(1723300000000),
+		"symbol":    "BTC/USDT",
+	}
+}
+
+func indexedIdSnapshotFixture() map[string]any {
+	// same shape with string ids, the flavor indexed books usually carry
 	return map[string]any{
 		"asks":      []any{[]any{101.0, 1.5, "11"}, []any{102.0, 2.5, "12"}},
 		"bids":      []any{[]any{100.0, 3.5, "21"}, []any{99.0, 4.5, "22"}},
@@ -59,6 +70,11 @@ func assertTypedBookShape(t *testing.T, book OrderBook, label string) {
 	if book.Bids[0][0] != 100.0 {
 		t.Fatalf("%s: expected best bid 100.0, got %v", label, book.Bids[0][0])
 	}
+	for _, row := range append(append([][]float64{}, book.Asks...), book.Bids...) {
+		if len(row) != 2 {
+			t.Fatalf("%s: expected [price, amount] pairs, got row %v", label, row)
+		}
+	}
 }
 
 func TestNewOrderBookFromWsPlainBook(t *testing.T) {
@@ -74,7 +90,7 @@ func TestNewOrderBookFromWsCountedBook(t *testing.T) {
 }
 
 func TestNewOrderBookFromWsIndexedBook(t *testing.T) {
-	indexed := NewIndexedOrderBook(indexedSnapshotFixture(), nil)
+	indexed := NewIndexedOrderBook(indexedIdSnapshotFixture(), nil)
 	book := NewOrderBookFromWs(indexed)
 	assertTypedBookShape(t, book, "IndexedOrderBook")
 }
