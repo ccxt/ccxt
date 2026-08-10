@@ -2723,8 +2723,7 @@ export default class woo extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        data['network'] = this.safeString (request, 'network');
-        return this.parseDepositAddress (data, currency);
+        return this.parseDepositAddress (this.extend (data, { 'network': this.safeString (request, 'network') }), currency);
     }
 
     getDedicatedNetworkId (currency: any, params: Dict): any {
