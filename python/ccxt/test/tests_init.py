@@ -14,6 +14,16 @@ import time as _time
 # whenever imports happen to finish
 _process_started = _time.time()
 
+
+def _warn(line):
+    # run-tests.js generateResultFromOutput scans stderr for the TEST_WARNING
+    # pattern while the harvester keeps the full stdout copy of the child, so
+    # every forensic line goes to both streams, flushed, see
+    # https://github.com/ccxt/ccxt/pull/29726
+    print(line, flush=True)
+    print(line, file=_sys.stderr, flush=True)
+
+
 _import_watchdog = None
 if '--ws' in _sys.argv:
     import os as _os
@@ -21,12 +31,11 @@ if '--ws' in _sys.argv:
     _import_started = _process_started
 
     def _import_phase_alarm():
-        print(
+        _warn(
             '[TEST_WARNING] TIMEOUT_CAUSE verdict=IMPORT_PHASE elapsed='
             + str(int(_time.time() - _import_started)) + 's pid=' + str(_os.getpid())
             + ' the child never reached the tests before the orchestrator budget,'
-            + ' imports still running, ci runner likely saturated',
-            flush=True,
+            + ' imports still running, ci runner likely saturated'
         )
     _import_watchdog = _threading.Timer(105.0, _import_phase_alarm)
     _import_watchdog.daemon = True
@@ -110,14 +119,14 @@ else:
                 now = int(time.time() * 1000)
                 clients = [obj for obj in gc.get_objects() if isinstance(obj, WsClient)]
                 if not clients:
-                    print('[TEST_WARNING] TIMEOUT_CAUSE no live ws clients' + fired_at, flush=True)
+                    _warn('[TEST_WARNING] TIMEOUT_CAUSE no live ws clients' + fired_at)
                 for client in clients:
                     established = getattr(client, 'connectionEstablished', None)
                     last_message = getattr(client, 'last_message_at', None)
                     futures = getattr(client, 'futures', {}) or {}
                     hashes = list(futures.keys())[:3]
                     error = getattr(client, 'error', None)
-                    print(
+                    _warn(
                         '[TEST_WARNING] TIMEOUT_CAUSE'
                         + ' verdict=' + classify_client(client, now)
                         + ' url=' + str(getattr(client, 'url', '?'))
@@ -128,11 +137,10 @@ else:
                         + ' pending=' + str(len(futures))
                         + ' hashes=' + str(hashes)
                         + (' err=' + repr(error)[:120] if error else '')
-                        + fired_at,
-                        flush=True,
+                        + fired_at
                     )
             except BaseException as watchdog_error:
-                print('[TEST_WARNING] TIMEOUT_CAUSE watchdog_error=' + repr(watchdog_error)[:200] + fired_at, flush=True)
+                _warn('[TEST_WARNING] TIMEOUT_CAUSE watchdog_error=' + repr(watchdog_error)[:200] + fired_at)
 
     async def main ():
         if _import_watchdog is not None:
