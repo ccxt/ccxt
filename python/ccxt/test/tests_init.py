@@ -7,13 +7,18 @@
 # timer from the stdlib names that failure class while stdout is still
 # being captured. Cancelled in main() where the tier-2 watchdog takes over
 import sys as _sys
+import time as _time
+
+# single epoch for both watchdog tiers: the orchestrator's budget runs from
+# process spawn, so every deadline must be measured from here, not from
+# whenever imports happen to finish
+_process_started = _time.time()
 
 _import_watchdog = None
 if '--ws' in _sys.argv:
     import os as _os
     import threading as _threading
-    import time as _time
-    _import_started = _time.time()
+    _import_started = _process_started
 
     def _import_phase_alarm():
         print(
@@ -81,7 +86,14 @@ else:
         return 'SLOW_TEST'
 
     async def timeout_cause_watchdog():
-        await asyncio.sleep(WS_ORCHESTRATOR_BUDGET_SECONDS - WATCHDOG_MARGIN_SECONDS)
+        # the deadline is anchored to process start, the orchestrator's clock,
+        # not to main(): under a loaded runner imports alone can consume tens
+        # of seconds and a sleep measured from main() would fire after the
+        # output harvest, printing into a log nobody captures anymore
+        import time
+        elapsed = time.time() - _process_started
+        remaining = (WS_ORCHESTRATOR_BUDGET_SECONDS - WATCHDOG_MARGIN_SECONDS) - elapsed
+        await asyncio.sleep(max(1.0, remaining))
         import gc
         import time
         from ccxt.async_support.base.ws.client import Client as WsClient
