@@ -691,12 +691,9 @@ class BaseExchange {
             return false;
         }
         if (is_array($value)) {
-            if (count($value) === 0) {
+            if (count($value) === 0 || array_keys($value) !== array_keys(array_keys($value))) {
                 return true;
             }
-        }
-        if (array_keys($value) !== array_keys(array_keys($value))) {
-            return true;
         }
         return false;
     }
