@@ -608,8 +608,8 @@ public partial class woo : Exchange
                     { "ZRX", "ZRX" },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "TRX", "TRON" },
-                    { "TRC20", "TRON" },
+                    { "TRX", "TRX" },
+                    { "TRC20", "TRX" },
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
                     { "ARBITRUM", "Arbitrum" },
@@ -2455,7 +2455,7 @@ public partial class woo : Exchange
         object orderType = this.safeStringLower(order, "type");
         object status = this.safeValue2(order, "status", "algoStatus");
         object side = this.safeStringLower(order, "side");
-        object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
+        object filled = this.safeString2(order, "executed", "totalExecutedQuantity");
         object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
         // const remaining = Precise.stringSub (cost, filled);
         object fee = this.safeNumber(order, "totalFee");
@@ -2473,6 +2473,11 @@ public partial class woo : Exchange
                 lastUpdateTimestamp = this.safeInteger(order, "updatedTime"); // regular orders
             }
         }
+        object postOnly = null;
+        if (isTrue(!isEqual(orderType, null)))
+        {
+            postOnly = (isEqual(orderType, "post_only"));
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },
@@ -2484,7 +2489,7 @@ public partial class woo : Exchange
             { "symbol", symbol },
             { "type", orderType },
             { "timeInForce", this.parseTimeInForce(orderType) },
-            { "postOnly", null },
+            { "postOnly", postOnly },
             { "reduceOnly", this.safeBool(order, "reduceOnly") },
             { "side", side },
             { "price", price },
@@ -2997,7 +3002,9 @@ public partial class woo : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseDepositAddress(data, currency);
+        return this.parseDepositAddress(this.extend(data, new Dictionary<string, object>() {
+            { "network", this.safeString(request, "network") },
+        }), currency);
     }
 
     public virtual object getDedicatedNetworkId(object currency, object parameters)
@@ -3021,10 +3028,11 @@ public partial class woo : Exchange
     {
         object address = this.safeString(depositEntry, "address");
         this.checkAddress(address);
+        object networkId = this.safeString(depositEntry, "network");
         return new Dictionary<string, object>() {
             { "info", depositEntry },
             { "currency", this.safeString(currency, "code") },
-            { "network", null },
+            { "network", this.networkIdToCode(networkId, this.safeString(currency, "code")) },
             { "address", address },
             { "tag", this.safeString(depositEntry, "extra") },
         };

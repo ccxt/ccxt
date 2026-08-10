@@ -369,8 +369,8 @@ class woo(Exchange, ImplicitAPI):
                     'ZRX': 'ZRX',
                 },
                 'networks': {
-                    'TRX': 'TRON',
-                    'TRC20': 'TRON',
+                    'TRX': 'TRX',  # WOO X renamed the network id from TRON to TRX
+                    'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                     'ARBITRUM': 'Arbitrum',
@@ -2121,7 +2121,7 @@ class woo(Exchange, ImplicitAPI):
         orderType = self.safe_string_lower(order, 'type')
         status = self.safe_value_2(order, 'status', 'algoStatus')
         side = self.safe_string_lower(order, 'side')
-        filled = self.omit_zero(self.safe_value_2(order, 'executed', 'totalExecutedQuantity'))
+        filled = self.safe_string_2(order, 'executed', 'totalExecutedQuantity')
         average = self.omit_zero(self.safe_string(order, 'averageExecutedPrice'))
         # remaining = Precise.string_sub(cost, filled)
         fee = self.safe_number(order, 'totalFee')
@@ -2134,6 +2134,9 @@ class woo(Exchange, ImplicitAPI):
                 lastUpdateTimestamp = self.safe_timestamp(order, 'updatedTime')  # algo orders
             else:
                 lastUpdateTimestamp = self.safe_integer(order, 'updatedTime')  # regular orders
+        postOnly = None
+        if orderType is not None:
+            postOnly = (orderType == 'post_only')
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -2145,7 +2148,7 @@ class woo(Exchange, ImplicitAPI):
             'symbol': symbol,
             'type': orderType,
             'timeInForce': self.parse_time_in_force(orderType),
-            'postOnly': None,  # TO_DO
+            'postOnly': postOnly,
             'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'side': side,
             'price': price,
@@ -2155,7 +2158,7 @@ class woo(Exchange, ImplicitAPI):
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': None,  # TO_DO
+            'remaining': None,  # computed by safeOrder from amount minus filled
             'cost': cost,
             'trades': None,
             'fee': {
@@ -2591,7 +2594,7 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_deposit_address(data, currency)
+        return self.parse_deposit_address(self.extend(data, {'network': self.safe_string(request, 'network')}), currency)
 
     def get_dedicated_network_id(self, currency: Any, params: dict) -> Any:
         networkCode = None
@@ -2607,10 +2610,11 @@ class woo(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositEntry: Any, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositEntry, 'address')
         self.check_address(address)
+        networkId = self.safe_string(depositEntry, 'network')
         return {
             'info': depositEntry,
             'currency': self.safe_string(currency, 'code'),
-            'network': None,
+            'network': self.network_id_to_code(networkId, self.safe_string(currency, 'code')),
             'address': address,
             'tag': self.safe_string(depositEntry, 'extra'),
         }

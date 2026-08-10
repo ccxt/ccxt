@@ -355,8 +355,8 @@ export default class woo extends Exchange {
                     'ZRX': 'ZRX',
                 },
                 'networks': {
-                    'TRX': 'TRON',
-                    'TRC20': 'TRON',
+                    'TRX': 'TRX', // WOO X renamed the network id from TRON to TRX
+                    'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                     'ARBITRUM': 'Arbitrum',
@@ -2218,7 +2218,7 @@ export default class woo extends Exchange {
         const orderType = this.safeStringLower(order, 'type');
         const status = this.safeValue2(order, 'status', 'algoStatus');
         const side = this.safeStringLower(order, 'side');
-        const filled = this.omitZero(this.safeValue2(order, 'executed', 'totalExecutedQuantity'));
+        const filled = this.safeString2(order, 'executed', 'totalExecutedQuantity');
         const average = this.omitZero(this.safeString(order, 'averageExecutedPrice'));
         // const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeNumber(order, 'totalFee');
@@ -2234,6 +2234,10 @@ export default class woo extends Exchange {
                 lastUpdateTimestamp = this.safeInteger(order, 'updatedTime'); // regular orders
             }
         }
+        let postOnly = undefined;
+        if (orderType !== undefined) {
+            postOnly = (orderType === 'post_only');
+        }
         return this.safeOrder({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -2245,7 +2249,7 @@ export default class woo extends Exchange {
             'symbol': symbol,
             'type': orderType,
             'timeInForce': this.parseTimeInForce(orderType),
-            'postOnly': undefined, // TO_DO
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool(order, 'reduceOnly'),
             'side': side,
             'price': price,
@@ -2255,7 +2259,7 @@ export default class woo extends Exchange {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': undefined, // TO_DO
+            'remaining': undefined, // computed by safeOrder from amount minus filled
             'cost': cost,
             'trades': undefined,
             'fee': {
@@ -2710,7 +2714,7 @@ export default class woo extends Exchange {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseDepositAddress(data, currency);
+        return this.parseDepositAddress(this.extend(data, { 'network': this.safeString(request, 'network') }), currency);
     }
     getDedicatedNetworkId(currency, params) {
         let networkCode = undefined;
@@ -2727,10 +2731,11 @@ export default class woo extends Exchange {
     parseDepositAddress(depositEntry, currency = undefined) {
         const address = this.safeString(depositEntry, 'address');
         this.checkAddress(address);
+        const networkId = this.safeString(depositEntry, 'network');
         return {
             'info': depositEntry,
             'currency': this.safeString(currency, 'code'),
-            'network': undefined,
+            'network': this.networkIdToCode(networkId, this.safeString(currency, 'code')),
             'address': address,
             'tag': this.safeString(depositEntry, 'extra'),
         };
