@@ -628,6 +628,43 @@
                 ],
                 "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/collateral-account/positions/history\",\"nonce\":\"1741942635403\",\"market\":\"BTC_PERP\"}"
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder active order",
+                "method": "fetchOrder",
+                "url": "https://whitebit.com/api/v4/orders",
+                "input": [
+                    "2560087414918",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/orders\",\"nonce\":\"1786350578192\",\"nonceWindow\":false,\"orderId\":\"2560087414918\",\"market\":\"DOGE_PERP\"}"
+            },
+            {
+                "description": "fetchOrder executed order via history",
+                "method": "fetchOrder",
+                "url": "https://whitebit.com/api/v4/trade-account/order/history",
+                "input": [
+                    "2558095898746",
+                    "DOGE/USDT:USDT",
+                    {
+                        "checkActive": false
+                    }
+                ],
+                "output": "{\"request\":\"/api/v4/trade-account/order/history\",\"nonce\":\"1786350664917\",\"nonceWindow\":false,\"orderId\":\"2558095898746\",\"market\":\"DOGE_PERP\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder swap limit",
+                "method": "cancelOrder",
+                "url": "https://whitebit.com/api/v4/order/cancel",
+                "input": [
+                    "2560087414918",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/order/cancel\",\"nonce\":\"1786350578388\",\"nonceWindow\":false,\"market\":\"DOGE_PERP\",\"orderId\":2560087414918}"
+            }
         ]
     }
 }

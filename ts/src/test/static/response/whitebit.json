@@ -1205,6 +1205,275 @@
                     }
                 ]
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder: open swap limit order via active orders endpoint",
+                "method": "fetchOrder",
+                "input": [
+                    "2560087414918",
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "orderId": 2560087414918,
+                        "clientOrderId": "ccxtdf3eb517e4dc968a",
+                        "market": "DOGE_PERP",
+                        "side": "buy",
+                        "type": "margin limit",
+                        "timestamp": 1786350578.292032,
+                        "dealMoney": "0",
+                        "dealStock": "0",
+                        "amount": "100",
+                        "left": "100",
+                        "dealFee": "0",
+                        "ioc": false,
+                        "status": "OPEN",
+                        "stp": "no",
+                        "positionSide": "BOTH",
+                        "rpi": false,
+                        "reduceOnly": false,
+                        "price": "0.05",
+                        "postOnly": false
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "orderId": 2560087414918,
+                        "clientOrderId": "ccxtdf3eb517e4dc968a",
+                        "market": "DOGE_PERP",
+                        "side": "buy",
+                        "type": "margin limit",
+                        "timestamp": 1786350578.292032,
+                        "dealMoney": "0",
+                        "dealStock": "0",
+                        "amount": "100",
+                        "left": "100",
+                        "dealFee": "0",
+                        "ioc": false,
+                        "status": "OPEN",
+                        "stp": "no",
+                        "positionSide": "BOTH",
+                        "rpi": false,
+                        "reduceOnly": false,
+                        "price": "0.05",
+                        "postOnly": false
+                    },
+                    "id": "2560087414918",
+                    "symbol": "DOGE/USDT:USDT",
+                    "clientOrderId": "ccxtdf3eb517e4dc968a",
+                    "timestamp": 1786350578292,
+                    "datetime": "2026-08-10T08:29:38.292Z",
+                    "lastTradeTimestamp": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "status": "open",
+                    "side": "buy",
+                    "price": 0.05,
+                    "type": "limit",
+                    "triggerPrice": null,
+                    "amount": 100,
+                    "filled": 0,
+                    "remaining": 100,
+                    "average": null,
+                    "cost": 0,
+                    "fee": {
+                        "cost": 0,
+                        "currency": "USDT"
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 0,
+                            "currency": "USDT"
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "fetchOrder: filled swap market order via order history (checkActive false)",
+                "method": "fetchOrder",
+                "input": [
+                    "2558095898746",
+                    "DOGE/USDT:USDT",
+                    {
+                        "checkActive": false
+                    }
+                ],
+                "httpResponse": {
+                    "DOGE_PERP": [
+                        {
+                            "id": 2558095898746,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "ctime": 1786182944.22833,
+                            "ftime": 1786182944.22833,
+                            "side": "sell",
+                            "amount": "80",
+                            "price": "0",
+                            "type": "margin market",
+                            "dealFee": "0.003091924",
+                            "dealStock": "80",
+                            "dealMoney": "5.62168",
+                            "postOnly": false,
+                            "ioc": false,
+                            "status": "FILLED",
+                            "feeAsset": "USDT",
+                            "positionSide": "BOTH",
+                            "rpi": false,
+                            "reduceOnly": false
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": 2558095898746,
+                        "clientOrderId": "ccxta9f20ba8b49fbafe",
+                        "ctime": 1786182944.22833,
+                        "ftime": 1786182944.22833,
+                        "side": "sell",
+                        "amount": "80",
+                        "price": "0",
+                        "type": "margin market",
+                        "dealFee": "0.003091924",
+                        "dealStock": "80",
+                        "dealMoney": "5.62168",
+                        "postOnly": false,
+                        "ioc": false,
+                        "status": "FILLED",
+                        "feeAsset": "USDT",
+                        "positionSide": "BOTH",
+                        "rpi": false,
+                        "reduceOnly": false
+                    },
+                    "id": "2558095898746",
+                    "symbol": "DOGE/USDT:USDT",
+                    "clientOrderId": "ccxta9f20ba8b49fbafe",
+                    "timestamp": 1786182944228,
+                    "datetime": "2026-08-08T09:55:44.228Z",
+                    "lastTradeTimestamp": 1786182944228,
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "status": "closed",
+                    "side": "sell",
+                    "price": 0.070271,
+                    "type": "market",
+                    "triggerPrice": null,
+                    "amount": 80,
+                    "filled": 80,
+                    "remaining": 0,
+                    "average": 0.070271,
+                    "cost": 5.62168,
+                    "fee": {
+                        "cost": 0.003091924,
+                        "currency": "USDT"
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 0.003091924,
+                            "currency": "USDT"
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder: swap limit order",
+                "method": "cancelOrder",
+                "input": [
+                    "2560087414918",
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "orderId": 2560087414918,
+                    "clientOrderId": "ccxtdf3eb517e4dc968a",
+                    "market": "DOGE_PERP",
+                    "side": "buy",
+                    "type": "margin limit",
+                    "timestamp": 1786350578.292032,
+                    "dealMoney": "0",
+                    "dealStock": "0",
+                    "amount": "100",
+                    "left": "100",
+                    "dealFee": "0",
+                    "ioc": false,
+                    "status": "CANCELED",
+                    "postOnly": false,
+                    "stp": "no",
+                    "positionSide": "BOTH",
+                    "rpi": false,
+                    "reduceOnly": false,
+                    "price": "0.05"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": 2560087414918,
+                        "clientOrderId": "ccxtdf3eb517e4dc968a",
+                        "market": "DOGE_PERP",
+                        "side": "buy",
+                        "type": "margin limit",
+                        "timestamp": 1786350578.292032,
+                        "dealMoney": "0",
+                        "dealStock": "0",
+                        "amount": "100",
+                        "left": "100",
+                        "dealFee": "0",
+                        "ioc": false,
+                        "status": "CANCELED",
+                        "postOnly": false,
+                        "stp": "no",
+                        "positionSide": "BOTH",
+                        "rpi": false,
+                        "reduceOnly": false,
+                        "price": "0.05"
+                    },
+                    "id": "2560087414918",
+                    "symbol": "DOGE/USDT:USDT",
+                    "clientOrderId": "ccxtdf3eb517e4dc968a",
+                    "timestamp": 1786350578292,
+                    "datetime": "2026-08-10T08:29:38.292Z",
+                    "lastTradeTimestamp": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "status": "canceled",
+                    "side": "buy",
+                    "price": 0.05,
+                    "type": "limit",
+                    "triggerPrice": null,
+                    "amount": 100,
+                    "filled": 0,
+                    "remaining": 100,
+                    "average": null,
+                    "cost": 0,
+                    "fee": {
+                        "cost": 0,
+                        "currency": "USDT"
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": 0,
+                            "currency": "USDT"
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
         ]
     }
 }
