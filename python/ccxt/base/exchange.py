@@ -1073,7 +1073,7 @@ class BaseExchange(object):
         return str(uuid.uuid5(uuid.UUID(namespace), name))
 
     @staticmethod
-    def is_dictionary(self, value: Any):
+    def is_dictionary(value: Any):
         return(value is not None) and isinstance(value, dict)
 
     @staticmethod
