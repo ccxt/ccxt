@@ -1708,6 +1708,7 @@ public partial class whitebit : Exchange
         // Extract control parameters from params
         object checkActive = this.safeBool(parameters, "checkActive", true);
         object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+        parameters = this.omit(parameters, new List<object>() {"checkActive", "checkExecuted"});
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };
