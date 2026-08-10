@@ -21,18 +21,22 @@ import (
 // ---------------------------------------------------------------------------
 
 func snapshotFixture() map[string]any {
+	// rows use the []any shape produced by json unmarshaling, the only shape
+	// normalizeToFloat64SliceSlice accepts
 	return map[string]any{
-		"asks":      [][]float64{{101.0, 1.5}, {102.0, 2.5}},
-		"bids":      [][]float64{{100.0, 3.5}, {99.0, 4.5}},
+		"asks":      []any{[]any{101.0, 1.5}, []any{102.0, 2.5}},
+		"bids":      []any{[]any{100.0, 3.5}, []any{99.0, 4.5}},
 		"timestamp": int64(1723300000000),
 		"symbol":    "BTC/USDT",
 	}
 }
 
 func indexedSnapshotFixture() map[string]any {
+	// rows use the []any shape with a trailing id, the only shape
+	// getIndexedAsksBids accepts
 	return map[string]any{
-		"asks":      [][]float64{{101.0, 1.5, 11}, {102.0, 2.5, 12}},
-		"bids":      [][]float64{{100.0, 3.5, 21}, {99.0, 4.5, 22}},
+		"asks":      []any{[]any{101.0, 1.5, "11"}, []any{102.0, 2.5, "12"}},
+		"bids":      []any{[]any{100.0, 3.5, "21"}, []any{99.0, 4.5, "22"}},
 		"timestamp": int64(1723300000000),
 		"symbol":    "BTC/USDT",
 	}
@@ -90,7 +94,8 @@ func assertMarshaledSidesAreArrays(t *testing.T, book any, label string) {
 		if !ok {
 			t.Fatalf("%s: missing %q in marshaled book: %s", label, key, raw)
 		}
-		var asArray [][]float64
+		// rows may mix numbers and string ids, only the array shape is asserted
+		var asArray [][]any
 		if err := json.Unmarshal(side, &asArray); err != nil {
 			t.Fatalf("%s: %q does not unmarshal as a plain array, got %s", label, key, side)
 		}
@@ -130,13 +135,15 @@ func TestIndexedSideGetDataCopyUsesShadowData(t *testing.T) {
 }
 
 func TestMarshalNilSidesEmitEmptyArrays(t *testing.T) {
+	// encoding/json short-circuits nil pointers to null before consulting
+	// MarshalJSON, so the nil-receiver guards are exercised by direct calls
 	var base *OrderBookSide
-	raw, err := json.Marshal(base)
+	raw, err := base.MarshalJSON()
 	if err != nil || string(raw) != "[]" {
 		t.Fatalf("nil *OrderBookSide: expected [], got %s err %v", raw, err)
 	}
 	var indexed *IndexedOrderBookSide
-	raw, err = json.Marshal(indexed)
+	raw, err = indexed.MarshalJSON()
 	if err != nil || string(raw) != "[]" {
 		t.Fatalf("nil *IndexedOrderBookSide: expected [], got %s err %v", raw, err)
 	}
