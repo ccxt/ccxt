@@ -1,5 +1,32 @@
 # -*- coding: utf-8 -*-
 
+# tier-1 watchdog, armed before any heavy import: under a saturated ci
+# runner the cold ccxt import chain alone can outlive the orchestrator's
+# 120s budget, producing mass RUNTEST_TIMED_OUT with zero test markers and
+# leaving the post-import asyncio watchdog never armed. A plain daemon
+# timer from the stdlib names that failure class while stdout is still
+# being captured. Cancelled in main() where the tier-2 watchdog takes over
+import sys as _sys
+
+_import_watchdog = None
+if '--ws' in _sys.argv:
+    import os as _os
+    import threading as _threading
+    import time as _time
+    _import_started = _time.time()
+
+    def _import_phase_alarm():
+        print(
+            '[TEST_WARNING] TIMEOUT_CAUSE verdict=IMPORT_PHASE elapsed='
+            + str(int(_time.time() - _import_started)) + 's pid=' + str(_os.getpid())
+            + ' the child never reached the tests before the orchestrator budget,'
+            + ' imports still running, ci runner likely saturated',
+            flush=True,
+        )
+    _import_watchdog = _threading.Timer(105.0, _import_phase_alarm)
+    _import_watchdog.daemon = True
+    _import_watchdog.start()
+
 from tests_helpers import get_cli_arg_value, IS_SYNCHRONOUS, argvExchange, argvSymbol, argvMethod
 
 try:
@@ -86,6 +113,8 @@ else:
             )
 
     async def main ():
+        if _import_watchdog is not None:
+            _import_watchdog.cancel()
         watchdog = None
         if isWs:
             watchdog = asyncio.ensure_future(timeout_cause_watchdog())
