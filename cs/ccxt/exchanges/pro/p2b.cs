@@ -177,9 +177,9 @@ public partial class p2b : ccxt.p2b
         parameters = ((IList<object>)nameparametersVariable)[1];
         object messageHashes = new List<object>() {};
         object args = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object market = this.market(getValue((IList<string>)(symbols), i));
+            object market = this.market(getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(market, "symbol")));
             ((IList<object>)args).Add(getValue(market, "id"));
         }

@@ -442,7 +442,7 @@ public partial class bybit : ccxt.bybit
         {
             await this.loadMarkets();
         }
-        symbols = (IList<string>)(this.marketSymbols(symbols, null, false));
+        symbols = this.marketSymbols(symbols, null, false);
         object messageHashes = new List<object>() {};
         object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchTickers", parameters);
         parameters = this.cleanParams(parameters);
@@ -483,7 +483,7 @@ public partial class bybit : ccxt.bybit
         {
             await this.loadMarkets();
         }
-        symbols = (IList<string>)(this.marketSymbols(symbols, null, false));
+        symbols = this.marketSymbols(symbols, null, false);
         object options = this.safeValue(this.options, "watchTickers", new Dictionary<string, object>() {});
         object topic = this.safeString(options, "name", "tickers");
         object messageHashes = new List<object>() {};
@@ -686,7 +686,7 @@ public partial class bybit : ccxt.bybit
         {
             await this.loadMarkets();
         }
-        symbols = (IList<string>)(this.marketSymbols(symbols, null, false));
+        symbols = this.marketSymbols(symbols, null, false);
         object messageHashes = new List<object>() {};
         object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchBidsAsks", parameters);
         parameters = this.cleanParams(parameters);

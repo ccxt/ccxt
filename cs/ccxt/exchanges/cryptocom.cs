@@ -3987,9 +3987,9 @@ public partial class cryptocom : Exchange
             object objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
             paramsKeys = this.sort(objectKeys);
         }
-        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(paramsKeys))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(paramsKeys)); postFixIncrement(ref i))
         {
-            object key = getValue((IList<string>)(paramsKeys), i);
+            object key = getValue(paramsKeys, i);
             returnString = add(returnString, key);
             object value = getValue(obj, key);
             if (isTrue(isEqual(value, "undefined")))
