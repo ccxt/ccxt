@@ -1141,7 +1141,7 @@
     },
     "PEPE/USDT:USDT": {
         "id": "PEPE_PERP",
-        "lowercaseId": null,
+        "lowercaseId": "pepe_perp",
         "symbol": "PEPE/USDT:USDT",
         "base": "PEPE",
         "quote": "USDT",
