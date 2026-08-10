@@ -92,6 +92,18 @@ class Client(object):
         else:
             self.options = config
         self.connected = Future()
+        # a rejected connection future may end up with no awaiter, e.g. on
+        # already-subscribed watch paths or abandoned dials, retrieving the
+        # exception in a done callback keeps asyncio from dumping
+        # "Future exception was never retrieved" walls at gc
+
+        def _consume_connected_exception(fut):
+            if not fut.cancelled():
+                fut.exception()
+        self.connected.add_done_callback(_consume_connected_exception)
+        # Retry-After from the last failed handshake response, seconds,
+        # consumed by the exchange-level dial backoff
+        self.last_retry_after = None
 
     def future(self, message_hash):
         # a value that arrived while no future existed satisfies this
@@ -219,6 +231,14 @@ class Client(object):
             self.on_error(error)
         except Exception as e:
             # connection failed or rejected (ConnectionRefusedError, ClientConnectorError)
+            headers = getattr(e, 'headers', None)
+            if headers is not None:
+                retry_after = headers.get('Retry-After')
+                if retry_after is not None:
+                    try:
+                        self.last_retry_after = float(retry_after)
+                    except ValueError:
+                        pass
             error = NetworkError(e)
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'NetworkError', error)
