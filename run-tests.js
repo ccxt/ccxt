@@ -191,9 +191,15 @@ const exec = (bin, ...args) => {
             // check output for pattern like `[TEST_WARNING] whatever`
             if (output.length) {
                 const warningRegex = /\[TEST_WARNING\].+$(?!\n)*/gmi
-                let matchWarnings; 
-                while (matchWarnings = warningRegex.exec (stderr)) {
-                    warnings.push (matchWarnings[0])
+                let matchWarnings;
+                // scan output, not stderr: output accumulates both streams, so warnings
+                // printed to stdout by the language harnesses are collected too, and the
+                // exact-duplicate guard collapses lines printed to both streams at once,
+                // see https://github.com/ccxt/ccxt/pull/29731
+                while (matchWarnings = warningRegex.exec (output)) {
+                    if (!warnings.includes (matchWarnings[0])) {
+                        warnings.push (matchWarnings[0])
+                    }
                 }
             }
             // check stderr
@@ -253,11 +259,9 @@ const exec = (bin, ...args) => {
             // real [TEST_FAILURE] from before the hang.
             const hung = unfinishedMethods (ansi.strip (output));
             const hungMessage = hung.length ? ' (methods that never finished: ' + hung.join (', ') + ')' : '';
-            // the [TEST_WARNING] tag goes into `output` only: generateResultFromOutput
-            // both regex-matches the tag in stderr AND pushes the whole stderr, so
-            // tagging the stderr copy too would print the message twice in the summary
+            // the tagged line goes into output where generateResultFromOutput collects
+            // it, no untagged stderr smuggle needed anymore, see the collector comment
             output += '\n[TEST_WARNING] RUNTEST_TIMED_OUT' + hungMessage;
-            stderr += '\nRUNTEST_TIMED_OUT' + hungMessage;
             const result = generateResultFromOutput (output, stderr, 0);
             return result;
         }
