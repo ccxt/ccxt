@@ -23,6 +23,7 @@ public partial class okx : Exchange
                 { "future", true },
                 { "option", true },
                 { "addMargin", true },
+                { "borrowCrossMargin", true },
                 { "cancelAllOrders", false },
                 { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
@@ -112,6 +113,7 @@ public partial class okx : Exchange
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
                 { "fetchPositionHistory", "emulated" },
+                { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchPositionsForSymbol", true },
                 { "fetchPositionsHistory", true },
@@ -3302,7 +3304,7 @@ public partial class okx : Exchange
         symbols = this.marketSymbols(symbols);
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, "swap");
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {

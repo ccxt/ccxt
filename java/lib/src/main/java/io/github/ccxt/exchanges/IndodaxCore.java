@@ -93,6 +93,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "fetchMarkPrices", false );
                 put( "fetchMyLiquidations", false );
                 put( "fetchMySettlementHistory", false );
+                put( "fetchOHLCV", true );
                 put( "fetchOpenInterest", false );
                 put( "fetchOpenInterestHistory", false );
                 put( "fetchOpenInterests", false );
@@ -114,6 +115,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchSettlementHistory", false );
                 put( "fetchTicker", true );
+                put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );

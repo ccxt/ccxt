@@ -102,7 +102,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Object responseOjb = this.safeDict(response, "response", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeDict(responseOjb, "data", new java.util.HashMap<String, Object>() {{}});
             Object statuses = this.safeList(data, "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseOrders(statuses, null);
+            return this.parseOrders(statuses);
         });
 
     }

@@ -58,6 +58,7 @@ class okx(Exchange, ImplicitAPI):
                 'future': True,
                 'option': True,
                 'addMargin': True,
+                'borrowCrossMargin': True,
                 'cancelAllOrders': False,
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
@@ -147,6 +148,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositionHistory': 'emulated',
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsForSymbol': True,
                 'fetchPositionsHistory': True,
@@ -2373,7 +2375,7 @@ class okx(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         market = self.get_market_from_symbols(symbols)
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchTickers', market, params, 'swap')
+        marketType, params = self.handle_market_type_and_params('fetchMarkPrices', market, params, 'swap')
         request = {
             'instType': self.convert_to_instrument_type(marketType),
         }

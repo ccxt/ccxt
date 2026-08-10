@@ -69,6 +69,7 @@ class bingx extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
+                'fetchCanceledAndClosedOrders' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
@@ -107,7 +108,7 @@ class bingx extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => true,
-                'fetchPositionHistory' => false,
+                'fetchPositionHistory' => true,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchPositionsHistory' => true,
@@ -128,6 +129,7 @@ class bingx extends Exchange {
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'transfer' => true,
+                'withdraw' => true,
             ),
             'hostname' => 'bingx.com',
             'urls' => array(
@@ -5131,9 +5133,9 @@ class bingx extends Exchange {
         $type = null;
         $subType = null;
         $standard = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchClosedOrders', $market, $params);
-        list($standard, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'standard', false);
+        list($type, $params) = $this->handle_market_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
+        list($standard, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'standard', false);
         if ($standard) {
             $response = Async\await($this->contractV1PrivateGetAllOrders($this->extend($request, $params)));
         } elseif ($type === 'spot') {

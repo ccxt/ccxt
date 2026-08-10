@@ -35,6 +35,7 @@ public class OkxCore extends OkxApi
                 put( "future", true );
                 put( "option", true );
                 put( "addMargin", true );
+                put( "borrowCrossMargin", true );
                 put( "cancelAllOrders", false );
                 put( "cancelAllOrdersAfter", true );
                 put( "cancelOrder", true );
@@ -124,6 +125,7 @@ public class OkxCore extends OkxApi
                 put( "fetchOrderTrades", true );
                 put( "fetchPosition", true );
                 put( "fetchPositionHistory", "emulated" );
+                put( "fetchPositionMode", true );
                 put( "fetchPositions", true );
                 put( "fetchPositionsForSymbol", true );
                 put( "fetchPositionsHistory", true );
@@ -3400,7 +3402,7 @@ public class OkxCore extends OkxApi
             symbols = this.marketSymbols(symbols);
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, "swap");
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
@@ -3643,7 +3645,7 @@ public class OkxCore extends OkxApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object res = this.handleMarketTypeAndParams("fetchOHLCV", market, null);
+        Object res = this.handleMarketTypeAndParams("fetchOHLCV", market);
         Object type = Helpers.GetValue(res, 0);
         Object volumeIndex = ((Helpers.isTrue((Helpers.isEqual(type, "spot"))))) ? 5 : 6;
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));

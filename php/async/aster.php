@@ -75,7 +75,7 @@ class aster extends Exchange {
                 'createMarketSellOrder' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
-                'createOrders' => false,
+                'createOrders' => true,
                 'createOrderWithTakeProfitAndStopLoss' => false,
                 'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
@@ -90,7 +90,7 @@ class aster extends Exchange {
                 'editOrders' => false,
                 'fetchAccounts' => null,
                 'fetchBalance' => true,
-                'fetchBidsAsks' => false,
+                'fetchBidsAsks' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -124,7 +124,7 @@ class aster extends Exchange {
                 'fetchIsolatedBorrowRate' => 'emulated',
                 'fetchIsolatedBorrowRates' => false,
                 'fetchL3OrderBook' => false,
-                'fetchLastPrices' => false,
+                'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => false,
                 'fetchLeverage' => 'emulated',
@@ -1423,7 +1423,7 @@ class aster extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         if ($since !== null) {
             $request['startTime'] = $since;
         }

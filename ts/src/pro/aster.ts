@@ -1732,7 +1732,7 @@ export default class aster extends asterRest {
         }
         let messageHash = 'myTrades';
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params, type);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, type);
         await this.authenticate (type, params);
         if (market !== undefined) {
             messageHash += '::' + symbol;

@@ -102,6 +102,7 @@ class cex(Exchange, ImplicitAPI):
                 'fetchOption': False,
                 'fetchOptionChain': False,
                 'fetchOrderBook': True,
+                'fetchOrdersByStatus': True,
                 'fetchPosition': False,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': False,

@@ -78,6 +78,7 @@ public class BitbankCore extends BitbankApi
                 put( "fetchMarginMode", false );
                 put( "fetchMarginModes", false );
                 put( "fetchMarketLeverageTiers", false );
+                put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMarkPrices", false );
                 put( "fetchMyLiquidations", false );

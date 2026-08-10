@@ -553,7 +553,7 @@ func (this *PacificaCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan
 		}
 		var market any = this.Market(symbol)
 		var aggLevel any = nil
-		aggLevelparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
+		aggLevelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
 		aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 		params = ccxt.GetValue(aggLevelparamsVariable, 1)
 		var messageHash any = ccxt.Add("orderbook:", symbol)
@@ -604,7 +604,7 @@ func (this *PacificaCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-ch
 		}
 		var market any = this.Market(symbol)
 		var aggLevel any = nil
-		aggLevelparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
+		aggLevelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
 		aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 		params = ccxt.GetValue(aggLevelparamsVariable, 1)
 		var subMessageHash any = ccxt.Add("orderbook:", symbol)

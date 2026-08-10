@@ -1853,7 +1853,8 @@ class mexc(ccxt.async_support.mexc):
             elif messageHash.find('candles') >= 0:
                 splitHashes = messageHash.split(':')
                 symbol = self.safe_string(splitHashes, 2)
-                if len(splitHashes) > 4:
+                splitHashesLength = len(splitHashes)  # hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                if splitHashesLength > 4:
                     symbol += ':' + self.safe_string(splitHashes, 3)
                 if (symbol is not None) and (symbol in self.ohlcvs):
                     del self.ohlcvs[symbol]

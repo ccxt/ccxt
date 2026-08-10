@@ -9504,7 +9504,7 @@ class bitget extends Exchange {
         if ($uta) {
             if ($productType === 'SPOT') {
                 $marginMode = null;
-                list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTrades', $params);
+                list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
                 if ($marginMode !== null) {
                     $productType = 'MARGIN';
                 }

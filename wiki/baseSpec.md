@@ -3501,6 +3501,7 @@ fetches the last price for multiple markets
 * [hashkey](/exchanges/hashkey.md#fetchlastprices)
 * [htx](/exchanges/htx.md#fetchlastprices)
 * [toobit](/exchanges/toobit.md#fetchlastprices)
+* [weex](/exchanges/weex.md#fetchlastprices)
 
 ---
 
@@ -3860,6 +3861,7 @@ fetches mark price for the market
 * [blofin](/exchanges/blofin.md#fetchmarkprice)
 * [kucoin](/exchanges/kucoin.md#fetchmarkprice)
 * [okx](/exchanges/okx.md#fetchmarkprice)
+* [weex](/exchanges/weex.md#fetchmarkprice)
 
 ---
 
@@ -3883,6 +3885,7 @@ fetches mark prices for multiple markets
 * [bingx](/exchanges/bingx.md#fetchmarkprices)
 * [kucoin](/exchanges/kucoin.md#fetchmarkprices)
 * [okx](/exchanges/okx.md#fetchmarkprices)
+* [weex](/exchanges/weex.md#fetchmarkprices)
 
 ---
 

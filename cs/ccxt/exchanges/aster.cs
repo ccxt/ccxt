@@ -56,7 +56,7 @@ public partial class aster : Exchange
                 { "createMarketSellOrder", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
-                { "createOrders", false },
+                { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", false },
                 { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
@@ -71,7 +71,7 @@ public partial class aster : Exchange
                 { "editOrders", false },
                 { "fetchAccounts", null },
                 { "fetchBalance", true },
-                { "fetchBidsAsks", false },
+                { "fetchBidsAsks", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
@@ -105,7 +105,7 @@ public partial class aster : Exchange
                 { "fetchIsolatedBorrowRate", "emulated" },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchL3OrderBook", false },
-                { "fetchLastPrices", false },
+                { "fetchLastPrices", true },
                 { "fetchLedger", true },
                 { "fetchLedgerEntry", false },
                 { "fetchLeverage", "emulated" },
@@ -1697,7 +1697,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))

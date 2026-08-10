@@ -165,7 +165,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             }
             Object watchTickerOptions = this.safeDict(this.options, "watchTicker");
             Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
-            var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
+            var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "name", name);
             name = ((java.util.List<Object>) nameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) nameparametersVariable).get(1);
             Object market = this.market(symbol);
@@ -204,7 +204,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             symbols = this.marketSymbols(symbols, null, false);
             Object watchTickerOptions = this.safeDict(this.options, "watchTicker");
             Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
-            var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
+            var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", name);
             name = ((java.util.List<Object>) nameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) nameparametersVariable).get(1);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());

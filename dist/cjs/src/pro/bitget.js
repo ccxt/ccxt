@@ -433,7 +433,7 @@ class bitget extends bitget$1["default"] {
         const market = this.market(symbols[0]);
         let instType = undefined;
         let uta = undefined;
-        [uta, params] = this.handleOptionAndParams(params, 'watchTickers', 'uta', false);
+        [uta, params] = this.handleOptionAndParams(params, 'watchBidsAsks', 'uta', false);
         [instType, params] = this.getInstType('watchBidsAsks', market, uta, params);
         const topics = [];
         const messageHashes = [];

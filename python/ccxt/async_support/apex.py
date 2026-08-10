@@ -131,7 +131,7 @@ class apex(Exchange, ImplicitAPI):
                 'setLeverage': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
-                'transfer': False,
+                'transfer': True,
                 'withdraw': False,
             },
             'timeframes': {

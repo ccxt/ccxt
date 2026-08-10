@@ -2125,7 +2125,7 @@ class bitmex(Exchange, ImplicitAPI):
             triggerDirection = self.safe_string(params, 'triggerDirection')
             triggerAbove = ((triggerDirection == 'ascending') or (triggerDirection == 'above'))
             if (type == 'limit') or (type == 'market'):
-                self.check_required_argument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
+                self.check_required_argument('editOrder', triggerDirection, 'triggerDirection', ['above', 'below'])
             orderType = None
             if type == 'limit':
                 if side == 'buy':

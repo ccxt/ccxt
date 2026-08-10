@@ -1001,6 +1001,59 @@
                 "input": [],
                 "output": null
             }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set margin mode to cross",
+                "method": "setMarginMode",
+                "url": "https://api-contract.weex.com/capi/v3/account/marginType",
+                "input": [
+                    "cross",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"marginType\":\"CROSSED\"}"
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "fetch last prices",
+                "method": "fetchLastPrices",
+                "url": "https://api-spot.weex.com/api/v3/market/ticker/price",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkPrice": [
+            {
+                "description": "fetch mark price",
+                "method": "fetchMarkPrice",
+                "url": "https://api-contract.weex.com/capi/v3/market/symbolPrice?symbol=ETHUSDT&priceType=MARK",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch index price via priceType param",
+                "method": "fetchMarkPrice",
+                "url": "https://api-contract.weex.com/capi/v3/market/symbolPrice?symbol=ETHUSDT&priceType=INDEX",
+                "input": [
+                    "ETH/USDT:USDT",
+                    {
+                        "priceType": "INDEX"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "fetch mark prices",
+                "method": "fetchMarkPrices",
+                "url": "https://api-contract.weex.com/capi/v3/market/premiumIndex",
+                "input": [],
+                "output": null
+            }
         ]
     },
     "outputType": "both"

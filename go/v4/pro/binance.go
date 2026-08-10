@@ -1054,7 +1054,7 @@ func (this *BinanceCore) FetchOrderBookWs(symbol any, optionalArgs ...any) <-cha
 		var requestId any = this.RequestId(url)
 		var messageHash any = ccxt.ToString(requestId)
 		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "createOrderWs", "returnRateLimits", false)
+		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBookWs", "returnRateLimits", false)
 		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
 		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
 		ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
@@ -4830,7 +4830,7 @@ func (this *BinanceCore) FetchOrdersWs(optionalArgs ...any) <-chan any {
 		var requestId any = this.RequestId(url)
 		var messageHash any = ccxt.ToString(requestId)
 		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrderWs", "returnRateLimits", false)
+		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrdersWs", "returnRateLimits", false)
 		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
 		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
 		var payload any = map[string]any{
@@ -4936,7 +4936,7 @@ func (this *BinanceCore) FetchOpenOrdersWs(optionalArgs ...any) <-chan any {
 		var requestId any = this.RequestId(url)
 		var messageHash any = ccxt.ToString(requestId)
 		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrderWs", "returnRateLimits", false)
+		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrdersWs", "returnRateLimits", false)
 		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
 		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
 		var payload any = map[string]any{

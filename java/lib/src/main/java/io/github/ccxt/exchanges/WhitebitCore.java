@@ -40,7 +40,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "createConvertTrade", true );
                 put( "createDepositAddress", true );
                 put( "createMarketBuyOrderWithCost", true );
-                put( "createMarketOrderWithCost", false );
+                put( "createMarketOrderWithCost", true );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
                 put( "createPostOnlyOrder", true );
@@ -51,6 +51,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "editOrder", true );
                 put( "fetchAccounts", true );
                 put( "fetchBalance", true );
+                put( "fetchBorrowInterest", true );
                 put( "fetchBorrowRateHistories", false );
                 put( "fetchBorrowRateHistory", false );
                 put( "fetchClosedOrders", true );
@@ -1789,6 +1790,7 @@ public class WhitebitCore extends WhitebitApi
             // Extract control parameters from params
             Object checkActive = this.safeBool(parameters, "checkActive", true);
             Object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("checkActive", "checkExecuted")));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};

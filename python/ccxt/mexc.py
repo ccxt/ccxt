@@ -52,7 +52,7 @@ class mexc(Exchange, ImplicitAPI):
                 'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': None,
+                'cancelOrders': True,
                 'closeAllPositions': True,
                 'closePosition': False,
                 'createDepositAddress': True,
@@ -152,7 +152,7 @@ class mexc(Exchange, ImplicitAPI):
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'signIn': None,
-                'transfer': None,
+                'transfer': True,
                 'withdraw': True,
             },
             'urls': {

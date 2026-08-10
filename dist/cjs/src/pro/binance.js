@@ -884,7 +884,7 @@ class binance extends binance$1["default"] {
         const requestId = this.requestId(url);
         const messageHash = requestId.toString();
         let returnRateLimits = false;
-        [returnRateLimits, params] = this.handleOptionAndParams(params, 'createOrderWs', 'returnRateLimits', false);
+        [returnRateLimits, params] = this.handleOptionAndParams(params, 'fetchOrderBookWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
         params = this.omit(params, 'test');
         const message = {
@@ -3933,7 +3933,7 @@ class binance extends binance$1["default"] {
         const requestId = this.requestId(url);
         const messageHash = requestId.toString();
         let returnRateLimits = false;
-        [returnRateLimits, params] = this.handleOptionAndParams(params, 'fetchOrderWs', 'returnRateLimits', false);
+        [returnRateLimits, params] = this.handleOptionAndParams(params, 'fetchOrdersWs', 'returnRateLimits', false);
         const payload = {
             'symbol': this.marketId(symbol),
             'returnRateLimits': returnRateLimits,
@@ -3995,7 +3995,7 @@ class binance extends binance$1["default"] {
         const requestId = this.requestId(url);
         const messageHash = requestId.toString();
         let returnRateLimits = false;
-        [returnRateLimits, params] = this.handleOptionAndParams(params, 'fetchOrderWs', 'returnRateLimits', false);
+        [returnRateLimits, params] = this.handleOptionAndParams(params, 'fetchOpenOrdersWs', 'returnRateLimits', false);
         const payload = {
             'returnRateLimits': returnRateLimits,
         };

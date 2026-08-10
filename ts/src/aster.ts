@@ -68,7 +68,7 @@ export default class aster extends Exchange {
                 'createMarketSellOrder': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': false,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
@@ -83,7 +83,7 @@ export default class aster extends Exchange {
                 'editOrders': false,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
-                'fetchBidsAsks': false,
+                'fetchBidsAsks': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -117,7 +117,7 @@ export default class aster extends Exchange {
                 'fetchIsolatedBorrowRate': 'emulated',
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
-                'fetchLastPrices': false,
+                'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLedgerEntry': false,
                 'fetchLeverage': 'emulated',
@@ -1395,7 +1395,7 @@ export default class aster extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }

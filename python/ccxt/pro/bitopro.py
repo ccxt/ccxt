@@ -346,9 +346,11 @@ class bitopro(ccxt.async_support.bitopro):
         #         "low24hr": "1179321"
         #     }
         #
-        marketId = self.safe_string(message, 'pair')
+        marketId = self.safe_string_lower(message, 'pair')
+        if marketId is None:
+            return  # some TICKER frames arrive without a pair - nothing to resolve them against
         # market-ids are lowercase in REST API and uppercase in WS API
-        market = self.safe_market(marketId is not marketId.lower() if None else None, None, '_')
+        market = self.safe_market(marketId, None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
         messageHash = event + ':' + symbol

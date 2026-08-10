@@ -2660,7 +2660,7 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "limit", limit)
 		}
 		var marketType any = nil
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrders", market, params)
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		var response any = []any{}
@@ -3004,7 +3004,7 @@ func (this *ToobitCore) FetchLedger(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "limit", limit)
 		}
 		var marketType any = nil
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", nil, params)
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		var response any = nil

@@ -404,7 +404,7 @@ class pacifica(ccxt.async_support.pacifica):
             await self.load_markets()
         market = self.market(symbol)
         aggLevel = None
-        aggLevel, params = self.handle_option_and_params(params, 'fetchOrderBook', 'aggLevel', 1)
+        aggLevel, params = self.handle_option_and_params(params, 'watchOrderBook', 'aggLevel', 1)
         messageHash = 'orderbook:' + symbol
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
@@ -436,7 +436,7 @@ class pacifica(ccxt.async_support.pacifica):
             await self.load_markets()
         market = self.market(symbol)
         aggLevel = None
-        aggLevel, params = self.handle_option_and_params(params, 'fetchOrderBook', 'aggLevel', 1)
+        aggLevel, params = self.handle_option_and_params(params, 'watchOrderBook', 'aggLevel', 1)
         subMessageHash = 'orderbook:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         isTestnet = self.isSandboxModeEnabled

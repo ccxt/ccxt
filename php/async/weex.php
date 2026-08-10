@@ -115,7 +115,7 @@ class weex extends Exchange {
                 'fetchIsolatedPositions' => false,
                 'fetchL2OrderBook' => false,
                 'fetchL3OrderBook' => false,
-                'fetchLastPrices' => false,
+                'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => false,
                 'fetchLeverage' => true,
@@ -130,7 +130,8 @@ class weex extends Exchange {
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMarkPrices' => false,
+                'fetchMarkPrice' => true,
+                'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => false,
                 'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
@@ -223,7 +224,7 @@ class weex extends Exchange {
                         'api/v3/exchangeInfo' => array( 'cost' => 100 ), // done
                         'api/v3/ping' => array( 'cost' => 5 ), // done
                         'api/v3/apiTradingSymbols' => array( 'cost' => 25 ), // not unified
-                        'api/v3/market/ticker/price' => array( 'cost' => 20 ), // not unified
+                        'api/v3/market/ticker/price' => array( 'cost' => 20 ), // done
                         'api/v3/market/ticker/24hr' => array( 'cost' => 10 ), // done
                         'api/v3/market/trades' => array( 'cost' => 125 ), // done
                         'api/v3/market/klines' => array( 'cost' => 10 ), // done
@@ -274,7 +275,7 @@ class weex extends Exchange {
                         'capi/v3/market/indexPriceKlines' => array( 'cost' => 5 ), // done
                         'capi/v3/market/markPriceKlines' => array( 'cost' => 5 ), // done
                         'capi/v3/market/historyKlines' => array( 'cost' => 25 ), // done
-                        'capi/v3/market/symbolPrice' => array( 'cost' => 5 ), // not unified
+                        'capi/v3/market/symbolPrice' => array( 'cost' => 5 ), // done
                         'capi/v3/market/openInterest' => array( 'cost' => 10 ), // done
                         'capi/v3/market/premiumIndex' => array( 'cost' => 5 ), // done
                         'capi/v3/market/fundingRate' => array( 'cost' => 25 ), // done
@@ -1217,7 +1218,7 @@ class weex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_bids_asks(...))($symbols, $params);
     }
 
@@ -1233,10 +1234,13 @@ class weex extends Exchange {
          * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' (used if $symbols are not provided)
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         $symbols = $this->market_symbols($symbols, null, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
         $response = null;
         if ($marketType === 'spot') {
             $response = Async\await($this->publicGetApiV3MarketTickerBookTicker($params));
@@ -1246,7 +1250,15 @@ class weex extends Exchange {
         if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
             $response = array( $response );
         }
-        return $this->parse_tickers($response, $symbols);
+        $results = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $rawTicker = $response[$i];
+            // book tickers have no markPrice, so resolve the $market from the endpoint type to disambiguate the spot/swap $market id in parseTicker
+            $marketId = $this->safe_string($rawTicker, 'symbol');
+            $tickerMarket = $this->safe_market($marketId, null, null, $marketType);
+            $results[] = $this->parse_ticker($rawTicker, $tickerMarket);
+        }
+        return $this->filter_by_array_tickers($results, 'symbol', $symbols);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1288,10 +1300,32 @@ class weex extends Exchange {
         //         "indexPrice" => "2082.75"
         //     }
         //
+        // fetchMarkPrice ($markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.18",
+        //         "markPrice" => "1929.18",
+        //         "time" => 1786347445044
+        //     }
+        //
+        // fetchMarkPrices
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "markPrice" => "1929.88",
+        //         "indexPrice" => "1930.15",
+        //         "forecastFundingRate" => "0.00003489",
+        //         "lastFundingRate" => "0.00004879",
+        //         "interestRate" => "0.001",
+        //         "nextFundingTime" => 1786348800000,
+        //         "time" => 1786347284100,
+        //         "collectCycle" => 480
+        //     }
+        //
         $marketId = $this->safe_string($ticker, 'symbol');
         $markPrice = $this->safe_string($ticker, 'markPrice');
         $marketType = 'spot';
-        if ($markPrice !== null) {
+        if (($markPrice !== null) || (($market !== null) && $market['contract'])) {
+            // 24hr swap tickers carry $markPrice, but book tickers do not, so also honor the $market resolved by the caller
             $marketType = 'swap';
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
@@ -1321,6 +1355,144 @@ class weex extends Exchange {
             'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);
+    }
+
+    public function fetch_last_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_last_prices(...))($symbols, $params);
+    }
+
+    private function do_fetch_last_prices(?array $symbols = null, $params = array()) {
+        /**
+         * fetches the last price for multiple markets
+         *
+         * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of lastprice structures
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, true, true);
+        $market = $this->get_market_from_symbols($symbols);
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
+        if ($type !== 'spot') {
+            throw new NotSupported($this->id . ' fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets');
+        }
+        $response = Async\await($this->publicGetApiV3MarketTickerPrice($params));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT",
+        //             "price" => "1929.67"
+        //         }
+        //     )
+        //
+        return $this->parse_last_prices($response, $symbols);
+    }
+
+    public function parse_last_price(mixed $entry, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.67"
+        //     }
+        //
+        $marketId = $this->safe_string($entry, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'spot');
+        return array(
+            'symbol' => $market['symbol'],
+            'timestamp' => null,
+            'datetime' => null,
+            'price' => $this->safe_number_omit_zero($entry, 'price'),
+            'side' => null,
+            'info' => $entry,
+        );
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_mark_price(...))($symbol, $params);
+    }
+
+    private function do_fetch_mark_price(string $symbol, $params = array()) {
+        /**
+         * fetches mark price for the $market
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the mark price for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned indexPrice of the $ticker
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new NotSupported($this->id . ' fetchMarkPrice() supports contract markets only');
+        }
+        $priceType = null;
+        list($priceType, $params) = $this->handle_option_and_params($params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
+        $request = array(
+            'symbol' => $market['id'],
+            'priceType' => $priceType,
+        );
+        $response = Async\await($this->contractGetCapiV3MarketSymbolPrice($this->extend($request, $params)));
+        //
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "1929.18",
+        //         "time" => 1786347445044
+        //     }
+        //
+        // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
+        $ticker = $this->extend(array(), $response);
+        if ($priceType === 'INDEX') {
+            $ticker['indexPrice'] = $this->safe_string($ticker, 'price');
+        } else {
+            $ticker['markPrice'] = $this->safe_string($ticker, 'price');
+        }
+        return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_mark_prices(...))($symbols, $params);
+    }
+
+    private function do_fetch_mark_prices(?array $symbols = null, $params = array()) {
+        /**
+         * fetches mark prices for multiple markets
+         *
+         * @see https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, 'swap'); // reject non-contract $symbols instead of silently filtering the result to an empty dict
+        $response = Async\await($this->contractGetCapiV3MarketPremiumIndex($params));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "ETHUSDT",
+        //             "markPrice" => "1929.88",
+        //             "indexPrice" => "1930.15",
+        //             "forecastFundingRate" => "0.00003489",
+        //             "lastFundingRate" => "0.00004879",
+        //             "interestRate" => "0.001",
+        //             "nextFundingTime" => 1786348800000,
+        //             "time" => 1786347284100,
+        //             "collectCycle" => 480
+        //         }
+        //     )
+        //
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2925,15 +3097,15 @@ class weex extends Exchange {
             $market = $this->market($symbol);
         }
         $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
         if ($marketType === 'spot') {
             throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status "canceled" or "closed"');
         }
         $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate', false);
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate', false);
         $maxLimit = 1000;
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, $maxLimit));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $params, $maxLimit));
         }
         $request = array();
         if ($symbol !== null) {

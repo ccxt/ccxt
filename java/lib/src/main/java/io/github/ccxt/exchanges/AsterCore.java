@@ -68,7 +68,7 @@ public class AsterCore extends AsterApi
                 put( "createMarketSellOrder", false );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
-                put( "createOrders", false );
+                put( "createOrders", true );
                 put( "createOrderWithTakeProfitAndStopLoss", false );
                 put( "createPostOnlyOrder", false );
                 put( "createReduceOnlyOrder", false );
@@ -83,7 +83,7 @@ public class AsterCore extends AsterApi
                 put( "editOrders", false );
                 put( "fetchAccounts", null );
                 put( "fetchBalance", true );
-                put( "fetchBidsAsks", false );
+                put( "fetchBidsAsks", true );
                 put( "fetchBorrowInterest", false );
                 put( "fetchBorrowRateHistories", false );
                 put( "fetchBorrowRateHistory", false );
@@ -117,7 +117,7 @@ public class AsterCore extends AsterApi
                 put( "fetchIsolatedBorrowRate", "emulated" );
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchL3OrderBook", false );
-                put( "fetchLastPrices", false );
+                put( "fetchLastPrices", true );
                 put( "fetchLedger", true );
                 put( "fetchLedgerEntry", false );
                 put( "fetchLeverage", "emulated" );
@@ -1762,7 +1762,7 @@ public class AsterCore extends AsterApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))

@@ -491,26 +491,31 @@ class mudrex extends Exchange {
             $items = array();
             if (gettype($data) === 'array' && (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
                 $items = $this->safe_list($data, 'items', array());
-                if (!strlen($items)) {
+                // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                $itemsLength = count($items);
+                if (!$itemsLength) {
                     $items = $this->safe_list($data, 'results', array());
+                    $itemsLength = count($items);
                 }
-                if (!strlen($items) && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
+                if (!$itemsLength && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
                     $items = array( $data );
                 }
             } else {
                 $items = $this->to_array($data);
             }
-            if (!strlen($items)) {
+            $numItems = count($items);
+            if (!$numItems) {
                 $paging = false;
                 break;
             }
-            for ($i = 0; $i < count($items); $i++) {
+            for ($i = 0; $i < $numItems; $i++) {
                 $aggregated[] = $items[$i];
             }
-            if (strlen($items) < $pageLimit) {
+            if ($numItems < $pageLimit) {
                 $paging = false;
             } else {
-                $offset .= $pageLimit;
+                // array($this, 'sum') keeps the $offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                $offset = $this->sum($offset, $pageLimit);
             }
         }
         $result = array();

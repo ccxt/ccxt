@@ -37,7 +37,7 @@ export default class whitebit extends Exchange {
                 'createConvertTrade': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': false,
+                'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -48,6 +48,7 @@ export default class whitebit extends Exchange {
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
@@ -254,7 +255,7 @@ export default class whitebit extends Exchange {
                             'order/bulk': { 'cost': 1 } as Endpoint<List>,
                             'order/modify': { 'cost': 1 } as Endpoint<Dict>,
                             'order/conditional-cancel': { 'cost': 1 } as Endpoint<List>,
-                            'orders': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders': { 'cost': 1 } as Endpoint<List>,
                             'oco-orders': { 'cost': 1 } as Endpoint<List>,
                             'order/collateral/oco': { 'cost': 1 } as Endpoint<Dict>,
                             'order/oco-cancel': { 'cost': 1 } as Endpoint<Dict>,
@@ -1433,6 +1434,7 @@ export default class whitebit extends Exchange {
         // Extract control parameters from params
         const checkActive = this.safeBool (params, 'checkActive', true);
         const checkExecuted = this.safeBool (params, 'checkExecuted', true);
+        params = this.omit (params, [ 'checkActive', 'checkExecuted' ]);
         const request: Dict = {
             'orderId': id,
         };

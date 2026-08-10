@@ -101,7 +101,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
                 'fetchLeverage': True,
-                'fetchLeverageTiers': False,
+                'fetchLeverageTiers': True,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': True,
@@ -4730,7 +4730,7 @@ class kucoin(Exchange, ImplicitAPI):
         useSync = False
         useSync, params = self.handle_option_and_params(params, 'cancelOrder', 'sync', False)
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
         isMarginOrder = tradeType == 'MARGIN_TRADE' or marginMode is not None
         if hf or useSync or isMarginOrder:
@@ -4911,10 +4911,10 @@ class kucoin(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request['symbol'] = market['id']
         accountMode = 'unified'
-        accountMode, params = self.handle_option_and_params(params, 'fetchOrder', 'accountMode', accountMode)
+        accountMode, params = self.handle_option_and_params(params, 'cancelOrder', 'accountMode', accountMode)
         request['accountMode'] = accountMode
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchOrder', params)
+        marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         isUnified = (accountMode == 'unified')
         tradeType = self.handle_trade_type(market['contract'], marginMode, isUnified, params)
         request['tradeType'] = tradeType
@@ -4964,7 +4964,7 @@ class kucoin(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
+        marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if (marketType == 'spot') or (marketType == 'margin'):
             return await self.cancel_all_spot_orders(symbol, params)
         else:
@@ -10229,7 +10229,7 @@ class kucoin(Exchange, ImplicitAPI):
             accountMode, params = self.handle_option_and_params(params, 'cancelOrders', 'accountMode', accountMode)
             request['accountMode'] = accountMode
             marginMode = None
-            marginMode, params = self.handle_margin_mode_and_params('fetchOrder', params)
+            marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
             isUnified = (accountMode == 'unified')
             tradeType = self.handle_trade_type(isContractMarket, marginMode, isUnified, params)
             request['tradeType'] = tradeType

@@ -481,7 +481,8 @@ class bullish extends \ccxt\async\bullish {
         } else {
             $rawOrders = $this->safe_list($message, 'data', array()); // snapshot is a list of $orders
         }
-        if (strlen($rawOrders) > 0) {
+        $numRawOrders = count($rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if ($numRawOrders > 0) {
             if ($this->orders === null) {
                 $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
                 $this->orders = new ArrayCacheBySymbolById($limit);
@@ -595,7 +596,8 @@ class bullish extends \ccxt\async\bullish {
         } else {
             $rawTrades = $this->safe_list($message, 'data', array()); // snapshot is a list of $trades
         }
-        if (strlen($rawTrades) > 0) {
+        $numRawTrades = count($rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if ($numRawTrades > 0) {
             if ($this->myTrades === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
                 $this->myTrades = new ArrayCacheBySymbolById($limit);

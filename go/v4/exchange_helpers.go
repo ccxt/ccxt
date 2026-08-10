@@ -1731,6 +1731,12 @@ func IsArray(v any) bool {
 	switch v.(type) {
 	case []any, [][]any:
 		return true
+	case IOrderBookSide:
+		// js parity: orderbook sides are Array subclasses, so isArray is true;
+		// GetArrayLength and SafeValue already special-case IOrderBookSide, this
+		// predicate was the missing piece failing every ws orderbook structure
+		// assert in the Go test lane
+		return true
 	case []map[string]any:
 		return true
 	case []string, []bool:

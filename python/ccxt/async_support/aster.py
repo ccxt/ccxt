@@ -94,7 +94,7 @@ class aster(Exchange, ImplicitAPI):
                 'createMarketSellOrder': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
-                'createOrders': False,
+                'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': False,
                 'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
@@ -109,7 +109,7 @@ class aster(Exchange, ImplicitAPI):
                 'editOrders': False,
                 'fetchAccounts': None,
                 'fetchBalance': True,
-                'fetchBidsAsks': False,
+                'fetchBidsAsks': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -143,7 +143,7 @@ class aster(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': 'emulated',
                 'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': False,
-                'fetchLastPrices': False,
+                'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLedgerEntry': False,
                 'fetchLeverage': 'emulated',
@@ -1385,7 +1385,7 @@ class aster(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:

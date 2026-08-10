@@ -2231,7 +2231,7 @@ class toobit extends toobit$1["default"] {
             request['limit'] = limit;
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         let response = [];
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotOpenOrders(this.extend(request, params));
@@ -2576,7 +2576,7 @@ class toobit extends toobit$1["default"] {
             request['limit'] = limit;
         }
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', undefined, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetApiV1AccountBalanceFlow(this.extend(request, params));

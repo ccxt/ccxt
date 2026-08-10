@@ -11749,7 +11749,7 @@ final Object finalMinNotional = minNotional;
                 if (Helpers.isTrue(Helpers.isEqual(productType, "SPOT")))
                 {
                     Object marginMode = null;
-                    var marginModeparametersVariable = this.handleMarginModeAndParams("fetchTrades", parameters);
+                    var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
                     marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                     if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))

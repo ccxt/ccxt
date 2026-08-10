@@ -623,6 +623,23 @@ function concat($a = null, $b = null) {
 }
 
 
+function assert_dictionary_response($exchange, $method, $response, $hint = null) {
+    // php cannot distinguish an empty dict from an empty list, both are a plain array
+    // there, so an empty array response is shape indeterminate and accepted, observed
+    // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+    $is_empty_array_response = false;
+    if (gettype($response) === 'array' && array_is_list($response)) {
+        $response_length = count($response);
+        $is_empty_array_response = ($response_length === 0);
+    }
+    $hint_text = '';
+    if ($hint !== null) {
+        $hint_text = ' ' . $hint;
+    }
+    assert($exchange->is_dictionary($response) || $is_empty_array_response, $exchange->id . ' ' . $method . $hint_text . ' must return a dict. ' . $exchange->json($response));
+}
+
+
 function assert_non_emtpy_array($exchange, $skipped_properties, $method, $entry, $hint = null) {
     $log_text = log_template($exchange, $method, $entry);
     if ($hint !== null) {
