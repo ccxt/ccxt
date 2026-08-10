@@ -2632,7 +2632,7 @@ func Capitalize(s string) string {
 }
 
 func (this *BaseExchange) IsDictionary(value any) any {
-	return IsTrue(IsTrue((!IsEqual(value, nil))) && IsTrue((IsObject(value)))) && !IsTrue(IsArray(value))
+	return IsDictionary(value)
 }
 
 func SetDefaults(p any) {
