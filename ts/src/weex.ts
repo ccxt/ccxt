@@ -1202,12 +1202,15 @@ export default class weex extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' (used if symbols are not provided)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+    override async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (marketType === 'spot') {
             response = await this.publicGetApiV3MarketTickerBookTicker (params);
         } else {
@@ -1216,7 +1219,15 @@ export default class weex extends Exchange {
         if (!Array.isArray (response)) {
             response = [ response ];
         }
-        return this.parseTickers (response, symbols);
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+            const rawTicker = response[i];
+            // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
+            const marketId = this.safeString (rawTicker, 'symbol');
+            const tickerMarket = this.safeMarket (marketId, undefined, undefined, marketType);
+            results.push (this.parseTicker (rawTicker, tickerMarket));
+        }
+        return this.filterByArrayTickers (results, 'symbol', symbols);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1261,7 +1272,8 @@ export default class weex extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         const markPrice = this.safeString (ticker, 'markPrice');
         let marketType = 'spot';
-        if (markPrice !== undefined) {
+        if ((markPrice !== undefined) || ((market !== undefined) && market['contract'])) {
+            // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap';
         }
         market = this.safeMarket (marketId, market, undefined, marketType);
