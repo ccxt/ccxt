@@ -139,6 +139,28 @@ Milestone 5 — Docs and CI
 - Transpile a rough exchange subset for coverage
 - Resolve missing Julia transpiler source in `ast-transpiler` (`src/juliaTranspiler.ts` and/or `dist/juliaTranspiler.js`) so `build/juliaTranspiler.ts` can generate real BaseMethods/Errors/tests instead of stub parity artifacts.
 
+## Auditing findings (root-cause, tracked)
+
+- **Generator defect — alias override not reached via module-function form.**
+  Composed aliases (`myokx`/`okxus` → `Okx`; also `binanceus`, `bybiteu`,
+  `gateeu`, `kucoineu`, `kucoinfutures`, `hollaex`) hold a `parent::Okx` rather
+  than subtyping it. A parent override typed `setSandboxMode(self::Okx, ...)`
+  is selected only when `self` is literally an `Okx`. The canonical instance
+  call `ex.setSandboxMode(true)` (via `getproperty`) works for aliases and
+  sets the `x-simulated-trading` header (verified equal to `js/ccxt.js`).
+  But the generated module-function form `Ccxt.setSandboxMode(ex, ...)` — and
+  any `Ccxt.<method>(ex, ...)` whose override lives on the parent — dispatches
+  to the base `self::CcxtExchange` method and silently skips the override.
+  For `okx` specifically the override is the *only* way to enable demo trading,
+  so this is a live-trading hazard. Root cause: `build/juliaTranspiler.ts`
+  alias wiring does not forward parent overrides; needs a per-alias
+  `__parent_for_dispatch` sentinel + closure-based `getproperty` so that
+  `self::Okx` methods are reachable from the child. Tested + tracked as
+  `@test_broken` in `julia/Ccxt/test/groups/sandbox.jl`
+  (`module-function dispatch reaches parent override`). The generator cannot
+  be re-run here (missing `ast-transpiler` source), so the generated
+  `.jl` files are NOT hand-patched; fix belongs in `build/juliaTranspiler.ts`.
+
 Milestone 6 — Repackage Python test harness
 
 - Keep tests_impl.py compatible so tests_init.py can rerun or reselect the same harness file repeatedly, minimizing the residual risk of traffic/selectivity issues during full coverage runs like binance.

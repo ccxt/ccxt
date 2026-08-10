@@ -119,6 +119,8 @@ const GROUPS = Pair{String,Group}[
     # it first and builds the other shards around it.
     "load_all" => Group(["fixtures_init"], 29.0,
         "every generated exchange constructs, indexes recorded markets and resolves a symbol"),
+    "sandbox" => Group(String[], 0.5,
+        "setSandboxMode swaps api <-> test URLs and refuses where no testnet exists"),
 ]
 
 # The three fixture layers, one group per exchange. Generated rather than
