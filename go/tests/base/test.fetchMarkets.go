@@ -14,7 +14,7 @@ func TestFetchMarkets(exchange ccxt.ICoreExchange, skippedProperties any) <-chan
 
 		markets := (<-exchange.FetchMarkets())
 		PanicOnError(markets)
-		Assert(exchange.IsDictionary(markets), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return a dict. "), exchange.Json(markets)))
+		AssertDictionaryResponse(exchange, method, markets)
 		var marketValues any = ObjectValues(markets)
 		AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues)
 		for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
