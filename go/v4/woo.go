@@ -4948,7 +4948,7 @@ func (this *WooCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
  * @name woo#fetchPositions
  * @description fetch all open positions
  * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
- * @param {string[]} [symbols] list of unified market symbols
+ * @param {string[]} [symbols] list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
@@ -4966,8 +4966,17 @@ func (this *WooCore) FetchPositions(optionalArgs ...any) <-chan any {
 			retRes406912 := (<-this.LoadMarkets())
 			PanicOnError(retRes406912)
 		}
+		symbols = this.MarketSymbols(symbols)
+		var request any = map[string]any{}
+		if IsTrue(!IsEqual(symbols, nil)) {
+			var symbolsLength any = GetArrayLength(symbols)
+			if IsTrue(IsEqual(symbolsLength, 1)) {
+				var market any = this.Market(GetValue(symbols, 0))
+				AddElementToObject(request, "symbol", GetValue(market, "id"))
+			}
+		}
 
-		response := (<-this.V3PrivateGetFuturesPositions(params))
+		response := (<-this.V3PrivateGetFuturesPositions(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -5139,8 +5148,8 @@ func (this *WooCore) FetchConvertQuote(fromCode any, toCode any, optionalArgs ..
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes422712 := (<-this.LoadMarkets())
-			PanicOnError(retRes422712)
+			retRes423612 := (<-this.LoadMarkets())
+			PanicOnError(retRes423612)
 		}
 		var request any = map[string]any{
 			"sellToken":    ToUpper(fromCode),
@@ -5202,8 +5211,8 @@ func (this *WooCore) CreateConvertTrade(id any, fromCode any, toCode any, option
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes427312 := (<-this.LoadMarkets())
-			PanicOnError(retRes427312)
+			retRes428212 := (<-this.LoadMarkets())
+			PanicOnError(retRes428212)
 		}
 		var request any = map[string]any{
 			"quoteId": id,
@@ -5251,8 +5260,8 @@ func (this *WooCore) FetchConvertTrade(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes430512 := (<-this.LoadMarkets())
-			PanicOnError(retRes430512)
+			retRes431412 := (<-this.LoadMarkets())
+			PanicOnError(retRes431412)
 		}
 		var request any = map[string]any{
 			"quoteId": id,
@@ -5320,8 +5329,8 @@ func (this *WooCore) FetchConvertTradeHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes435312 := (<-this.LoadMarkets())
-			PanicOnError(retRes435312)
+			retRes436212 := (<-this.LoadMarkets())
+			PanicOnError(retRes436212)
 		}
 		var request any = map[string]any{}
 		requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -5441,8 +5450,8 @@ func (this *WooCore) FetchConvertCurrencies(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes445412 := (<-this.LoadMarkets())
-			PanicOnError(retRes445412)
+			retRes446312 := (<-this.LoadMarkets())
+			PanicOnError(retRes446312)
 		}
 
 		response := (<-this.V3PrivateGetConvertAssetInfo(params))
@@ -5510,7 +5519,7 @@ func (this *WooCore) FetchConvertCurrencies(optionalArgs ...any) <-chan any {
  * @name woo#fetchPositionsADLRank
  * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
  * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
- * @param {string[]} [symbols] a list of unified market symbols
+ * @param {string[]} [symbols] a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
  */
@@ -5525,12 +5534,20 @@ func (this *WooCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes452112 := (<-this.LoadMarkets())
-			PanicOnError(retRes452112)
+			retRes453012 := (<-this.LoadMarkets())
+			PanicOnError(retRes453012)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
+		var request any = map[string]any{}
+		if IsTrue(!IsEqual(symbols, nil)) {
+			var symbolsLength any = GetArrayLength(symbols)
+			if IsTrue(IsEqual(symbolsLength, 1)) {
+				var market any = this.Market(GetValue(symbols, 0))
+				AddElementToObject(request, "symbol", GetValue(market, "id"))
+			}
+		}
 
-		response := (<-this.V3PrivateGetFuturesPositions(params))
+		response := (<-this.V3PrivateGetFuturesPositions(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
