@@ -4426,7 +4426,7 @@ public partial class woo : Exchange
      * @name woo#fetchPositions
      * @description fetch all open positions
      * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
-     * @param {string[]} [symbols] list of unified market symbols
+     * @param {string[]} [symbols] list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -4437,7 +4437,18 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.v3PrivateGetFuturesPositions(parameters);
+        symbols = this.marketSymbols(symbols);
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                object market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        object response = await this.v3PrivateGetFuturesPositions(this.extend(request, parameters));
         //
         //     {
         //         "success": true,
@@ -4911,7 +4922,7 @@ public partial class woo : Exchange
      * @name woo#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
-     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {string[]} [symbols] a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
@@ -4923,7 +4934,17 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, true, true);
-        object response = await this.v3PrivateGetFuturesPositions(parameters);
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                object market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        object response = await this.v3PrivateGetFuturesPositions(this.extend(request, parameters));
         //
         //     {
         //         "success": true,
