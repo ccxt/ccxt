@@ -61,7 +61,10 @@ else:
         now = int(time.time() * 1000)
         clients = [obj for obj in gc.get_objects() if isinstance(obj, WsClient)]
         if not clients:
-            print('[TEST_WARNING] TIMEOUT_CAUSE no live ws clients at watchdog fire')
+            # stdout is a block-buffered pipe under the test orchestrator and a
+            # timed-out child is harvested before it exits, unflushed lines are
+            # lost, so the watchdog must flush every line immediately
+            print('[TEST_WARNING] TIMEOUT_CAUSE no live ws clients at watchdog fire', flush=True)
         for client in clients:
             established = getattr(client, 'connectionEstablished', None)
             last_message = getattr(client, 'last_message_at', None)
@@ -78,7 +81,8 @@ else:
                 + ' last_msg_age_s=' + (str(round((now - last_message) / 1000)) if last_message else 'none')
                 + ' pending=' + str(len(futures))
                 + ' hashes=' + str(hashes)
-                + (' err=' + repr(error)[:120] if error else '')
+                + (' err=' + repr(error)[:120] if error else ''),
+                flush=True,
             )
 
     async def main ():
