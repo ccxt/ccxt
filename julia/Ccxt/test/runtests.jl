@@ -121,6 +121,13 @@ const GROUPS = Pair{String,Group}[
         "every generated exchange constructs, indexes recorded markets and resolves a symbol"),
     "sandbox" => Group(String[], 0.5,
         "setSandboxMode swaps api <-> test URLs and refuses where no testnet exists"),
+    # Offline unit tests for the live sandbox harness's credential resolver
+    # (test/live/credentials.jl). No keys, no network — it only checks that
+    # deep-merge + credential application land on the parent Exchange (incl.
+    # composed aliases). The actual authenticated calls live in
+    # test/live/sandbox_harness.jl and run only when keys.local.json is present.
+    "live_resolver" => Group(String[], 0.2,
+        "credential resolver deep-merge + parent-bound application (offline, no keys)"),
 ]
 
 # The three fixture layers, one group per exchange. Generated rather than
