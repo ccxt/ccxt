@@ -2311,10 +2311,18 @@ func (this *BinanceCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		var outcomeSymbol any = this.SafeString(outcomeObj, "outcome", outcome)
 		var failedOrders any = this.SafeList(response, "failed", []any{})
 		var failedOrdersLength any = ccxt.GetArrayLength(failedOrders)
-		for i := 0; ccxt.IsLessThan(i, failedOrdersLength); i++ {
-			var failedOrder any = ccxt.GetValue(failedOrders, i)
-			var error any = this.SafeString(failedOrder, "reason")
-			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " cancelOrders() failed for "), this.SafeString(failedOrder, "orderId")), ": "), error)))
+		if ccxt.IsTrue(ccxt.IsGreaterThan(failedOrdersLength, 0)) {
+			var failedDetails any = ""
+			for i := 0; ccxt.IsLessThan(i, failedOrdersLength); i++ {
+				var failedOrder any = ccxt.GetValue(failedOrders, i)
+				var failedOrderId any = this.SafeString(failedOrder, "orderId")
+				var failedReason any = this.SafeString(failedOrder, "reason")
+				if ccxt.IsTrue(ccxt.IsGreaterThan(i, 0)) {
+					failedDetails = ccxt.Add(failedDetails, ", ")
+				}
+				failedDetails = ccxt.Add(ccxt.Add(ccxt.Add(failedDetails, failedOrderId), ": "), failedReason)
+			}
+			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(this.Id, " cancelOrders() failed for "), failedDetails)))
 		}
 		var orders any = []any{}
 		var canceledOrdersLength any = ccxt.GetArrayLength(canceledOrders)
