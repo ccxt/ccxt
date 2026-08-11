@@ -91,6 +91,18 @@
                 "output": null
             }
         ],
+        "setLeverage": [
+            {
+                "description": "set leverage for market",
+                "method": "setLeverage",
+                "url": "https://api.btse.com/futures/api/v2.3/leverage",
+                "input": [
+                    10,
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"ETH-PERP\",\"leverage\":10}"
+            }
+        ],
         "setPositionMode": [
             {
                 "description": "set position mode for market",

@@ -22,7 +22,7 @@ export default class btse extends Exchange {
             'rateLimit': 1000 / 75, // 75 requests per second
             'version': 'v3', // spot v3.3 and v3.2, swap v.2.3
             'certified': false,
-            'pro': true,
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -176,7 +176,7 @@ export default class btse extends Exchange {
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': true,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
                 'setPositionMode': true,
