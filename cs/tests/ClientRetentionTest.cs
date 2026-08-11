@@ -85,7 +85,7 @@ public partial class BaseTest
         }
         Assert(ReferenceEquals(thrown, broadcastError), "broadcast reject must fail live waiters");
         Assert(client.pendingResults.Count == 0, "broadcast reject must wipe retained values");
-        client.future("e");
+        _ = client.future("e"); // intentionally not awaited, the entry must wait for fresh data
         Assert(client.futures.ContainsKey("e"), "post-broadcast consumer must wait for fresh data");
 
         // concurrency hammer: a resolver thread races consumers calling
