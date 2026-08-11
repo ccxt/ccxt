@@ -33,6 +33,7 @@ var FunctionsMap = map[string]any{
 	"inArray":                         TestInArray,
 	"indexBy":                         TestIndexBy,
 	"io":                              TestIo,
+	"isDictionary":                    TestIsDictionary,
 	"isEmpty":                         TestIsEmpty,
 	"isJsonEncodedObject":             TestIsJsonEncodedObject,
 	"json":                            TestJson,

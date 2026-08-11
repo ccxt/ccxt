@@ -510,7 +510,6 @@ func (this *BaseExchange) SafeListN(dictionaryOrList any, keys any, optionalArgs
 	}
 	return defaultValue
 }
-
 func (this *BaseExchange) SafeList2(dictionaryOrList any, key1 any, key2 any, optionalArgs ...any) any {
 	/**
 	 * @ignore
