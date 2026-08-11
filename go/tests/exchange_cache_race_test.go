@@ -1,8 +1,10 @@
-package ccxt
+package main
 
 import (
 	"sync"
 	"testing"
+
+	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
 // ---------------------------------------------------------------------------
@@ -15,7 +17,7 @@ import (
 // ---------------------------------------------------------------------------
 
 func TestArrayCacheBySymbolByIdConcurrentReadWrite(t *testing.T) {
-	cache := NewArrayCacheBySymbolById()
+	cache := ccxt.NewArrayCacheBySymbolById()
 
 	makeOrder := func(status string, filled float64) map[string]any {
 		return map[string]any{
@@ -69,7 +71,7 @@ func TestArrayCacheBySymbolByIdConcurrentReadWrite(t *testing.T) {
 }
 
 func TestArrayCacheBySymbolBySideConcurrentReadWrite(t *testing.T) {
-	cache := NewArrayCacheBySymbolBySide()
+	cache := ccxt.NewArrayCacheBySymbolBySide()
 
 	makePosition := func(contracts float64) map[string]any {
 		return map[string]any{
