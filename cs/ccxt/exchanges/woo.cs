@@ -608,8 +608,8 @@ public partial class woo : Exchange
                     { "ZRX", "ZRX" },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "TRX", "TRON" },
-                    { "TRC20", "TRON" },
+                    { "TRX", "TRX" },
+                    { "TRC20", "TRX" },
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
                     { "ARBITRUM", "Arbitrum" },
@@ -2455,7 +2455,7 @@ public partial class woo : Exchange
         object orderType = this.safeStringLower(order, "type");
         object status = this.safeValue2(order, "status", "algoStatus");
         object side = this.safeStringLower(order, "side");
-        object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
+        object filled = this.safeString2(order, "executed", "totalExecutedQuantity");
         object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
         // const remaining = Precise.stringSub (cost, filled);
         object fee = this.safeNumber(order, "totalFee");
@@ -2473,6 +2473,11 @@ public partial class woo : Exchange
                 lastUpdateTimestamp = this.safeInteger(order, "updatedTime"); // regular orders
             }
         }
+        object postOnly = null;
+        if (isTrue(!isEqual(orderType, null)))
+        {
+            postOnly = (isEqual(orderType, "post_only"));
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },
@@ -2484,7 +2489,7 @@ public partial class woo : Exchange
             { "symbol", symbol },
             { "type", orderType },
             { "timeInForce", this.parseTimeInForce(orderType) },
-            { "postOnly", null },
+            { "postOnly", postOnly },
             { "reduceOnly", this.safeBool(order, "reduceOnly") },
             { "side", side },
             { "price", price },
@@ -2997,7 +3002,9 @@ public partial class woo : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseDepositAddress(data, currency);
+        return this.parseDepositAddress(this.extend(data, new Dictionary<string, object>() {
+            { "network", this.safeString(request, "network") },
+        }), currency);
     }
 
     public virtual object getDedicatedNetworkId(object currency, object parameters)
@@ -3021,10 +3028,11 @@ public partial class woo : Exchange
     {
         object address = this.safeString(depositEntry, "address");
         this.checkAddress(address);
+        object networkId = this.safeString(depositEntry, "network");
         return new Dictionary<string, object>() {
             { "info", depositEntry },
             { "currency", this.safeString(currency, "code") },
-            { "network", null },
+            { "network", this.networkIdToCode(networkId, this.safeString(currency, "code")) },
             { "address", address },
             { "tag", this.safeString(depositEntry, "extra") },
         };
@@ -4426,7 +4434,7 @@ public partial class woo : Exchange
      * @name woo#fetchPositions
      * @description fetch all open positions
      * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
-     * @param {string[]} [symbols] list of unified market symbols
+     * @param {string[]} [symbols] list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -4437,7 +4445,18 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.v3PrivateGetFuturesPositions(parameters);
+        symbols = this.marketSymbols(symbols);
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                object market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        object response = await this.v3PrivateGetFuturesPositions(this.extend(request, parameters));
         //
         //     {
         //         "success": true,
@@ -4911,7 +4930,7 @@ public partial class woo : Exchange
      * @name woo#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
-     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {string[]} [symbols] a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
@@ -4923,7 +4942,17 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, true, true);
-        object response = await this.v3PrivateGetFuturesPositions(parameters);
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                object market = this.market(getValue(symbols, 0));
+                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            }
+        }
+        object response = await this.v3PrivateGetFuturesPositions(this.extend(request, parameters));
         //
         //     {
         //         "success": true,

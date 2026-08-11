@@ -97,6 +97,7 @@ public class XtCore extends XtApi
                 put( "fetchOrderTrades", false );
                 put( "fetchPosition", true );
                 put( "fetchPositions", true );
+                put( "fetchPositionsHistory", true );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchSettlementHistory", false );
                 put( "fetchStatus", false );
@@ -414,6 +415,9 @@ public class XtCore extends XtApi
                             put( "future/trade/v1/order/list-history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/trade/v1/position/list-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/trade/v1/order/trade-list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -535,6 +539,9 @@ public class XtCore extends XtApi
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/order/list-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/position/list-history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/order/trade-list", new java.util.HashMap<String, Object>() {{
@@ -6117,6 +6124,105 @@ final Object finalMarket = market;
 
     }
 
+    /**
+     * @method
+     * @name xt#fetchPositionsHistory
+     * @description fetches historical closed positions
+     * @see https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+     * @param {string[]} [symbols] unified market symbols, all closed positions are returned if not assigned
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum amount of records to fetch, default=10
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchPositionsHistory(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            symbols = this.marketSymbols(symbols);
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            {
+                Object symbolsLength = Helpers.getArrayLength(symbols);
+                if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
+                {
+                    market = this.market(Helpers.GetValue(symbols, 0));
+                    Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                }
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "startTime", since);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Helpers.addElementToObject(request, "limit", limit);
+            }
+            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+            Object subType = null;
+            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters);
+            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
+            {
+                response = (this.privateInverseGetFutureTradeV1PositionListHistory(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privateLinearGetFutureTradeV1PositionListHistory(this.extend(request, parameters))).join();
+            }
+            //
+            //     {
+            //         "returnCode": 0,
+            //         "msgInfo": "success",
+            //         "error": null,
+            //         "result": {
+            //             "hasPrev": false,
+            //             "hasNext": false,
+            //             "items": [
+            //                 {
+            //                     "id": "654559911738263296",
+            //                     "positionSide": "LONG",
+            //                     "contractType": "PERPETUAL",
+            //                     "symbol": "xrp_usdt",
+            //                     "positionType": 2,
+            //                     "closeProfit": "0.001",
+            //                     "closePositionSize": "1",
+            //                     "closeOpenPrice": "1.0651",
+            //                     "closePrice": "1.0652",
+            //                     "maxPositionSize": "1",
+            //                     "openTime": 1785761266645,
+            //                     "closeTime": 1785761266645,
+            //                     "startLeverage": 10,
+            //                     "endLeverage": 10,
+            //                     "working": false,
+            //                     "force": false,
+            //                     "forceMarkPrice": null,
+            //                     "totalFee": "0.0063",
+            //                     "totalFundFee": "0"
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            Object items = this.safeList(result, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object positions = this.parsePositions(items, symbols);
+            return this.filterBySinceLimit(positions, since, limit);
+        });
+
+    }
+
     public Object parsePosition(Object position, Object... optionalArgs)
     {
         //
@@ -6149,35 +6255,65 @@ final Object finalMarket = market;
         //         "calMarkPrice": "27050"
         //     }
         //
+        // position/list-history
+        //
+        //     {
+        //         "id": "654559911738263296",
+        //         "positionSide": "LONG",
+        //         "contractType": "PERPETUAL",
+        //         "symbol": "xrp_usdt",
+        //         "positionType": 2,
+        //         "closeProfit": "0.001",
+        //         "closePositionSize": "1",
+        //         "closeOpenPrice": "1.0651",
+        //         "closePrice": "1.0652",
+        //         "maxPositionSize": "1",
+        //         "openTime": 1785761266645,
+        //         "closeTime": 1785761266645,
+        //         "startLeverage": 10,
+        //         "endLeverage": 10,
+        //         "working": false,
+        //         "force": false,
+        //         "forceMarkPrice": null,
+        //         "totalFee": "0.0063",
+        //         "totalFundFee": "0"
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         Object symbol = this.safeSymbol(marketId, market, null, "contract");
+        // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         Object positionType = this.safeString(position, "positionType");
-        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(positionType, "CROSSED"))))) ? "cross" : "isolated";
+        Object isCross = Helpers.isTrue((Helpers.isEqual(positionType, "CROSSED"))) || Helpers.isTrue((Helpers.isEqual(positionType, "1")));
+        Object marginMode = ((Helpers.isTrue((isCross)))) ? "cross" : "isolated";
         Object collateral = this.safeNumber(position, "isolatedMargin");
-        Object liquidationPriceString = this.omitZero(this.safeString(position, "breakPrice"));
+        // history entries carry the liquidation price in forceMarkPrice when force is true
+        Object liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));
+        Object timestamp = this.safeInteger(position, "closeTime");
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
-            put( "id", null );
+            put( "id", XtCore.this.safeString(position, "id") );
             put( "symbol", symbol );
-            put( "timestamp", null );
-            put( "datetime", null );
+            put( "timestamp", timestamp );
+            put( "datetime", XtCore.this.iso8601(timestamp) );
             put( "hedged", null );
             put( "side", XtCore.this.safeStringLower(position, "positionSide") );
-            put( "contracts", XtCore.this.safeNumber(position, "positionSize") );
+            put( "contracts", XtCore.this.safeNumber2(position, "positionSize", "closePositionSize") );
             put( "contractSize", Helpers.GetValue(finalMarket, "contractSize") );
-            put( "entryPrice", XtCore.this.safeNumber(position, "entryPrice") );
+            put( "entryPrice", XtCore.this.safeNumber2(position, "entryPrice", "closeOpenPrice") );
             put( "markPrice", XtCore.this.safeNumber2(position, "markPrice", "calMarkPrice") );
+            put( "lastPrice", XtCore.this.safeNumber(position, "closePrice") );
             put( "notional", null );
-            put( "leverage", XtCore.this.safeInteger(position, "leverage") );
+            put( "leverage", XtCore.this.safeInteger2(position, "leverage", "endLeverage") );
             put( "collateral", collateral );
             put( "initialMargin", collateral );
             put( "maintenanceMargin", null );
             put( "initialMarginPercentage", null );
             put( "maintenanceMarginPercentage", null );
             put( "unrealizedPnl", null );
+            put( "realizedPnl", XtCore.this.safeNumber2(position, "realizedProfit", "closeProfit") );
             put( "liquidationPrice", XtCore.this.parseNumber(liquidationPriceString) );
             put( "marginMode", marginMode );
             put( "percentage", null );

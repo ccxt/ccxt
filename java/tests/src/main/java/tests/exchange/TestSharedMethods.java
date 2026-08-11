@@ -722,6 +722,25 @@ public class TestSharedMethods extends BaseTest {
             return result;
         }
     }
+    public static void AssertDictionaryResponse(BaseExchange exchange, Object method, Object response, Object... optionalArgs)
+    {
+        // php cannot distinguish an empty dict from an empty list, both are a plain array
+        // there, so an empty array response is shape indeterminate and accepted, observed
+        // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+        Object hint = Helpers.getArg(optionalArgs, 0, null);
+        Object isEmptyArrayResponse = false;
+        if (Helpers.isTrue(Helpers.isArray(response)))
+        {
+            Object responseLength = Helpers.getArrayLength(response);
+            isEmptyArrayResponse = (Helpers.isEqual(responseLength, 0));
+        }
+        Object hintText = "";
+        if (Helpers.isTrue(!Helpers.isEqual(hint, null)))
+        {
+            hintText = Helpers.add(" ", hint);
+        }
+        Assert(Helpers.isTrue(exchange.isDictionary(response)) || Helpers.isTrue(isEmptyArrayResponse), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), hintText), " must return a dict. "), exchange.json(response)));
+    }
     public static void AssertNonEmtpyArray(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object... optionalArgs)
     {
         Object hint = Helpers.getArg(optionalArgs, 0, null);

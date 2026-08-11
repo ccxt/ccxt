@@ -775,6 +775,7 @@ class lighter extends lighter$1["default"] {
         }
         if (postOnly) {
             timeInForceNum = 2;
+            orderExpiry = -1;
         }
         else {
             if (!isMarketOrder) {

@@ -2254,11 +2254,21 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
             Object failedOrders = this.safeList(response, "failed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object failedOrdersLength = Helpers.getArrayLength(failedOrders);
-            for (var i = 0; Helpers.isLessThan(i, failedOrdersLength); i++)
+            if (Helpers.isTrue(Helpers.isGreaterThan(failedOrdersLength, 0)))
             {
-                Object failedOrder = Helpers.GetValue(failedOrders, i);
-                Object error = this.safeString(failedOrder, "reason");
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrders() failed for "), this.safeString(failedOrder, "orderId")), ": "), error)) ;
+                Object failedDetails = "";
+                for (var i = 0; Helpers.isLessThan(i, failedOrdersLength); i++)
+                {
+                    Object failedOrder = Helpers.GetValue(failedOrders, i);
+                    Object failedOrderId = this.safeString(failedOrder, "orderId");
+                    Object failedReason = this.safeString(failedOrder, "reason");
+                    if (Helpers.isTrue(Helpers.isGreaterThan(i, 0)))
+                    {
+                        failedDetails = Helpers.add(failedDetails, ", ");
+                    }
+                    failedDetails = Helpers.add(Helpers.add(Helpers.add(failedDetails, failedOrderId), ": "), failedReason);
+                }
+                throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " cancelOrders() failed for "), failedDetails)) ;
             }
             Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object canceledOrdersLength = Helpers.getArrayLength(canceledOrders);

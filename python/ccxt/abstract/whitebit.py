@@ -87,7 +87,7 @@ class ImplicitAPI:
     v4_private_post_order_bulk = v4PrivatePostOrderBulk = Entry[_List]('order/bulk', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_order_modify = v4PrivatePostOrderModify = Entry[_Dict]('order/modify', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_order_conditional_cancel = v4PrivatePostOrderConditionalCancel = Entry[_List]('order/conditional-cancel', ['v4', 'private'], 'POST', {'cost': 1})
-    v4_private_post_orders = v4PrivatePostOrders = Entry[_Dict]('orders', ['v4', 'private'], 'POST', {'cost': 1})
+    v4_private_post_orders = v4PrivatePostOrders = Entry[_List]('orders', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_oco_orders = v4PrivatePostOcoOrders = Entry[_List]('oco-orders', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_order_collateral_oco = v4PrivatePostOrderCollateralOco = Entry[_Dict]('order/collateral/oco', ['v4', 'private'], 'POST', {'cost': 1})
     v4_private_post_order_oco_cancel = v4PrivatePostOrderOcoCancel = Entry[_Dict]('order/oco-cancel', ['v4', 'private'], 'POST', {'cost': 1})

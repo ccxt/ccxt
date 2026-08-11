@@ -357,8 +357,8 @@ class woo extends Exchange {
                     'ZRX' => 'ZRX',
                 ),
                 'networks' => array(
-                    'TRX' => 'TRON',
-                    'TRC20' => 'TRON',
+                    'TRX' => 'TRX', // WOO X renamed the network id from TRON to TRX
+                    'TRC20' => 'TRX',
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
                     'ARBITRUM' => 'Arbitrum',
@@ -2300,7 +2300,7 @@ class woo extends Exchange {
         $orderType = $this->safe_string_lower($order, 'type');
         $status = $this->safe_value_2($order, 'status', 'algoStatus');
         $side = $this->safe_string_lower($order, 'side');
-        $filled = $this->omit_zero($this->safe_value_2($order, 'executed', 'totalExecutedQuantity'));
+        $filled = $this->safe_string_2($order, 'executed', 'totalExecutedQuantity');
         $average = $this->omit_zero($this->safe_string($order, 'averageExecutedPrice'));
         // $remaining = Precise::string_sub($cost, $filled);
         $fee = $this->safe_number($order, 'totalFee');
@@ -2315,6 +2315,10 @@ class woo extends Exchange {
                 $lastUpdateTimestamp = $this->safe_integer($order, 'updatedTime'); // regular orders
             }
         }
+        $postOnly = null;
+        if ($orderType !== null) {
+            $postOnly = ($orderType === 'post_only');
+        }
         return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
@@ -2326,7 +2330,7 @@ class woo extends Exchange {
             'symbol' => $symbol,
             'type' => $orderType,
             'timeInForce' => $this->parse_time_in_force($orderType),
-            'postOnly' => null, // TO_DO
+            'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
@@ -2336,7 +2340,7 @@ class woo extends Exchange {
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => null, // TO_DO
+            'remaining' => null, // computed by safeOrder from $amount minus $filled
             'cost' => $cost,
             'trades' => null,
             'fee' => array(
@@ -2830,7 +2834,7 @@ class woo extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_deposit_address($data, $currency);
+        return $this->parse_deposit_address($this->extend($data, array( 'network' => $this->safe_string($request, 'network') )), $currency);
     }
 
     public function get_dedicated_network_id(mixed $currency, array $params): mixed {
@@ -2849,10 +2853,11 @@ class woo extends Exchange {
     public function parse_deposit_address(mixed $depositEntry, ?array $currency = null): array {
         $address = $this->safe_string($depositEntry, 'address');
         $this->check_address($address);
+        $networkId = $this->safe_string($depositEntry, 'network');
         return array(
             'info' => $depositEntry,
             'currency' => $this->safe_string($currency, 'code'),
-            'network' => null,
+            'network' => $this->network_id_to_code($networkId, $this->safe_string($currency, 'code')),
             'address' => $address,
             'tag' => $this->safe_string($depositEntry, 'extra'),
         );
@@ -4261,14 +4266,23 @@ class woo extends Exchange {
          *
          * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
          *
-         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {string[]} [$symbols] list of unified $market $symbols, the exchange filters server-side when exactly one symbol is provided
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $response = Async\await($this->v3PrivateGetFuturesPositions($params));
+        $symbols = $this->market_symbols($symbols);
+        $request = array();
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        $response = Async\await($this->v3PrivateGetFuturesPositions($this->extend($request, $params)));
         //
         //     {
         //         "success" => true,
@@ -4737,7 +4751,7 @@ class woo extends Exchange {
          *
          * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
          *
-         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {string[]} [$symbols] a list of unified $market $symbols, the exchange filters server-side when exactly one symbol is provided
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
          */
@@ -4745,7 +4759,15 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
-        $response = Async\await($this->v3PrivateGetFuturesPositions($params));
+        $request = array();
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        $response = Async\await($this->v3PrivateGetFuturesPositions($this->extend($request, $params)));
         //
         //     {
         //         "success" => true,

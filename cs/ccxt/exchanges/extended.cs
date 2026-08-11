@@ -3455,7 +3455,13 @@ public partial class extended : Exchange
         object request = new Dictionary<string, object>() {
             { "countdownTime", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
         };
-        return await this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters));
+        object response = await this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return new Dictionary<string, object>() {
+            { "info", response },
+        };
     }
 
     /**

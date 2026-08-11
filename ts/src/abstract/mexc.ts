@@ -19,9 +19,9 @@ interface Exchange {
     spotPublicGetTrades (params?: {}): Promise<List>;
     spotPublicGetHistoricalTrades (params?: {}): Promise<List>;
     spotPublicGetAggTrades (params?: {}): Promise<List>;
-    spotPublicGetKlines (params?: {}): Promise<Dict>;
+    spotPublicGetKlines (params?: {}): Promise<List>;
     spotPublicGetAvgPrice (params?: {}): Promise<Dict>;
-    spotPublicGetTicker24hr (params?: {}): Promise<List>;
+    spotPublicGetTicker24hr (params?: {}): Promise<Dict | List>;
     spotPublicGetTickerPrice (params?: {}): Promise<Dict>;
     spotPublicGetTickerBookTicker (params?: {}): Promise<List>;
     spotPublicGetEtfInfo (params?: {}): Promise<Dict>;
@@ -29,7 +29,7 @@ interface Exchange {
     spotPrivateGetUid (params?: {}): Promise<Dict>;
     spotPrivateGetOrder (params?: {}): Promise<Dict>;
     spotPrivateGetOpenOrders (params?: {}): Promise<List>;
-    spotPrivateGetAllOrders (params?: {}): Promise<Dict>;
+    spotPrivateGetAllOrders (params?: {}): Promise<List>;
     spotPrivateGetAccount (params?: {}): Promise<Dict>;
     spotPrivateGetMyTrades (params?: {}): Promise<List>;
     spotPrivateGetStrategyGroup (params?: {}): Promise<Dict>;

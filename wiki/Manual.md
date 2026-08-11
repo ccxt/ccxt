@@ -605,6 +605,8 @@ exchange.setSandboxMode(true); // enable sandbox mode
 
 Every exchange has a set of properties and methods, most of which you can override by passing an associative array of params to an exchange constructor. You can also make a subclass and override everything.
 
+**A note on PHP arrays:** PHP has a single array type, so an empty container is both an empty dictionary and an empty list at once — the distinction is undecidable there. CCXT's base helpers therefore treat an empty PHP array as a valid dictionary (`is_dictionary(array()) === true`, and `safe_dict` will return an empty array rather than the default), while in every other supported language empty dictionaries and empty lists are distinct types and an empty list is not a dictionary. Code that must distinguish an empty dict from an empty list should not rely on the container alone in PHP, see https://github.com/ccxt/ccxt/pull/29704 for details.
+
 Here's an overview of generic exchange properties with values added for example:
 
 ```javascript
@@ -1101,6 +1103,7 @@ Each network is an associative array (aka dictionary) with the following keys:
     'future':   false,        // whether the market is a expiring future
     'swap':     false,        // whether the market is a perpetual swap
     'option':   false,        // whether the market is an option contract
+    'stock':    false,        // whether the market is for a stock
     'contract': false,        // whether the market is a future, a perpetual swap, or an option
     'settle':   'USDT',       // the unified currency code that the contract will settle in, only set if `contract` is true
     'settleId': 'usdt',       // the currencyId of that the contract will settle in, only set if `contract` is true
@@ -1157,6 +1160,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
 - `optionType`. The type of the option, `call` option represents an option with the right to buy and `put` an option with the right to sell.
 - `strike`. Price at which an option can be bought or sold when it is exercised.
+- `stock`. A boolean indicating whether the market represents a stock instrument.
 
 ## Active Status
 

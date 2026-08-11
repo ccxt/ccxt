@@ -8398,8 +8398,14 @@ class htx extends htx$1["default"] {
         const entryPrice = this.safeNumber2(position, 'cost_open', 'open_avg_price');
         const initialMargin = this.safeString2(position, 'position_margin', 'initial_margin');
         const rawSide = this.safeString(position, 'direction');
-        const rawPositionSide = (rawSide === 'buy') ? 'long' : 'short';
-        const side = this.safeString(position, 'position_side', rawPositionSide);
+        const directionSide = (rawSide === 'buy') ? 'long' : 'short';
+        const rawPositionSide = this.safeString(position, 'position_side');
+        // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
+        let side = directionSide;
+        const isHedgedPositionSide = (rawPositionSide === 'long') || (rawPositionSide === 'short');
+        if (isHedgedPositionSide) {
+            side = rawPositionSide;
+        }
         const unrealizedProfit = this.safeNumber(position, 'profit_unreal');
         let marginMode = this.safeString(position, 'margin_mode');
         const leverage = this.safeString(position, 'lever_rate');

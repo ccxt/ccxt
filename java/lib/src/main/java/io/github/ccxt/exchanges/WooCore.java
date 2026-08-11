@@ -620,8 +620,8 @@ public class WooCore extends WooApi
                     put( "ZRX", "ZRX" );
                 }} );
                 put( "networks", new java.util.HashMap<String, Object>() {{
-                    put( "TRX", "TRON" );
-                    put( "TRC20", "TRON" );
+                    put( "TRX", "TRX" );
+                    put( "TRC20", "TRX" );
                     put( "ERC20", "ETH" );
                     put( "BEP20", "BSC" );
                     put( "ARBITRUM", "Arbitrum" );
@@ -2611,7 +2611,7 @@ public class WooCore extends WooApi
         Object orderType = this.safeStringLower(order, "type");
         Object status = this.safeValue2(order, "status", "algoStatus");
         Object side = this.safeStringLower(order, "side");
-        Object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
+        Object filled = this.safeString2(order, "executed", "totalExecutedQuantity");
         Object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
         // const remaining = Precise.stringSub (cost, filled);
         Object fee = this.safeNumber(order, "totalFee");
@@ -2629,8 +2629,15 @@ public class WooCore extends WooApi
                 lastUpdateTimestamp = this.safeInteger(order, "updatedTime"); // regular orders
             }
         }
+        Object postOnly = null;
+        if (Helpers.isTrue(!Helpers.isEqual(orderType, null)))
+        {
+            postOnly = (Helpers.isEqual(orderType, "post_only"));
+        }
         final Object finalTimestamp = timestamp;
         final Object finalLastUpdateTimestamp = lastUpdateTimestamp;
+        final Object finalOrderType = orderType;
+        final Object finalPostOnly = postOnly;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
@@ -2640,9 +2647,9 @@ public class WooCore extends WooApi
             put( "lastUpdateTimestamp", finalLastUpdateTimestamp );
             put( "status", WooCore.this.parseOrderStatus(status) );
             put( "symbol", symbol );
-            put( "type", orderType );
-            put( "timeInForce", WooCore.this.parseTimeInForce(orderType) );
-            put( "postOnly", null );
+            put( "type", finalOrderType );
+            put( "timeInForce", WooCore.this.parseTimeInForce(finalOrderType) );
+            put( "postOnly", finalPostOnly );
             put( "reduceOnly", WooCore.this.safeBool(order, "reduceOnly") );
             put( "side", side );
             put( "price", price );
@@ -3199,7 +3206,9 @@ public class WooCore extends WooApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            return this.parseDepositAddress(data, currency);
+            return this.parseDepositAddress(this.extend(data, new java.util.HashMap<String, Object>() {{
+                put( "network", WooCore.this.safeString(request, "network") );
+            }}), currency);
         });
 
     }
@@ -3226,10 +3235,11 @@ public class WooCore extends WooApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object address = this.safeString(depositEntry, "address");
         this.checkAddress(address);
+        Object networkId = this.safeString(depositEntry, "network");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositEntry );
             put( "currency", WooCore.this.safeString(currency, "code") );
-            put( "network", null );
+            put( "network", WooCore.this.networkIdToCode(networkId, WooCore.this.safeString(currency, "code")) );
             put( "address", address );
             put( "tag", WooCore.this.safeString(depositEntry, "extra") );
         }};
@@ -4791,7 +4801,7 @@ public class WooCore extends WooApi
      * @name woo#fetchPositions
      * @description fetch all open positions
      * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
-     * @param {string[]} [symbols] list of unified market symbols
+     * @param {string[]} [symbols] list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -4806,7 +4816,18 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v3PrivateGetFuturesPositions(parameters)).join();
+            symbols = this.marketSymbols(symbols);
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            {
+                Object symbolsLength = Helpers.getArrayLength(symbols);
+                if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
+                {
+                    Object market = this.market(Helpers.GetValue(symbols, 0));
+                    Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                }
+            }
+            Object response = (this.v3PrivateGetFuturesPositions(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -5322,7 +5343,7 @@ public class WooCore extends WooApi
      * @name woo#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
-     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {string[]} [symbols] a list of unified market symbols, the exchange filters server-side when exactly one symbol is provided
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
@@ -5338,7 +5359,17 @@ public class WooCore extends WooApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object response = (this.v3PrivateGetFuturesPositions(parameters)).join();
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            {
+                Object symbolsLength = Helpers.getArrayLength(symbols);
+                if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
+                {
+                    Object market = this.market(Helpers.GetValue(symbols, 0));
+                    Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                }
+            }
+            Object response = (this.v3PrivateGetFuturesPositions(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,

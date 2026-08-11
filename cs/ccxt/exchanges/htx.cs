@@ -9657,8 +9657,15 @@ public partial class htx : Exchange
         object entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price");
         object initialMargin = this.safeString2(position, "position_margin", "initial_margin");
         object rawSide = this.safeString(position, "direction");
-        object rawPositionSide = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "long" : "short";
-        object side = this.safeString(position, "position_side", rawPositionSide);
+        object directionSide = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "long" : "short";
+        object rawPositionSide = this.safeString(position, "position_side");
+        // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
+        object side = directionSide;
+        object isHedgedPositionSide = isTrue((isEqual(rawPositionSide, "long"))) || isTrue((isEqual(rawPositionSide, "short")));
+        if (isTrue(isHedgedPositionSide))
+        {
+            side = rawPositionSide;
+        }
         object unrealizedProfit = this.safeNumber(position, "profit_unreal");
         object marginMode = this.safeString(position, "margin_mode");
         object leverage = this.safeString(position, "lever_rate");
