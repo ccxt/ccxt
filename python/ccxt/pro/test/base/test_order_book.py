@@ -380,3 +380,37 @@ def test_ws_order_book():
             row = side[k]
             assert len(row) >= 2
             assert row[0] is not None
+    # --------------------------------------------------------------------------------------------------------------------
+    # indexed sides must clean their hashmap when limit trims rows away: a
+    # delta arriving later for a trimmed id previously threw in js and looped
+    # in php while python handled it, an update of a trimmed id must reinsert
+    # cleanly and a delete of a trimmed id must be a no op
+    trim_indexed_input = {
+        'bids': [[10, 1, 'x'], [9, 1, 'y'], [8, 1, 'z'], [7, 1, 'w'], [6, 1, 'v']],
+        'asks': [[11, 1, 'a'], [12, 1, 'b'], [13, 1, 'c'], [14, 1, 'd'], [15, 1, 'e']],
+        'timestamp': 1574827239000,
+        'nonce': 70,
+        'symbol': None,
+    }
+    trim_indexed_target = {
+        'bids': [[10, 1, 'x'], [9, 1, 'y'], [8, 1, 'z']],
+        'asks': [[11, 1, 'a'], [12, 1, 'b'], [13, 1, 'c']],
+        'timestamp': 1574827239000,
+        'datetime': '2019-11-27T04:00:39.000Z',
+        'nonce': 70,
+        'symbol': None,
+    }
+    trim_indexed_book = IndexedOrderBook(trim_indexed_input, 3)
+    trim_indexed_book.limit()
+    trim_asks = trim_indexed_book['asks']
+    trim_bids = trim_indexed_book['bids']
+    # update of a trimmed id reinserts cleanly
+    trim_asks.store_array([15, 2, 'e'])
+    trim_bids.store_array([7, 2, 'w'])
+    # delete of a trimmed id is a no op, on both sides via ids that were
+    # trimmed and never reinserted (d on asks, v on bids); the final limit
+    # below also re-trims the reinserted w, exercising the cleanup twice
+    trim_asks.store_array([14, 0, 'd'])
+    trim_bids.store_array([6, 0, 'v'])
+    trim_indexed_book.limit()
+    assert equals(trim_indexed_book, trim_indexed_target)
