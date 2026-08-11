@@ -1275,11 +1275,13 @@ public partial class binance : ccxt.binance
         //     }
         //
         object marketId = this.safeString(message, "s");
-        object marketsByIdList = this.safeValue(this.markets_by_id, marketId);
-        object marketById = this.safeValue(marketsByIdList, 0);
+        // the client url is the authoritative source for the market type — an
+        // ambiguous id like BTCUSDT maps to both the spot and the linear swap
+        // market, and picking the first match drops the message under the wrong
+        // symbol and stalls the orderbook future (delivery/option ids are
+        // unique, so the swap hint resolves those correctly too)
         object isSpot = this.isSpotUrl(client);
-        object fallbackType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
-        object marketType = ((bool) isTrue((!isEqual(marketById, null)))) ? getValue(marketById, "type") : fallbackType;
+        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook::", symbol);
@@ -1823,11 +1825,9 @@ public partial class binance : ccxt.binance
             }
         }
         object marketId = this.safeString(trade, "s");
-        object marketsByIdList = this.safeValue(this.markets_by_id, marketId);
-        object marketById = this.safeValue(marketsByIdList, 0);
         object fallbackType = ((bool) isTrue((inOp(trade, "ps")))) ? "contract" : "spot";
-        object marketType = ((bool) isTrue((!isEqual(marketById, null)))) ? getValue(marketById, "type") : fallbackType;
-        object symbol = this.safeSymbol(marketId, null, null, marketType);
+        object marketType = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "type") : fallbackType;
+        object symbol = this.safeSymbol(marketId, market, null, marketType);
         object side = this.safeStringLower(trade, "S");
         object takerOrMaker = null;
         object orderId = this.safeString(trade, "i");
@@ -1873,11 +1873,10 @@ public partial class binance : ccxt.binance
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         object marketId = this.safeString(message, "s");
-        object marketsByIdList = this.safeValue(this.markets_by_id, marketId);
-        object marketById = this.safeValue(marketsByIdList, 0);
+        // resolve the market from the transport url — an ambiguous id like
+        // BTCUSDT maps to both the spot and the linear swap market
         object isSpot = this.isSpotUrl(client);
-        object fallbackType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
-        object marketType = ((bool) isTrue((!isEqual(marketById, null)))) ? getValue(marketById, "type") : fallbackType;
+        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("trade::", symbol);
@@ -2231,11 +2230,10 @@ public partial class binance : ccxt.binance
         // use a reverse lookup in a static map instead
         object unifiedTimeframe = this.findTimeframe(interval);
         object parsed = new List<object> {this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, "v")};
-        object marketsByIdList = this.safeValue(this.markets_by_id, marketId);
-        object marketById = this.safeValue(marketsByIdList, 0);
+        // resolve the market from the transport url — an ambiguous id like
+        // BTCUSDT maps to both the spot and the linear swap market
         object isSpot = this.isSpotUrl(client);
-        object fallbackType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
-        object marketType = ((bool) isTrue((!isEqual(marketById, null)))) ? getValue(marketById, "type") : fallbackType;
+        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object symbol = this.safeSymbol(marketId, null, null, marketType);
         object messageHash = add(add(add("ohlcv::", symbol), "::"), unifiedTimeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -5159,10 +5157,8 @@ public partial class binance : ccxt.binance
         }
         object executionType = this.safeString(order, "x");
         object marketId = this.safeString(order, "s");
-        object marketsByIdList = this.safeValue(this.markets_by_id, marketId);
-        object marketById = this.safeValue(marketsByIdList, 0);
-        object fallbackType = ((bool) isTrue((inOp(order, "ps")))) ? "contract" : "spot";
-        object marketType = ((bool) isTrue((!isEqual(marketById, null)))) ? getValue(marketById, "type") : fallbackType;
+        // futures user-data events carry the position side field, spot ones do not
+        object marketType = ((bool) isTrue((inOp(order, "ps")))) ? "contract" : "spot";
         object symbol = this.safeSymbol(marketId, null, null, marketType);
         object timestamp = this.safeInteger(order, "O");
         object T = this.safeInteger(order, "T");
