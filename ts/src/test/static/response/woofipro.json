@@ -302,6 +302,168 @@
                 }
             }
         ],
+        "fetchOpenInterest": [
+            {
+                "description": "swap open interest",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786022130191,
+                    "data": {
+                        "symbol": "PERP_BTC_USDC",
+                        "index_price": 64185.4,
+                        "mark_price": 64171.0,
+                        "sum_unitary_funding": 26522.3,
+                        "est_funding_rate": 0.0001,
+                        "last_funding_rate": 0.00010041,
+                        "next_funding_time": 1786032000000,
+                        "open_interest": 110.64612,
+                        "is_pretge": false,
+                        "24h_open": 64105.6,
+                        "24h_close": 64180.0,
+                        "24h_high": 64941.0,
+                        "24h_low": 63837.6,
+                        "24h_volume": 102.2817,
+                        "24h_amount": 6595662.199482
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "openInterestAmount": 110.64612,
+                    "openInterestValue": null,
+                    "timestamp": 1786022130191,
+                    "datetime": "2026-08-06T13:15:30.191Z",
+                    "info": {
+                        "symbol": "PERP_BTC_USDC",
+                        "index_price": 64185.4,
+                        "mark_price": 64171.0,
+                        "sum_unitary_funding": 26522.3,
+                        "est_funding_rate": 0.0001,
+                        "last_funding_rate": 0.00010041,
+                        "next_funding_time": 1786032000000,
+                        "open_interest": 110.64612,
+                        "is_pretge": false,
+                        "24h_open": 64105.6,
+                        "24h_close": 64180.0,
+                        "24h_high": 64941.0,
+                        "24h_low": 63837.6,
+                        "24h_volume": 102.2817,
+                        "24h_amount": 6595662.199482,
+                        "timestamp": 1786022130191
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "all swap open interests, unknown market row skipped",
+                "method": "fetchOpenInterests",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": 1786022130191,
+                    "data": {
+                        "rows": [
+                            {
+                                "symbol": "PERP_BTC_USDC",
+                                "index_price": 64185.4,
+                                "mark_price": 64171.0,
+                                "sum_unitary_funding": 26522.3,
+                                "est_funding_rate": 0.0001,
+                                "last_funding_rate": 0.00010041,
+                                "next_funding_time": 1786032000000,
+                                "open_interest": 110.64612,
+                                "is_pretge": false,
+                                "24h_open": 64105.6,
+                                "24h_close": 64180.0,
+                                "24h_high": 64941.0,
+                                "24h_low": 63837.6,
+                                "24h_volume": 102.2817,
+                                "24h_amount": 6595662.199482
+                            },
+                            {
+                                "symbol": "PERP_LTC_USDC",
+                                "index_price": 45.39,
+                                "mark_price": 45.38,
+                                "sum_unitary_funding": 4.5679,
+                                "est_funding_rate": 3.765e-05,
+                                "last_funding_rate": 8.89e-06,
+                                "next_funding_time": 1786032000000,
+                                "open_interest": 909.21,
+                                "is_pretge": false,
+                                "24h_open": 45.13,
+                                "24h_close": 45.17,
+                                "24h_high": 45.34,
+                                "24h_low": 44.93,
+                                "24h_volume": 551.11,
+                                "24h_amount": 24880.5
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "symbol": "BTC/USDC:USDC",
+                        "openInterestAmount": 110.64612,
+                        "openInterestValue": null,
+                        "timestamp": 1786022130191,
+                        "datetime": "2026-08-06T13:15:30.191Z",
+                        "info": {
+                            "timestamp": 1786022130191,
+                            "symbol": "PERP_BTC_USDC",
+                            "index_price": 64185.4,
+                            "mark_price": 64171.0,
+                            "sum_unitary_funding": 26522.3,
+                            "est_funding_rate": 0.0001,
+                            "last_funding_rate": 0.00010041,
+                            "next_funding_time": 1786032000000,
+                            "open_interest": 110.64612,
+                            "is_pretge": false,
+                            "24h_open": 64105.6,
+                            "24h_close": 64180.0,
+                            "24h_high": 64941.0,
+                            "24h_low": 63837.6,
+                            "24h_volume": 102.2817,
+                            "24h_amount": 6595662.199482
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    },
+                    "LTC/USDC:USDC": {
+                        "symbol": "LTC/USDC:USDC",
+                        "openInterestAmount": 909.21,
+                        "openInterestValue": null,
+                        "timestamp": 1786022130191,
+                        "datetime": "2026-08-06T13:15:30.191Z",
+                        "info": {
+                            "timestamp": 1786022130191,
+                            "symbol": "PERP_LTC_USDC",
+                            "index_price": 45.39,
+                            "mark_price": 45.38,
+                            "sum_unitary_funding": 4.5679,
+                            "est_funding_rate": 3.765e-05,
+                            "last_funding_rate": 8.89e-06,
+                            "next_funding_time": 1786032000000,
+                            "open_interest": 909.21,
+                            "is_pretge": false,
+                            "24h_open": 45.13,
+                            "24h_close": 45.17,
+                            "24h_high": 45.34,
+                            "24h_low": 44.93,
+                            "24h_volume": 551.11,
+                            "24h_amount": 24880.5
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    }
+                }
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch swap balance with frozen amount",
