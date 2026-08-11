@@ -241,7 +241,7 @@ export default class btse extends Exchange {
                         'futures/api/v2.3/risk_limit': 5, // not used
                         'futures/api/v2.3/leverage': 5, // done
                         'futures/api/v2.3/user/fees': { 'cost': 5 } as Endpoint<List>, // done
-                        'futures/api/v2.3/position_mode': 5, // done
+                        'futures/api/v2.3/position_mode': { 'cost': 5 } as Endpoint<List>, // done
                         'futures/api/v2.3/user/margin_setting': 5, // not used
                         'futures/api/v2.3/user/wallet': 5,
                         'futures/api/v2.3/user/wallet_history': 5,
@@ -269,7 +269,7 @@ export default class btse extends Exchange {
                         'futures/api/v2.3/leverage': 5, // done
                         'futures/api/v2.3/settle_in': 5,
                         'futures/api/v2.3/order/bind/tpsl': 1,
-                        'futures/api/v2.3/position_mode': 5, // done
+                        'futures/api/v2.3/position_mode': { 'cost': 5 } as Endpoint<Dict>, // done
                         'futures/api/v2.3/user/wallet/transfer': 5,
                         'futures/api/v2.3/subaccount/wallet/transfer': 5,
                         'otc/api/v1/quote': 1,

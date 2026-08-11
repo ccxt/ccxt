@@ -42,7 +42,7 @@ interface Exchange {
     privateGetFuturesApiV23RiskLimit (params?: {}): Promise<Dict | List>;
     privateGetFuturesApiV23Leverage (params?: {}): Promise<Dict | List>;
     privateGetFuturesApiV23UserFees (params?: {}): Promise<List>;
-    privateGetFuturesApiV23PositionMode (params?: {}): Promise<Dict | List>;
+    privateGetFuturesApiV23PositionMode (params?: {}): Promise<List>;
     privateGetFuturesApiV23UserMarginSetting (params?: {}): Promise<Dict | List>;
     privateGetFuturesApiV23UserWallet (params?: {}): Promise<Dict | List>;
     privateGetFuturesApiV23UserWalletHistory (params?: {}): Promise<Dict | List>;
@@ -68,7 +68,7 @@ interface Exchange {
     privatePostFuturesApiV23Leverage (params?: {}): Promise<Dict | List>;
     privatePostFuturesApiV23SettleIn (params?: {}): Promise<Dict | List>;
     privatePostFuturesApiV23OrderBindTpsl (params?: {}): Promise<Dict | List>;
-    privatePostFuturesApiV23PositionMode (params?: {}): Promise<Dict | List>;
+    privatePostFuturesApiV23PositionMode (params?: {}): Promise<Dict>;
     privatePostFuturesApiV23UserWalletTransfer (params?: {}): Promise<Dict | List>;
     privatePostFuturesApiV23SubaccountWalletTransfer (params?: {}): Promise<Dict | List>;
     privatePostOtcApiV1Quote (params?: {}): Promise<Dict | List>;
