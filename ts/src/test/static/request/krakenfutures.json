@@ -7,7 +7,7 @@
             {
                 "description": "fetch ledger with since, limit and until",
                 "method": "fetchLedger",
-                "url": "https://futures.kraken.com/api/history/v3/account-log?since=1650000000000&sort=asc&count=5&before=1660000000000",
+                "url": "https://futures.kraken.com/api/history/v3/account-log?since=1650000000000&sort=asc&count=10&before=1660000000000",
                 "input": [
                     null,
                     1650000000000,
