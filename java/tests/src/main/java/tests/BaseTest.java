@@ -349,7 +349,14 @@ public class BaseTest {
 
     public static void dump(Object... messObjects) {
         StringBuilder sb = new StringBuilder();
+        // join with spaces like console.log / print do in the other lanes:
+        // glued args broke the [INFO] TESTING <exchange> <method> markers that
+        // run-tests.js diffs on RUNTEST_TIMED_OUT, so the java lane reported a
+        // phantom ".java{symbol=null,.method" instead of the stalled methods
         for (Object obj : messObjects) {
+            if (sb.length() > 0) {
+                sb.append(' ');
+            }
             sb.append(Helpers.toStringOrNull(obj));
         }
         System.out.println(sb.toString());

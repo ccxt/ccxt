@@ -338,5 +338,84 @@ public partial class BaseTest
             resetBook.reset(orderBookInput);
             resetBook.limit();
             Assert(equals(resetBook, orderBookTarget));
+            
+        // --------------------------------------------------------------------------------------------------------------------
+        
+            // regression for the php phantom index desync under limit, the corruption
+            // sequence was a reset with a snapshot, a depth trim via limit, then
+            // deltas landing on and beyond the trimmed tail, which produced rows
+            // holding only an amount and stale levels in php before the fix, see
+            // https://github.com/ccxt/ccxt/pull/29603 and
+            // https://github.com/ccxt/ccxt/issues/26967
+            var desyncBook = new OrderBook(new Dictionary<string, object>() {}, 3);
+            desyncBook.reset(orderBookInput);
+            desyncBook.limit();
+            var desyncBids = desyncBook.bids;
+            var desyncAsks = desyncBook.asks;
+            // a delta beyond the trimmed tail must reinsert cleanly
+            desyncBids.storeArray(new List<object>() {6.4, 14});
+            // a delta on a surviving level must update that level in place
+            desyncAsks.storeArray(new List<object>() {11.1, 7});
+            // a delete on a surviving level must remove exactly that level
+            desyncBids.storeArray(new List<object>() {9.1, 0});
+            desyncBook.limit();
+            object desyncTarget = new Dictionary<string, object>() {
+                { "bids", new List<object>() {new List<object>() {10, 10}, new List<object>() {8.2, 12}, new List<object>() {6.4, 14}} },
+                { "asks", new List<object>() {new List<object>() {11.1, 7}, new List<object>() {12.2, 14}, new List<object>() {13.3, 13}} },
+                { "timestamp", 1574827239000 },
+                { "datetime", "2019-11-27T04:00:39.000Z" },
+                { "nonce", 69 },
+                { "symbol", null },
+            };
+            Assert(equals(desyncBook, desyncTarget));
+            // every row must be a well formed price and amount pair, the php
+            // corruption produced rows holding only an amount
+            object desyncSides = new List<object>() {getValue(desyncBook, "bids"), getValue(desyncBook, "asks")};
+            for (object i = 0; isLessThan(i, getArrayLength(desyncSides)); postFixIncrement(ref i))
+            {
+                object side = getValue(desyncSides, i);
+                for (object k = 0; isLessThan(k, getArrayLength(side)); postFixIncrement(ref k))
+                {
+                    object row = getValue(side, k);
+                    Assert(isGreaterThanOrEqual(getArrayLength(row), 2));
+                    Assert(!isEqual(getValue(row, 0), null));
+                }
+            }
+            
+        // --------------------------------------------------------------------------------------------------------------------
+        
+            // indexed sides must clean their hashmap when limit trims rows away: a
+            // delta arriving later for a trimmed id previously threw in js and looped
+            // in php while python handled it, an update of a trimmed id must reinsert
+            // cleanly and a delete of a trimmed id must be a no op
+            object trimIndexedInput = new Dictionary<string, object>() {
+                { "bids", new List<object>() {new List<object>() {10, 1, "x"}, new List<object>() {9, 1, "y"}, new List<object>() {8, 1, "z"}, new List<object>() {7, 1, "w"}, new List<object>() {6, 1, "v"}} },
+                { "asks", new List<object>() {new List<object>() {11, 1, "a"}, new List<object>() {12, 1, "b"}, new List<object>() {13, 1, "c"}, new List<object>() {14, 1, "d"}, new List<object>() {15, 1, "e"}} },
+                { "timestamp", 1574827239000 },
+                { "nonce", 70 },
+                { "symbol", null },
+            };
+            object trimIndexedTarget = new Dictionary<string, object>() {
+                { "bids", new List<object>() {new List<object>() {10, 1, "x"}, new List<object>() {9, 1, "y"}, new List<object>() {8, 1, "z"}} },
+                { "asks", new List<object>() {new List<object>() {11, 1, "a"}, new List<object>() {12, 1, "b"}, new List<object>() {13, 1, "c"}} },
+                { "timestamp", 1574827239000 },
+                { "datetime", "2019-11-27T04:00:39.000Z" },
+                { "nonce", 70 },
+                { "symbol", null },
+            };
+            var trimIndexedBook = new IndexedOrderBook(trimIndexedInput, 3);
+            trimIndexedBook.limit();
+            var trimAsks = trimIndexedBook.asks;
+            var trimBids = trimIndexedBook.bids;
+            // update of a trimmed id reinserts cleanly
+            trimAsks.storeArray(new List<object>() {15, 2, "e"});
+            trimBids.storeArray(new List<object>() {7, 2, "w"});
+            // delete of a trimmed id is a no op, on both sides via ids that were
+            // trimmed and never reinserted (d on asks, v on bids); the final limit
+            // below also re-trims the reinserted w, exercising the cleanup twice
+            trimAsks.storeArray(new List<object>() {14, 0, "d"});
+            trimBids.storeArray(new List<object>() {6, 0, "v"});
+            trimIndexedBook.limit();
+            Assert(equals(trimIndexedBook, trimIndexedTarget));
         }
 }

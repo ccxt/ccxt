@@ -959,6 +959,7 @@ public partial class lighter : Exchange
         if (isTrue(postOnly))
         {
             timeInForceNum = 2;
+            orderExpiry = -1;
         } else
         {
             if (!isTrue(isMarketOrder))

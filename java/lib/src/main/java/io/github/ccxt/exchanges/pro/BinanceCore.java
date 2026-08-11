@@ -118,6 +118,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         put( "margin", "wss://stream.binance.com:9443/ws" );
                         put( "future", "wss://fstream.binance.com/ws" );
                         put( "delivery", "wss://dstream.binance.com/ws" );
+                        put( "stock", "wss://nbstream.binance.com/equity/ws" );
                         put( "option", "wss://fstream.binance.com/public/ws" );
                         put( "optionMarket", "wss://fstream.binance.com/market/ws" );
                         put( "optionPrivate", "wss://fstream.binance.com/private/ws" );
@@ -141,6 +142,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     put( "margin", 50 );
                     put( "future", 50 );
                     put( "delivery", 50 );
+                    put( "stock", 50 );
                     put( "option", 50 );
                     put( "optionMarket", 50 );
                 }} );
@@ -149,6 +151,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     put( "margin", 200 );
                     put( "future", 200 );
                     put( "delivery", 200 );
+                    put( "stock", 200 );
                     put( "option", 200 );
                     put( "optionMarket", 200 );
                 }} );
@@ -195,10 +198,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 }} );
                 put( "wallet", "wb" );
                 put( "listenKeyRefreshRate", 1200000 );
+                put( "stockListenKeyRefreshRate", 1200000 );
                 put( "ws", new java.util.HashMap<String, Object>() {{
                     put( "cost", 5 );
                 }} );
                 put( "tickerChannelsMap", new java.util.HashMap<String, Object>() {{
+                    put( "price", "price" );
+                    put( "quote", "quote" );
                     put( "24hrTicker", "ticker" );
                     put( "24hrMiniTicker", "miniTicker" );
                     put( "markPriceUpdate", "markPrice" );
@@ -311,6 +317,148 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             return Helpers.add(Helpers.add(this.getWsUrl(type, "private"), "?listenKey="), listenKey);
         }
         return Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), ((String)type)), "/"), listenKey);
+    }
+
+    public Object getStockWsUrl(Object... optionalArgs)
+    {
+        Object streamType = Helpers.getArg(optionalArgs, 0, "market");
+        Object baseUrl = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "stock");
+        if (Helpers.isTrue(Helpers.isEqual(streamType, "combined")))
+        {
+            return Helpers.replace((String)baseUrl, (String)"/ws", (String)"/stream");
+        }
+        return baseUrl;
+    }
+
+    public Object getStockTickerFromSymbol(Object symbol)
+    {
+        Object market = this.market(symbol);
+        Object base = this.safeString2(market, "base", "id");
+        return ((Helpers.isTrue((Helpers.isEqual(base, null))))) ? null : ((String)base).toLowerCase();
+    }
+
+    public Object getStockUnifiedSymbol(Object stockSymbol, Object... optionalArgs)
+    {
+        Object quote = Helpers.getArg(optionalArgs, 0, null);
+        if (Helpers.isTrue(Helpers.isEqual(stockSymbol, null)))
+        {
+            return null;
+        }
+        Object safeQuote = ((Helpers.isTrue((Helpers.isEqual(quote, null))))) ? "USDC" : quote;
+        Object parsed = this.safeSymbol(stockSymbol, null, "/", "spot");
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(parsed, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(parsed, "/"), 0)))))
+        {
+            return parsed;
+        }
+        return Helpers.add(Helpers.add(stockSymbol, "/"), safeQuote);
+    }
+
+    /**
+     * @method
+     * @name binance#watchStockMarketStream
+     * @ignore
+     * @description subscribe to the tokenized stock market data stream
+     * @param {string[]} streams stream names to subscribe to
+     * @param {string[]} messageHashes message hashes to listen to
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw stream subscription response
+     */
+    public java.util.concurrent.CompletableFuture<Object> watchStockMarketStream(Object streams, Object messageHashes, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object url = this.getStockWsUrl("market");
+            Object requestId = this.requestId(url);
+            Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "method", "SUBSCRIBE" );
+                put( "params", streams );
+                put( "id", requestId );
+            }};
+            Object subscribe = new java.util.HashMap<String, Object>() {{
+                put( "id", requestId );
+            }};
+            return (this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe)).join();
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> authenticateStock(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "stock", new java.util.HashMap<String, Object>() {{}});
+            Object lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
+            Object listenKeyRefreshRate = this.safeInteger(this.options, "stockListenKeyRefreshRate", 1200000);
+            Object now = this.milliseconds();
+            Object delay = this.sum(listenKeyRefreshRate, 10000);
+            if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, lastAuthenticatedTime)), delay)))
+            {
+                Object requestParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
+                Object response = (this.sapiPostEquityListenKey(requestParams)).join();
+                Object listenKey = this.safeString(response, "listenKey");
+                final Object finalNow = now;
+                Helpers.addElementToObject(this.options, "stock", this.extend(options, new java.util.HashMap<String, Object>() {{
+        put( "listenKey", listenKey );
+        put( "lastAuthenticatedTime", finalNow );
+    }}));
+                this.scheduleCallback(listenKeyRefreshRate, "keepAliveStockListenKey", parameters);
+            }
+            return null;
+        });
+
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> keepAliveStockListenKey(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            try
+            {
+                Object options = this.safeDict(this.options, "stock", new java.util.HashMap<String, Object>() {{}});
+                Object requestParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
+                Object response = (this.sapiPostEquityListenKey(requestParams)).join();
+                Object listenKey = this.safeString(response, "listenKey");
+                Object now = this.milliseconds();
+                Helpers.addElementToObject(this.options, "stock", this.extend(options, new java.util.HashMap<String, Object>() {{
+        put( "listenKey", listenKey );
+        put( "lastAuthenticatedTime", now );
+    }}));
+            } catch(Exception error)
+            {
+                Object options = this.safeDict(this.options, "stock", new java.util.HashMap<String, Object>() {{}});
+                Helpers.addElementToObject(this.options, "stock", this.extend(options, new java.util.HashMap<String, Object>() {{
+        put( "listenKey", null );
+        put( "lastAuthenticatedTime", 0 );
+    }}));
+                return null;
+            }
+            Object clients = Helpers.objectValues(this.clients);
+            Object listenKeyRefreshRate = this.safeInteger(this.options, "stockListenKeyRefreshRate", 1200000);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clients)); i++)
+            {
+                Client client = (Client)Helpers.GetValue(clients, i);
+                Object clientSubscriptions = this.safeDict(client, "subscriptions", new java.util.HashMap<String, Object>() {{}});
+                Object subscriptionKeys = Helpers.objectKeys(clientSubscriptions);
+                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subscriptionKeys)); j++)
+                {
+                    Object subscribeType = Helpers.GetValue(subscriptionKeys, j);
+                    if (Helpers.isTrue(Helpers.isEqual(subscribeType, "stock")))
+                    {
+                        this.scheduleCallback(listenKeyRefreshRate, "keepAliveStockListenKey", parameters);
+                        return null;
+                    }
+                }
+            }
+            return null;
+        });
+
     }
 
     /**
@@ -1887,11 +2035,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks market streams
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -1910,6 +2060,18 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
+            Object stock = this.safeBool(market, "stock", false);
+            var stockparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCV", "stock");
+            stock = ((java.util.List<Object>) stockparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
+            if (Helpers.isTrue(stock))
+            {
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeframe, "5m"))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1h")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1d")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1w")))) && Helpers.isTrue((!Helpers.isEqual(timeframe, "1M")))))
+                {
+                    throw new BadRequest((String)Helpers.add(this.id, " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
+                }
+                Helpers.addElementToObject(parameters, "stock", true);
+            }
             Helpers.addElementToObject(parameters, "callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe)))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), timeframe);
@@ -1924,10 +2086,12 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks market streams
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -1942,6 +2106,42 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
+            }
+            Object stock = false;
+            var stockparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
+            stock = ((java.util.List<Object>) stockparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
+            if (Helpers.isTrue(stock))
+            {
+                Object stockStreams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object stockMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
+                {
+                    Object stockSymAndTf = Helpers.GetValue(symbolsAndTimeframes, i);
+                    Object stockSymbolString = this.symbol(Helpers.GetValue(stockSymAndTf, 0));
+                    Object stockMarket = this.market(stockSymbolString);
+                    Object stockTicker = this.safeString2(stockMarket, "base", "id");
+                    Object stockTickerString = ((Helpers.isTrue((Helpers.isEqual(stockTicker, null))))) ? "" : ((String)stockTicker).toLowerCase();
+                    Object stockTimeframeString = Helpers.GetValue(stockSymAndTf, 1);
+                    Object stockInterval = this.safeString(this.timeframes, stockTimeframeString, stockTimeframeString);
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stockInterval, "5m"))) && Helpers.isTrue((!Helpers.isEqual(stockInterval, "1h")))) && Helpers.isTrue((!Helpers.isEqual(stockInterval, "1d")))) && Helpers.isTrue((!Helpers.isEqual(stockInterval, "1w")))) && Helpers.isTrue((!Helpers.isEqual(stockInterval, "1M")))))
+                    {
+                        throw new BadRequest((String)Helpers.add(this.id, " watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
+                    }
+                    ((java.util.List<Object>)stockStreams).add(Helpers.add(Helpers.add(stockTickerString, "@kline_"), stockInterval));
+                    ((java.util.List<Object>)stockMessageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv::", Helpers.GetValue(stockMarket, "symbol")), "::"), stockTimeframeString));
+                }
+                Object stockRes = (this.watchStockMarketStream(stockStreams, stockMessageHashes, parameters)).join();
+                var stockSymbolstockTimeframestockCandlesVariable = stockRes;
+                var stockSymbol = ((java.util.List<Object>) stockSymbolstockTimeframestockCandlesVariable).get(0);
+                var stockTimeframe = ((java.util.List<Object>) stockSymbolstockTimeframestockCandlesVariable).get(1);
+                var stockCandles = ((java.util.List<Object>) stockSymbolstockTimeframestockCandlesVariable).get(2);
+                if (Helpers.isTrue(this.newUpdates))
+                {
+                    limit = Helpers.callDynamically(stockCandles, "getLimit", new Object[]{stockSymbol, limit});
+                }
+                Object stockFiltered = this.filterBySinceLimit(stockCandles, since, limit, 0, true);
+                return this.createOHLCVObject(stockSymbol, stockTimeframe, stockFiltered);
             }
             Object klineType = null;
             var klineTypeparametersVariable = this.handleParamString2(parameters, "channel", "name", "kline");
@@ -2397,8 +2597,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use the stocks aggregated price stream
      * @param {string} [params.name] stream to use can be ticker or miniTicker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -2496,8 +2698,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use the stocks price stream
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchTickers(Object... optionalArgs)
@@ -2507,6 +2711,24 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object stock = false;
+            var stockparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "stock", false);
+            stock = ((java.util.List<Object>) stockparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
+            if (Helpers.isTrue(stock))
+            {
+                if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers() with stock stream requires symbols")) ;
+                }
+                symbols = this.marketSymbols(symbols, null, false, false, true);
+                Object stockResult = (this.watchStockMarketStream(new java.util.ArrayList<Object>(java.util.Arrays.asList("price")), new java.util.ArrayList<Object>(java.util.Arrays.asList("stock:price")), parameters)).join();
+                if (Helpers.isTrue(this.newUpdates))
+                {
+                    return stockResult;
+                }
+                return this.filterByArray(this.tickers, "symbol", symbols);
+            }
             Object channelName = null;
             var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", "miniTicker");
             channelName = ((java.util.List<Object>) channelNameparametersVariable).get(0);
@@ -2662,8 +2884,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#symbol-order-book-ticker
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#quote-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks quote streams
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchBidsAsks(Object... optionalArgs)
@@ -2676,6 +2900,32 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
+            }
+            Object stock = false;
+            var stockparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "stock", false);
+            stock = ((java.util.List<Object>) stockparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
+            if (Helpers.isTrue(stock))
+            {
+                if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchBidsAsks() with stock stream requires symbols")) ;
+                }
+                symbols = this.marketSymbols(symbols, null, false, false, true);
+                Object stockStreams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object stockMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                {
+                    Object stockTicker = this.getStockTickerFromSymbol(Helpers.GetValue(symbols, i));
+                    ((java.util.List<Object>)stockStreams).add(Helpers.add(stockTicker, "@quote"));
+                    ((java.util.List<Object>)stockMessageHashes).add(Helpers.add("stock:quote:", Helpers.GetValue(symbols, i)));
+                }
+                Object stockResult = (this.watchStockMarketStream(stockStreams, stockMessageHashes, parameters)).join();
+                if (Helpers.isTrue(this.newUpdates))
+                {
+                    return stockResult;
+                }
+                return this.filterByArray(this.bidsasks, "symbol", symbols);
             }
             symbols = this.marketSymbols(symbols, null, true, false, true);
             Object result = (this.watchMultiTickerHelper("watchBidsAsks", "bookTicker", symbols, parameters)).join();
@@ -3173,7 +3423,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object tickerMarketId = this.safeString(ticker, "s");
             Object tickerMarketsByIdList = this.safeValue(this.markets_by_id, tickerMarketId);
-            Object tickerMarketById = this.safeValue(tickerMarketsByIdList, 0);
+            Object numTickerMarkets = ((Helpers.isTrue((Helpers.isEqual(tickerMarketsByIdList, null))))) ? 0 : Helpers.getArrayLength(tickerMarketsByIdList);
+            // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
+            // blind first pick, the stream url decides; only a unique match, like an
+            // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
+            Object tickerMarketById = ((Helpers.isTrue((Helpers.isEqual(numTickerMarkets, 1))))) ? this.safeValue(tickerMarketsByIdList, 0) : null;
             Object isSpot = this.isSpotUrl(client);
             Object tickerFallbackType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
             Object tickerMarketType = ((Helpers.isTrue((!Helpers.isEqual(tickerMarketById, null))))) ? Helpers.GetValue(tickerMarketById, "type") : tickerFallbackType;
@@ -3631,7 +3885,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clients)); i++)
             {
                 Client client = (Client)Helpers.GetValue(clients, i);
-                Object subscriptionKeys = Helpers.objectKeys(client.subscriptions);
+                Object clientSubscriptions = this.safeDict(client, "subscriptions", new java.util.HashMap<String, Object>() {{}});
+                Object subscriptionKeys = Helpers.objectKeys(clientSubscriptions);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subscriptionKeys)); j++)
                 {
                     Object subscribeType = Helpers.GetValue(subscriptionKeys, j);
@@ -4965,10 +5220,12 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
      * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/user-streams#order-report-stream
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks user data streams
      * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for spot margin
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch portfolio margin account orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -4985,6 +5242,43 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
+            }
+            Object stock = false;
+            var stockparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "stock", false);
+            stock = ((java.util.List<Object>) stockparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
+            if (Helpers.isTrue(stock))
+            {
+                (this.authenticateStock(parameters)).join();
+                Object stockOptions = this.safeDict(this.options, "stock", new java.util.HashMap<String, Object>() {{}});
+                Object stockListenKey = this.safeString(stockOptions, "listenKey");
+                if (Helpers.isTrue(Helpers.isEqual(stockListenKey, null)))
+                {
+                    throw new BadRequest((String)Helpers.add(this.id, " watchOrders() failed to initialize stock listenKey")) ;
+                }
+                Object stockUrl = this.getStockWsUrl("user");
+                Object stockStreamName = Helpers.add(stockListenKey, "@orderReport");
+                Object stockRequestId = this.requestId(stockUrl);
+                Object stockMessageHash = "orders";
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    stockMessageHash = Helpers.add("orders:", this.symbol(symbol));
+                }
+                Object stockRequest = new java.util.HashMap<String, Object>() {{
+                    put( "method", "SUBSCRIBE" );
+                    put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(stockStreamName)) );
+                    put( "id", stockRequestId );
+                }};
+                Object stockQuery = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));
+                Object stockSubscribe = new java.util.HashMap<String, Object>() {{
+                    put( "id", stockRequestId );
+                }};
+                Object stockOrders = (this.watch(stockUrl, stockMessageHash, this.extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe)).join();
+                if (Helpers.isTrue(this.newUpdates))
+                {
+                    limit = Helpers.callDynamically(stockOrders, "getLimit", new Object[]{symbol, limit});
+                }
+                return this.filterBySymbolSinceLimit(stockOrders, symbol, since, limit, true);
             }
             Object messageHash = "orders";
             Object market = null;
@@ -5174,7 +5468,95 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //         "rm": "Reduce Only reject"           // algo order failed reason
         //     }
         //
+        // watchOrders: tokenized equities
+        //
+        //     {
+        //         "e": "orderReport",
+        //         "E": 1786010067484,
+        //         "x": "ORDER_UPDATE",
+        //         "i": "6c62d749-b1e5-4559-9747-d4237f55ff26",
+        //         "ai": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+        //         "b": "EQ_AAPL",
+        //         "q": "USDC",
+        //         "S": "buy",
+        //         "o": "limit",
+        //         "p": 290,
+        //         "Q": 0.02,
+        //         "N": null,
+        //         "fq": 0,
+        //         "FN": 0,
+        //         "tc": 5.97,
+        //         "Z": 0,
+        //         "n": "24H",
+        //         "s": "new",
+        //         "T": 1786010067361,
+        //         "U": 1786010067366
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object eventVar = this.safeString(order, "e");
+        if (Helpers.isTrue(Helpers.isEqual(eventVar, "orderReport")))
+        {
+            Object baseAssetCode = this.safeString(order, "b");
+            Object stockBaseSymbol = baseAssetCode;
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stockBaseSymbol, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(stockBaseSymbol, "EQ_"), 0)))))
+            {
+                stockBaseSymbol = Helpers.slice(stockBaseSymbol, 3, null);
+            }
+            if (Helpers.isTrue(Helpers.isEqual(stockBaseSymbol, null)))
+            {
+                stockBaseSymbol = this.safeString(order, "symbol");
+            }
+            Object stockQuote = this.safeString(order, "q", "USDC");
+            Object stockSymbol = this.getStockUnifiedSymbol(stockBaseSymbol, stockQuote);
+            Object stockRawStatus = this.safeStringLower(order, "s");
+            Object statuses = new java.util.HashMap<String, Object>() {{
+                put( "accepted", "open" );
+                put( "new", "open" );
+                put( "partially_filled", "open" );
+                put( "filled", "closed" );
+                put( "canceled", "canceled" );
+                put( "rejected", "rejected" );
+                put( "expired", "expired" );
+            }};
+            Object stockStatus = this.safeString(statuses, stockRawStatus, stockRawStatus);
+            Object stockAmount = this.safeString(order, "Q");
+            Object stockFilled = this.safeString(order, "fq");
+            Object stockRemaining = null;
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stockAmount, null))) && Helpers.isTrue((!Helpers.isEqual(stockFilled, null)))))
+            {
+                stockRemaining = Precise.stringSub(stockAmount, stockFilled);
+            }
+            Object stockTimestamp = this.safeInteger(order, "T");
+            Object stockLastUpdateTimestamp = this.safeInteger(order, "U", stockTimestamp);
+            final Object finalStockAmount = stockAmount;
+            final Object finalStockFilled = stockFilled;
+            final Object finalStockRemaining = stockRemaining;
+            return this.safeOrder(new java.util.HashMap<String, Object>() {{
+                put( "info", order );
+                put( "symbol", stockSymbol );
+                put( "id", BinanceCore.this.safeString(order, "i") );
+                put( "timestamp", stockTimestamp );
+                put( "datetime", BinanceCore.this.iso8601(stockTimestamp) );
+                put( "lastUpdateTimestamp", stockLastUpdateTimestamp );
+                put( "type", BinanceCore.this.parseOrderTypeByMarket(BinanceCore.this.safeStringLower(order, "o"), "spot") );
+                put( "timeInForce", null );
+                put( "postOnly", null );
+                put( "reduceOnly", null );
+                put( "side", BinanceCore.this.safeStringLower(order, "S") );
+                put( "price", BinanceCore.this.safeString(order, "p") );
+                put( "stopPrice", null );
+                put( "triggerPrice", null );
+                put( "amount", finalStockAmount );
+                put( "cost", BinanceCore.this.safeString(order, "FN") );
+                put( "average", null );
+                put( "filled", finalStockFilled );
+                put( "remaining", finalStockRemaining );
+                put( "status", stockStatus );
+                put( "fee", null );
+                put( "trades", null );
+            }});
+        }
         Object executionType = this.safeString(order, "x");
         Object marketId = this.safeString(order, "s");
         Object marketsByIdList = this.safeValue(this.markets_by_id, marketId);
@@ -5374,6 +5756,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //     }
         //
         Object e = this.safeString(message, "e");
+        if (Helpers.isTrue(Helpers.isEqual(e, "orderReport")))
+        {
+            this.handleOrder(client, message);
+            return;
+        }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(e, "ORDER_TRADE_UPDATE"))) || Helpers.isTrue((Helpers.isEqual(e, "ALGO_UPDATE")))))
         {
             Object oField = this.safeValue(message, "o");
@@ -5388,6 +5775,76 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         this.handleMyTrade(client, message);
         this.handleOrder(client, message);
         this.handleMyLiquidation(client, message);
+    }
+
+    public void handleStockPrice(Client client, Object message)
+    {
+        //
+        //     {
+        //         "rates": [
+        //             {
+        //                 "s": "JAVA",
+        //                 "ac": "EQ_JAVA",
+        //                 "p": "83.26",
+        //                 "t": 1785959875000,
+        //                 "pc": "83.1800",
+        //                 "mp": "ON"
+        //             },
+        //         ],
+        //         "e": "price"
+        //     }
+        //
+        Object rates = this.safeList(message, "rates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object tickers = new java.util.HashMap<String, Object>() {{}};
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rates)); i++)
+        {
+            Object rate = this.safeDict(rates, i, new java.util.HashMap<String, Object>() {{}});
+            Object stockSymbol = this.safeString(rate, "s");
+            Object symbol = this.getStockUnifiedSymbol(stockSymbol, "USDC");
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            {
+                continue;
+            }
+            Object timestamp = this.safeInteger(rate, "t");
+            final Object finalSymbol = symbol;
+            Object parsed = this.safeTicker(new java.util.HashMap<String, Object>() {{
+                put( "symbol", finalSymbol );
+                put( "timestamp", timestamp );
+                put( "datetime", BinanceCore.this.iso8601(timestamp) );
+                put( "last", BinanceCore.this.safeString(rate, "p") );
+                put( "close", BinanceCore.this.safeString(rate, "p") );
+                put( "previousClose", BinanceCore.this.safeString(rate, "pc") );
+                put( "info", rate );
+            }});
+            Helpers.addElementToObject(this.tickers, symbol, parsed);
+            Helpers.addElementToObject(tickers, symbol, parsed);
+            client.resolve(parsed, Helpers.add("stock:price:", symbol));
+        }
+        client.resolve(tickers, "stock:price");
+    }
+
+    public void handleStockQuote(Client client, Object message)
+    {
+        Object stockSymbol = this.safeString(message, "s");
+        Object symbol = this.getStockUnifiedSymbol(stockSymbol, "USDC");
+        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+        {
+            return;
+        }
+        Object timestamp = this.safeInteger2(message, "E", "T");
+        final Object finalSymbol = symbol;
+        Object parsed = this.safeTicker(new java.util.HashMap<String, Object>() {{
+            put( "symbol", finalSymbol );
+            put( "timestamp", timestamp );
+            put( "datetime", BinanceCore.this.iso8601(timestamp) );
+            put( "bid", BinanceCore.this.safeString(message, "bp") );
+            put( "ask", BinanceCore.this.safeString(message, "ap") );
+            put( "bidVolume", BinanceCore.this.safeString(message, "bs") );
+            put( "askVolume", BinanceCore.this.safeString(message, "as") );
+            put( "info", message );
+        }});
+        Helpers.addElementToObject(this.bidsasks, symbol, parsed);
+        client.resolve(parsed, Helpers.add("stock:quote:", symbol));
     }
 
     public void handleOptionsOrderUpdate(Client client, Object message)
@@ -6462,6 +6919,12 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         {
             message = eventMsg;
         }
+        // handle combined stream wrapper payloads
+        Object eventData = this.safeDict(message, "data");
+        if (Helpers.isTrue(!Helpers.isEqual(eventData, null)))
+        {
+            message = eventData;
+        }
         Object status = this.safeString(message, "status");
         Object error = this.safeValue(message, "error");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(status, null)) && Helpers.isTrue(!Helpers.isEqual(status, "200"))))))
@@ -6483,6 +6946,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             put( "depthUpdate", "handleOrderBook");
             put( "trade", "handleTrade");
             put( "aggTrade", "handleTrade");
+            put( "price", "handleStockPrice");
+            put( "quote", "handleStockQuote");
             put( "optionTrade", "handleTrade");
             put( "markPrice", "handleMarkPrices");
             put( "kline", "handleOHLCV");
@@ -6507,6 +6972,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             put( "ACCOUNT_UPDATE", "handleAcountUpdate");
             put( "BALANCE_POSITION_UPDATE", "handleOptionsAccountUpdate");
             put( "executionReport", "handleOrderUpdate");
+            put( "orderReport", "handleOrderUpdate");
             put( "ORDER_TRADE_UPDATE", "handleOrderUpdate");
             put( "ALGO_UPDATE", "handleOrderUpdate");
             put( "forceOrder", "handleLiquidation");
@@ -6516,8 +6982,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object eventVar = this.safeString(message, "e");
         if (Helpers.isTrue(Helpers.isArray(message)))
         {
-            Object data = Helpers.GetValue(message, 0);
-            eventVar = Helpers.add(this.safeString(data, "e"), "@arr");
+            Object arrayMessage = Helpers.GetValue(message, 0);
+            eventVar = Helpers.add(this.safeString(arrayMessage, "e"), "@arr");
         }
         method = this.safeValue(methods, eventVar);
         if (Helpers.isTrue(Helpers.isEqual(method, null)))

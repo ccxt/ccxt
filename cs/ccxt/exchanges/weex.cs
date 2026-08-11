@@ -2275,7 +2275,7 @@ public partial class weex : Exchange
             //
             if (isTrue(sandboxMode))
             {
-                response = await ((Task<object>)callDynamically(this, "contractPrivateGetCapiV3SimBalance", new object[] { parameters }));
+                response = await this.contractPrivateGetCapiV3SimBalance(parameters);
             } else
             {
                 response = await this.contractPrivateGetCapiV3AccountBalance(parameters);
@@ -2569,7 +2569,7 @@ public partial class weex : Exchange
             response = await this.contractPrivatePostCapiV3AlgoOrder(request);
         } else if (isTrue(sandboxMode))
         {
-            response = await ((Task<object>)callDynamically(this, "contractPrivatePostCapiV3SimOrder", new object[] { request }));
+            response = await this.contractPrivatePostCapiV3SimOrder(request);
         } else
         {
             response = await this.contractPrivatePostCapiV3Order(request);
@@ -3416,7 +3416,7 @@ public partial class weex : Exchange
         object response = null;
         if (isTrue(sandboxMode))
         {
-            response = await ((Task<object>)callDynamically(this, "contractPrivateGetCapiV3SimOrderHistory", new object[] { this.extend(request, parameters) }));
+            response = await this.contractPrivateGetCapiV3SimOrderHistory(this.extend(request, parameters));
         } else
         {
             response = await this.contractPrivateGetCapiV3OrderHistory(this.extend(request, parameters));
@@ -4028,7 +4028,7 @@ public partial class weex : Exchange
         object response = null;
         if (isTrue(sandboxMode))
         {
-            response = await ((Task<object>)callDynamically(this, "contractPrivateGetCapiV3SimPositionAllPosition", new object[] { parameters }));
+            response = await this.contractPrivateGetCapiV3SimPositionAllPosition(parameters);
         } else
         {
             response = await this.contractPrivateGetCapiV3AccountPositionAllPosition(parameters);

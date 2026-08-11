@@ -2475,7 +2475,7 @@ func (this *WeexCore) FetchBalance(optionalArgs ...any) <-chan any {
 			//
 			if IsTrue(sandboxMode) {
 
-				response = (<-this.CallDynamically("contractPrivateGetCapiV3SimBalance", params))
+				response = (<-this.ContractPrivateGetCapiV3SimBalance(params))
 				PanicOnError(response)
 			} else {
 
@@ -2818,7 +2818,7 @@ func (this *WeexCore) CreateContractOrder(symbol any, typeVar any, side any, amo
 			PanicOnError(response)
 		} else if IsTrue(sandboxMode) {
 
-			response = (<-this.CallDynamically("contractPrivatePostCapiV3SimOrder", request))
+			response = (<-this.ContractPrivatePostCapiV3SimOrder(request))
 			PanicOnError(response)
 		} else {
 
@@ -3751,7 +3751,7 @@ func (this *WeexCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-chan a
 		var response any = nil
 		if IsTrue(sandboxMode) {
 
-			response = (<-this.CallDynamically("contractPrivateGetCapiV3SimOrderHistory", this.Extend(request, params)))
+			response = (<-this.ContractPrivateGetCapiV3SimOrderHistory(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
@@ -4404,7 +4404,7 @@ func (this *WeexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		var response any = nil
 		if IsTrue(sandboxMode) {
 
-			response = (<-this.CallDynamically("contractPrivateGetCapiV3SimPositionAllPosition", params))
+			response = (<-this.ContractPrivateGetCapiV3SimPositionAllPosition(params))
 			PanicOnError(response)
 		} else {
 

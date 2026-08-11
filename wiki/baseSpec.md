@@ -2113,13 +2113,14 @@ fetches information on multiple canceled orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market the orders were made in |
+| symbol | <code>string</code> | No | unified market symbol of the market the orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch orders in a portfolio margin account |
 | params.trigger | <code>boolean</code> | No | set to true if you would like to fetch portfolio margin account trigger or conditional orders |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock orders |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#fetchcanceledandclosedorders)
@@ -2148,13 +2149,14 @@ fetches information on multiple canceled orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market the orders were made in |
+| symbol | <code>string</code> | No | unified market symbol of the market the orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch orders in a portfolio margin account |
 | params.trigger | <code>boolean</code> | No | set to true if you would like to fetch portfolio margin account trigger or conditional orders |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock orders |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#fetchcanceledorders)

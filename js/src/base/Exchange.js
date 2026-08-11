@@ -1712,6 +1712,9 @@ export class BaseExchange {
     setProperty(obj, property, defaultValue = undefined) {
         obj[property] = defaultValue;
     }
+    isDictionary(value) {
+        return (value !== undefined) && (value !== null) && (typeof value === 'object') && !Array.isArray(value);
+    }
     exceptionMessage(exc, includeStack = true) {
         const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
         const length = Math.min(100000, message.length);
@@ -2711,9 +2714,6 @@ export class BaseExchange {
             return value;
         }
         return defaultValue;
-    }
-    isDictionary(value) {
-        return (value !== undefined) && (typeof value === 'object') && !Array.isArray(value);
     }
     safeList2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**

@@ -5830,10 +5830,10 @@ public partial class xt : Exchange
         object response = null;
         if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1PositionListHistory", new object[] { this.extend(request, parameters) }));
+            response = await this.privateInverseGetFutureTradeV1PositionListHistory(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1PositionListHistory", new object[] { this.extend(request, parameters) }));
+            response = await this.privateLinearGetFutureTradeV1PositionListHistory(this.extend(request, parameters));
         }
         //
         //     {
