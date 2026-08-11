@@ -1736,6 +1736,299 @@
                     }
                 ]
             }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades: swap trades with symbol (array format)",
+                "method": "fetchMyTrades",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "id": 22798472870,
+                        "clientOrderId": "ccxta9f20ba8b49fbafe",
+                        "time": 1786182944.22833,
+                        "side": "sell",
+                        "role": 2,
+                        "amount": "80",
+                        "price": "0.070271",
+                        "deal": "5.62168",
+                        "fee": "0.003091924",
+                        "orderId": 2558095898746,
+                        "feeAsset": "USDT"
+                    },
+                    {
+                        "id": 22798468873,
+                        "clientOrderId": "ccxtb7d3a2cb14b49f33",
+                        "time": 1786182925.500477,
+                        "side": "buy",
+                        "role": 2,
+                        "amount": "80",
+                        "price": "0.070309",
+                        "deal": "5.62472",
+                        "fee": "0.003093596",
+                        "orderId": 2558095665513,
+                        "feeAsset": "USDT"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": 22798468873,
+                            "clientOrderId": "ccxtb7d3a2cb14b49f33",
+                            "time": 1786182925.500477,
+                            "side": "buy",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070309",
+                            "deal": "5.62472",
+                            "fee": "0.003093596",
+                            "orderId": 2558095665513,
+                            "feeAsset": "USDT"
+                        },
+                        "timestamp": 1786182925500,
+                        "datetime": "2026-08-08T09:55:25.500Z",
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "22798468873",
+                        "order": "2558095665513",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 0.070309,
+                        "amount": 80,
+                        "cost": 5.62472,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.003093596
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.003093596
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "id": 22798472870,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "time": 1786182944.22833,
+                            "side": "sell",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070271",
+                            "deal": "5.62168",
+                            "fee": "0.003091924",
+                            "orderId": 2558095898746,
+                            "feeAsset": "USDT"
+                        },
+                        "timestamp": 1786182944228,
+                        "datetime": "2026-08-08T09:55:44.228Z",
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "22798472870",
+                        "order": "2558095898746",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "sell",
+                        "price": 0.070271,
+                        "amount": 80,
+                        "cost": 5.62168,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.003091924
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.003091924
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "fetchMyTrades: all symbols (dict format)",
+                "method": "fetchMyTrades",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "DOGE_PERP": [
+                        {
+                            "id": 22798472870,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "time": 1786182944.22833,
+                            "side": "sell",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070271",
+                            "deal": "5.62168",
+                            "fee": "0.003091924",
+                            "orderId": 2558095898746,
+                            "feeAsset": "USDT"
+                        },
+                        {
+                            "id": 22798468873,
+                            "clientOrderId": "ccxtb7d3a2cb14b49f33",
+                            "time": 1786182925.500477,
+                            "side": "buy",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070309",
+                            "deal": "5.62472",
+                            "fee": "0.003093596",
+                            "orderId": 2558095665513,
+                            "feeAsset": "USDT"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": 22798468873,
+                            "clientOrderId": "ccxtb7d3a2cb14b49f33",
+                            "time": 1786182925.500477,
+                            "side": "buy",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070309",
+                            "deal": "5.62472",
+                            "fee": "0.003093596",
+                            "orderId": 2558095665513,
+                            "feeAsset": "USDT"
+                        },
+                        "timestamp": 1786182925500,
+                        "datetime": "2026-08-08T09:55:25.500Z",
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "22798468873",
+                        "order": "2558095665513",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 0.070309,
+                        "amount": 80,
+                        "cost": 5.62472,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.003093596
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.003093596
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "id": 22798472870,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "time": 1786182944.22833,
+                            "side": "sell",
+                            "role": 2,
+                            "amount": "80",
+                            "price": "0.070271",
+                            "deal": "5.62168",
+                            "fee": "0.003091924",
+                            "orderId": 2558095898746,
+                            "feeAsset": "USDT"
+                        },
+                        "timestamp": 1786182944228,
+                        "datetime": "2026-08-08T09:55:44.228Z",
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "22798472870",
+                        "order": "2558095898746",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "sell",
+                        "price": 0.070271,
+                        "amount": 80,
+                        "cost": 5.62168,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.003091924
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.003091924
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetchOrderTrades: trades of a filled swap market order",
+                "method": "fetchOrderTrades",
+                "input": [
+                    "2558095898746",
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "limit": 500,
+                    "offset": 0,
+                    "records": [
+                        {
+                            "time": 1786182944.22833,
+                            "fee": "0.003091924",
+                            "price": "0.070271",
+                            "amount": "80",
+                            "id": 22798472870,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "dealOrderId": 2558095898746,
+                            "role": 2,
+                            "deal": "5.62168",
+                            "feeAsset": "USDT",
+                            "rpi": false
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "time": 1786182944.22833,
+                            "fee": "0.003091924",
+                            "price": "0.070271",
+                            "amount": "80",
+                            "id": 22798472870,
+                            "clientOrderId": "ccxta9f20ba8b49fbafe",
+                            "dealOrderId": 2558095898746,
+                            "role": 2,
+                            "deal": "5.62168",
+                            "feeAsset": "USDT",
+                            "rpi": false
+                        },
+                        "timestamp": 1786182944228,
+                        "datetime": "2026-08-08T09:55:44.228Z",
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "22798472870",
+                        "order": "2558095898746",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": null,
+                        "price": 0.070271,
+                        "amount": 80,
+                        "cost": 5.62168,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.003091924
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.003091924
+                            }
+                        ]
+                    }
+                ]
+            }
         ]
     }
 }

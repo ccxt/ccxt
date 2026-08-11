@@ -691,6 +691,42 @@
                 ],
                 "output": "{\"request\":\"/api/v4/trade-account/order/history\",\"nonce\":\"1786454926329\",\"nonceWindow\":false,\"market\":\"DOGE_PERP\",\"limit\":2}"
             }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades swap with symbol",
+                "method": "fetchMyTrades",
+                "url": "https://whitebit.com/api/v4/trade-account/executed-history",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"request\":\"/api/v4/trade-account/executed-history\",\"nonce\":\"1786484584444\",\"nonceWindow\":false,\"market\":\"DOGE_PERP\"}"
+            },
+            {
+                "description": "fetchMyTrades all symbols",
+                "method": "fetchMyTrades",
+                "url": "https://whitebit.com/api/v4/trade-account/executed-history",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "output": "{\"request\":\"/api/v4/trade-account/executed-history\",\"nonce\":\"1786484584570\",\"nonceWindow\":false}"
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetchOrderTrades by executed order id",
+                "method": "fetchOrderTrades",
+                "url": "https://whitebit.com/api/v4/trade-account/order",
+                "input": [
+                    "2558095898746",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": "{\"request\":\"/api/v4/trade-account/order\",\"nonce\":\"1786484584696\",\"nonceWindow\":false,\"orderId\":2558095898746,\"market\":\"DOGE_PERP\"}"
+            }
         ]
     }
 }
