@@ -1576,6 +1576,60 @@ abstract class binance extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function sapi_get_equity_market_exchangeinfo($params = array()) {
+        return $this->request('equity/market/exchangeInfo', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_get_equity_market_tokenized_assets($params = array()) {
+        return $this->request('equity/market/tokenized-assets', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_get_equity_market_quote($params = array()) {
+        return $this->request('equity/market/quote', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function sapi_get_equity_order_open_orders($params = array()) {
+        return $this->request('equity/order/open-orders', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_get_equity_order_history($params = array()) {
+        return $this->request('equity/order/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_get_equity_order_detail($params = array()) {
+        return $this->request('equity/order/detail', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_get_equity_trade_history($params = array()) {
+        return $this->request('equity/trade/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_get_equity_tokenized_convert_status($params = array()) {
+        return $this->request('equity/tokenized/convert-status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_get_equity_tokenized_history($params = array()) {
+        return $this->request('equity/tokenized/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function sapi_post_asset_dust($params = array()) {
         return $this->request('asset/dust', 'sapi', 'POST', $params, null, null, array("cost" => 0.06667));
     }
@@ -2316,6 +2370,48 @@ abstract class binance extends \ccxt\Exchange {
      */
     public function sapi_post_accumulator_product_subscribe($params = array()) {
         return $this->request('accumulator/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_post_equity_order_place($params = array()) {
+        return $this->request('equity/order/place', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_post_equity_order_cancel($params = array()) {
+        return $this->request('equity/order/cancel', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_post_equity_order_cancel_all($params = array()) {
+        return $this->request('equity/order/cancel-all', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_post_equity_tokenized_mint($params = array()) {
+        return $this->request('equity/tokenized/mint', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_post_equity_tokenized_redeem($params = array()) {
+        return $this->request('equity/tokenized/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_post_equity_account_disclaimer($params = array()) {
+        return $this->request('equity/account/disclaimer', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapi_post_equity_listenkey($params = array()) {
+        return $this->request('equity/listenKey', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     /**
      * @return array<string, mixed>
@@ -6328,6 +6424,60 @@ abstract class binance extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function sapiGetEquityMarketExchangeInfo($params = array()) {
+        return $this->request('equity/market/exchangeInfo', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiGetEquityMarketTokenizedAssets($params = array()) {
+        return $this->request('equity/market/tokenized-assets', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiGetEquityMarketQuote($params = array()) {
+        return $this->request('equity/market/quote', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function sapiGetEquityOrderOpenOrders($params = array()) {
+        return $this->request('equity/order/open-orders', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiGetEquityOrderHistory($params = array()) {
+        return $this->request('equity/order/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiGetEquityOrderDetail($params = array()) {
+        return $this->request('equity/order/detail', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiGetEquityTradeHistory($params = array()) {
+        return $this->request('equity/trade/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiGetEquityTokenizedConvertStatus($params = array()) {
+        return $this->request('equity/tokenized/convert-status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiGetEquityTokenizedHistory($params = array()) {
+        return $this->request('equity/tokenized/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function sapiPostAssetDust($params = array()) {
         return $this->request('asset/dust', 'sapi', 'POST', $params, null, null, array("cost" => 0.06667));
     }
@@ -7068,6 +7218,48 @@ abstract class binance extends \ccxt\Exchange {
      */
     public function sapiPostAccumulatorProductSubscribe($params = array()) {
         return $this->request('accumulator/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiPostEquityOrderPlace($params = array()) {
+        return $this->request('equity/order/place', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiPostEquityOrderCancel($params = array()) {
+        return $this->request('equity/order/cancel', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiPostEquityOrderCancelAll($params = array()) {
+        return $this->request('equity/order/cancel-all', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiPostEquityTokenizedMint($params = array()) {
+        return $this->request('equity/tokenized/mint', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiPostEquityTokenizedRedeem($params = array()) {
+        return $this->request('equity/tokenized/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiPostEquityAccountDisclaimer($params = array()) {
+        return $this->request('equity/account/disclaimer', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function sapiPostEquityListenKey($params = array()) {
+        return $this->request('equity/listenKey', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     /**
      * @return array<string, mixed>
