@@ -930,6 +930,52 @@ public partial class xt
         return new OpenInterest(res);
     }
     /// <summary>
+    /// fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFee(symbol, parameters);
+        return new TradingFeeInterface(res);
+    }
+    /// <summary>
+    /// fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : 'linear' (default) or 'inverse'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol.</returns>
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFees(parameters);
+        return new TradingFees(res);
+    }
+    /// <summary>
     /// fetch the funding history
     /// </summary>
     /// <remarks>

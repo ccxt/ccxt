@@ -655,6 +655,13 @@ public partial class xt : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateLinearGetFutureUserV1PositionList",parameters);
     }
 
+    /// <summary>Calls the privateLinearGetFutureUserV1UserStepRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateLinearGetFutureUserV1UserStepRate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateLinearGetFutureUserV1UserStepRate",parameters);
+    }
+
     /// <summary>Calls the privateLinearGetFutureUserV1UserCollectionList endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateLinearGetFutureUserV1UserCollectionList (object parameters = null)
@@ -933,6 +940,13 @@ public partial class xt : Exchange
     public async Task<Dictionary<string, object>> privateInverseGetFutureUserV1PositionList (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateInverseGetFutureUserV1PositionList",parameters);
+    }
+
+    /// <summary>Calls the privateInverseGetFutureUserV1UserStepRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateInverseGetFutureUserV1UserStepRate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateInverseGetFutureUserV1UserStepRate",parameters);
     }
 
     /// <summary>Calls the privateInverseGetFutureUserV1UserCollectionList endpoint.</summary>
