@@ -12,12 +12,13 @@
 
 set -u
 
-offenders=$(grep -rlnE "from '(\.\./)+ccxt\.js'" ts/src/*.ts ts/src/pro/*.ts 2>/dev/null || true)
+offenders=$(grep -rlnE "from '(\.\./)+ccxt\.js'" ts/src/*.ts ts/src/pro/*.ts ts/src/prediction/*.ts ts/src/pro/prediction/*.ts 2>/dev/null || true)
 
 if [ -n "$offenders" ]; then
     echo "error: exchange files must not import from the package entry point '../ccxt.js'"
     echo "       (circular dependency, crashes at registration with a TDZ error);"
-    echo "       import error classes from './base/errors.js' and types from './base/types.js' instead:"
+    echo "       import error classes and types from the base/ folder at the file's relative depth"
+    echo "       (e.g. './base/errors.js' from ts/src, '../base/errors.js' from prediction/ or pro/) instead:"
     for f in $offenders; do
         echo "  $f"
         grep -nE "from '(\.\./)+ccxt\.js'" "$f" | sed 's/^/      /'
