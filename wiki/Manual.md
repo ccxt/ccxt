@@ -605,6 +605,8 @@ exchange.setSandboxMode(true); // enable sandbox mode
 
 Every exchange has a set of properties and methods, most of which you can override by passing an associative array of params to an exchange constructor. You can also make a subclass and override everything.
 
+**A note on PHP arrays:** PHP has a single array type, so an empty container is both an empty dictionary and an empty list at once — the distinction is undecidable there. CCXT's base helpers therefore treat an empty PHP array as a valid dictionary (`is_dictionary(array()) === true`, and `safe_dict` will return an empty array rather than the default), while in every other supported language empty dictionaries and empty lists are distinct types and an empty list is not a dictionary. Code that must distinguish an empty dict from an empty list should not rely on the container alone in PHP, see https://github.com/ccxt/ccxt/pull/29704 for details.
+
 Here's an overview of generic exchange properties with values added for example:
 
 ```javascript
