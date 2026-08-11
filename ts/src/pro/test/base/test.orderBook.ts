@@ -396,6 +396,47 @@ function testWsOrderBook () {
     resetBook.reset (orderBookInput);
     resetBook.limit ();
     assert (equals (resetBook, orderBookTarget));
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // regression for the php phantom index desync under limit, the corruption
+    // sequence was a reset with a snapshot, a depth trim via limit, then
+    // deltas landing on and beyond the trimmed tail, which produced rows
+    // holding only an amount and stale levels in php before the fix, see
+    // https://github.com/ccxt/ccxt/pull/29603 and
+    // https://github.com/ccxt/ccxt/issues/26967
+
+    const desyncBook = new OrderBook ({}, 3);
+    desyncBook.reset (orderBookInput);
+    desyncBook.limit ();
+    const desyncBids = desyncBook['bids'];
+    const desyncAsks = desyncBook['asks'];
+    // a delta beyond the trimmed tail must reinsert cleanly
+    desyncBids.storeArray ([ 6.4, 14 ]);
+    // a delta on a surviving level must update that level in place
+    desyncAsks.storeArray ([ 11.1, 7 ]);
+    // a delete on a surviving level must remove exactly that level
+    desyncBids.storeArray ([ 9.1, 0 ]);
+    desyncBook.limit ();
+    const desyncTarget = {
+        'bids': [ [ 10.0, 10 ], [ 8.2, 12 ], [ 6.4, 14 ] ],
+        'asks': [ [ 11.1, 7 ], [ 12.2, 14 ], [ 13.3, 13 ] ],
+        'timestamp': 1574827239000,
+        'datetime': '2019-11-27T04:00:39.000Z',
+        'nonce': 69,
+        'symbol': undefined,
+    };
+    assert (equals (desyncBook, desyncTarget));
+    // every row must be a well formed price and amount pair, the php
+    // corruption produced rows holding only an amount
+    const desyncSides = [ desyncBook['bids'], desyncBook['asks'] ];
+    for (let i = 0; i < desyncSides.length; i++) {
+        const side = desyncSides[i];
+        for (let k = 0; k < side.length; k++) {
+            const row = side[k];
+            assert (row.length >= 2);
+            assert (row[0] !== undefined);
+        }
+    }
 }
 
 export default testWsOrderBook;
