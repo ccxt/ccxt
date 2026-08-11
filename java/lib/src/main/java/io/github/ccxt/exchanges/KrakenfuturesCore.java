@@ -83,6 +83,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchTickers", true );
                 put( "fetchTrades", true );
+                put( "fetchTradingFee", "emulated" );
+                put( "fetchTradingFees", true );
                 put( "sandbox", true );
                 put( "setLeverage", true );
                 put( "setMarginMode", false );
@@ -825,6 +827,129 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             put( "indexPrice", KrakenfuturesCore.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
         }});
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object response = (this.publicGetFeeschedules(parameters)).join();
+            //
+            //    {
+            //        "result": "success",
+            //        "serverTime": "2026-08-11T13:08:44Z",
+            //        "feeSchedules": [
+            //            {
+            //                "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+            //                "name": "MTF Linear Rebate Fees",
+            //                "tiers": [
+            //                    { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+            //                    { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+            //                ]
+            //            }
+            //        ]
+            //    }
+            //
+            Object volumes = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(this.checkRequiredCredentials(false)))
+            {
+                Object volumesResponse = (this.privateGetFeeschedulesVolumes()).join();
+                //
+                //    {
+                //        "result": "success",
+                //        "serverTime": "2026-08-11T13:08:44Z",
+                //        "volumesByFeeSchedule": {
+                //            "723888f7-0a8e-4183-8648-f920a22339e3": 217587.88
+                //        }
+                //    }
+                //
+                volumes = this.safeDict(volumesResponse, "volumesByFeeSchedule", new java.util.HashMap<String, Object>() {{}});
+            }
+            Object feeSchedules = this.safeList(response, "feeSchedules", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object schedulesByUid = new java.util.HashMap<String, Object>() {{}};
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeSchedules)); i++)
+            {
+                Object schedule = Helpers.GetValue(feeSchedules, i);
+                Object uid = this.safeString(schedule, "uid");
+                if (Helpers.isTrue(!Helpers.isEqual(uid, null)))
+                {
+                    Helpers.addElementToObject(schedulesByUid, uid, schedule);
+                }
+            }
+            Object result = new java.util.HashMap<String, Object>() {{}};
+            Object symbols = this.symbols;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            {
+                Object symbol = Helpers.GetValue(symbols, i);
+                Object market = this.market(symbol);
+                Object uid = this.safeString(Helpers.GetValue(market, "info"), "feeScheduleUid");
+                Object schedule = this.safeDict(schedulesByUid, uid);
+                if (Helpers.isTrue(Helpers.isEqual(schedule, null)))
+                {
+                    continue;
+                }
+                Object volume = this.safeString(volumes, uid, "0");
+                Helpers.addElementToObject(result, symbol, this.parseTradingFee(schedule, market, volume));
+            }
+            return result;
+        });
+
+    }
+
+    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    {
+        //
+        //    {
+        //        "uid": "723888f7-0a8e-4183-8648-f920a22339e3",
+        //        "name": "MTF Linear Rebate Fees",
+        //        "tiers": [
+        //            { "makerFee": 0.02, "takerFee": 0.05, "usdVolume": 0.0 },
+        //            { "makerFee": 0.0175, "takerFee": 0.045, "usdVolume": 5000000.0 }
+        //        ]
+        //    }
+        //
+        // fees are expressed in percent, tiers are sorted by ascending usdVolume
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object volume = Helpers.getArg(optionalArgs, 1, null);
+        Object tiers = this.safeList(fee, "tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object makerFee = null;
+        Object takerFee = null;
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tiers)); i++)
+        {
+            Object tier = Helpers.GetValue(tiers, i);
+            Object tierVolume = this.safeString(tier, "usdVolume");
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(volume, null))) || Helpers.isTrue(Precise.stringGe(volume, tierVolume))))
+            {
+                makerFee = this.safeString(tier, "makerFee");
+                takerFee = this.safeString(tier, "takerFee");
+                if (Helpers.isTrue(Helpers.isEqual(volume, null)))
+                {
+                    break;
+                }
+            }
+        }
+        final Object finalMakerFee = makerFee;
+        final Object finalTakerFee = takerFee;
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", fee );
+            put( "symbol", KrakenfuturesCore.this.safeSymbol(null, market) );
+            put( "maker", KrakenfuturesCore.this.parseNumber(Precise.stringDiv(finalMakerFee, "100")) );
+            put( "taker", KrakenfuturesCore.this.parseNumber(Precise.stringDiv(finalTakerFee, "100")) );
+            put( "percentage", true );
+            put( "tierBased", true );
+        }};
     }
 
     /**
