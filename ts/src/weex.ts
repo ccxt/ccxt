@@ -3173,10 +3173,12 @@ export default class weex extends Exchange {
         const triggerPrice = this.omitZero (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
         const rawType = this.safeStringUpper2 (order, 'type', 'orderType');
         const isReduceOnly = this.safeBool (order, 'reduceOnly');
+        // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
+        // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
+        const isEntryTrigger = !(this.safeBool (order, 'reduceOnly', true));
         let takeProfitPrice: Str = undefined;
         let stopLossPrice: Str = undefined;
-        if (isReduceOnly !== false) {
-            // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly false, their trigger price is not a stop loss / take profit price
+        if (!isEntryTrigger) {
             if (rawType === 'TAKE_PROFIT_MARKET' || rawType === 'TAKE_PROFIT') {
                 takeProfitPrice = triggerPrice;
             } else if (rawType === 'STOP_LOSS' || rawType === 'STOP' || rawType === 'STOP_MARKET') {
