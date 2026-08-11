@@ -3551,6 +3551,7 @@ fetch the history of changes, actions done by the user or operations that altere
 * [htx](/exchanges/htx.md#fetchledger)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchledger)
 * [kraken](/exchanges/kraken.md#fetchledger)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchledger)
 * [kucoin](/exchanges/kucoin.md#fetchledger)
 * [luno](/exchanges/luno.md#fetchledger)
 * [modetrade](/exchanges/modetrade.md#fetchledger)
