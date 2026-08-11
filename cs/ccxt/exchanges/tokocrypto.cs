@@ -1403,6 +1403,13 @@ public partial class tokocrypto : Exchange
             await this.loadMarkets();
         }
         object response = await this.binanceGetTicker24hr(parameters);
+        if (!isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            // a user-supplied symbol param makes the endpoint answer a single
+            // ticker object, the unified fetchTickers contract returns a
+            // symbol-keyed dict either way
+            return this.parseTickers(new List<object>() {response}, symbols);
+        }
         return this.parseTickers(response, symbols);
     }
 
