@@ -1197,11 +1197,13 @@ class binance extends \ccxt\async\binance {
         //     }
         //
         $marketId = $this->safe_string($message, 's');
-        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
-        $marketById = $this->safe_value($marketsByIdList, 0);
+        // the $client url is the authoritative source for the $market type — an
+        // ambiguous id like BTCUSDT maps to both the spot and the linear swap
+        // $market, and picking the first match drops the $message under the wrong
+        // $symbol and stalls the $orderbook future (delivery/option ids are
+        // unique, so the swap hint resolves those correctly too)
         $isSpot = $this->is_spot_url($client);
-        $fallbackType = $isSpot ? 'spot' : 'swap';
-        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
+        $marketType = $isSpot ? 'spot' : 'swap';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook::' . $symbol;
@@ -1688,11 +1690,9 @@ class binance extends \ccxt\async\binance {
             }
         }
         $marketId = $this->safe_string($trade, 's');
-        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
-        $marketById = $this->safe_value($marketsByIdList, 0);
         $fallbackType = (is_array($trade) && array_key_exists('ps' ?? '', $trade)) ? 'contract' : 'spot';
-        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
-        $symbol = $this->safe_symbol($marketId, null, null, $marketType);
+        $marketType = ($market !== null) ? $market['type'] : $fallbackType;
+        $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
         $orderId = $this->safe_string($trade, 'i');
@@ -1734,11 +1734,10 @@ class binance extends \ccxt\async\binance {
         // the $trade streams push raw $trade information in real-time
         // each $trade has a unique buyer and seller
         $marketId = $this->safe_string($message, 's');
-        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
-        $marketById = $this->safe_value($marketsByIdList, 0);
+        // resolve the $market from the transport url — an ambiguous id like
+        // BTCUSDT maps to both the spot and the linear swap $market
         $isSpot = $this->is_spot_url($client);
-        $fallbackType = $isSpot ? 'spot' : 'contract';
-        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
+        $marketType = $isSpot ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'trade::' . $symbol;
@@ -2063,11 +2062,10 @@ class binance extends \ccxt\async\binance {
             $this->safe_float($kline, 'c'),
             $this->safe_float($kline, 'v'),
         );
-        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
-        $marketById = $this->safe_value($marketsByIdList, 0);
+        // resolve the market from the transport url — an ambiguous id like
+        // BTCUSDT maps to both the spot and the linear swap market
         $isSpot = $this->is_spot_url($client);
-        $fallbackType = $isSpot ? 'spot' : 'contract';
-        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
+        $marketType = $isSpot ? 'spot' : 'contract';
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $messageHash = 'ohlcv::' . $symbol . '::' . $unifiedTimeframe;
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
@@ -4705,10 +4703,8 @@ class binance extends \ccxt\async\binance {
         }
         $executionType = $this->safe_string($order, 'x');
         $marketId = $this->safe_string($order, 's');
-        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
-        $marketById = $this->safe_value($marketsByIdList, 0);
-        $fallbackType = (is_array($order) && array_key_exists('ps' ?? '', $order)) ? 'contract' : 'spot';
-        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
+        // futures user-data events carry the position side field, spot ones do not
+        $marketType = (is_array($order) && array_key_exists('ps' ?? '', $order)) ? 'contract' : 'spot';
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $timestamp = $this->safe_integer($order, 'O');
         $T = $this->safe_integer($order, 'T');
