@@ -403,9 +403,18 @@ impl Value {
             Value::Float(f)    => serde_json::json!(*f),
             Value::Str(s)      => serde_json::Value::String(s.clone()),
             Value::Arr(a)      => serde_json::Value::Array(a.iter().map(Value::to_json).collect()),
-            Value::Dict(m)     => serde_json::Value::Object(
-                m.iter().map(|(k, v)| (k.clone(), v.to_json())).collect()
-            ),
+            Value::Dict(m)     => {
+                let mut obj: serde_json::Map<String, serde_json::Value> =
+                    m.iter().map(|(k, v)| (k.clone(), v.to_json())).collect();
+                // A side marker keeps its entries in the shared side store, not
+                // in the Dict — surface them under `_entries` for serialization.
+                if m.contains_key("__side_id") {
+                    let entries = side_entries_view(m);
+                    obj.insert("_entries".to_string(),
+                        serde_json::Value::Array(entries.iter().map(Value::to_json).collect()));
+                }
+                serde_json::Value::Object(obj)
+            }
         }
     }
 
@@ -595,9 +604,7 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             }
         }
         if m.contains_key("__sideKind") {
-            if let Some(Value::Arr(entries)) = m.get("_entries") {
-                return entries.get(*i as usize).cloned().unwrap_or(Value::Null);
-            }
+            return side_entry_at(m, *i as usize);
         }
     }
     match (obj, key) {
@@ -1083,6 +1090,103 @@ fn book_kind(v: &Value) -> Option<String> {
     }, _ => None }
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// Shared side backing store.
+//
+// In JS an `OrderBookSide` is a mutable object; the WS handlers routinely do
+// `const bookside = book['asks']; storeDeltas(bookside, deltas)` where the
+// helper mutates `bookside` in place and the change is visible through `book`.
+// Our `Value` is copy-on-write (Arc), so cloning the side Dict and mutating the
+// clone (the transpiled `handle_deltas(side.clone(), …)` shape) would lose the
+// writes. To restore shared mutability we keep the side's `_entries` (and the
+// indexed-side `hashmap`) OUTSIDE the Dict, in a global store keyed by a stable
+// `__side_id` that survives cloning. All reads and writes go through the store,
+// so every clone of a side Dict points at the same buffer — matching JS.
+struct SideCell {
+    entries: Vec<Value>,
+    hashmap: HashMap<String, Value>,
+}
+
+static SIDE_STORE: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, SideCell>>> =
+    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+static NEXT_SIDE_ID: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1);
+
+/// Allocate a fresh, empty side cell and return its id.
+fn alloc_side_id() -> i64 {
+    let id = NEXT_SIDE_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    SIDE_STORE.lock().unwrap().insert(id, SideCell { entries: Vec::new(), hashmap: HashMap::new() });
+    id
+}
+
+/// Clear (but keep) an existing side cell — used on reset so the id stays
+/// stable across reseeds instead of leaking a new cell each time.
+fn clear_side_cell(id: i64) {
+    let mut g = SIDE_STORE.lock().unwrap();
+    let cell = g.entry(id).or_insert_with(|| SideCell { entries: Vec::new(), hashmap: HashMap::new() });
+    cell.entries.clear();
+    cell.hashmap.clear();
+}
+
+fn side_id_of(m: &HashMap<String, Value>) -> Option<i64> {
+    match m.get("__side_id") { Some(Value::Int(n)) => Some(*n), _ => None }
+}
+
+/// Snapshot a side's entries (clone) — for read paths (indexing, length, JSON).
+fn side_entries_view(m: &HashMap<String, Value>) -> Vec<Value> {
+    match side_id_of(m) {
+        Some(id) => SIDE_STORE.lock().unwrap().get(&id).map(|c| c.entries.clone()).unwrap_or_default(),
+        // Legacy fallback: a side Dict that still carries an inline `_entries`.
+        None => match m.get("_entries") { Some(Value::Arr(a)) => a.as_ref().clone(), _ => Vec::new() },
+    }
+}
+
+fn side_entry_at(m: &HashMap<String, Value>, i: usize) -> Value {
+    match side_id_of(m) {
+        Some(id) => SIDE_STORE.lock().unwrap().get(&id)
+            .and_then(|c| c.entries.get(i).cloned()).unwrap_or(Value::Null),
+        None => match m.get("_entries") {
+            Some(Value::Arr(a)) => a.get(i).cloned().unwrap_or(Value::Null), _ => Value::Null },
+    }
+}
+
+pub(crate) fn side_entries_len(m: &HashMap<String, Value>) -> usize {
+    match side_id_of(m) {
+        Some(id) => SIDE_STORE.lock().unwrap().get(&id).map(|c| c.entries.len()).unwrap_or(0),
+        None => match m.get("_entries") { Some(Value::Arr(a)) => a.len(), _ => 0 },
+    }
+}
+
+/// Mutate a side's cell (entries + hashmap) under the store lock. No-op if the
+/// side carries no `__side_id`.
+fn with_side_cell<R>(m: &HashMap<String, Value>, f: impl FnOnce(&mut SideCell) -> R) -> Option<R> {
+    let id = side_id_of(m)?;
+    let mut g = SIDE_STORE.lock().unwrap();
+    let cell = g.entry(id).or_insert_with(|| SideCell { entries: Vec::new(), hashmap: HashMap::new() });
+    Some(f(cell))
+}
+
+/// Public: snapshot a side marker's entries as a `Value` array, or `None` when
+/// `v` is not a side marker. Entries live in the shared side store (not the
+/// Dict), so callers that need the raw `[[price, size, …], …]` list — test
+/// helpers, serializers — go through this.
+pub fn side_entries_as_value(v: &Value) -> Option<Value> {
+    match v {
+        Value::Dict(d) if d.contains_key("__sideKind") => Some(Value::List(side_entries_view(d))),
+        _ => None,
+    }
+}
+
+/// Build a fresh side marker Dict backed by a new (empty) shared cell.
+pub(crate) fn make_side_marker(side_kind: &str, is_bid: bool, depth: i64) -> Value {
+    let sid = alloc_side_id();
+    let mut m = HashMap::new();
+    m.insert("__sideKind".to_string(), Value::Str(side_kind.to_string()));
+    m.insert("_isBid".to_string(),     Value::Bool(is_bid));
+    m.insert("_depth".to_string(),     Value::Int(depth));
+    m.insert("__side_id".to_string(),  Value::Int(sid));
+    Value::Dict(Arc::new(m))
+}
+
 fn side_kind(v: &Value) -> Option<String> {
     match v { Value::Dict(d) => match d.get("__sideKind") {
         Some(Value::Str(s)) => Some(s.clone()), _ => None,
@@ -1098,14 +1202,6 @@ fn side_depth(m: &HashMap<String, Value>) -> usize {
         Some(Value::Int(n)) if *n > 0 => *n as usize,
         _ => usize::MAX / 2,
     }
-}
-
-fn side_entries_mut(m: &mut HashMap<String, Value>) -> &mut Vec<Value> {
-    let entry = m.entry("_entries".to_string()).or_insert_with(|| Value::Array(Vec::new()));
-    if let Value::Arr(a) = entry { return Arc::make_mut(a); }
-    *entry = Value::Array(Vec::new());
-    if let Value::Arr(a) = entry { return Arc::make_mut(a); }
-    unreachable!()
 }
 
 fn entry_at_price(entries: &[Value]) -> impl Fn(usize) -> f64 + '_ {
@@ -1147,17 +1243,17 @@ fn entry_id(entries: &[Value], i: usize) -> String {
     String::new()
 }
 
-fn side_store_array(side: &mut Value, delta: Value) {
+fn side_store_array(side: &Value, delta: Value) {
     let kind = side_kind(side).unwrap_or_default();
-    let d = match side { Value::Dict(d) => d, _ => return };
-    let m = Arc::make_mut(d);
+    let m = match side { Value::Dict(d) => d.as_ref(), _ => return };
     let is_bid = side_is_bid(m);
+    with_side_cell(m, |cell| {
     match kind.as_str() {
         "OrderBookSide" => {
             let price = delta_field(&delta, 0, as_f64, 0.0);
             let size  = delta_field(&delta, 1, as_f64, 0.0);
             let target = if is_bid { -price } else { price };
-            let entries = side_entries_mut(m);
+            let entries = &mut cell.entries;
             let entries_view: Vec<Value> = entries.iter().cloned().collect();
             let idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
             if size != 0.0 {
@@ -1187,7 +1283,7 @@ fn side_store_array(side: &mut Value, delta: Value) {
             let size  = delta_field(&delta, 1, as_f64, 0.0);
             let count = delta_field(&delta, 2, as_f64, 0.0);
             let target = if is_bid { -price } else { price };
-            let entries = side_entries_mut(m);
+            let entries = &mut cell.entries;
             let entries_view: Vec<Value> = entries.iter().cloned().collect();
             let idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
             if size != 0.0 && count != 0.0 {
@@ -1232,13 +1328,11 @@ fn side_store_array(side: &mut Value, delta: Value) {
             };
             let mut index_price = price_opt.map(|p| if is_bid { -p } else { p });
             let old_price_opt = {
-                if let Some(Value::Dict(hm)) = m.get("hashmap") {
-                    match hm.get(&id) {
-                        Some(Value::Float(f)) => Some(*f),
-                        Some(Value::Int(n))   => Some(*n as f64),
-                        _ => None,
-                    }
-                } else { None }
+                match cell.hashmap.get(&id) {
+                    Some(Value::Float(f)) => Some(*f),
+                    Some(Value::Int(n))   => Some(*n as f64),
+                    _ => None,
+                }
             };
             if size != 0.0 {
                 if let Some(old_price) = old_price_opt {
@@ -1246,7 +1340,7 @@ fn side_store_array(side: &mut Value, delta: Value) {
                     if Some(old_price) == index_price {
                         // Find slot by walking from bisect_left
                         let target = old_price;
-                        let entries = side_entries_mut(m);
+                        let entries = &mut cell.entries;
                         let entries_view: Vec<Value> = entries.iter().cloned().collect();
                         let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
                         while idx < entries.len() && entry_id(entries, idx) != id { idx += 1; }
@@ -1255,7 +1349,7 @@ fn side_store_array(side: &mut Value, delta: Value) {
                     }
                     // Different price — remove old slot
                     let target = old_price;
-                    let entries = side_entries_mut(m);
+                    let entries = &mut cell.entries;
                     let entries_view: Vec<Value> = entries.iter().cloned().collect();
                     let mut old_idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
                     while old_idx < entries.len() && entry_id(entries, old_idx) != id { old_idx += 1; }
@@ -1263,7 +1357,7 @@ fn side_store_array(side: &mut Value, delta: Value) {
                 }
                 let target = match index_price { Some(p) => p, None => return };
                 // Insert sorted with secondary id tiebreaker
-                let entries = side_entries_mut(m);
+                let entries = &mut cell.entries;
                 let entries_view: Vec<Value> = entries.iter().cloned().collect();
                 let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
                 while idx < entries.len() {
@@ -1277,32 +1371,29 @@ fn side_store_array(side: &mut Value, delta: Value) {
                     idx += 1;
                 }
                 entries.insert(idx, delta);
-                if let Some(Value::Dict(hm_arc)) = m.get_mut("hashmap") {
-                    Arc::make_mut(hm_arc).insert(id, Value::Float(target));
-                }
+                cell.hashmap.insert(id, Value::Float(target));
             } else if let Some(old_price) = old_price_opt {
                 // Delete by id
                 let target = old_price;
-                let entries = side_entries_mut(m);
+                let entries = &mut cell.entries;
                 let entries_view: Vec<Value> = entries.iter().cloned().collect();
                 let mut idx = bisect_left_by(entries.len(), target, is_bid, entry_at_price(&entries_view));
                 while idx < entries.len() && entry_id(entries, idx) != id { idx += 1; }
                 if idx < entries.len() { entries.remove(idx); }
-                if let Some(Value::Dict(hm_arc)) = m.get_mut("hashmap") {
-                    Arc::make_mut(hm_arc).shift_remove(&id);
-                }
+                cell.hashmap.shift_remove(&id);
             }
         }
         _ => {}
     }
+    });
 }
 
-fn side_limit(side: &mut Value) {
-    let d = match side { Value::Dict(d) => d, _ => return };
-    let m = Arc::make_mut(d);
+fn side_limit(side: &Value) {
+    let m = match side { Value::Dict(d) => d.as_ref(), _ => return };
     let depth = side_depth(m);
-    let entries = side_entries_mut(m);
-    if entries.len() > depth { entries.truncate(depth); }
+    with_side_cell(m, |cell| {
+        if cell.entries.len() > depth { cell.entries.truncate(depth); }
+    });
 }
 
 fn book_reseed_sides(book: &mut Value, snapshot: &Value) {
@@ -1320,21 +1411,28 @@ fn book_reseed_sides(book: &mut Value, snapshot: &Value) {
             Some(Value::Int(n)) => *n,
             _ => i64::MAX / 2,
         };
-        // Rebuild bids
+        // Rebuild bids/asks. Reuse the existing side's `__side_id` (clearing its
+        // backing cell) so repeated resets don't leak a fresh cell each time.
         for (side_key, deltas, is_bid) in [
             ("bids", &bids_deltas, true),
             ("asks", &asks_deltas, false),
         ] {
+            let sid = match book_m.get(side_key) {
+                Some(Value::Dict(d)) => match d.get("__side_id") {
+                    Some(Value::Int(n)) => { clear_side_cell(*n); *n }
+                    _ => alloc_side_id(),
+                },
+                _ => alloc_side_id(),
+            };
             let mut m = HashMap::new();
             m.insert("__sideKind".to_string(),  Value::Str(side_kind_str.to_string()));
             m.insert("_isBid".to_string(),      Value::Bool(is_bid));
             m.insert("_depth".to_string(),      Value::Int(depth));
-            m.insert("_entries".to_string(),    Value::Array(Vec::new()));
-            m.insert("hashmap".to_string(),    Value::Map(HashMap::new()));
-            let mut side = Value::Map(m);
+            m.insert("__side_id".to_string(),   Value::Int(sid));
+            let side = Value::Map(m);
             if let Value::Arr(rows) = deltas {
                 for row in rows.iter() {
-                    if let Value::Arr(_) = row { side_store_array(&mut side, row.clone()); }
+                    if let Value::Arr(_) = row { side_store_array(&side, row.clone()); }
                 }
             }
             book_m.insert(side_key.to_string(), side);

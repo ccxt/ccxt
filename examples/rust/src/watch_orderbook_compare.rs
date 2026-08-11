@@ -18,12 +18,17 @@
 //
 // Live network is required (it connects to the real exchanges).
 //
-// STATUS: the WS runtime is live end-to-end — bybit streams a fully-resolved
-// order book here (real bid/ask). binance/okx additionally need a REST depth
-// snapshot fetched via `spawn` (currently a no-op — the transpiler lowers the
-// coroutine's JS function arg to null), so their books don't complete yet and
-// those rows may stay on "waiting". Venues whose WS stream carries its own
-// snapshot (like bybit) work today.
+// STATUS: the WS runtime is live end-to-end. bybit streams a fully-resolved
+// order book with live-updating deltas, and okx resolves its full 400-level
+// snapshot — both work because order-book sides are shared-mutable (the delta
+// handlers mutate a shared backing store, so `handle_deltas(side.clone(), …)`
+// reflects into the cached book). okx then rejects on `InvalidNonce` after the
+// first snapshot: its per-message sequence check reads the book's `nonce`
+// scalar field, which is still COW-cloned (only the side entries are shared),
+// so the seqId written inside `handle_order_book_message` doesn't persist.
+// binance additionally needs a REST depth snapshot fetched via `spawn`
+// (currently a no-op — the transpiler lowers the coroutine's JS function arg to
+// null), so its book doesn't complete yet and that row stays on "waiting".
 
 use std::collections::BTreeMap;
 use std::panic::AssertUnwindSafe;

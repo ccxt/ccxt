@@ -79,7 +79,7 @@ fn unwrap_marker_to_array(v: &Value) -> Option<Value> {
         return d.get("_data").cloned();
     }
     if d.contains_key("__sideKind") {
-        return d.get("_entries").cloned();
+        return ccxt::value::side_entries_as_value(v);
     }
     None
 }

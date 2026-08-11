@@ -465,9 +465,7 @@ pub fn get_array_length(v: &Value) -> Value {
             }
         }
         if d.contains_key("__sideKind") {
-            if let Some(Value::Arr(entries)) = d.get("_entries") {
-                return Value::Int(entries.len() as i64);
-            }
+            return Value::Int(crate::value::side_entries_len(d) as i64);
         }
     }
     Value::Int(v.len() as i64)

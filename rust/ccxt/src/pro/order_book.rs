@@ -37,13 +37,7 @@ fn iso8601_millis(ts: i64) -> Option<String> {
 /// side ? -price : price`); we keep the same semantics inside
 /// `Value::store_array`.
 fn new_side(kind: &str, is_bid: bool, depth: i64, deltas: &Value) -> Value {
-    let mut m = IndexMap::new();
-    m.insert("__sideKind".to_string(),  Value::Str(kind.to_string()));
-    m.insert("_isBid".to_string(),      Value::Bool(is_bid));
-    m.insert("_depth".to_string(),      Value::Int(depth));
-    m.insert("_entries".to_string(),    Value::Array(Vec::new()));
-    m.insert("hashmap".to_string(),    Value::Map(IndexMap::new()));
-    let mut side = Value::Map(m);
+    let mut side = crate::value::make_side_marker(kind, is_bid, depth);
     if let Value::Arr(rows) = deltas {
         for row in rows.iter() {
             if let Value::Arr(_) = row {
