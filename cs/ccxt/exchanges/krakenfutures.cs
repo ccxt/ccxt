@@ -55,6 +55,7 @@ public partial class krakenfutures : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchIsolatedPositions", false },
+                { "fetchLedger", true },
                 { "fetchLeverage", true },
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
@@ -2685,6 +2686,191 @@ public partial class krakenfutures : Exchange
         //
         object fills = this.safeList(response, "fills", new List<object>() {});
         return this.parseTrades(fills, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+        }
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["since"] = since;
+            object sort = this.safeString(parameters, "sort");
+            if (isTrue(isEqual(sort, null)))
+            {
+                ((IDictionary<string,object>)request)["sort"] = "asc";
+            }
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            // each trade execution emits two rows and the position-size legs are
+            // filtered out below, so ask for twice the limit to compensate,
+            // parseLedger re-applies the limit on the filtered entries
+            ((IDictionary<string,object>)request)["count"] = multiply(limit, 2);
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["before"] = until;
+        }
+        object response = await this.historyGetAccountLog(this.extend(request, parameters));
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "logs": [
+        //            {
+        //                "asset": "usd",
+        //                "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        //                "contract": "pf_dogeusd",
+        //                "date": "2026-08-11T19:55:24.251Z",
+        //                "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        //                "fee": 0.0035,
+        //                "funding_rate": 0.000001129880786375,
+        //                "id": 9,
+        //                "info": "futures trade",
+        //                "margin_account": "flex",
+        //                "mark_price": 0.07091471613,
+        //                "new_balance": 0,
+        //                "old_balance": 0.0077,
+        //                "realized_funding": null,
+        //                "realized_pnl": -0.0042,
+        //                "trade_price": 0.070914
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        object logs = this.safeList(response, "logs", new List<object>() {});
+        // each execution emits two rows: a cash leg(asset is a currency) and
+        // a position-size leg(asset equals the contract id) - keep the cash legs only
+        object rows = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(logs)); postFixIncrement(ref i))
+        {
+            object row = getValue(logs, i);
+            object asset = this.safeString(row, "asset");
+            object contract = this.safeString(row, "contract");
+            if (isTrue(isTrue((!isEqual(asset, null))) && isTrue((!isEqual(asset, contract)))))
+            {
+                ((IList<object>)rows).Add(row);
+            }
+        }
+        return this.parseLedger(rows, currency, since, limit);
+    }
+
+    public virtual object parseLedgerEntryType(object type)
+    {
+        object types = new Dictionary<string, object>() {
+            { "futures trade", "trade" },
+            { "futures liquidation", "trade" },
+            { "futures assignee", "trade" },
+            { "futures assignor", "trade" },
+            { "futures unwind counterparty", "trade" },
+            { "futures unwind bankrupt", "trade" },
+            { "covered liquidation", "trade" },
+            { "settlement", "trade" },
+            { "conversion", "trade" },
+            { "funding rate change", "fee" },
+            { "interest payment", "fee" },
+            { "kfee applied", "fee" },
+            { "tax withheld", "fee" },
+            { "tax refund", "rebate" },
+            { "transfer", "transfer" },
+            { "subaccount transfer", "transfer" },
+            { "cross-exchange transfer", "transfer" },
+            { "admin transfer", "transfer" },
+        };
+        return this.safeString(types, ((string)type), type);
+    }
+
+    public override object parseLedgerEntry(object item, object currency = null)
+    {
+        //
+        //    {
+        //        "asset": "usd",
+        //        "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        //        "contract": "pf_dogeusd",
+        //        "date": "2026-08-11T19:55:24.251Z",
+        //        "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        //        "fee": 0.0035,
+        //        "funding_rate": 0.000001129880786375,
+        //        "id": 9,
+        //        "info": "futures trade",
+        //        "margin_account": "flex",
+        //        "mark_price": 0.07091471613,
+        //        "new_balance": 0,
+        //        "old_balance": 0.0077,
+        //        "realized_funding": null,
+        //        "realized_pnl": -0.0042,
+        //        "trade_price": 0.070914
+        //    }
+        //
+        object timestamp = this.parse8601(this.safeString(item, "date"));
+        object currencyId = this.safeString(item, "asset");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
+        object before = this.safeString(item, "old_balance");
+        object after = this.safeString(item, "new_balance");
+        object feeCost = this.safeString(item, "fee");
+        object amount = null;
+        object direction = null;
+        if (isTrue(isTrue((!isEqual(before, null))) && isTrue((!isEqual(after, null)))))
+        {
+            amount = Precise.stringSub(after, before);
+            if (isTrue(!isEqual(feeCost, null)))
+            {
+                // the fee is already deducted from the balance delta, add it
+                // back so that amount does not include the fee, matching the
+                // unified ledger contract: after = before +/- amount - fee
+                amount = Precise.stringAdd(amount, feeCost);
+            }
+            if (isTrue(Precise.stringLt(amount, "0")))
+            {
+                direction = "out";
+                amount = Precise.stringAbs(amount);
+            } else
+            {
+                direction = "in";
+            }
+        }
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
+            { "id", this.safeString(item, "id") },
+            { "direction", direction },
+            { "account", this.safeString(item, "margin_account") },
+            { "referenceId", this.safeString2(item, "execution", "booking_uid") },
+            { "referenceAccount", null },
+            { "type", this.parseLedgerEntryType(this.safeString(item, "info")) },
+            { "currency", code },
+            { "amount", this.parseNumber(amount) },
+            { "before", this.parseNumber(before) },
+            { "after", this.parseNumber(after) },
+            { "status", "ok" },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "fee", new Dictionary<string, object>() {
+                { "cost", this.parseNumber(feeCost) },
+                { "currency", code },
+            } },
+        }, currency);
     }
 
     /**
