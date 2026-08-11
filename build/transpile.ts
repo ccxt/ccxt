@@ -1275,7 +1275,7 @@ class Transpiler {
                 }
             } else if (!exclusions.includes (methodName) && !derivedMethods.includes (methodName)) {
                 // if code does not contain unified method definition, then we remove (unless false)
-                if (!(methodName in features) || !features[methodName].startsWith ('false,')) {
+                if ((methodName in features) && !features[methodName].startsWith ('false,')) {
                     errors = errors.concat (methodName);
                 }
             }
@@ -1286,7 +1286,7 @@ class Transpiler {
                     delete features[methodName];
                 }
             } else {
-                console.log ('Methods: ' + errors.join('| ') + '\' need to be removed from .has');
+                console.log ('These Methods need to be removed from ' + baseExchange.id + '.has: ' + errors.join(' | '));
                 process.exit (1);
             }
         }
