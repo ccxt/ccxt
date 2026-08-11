@@ -3055,8 +3055,8 @@ export default class btse extends Exchange {
         //     {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
-        const success = this.safeBool (response, 'success');
-        if (success === false) {
+        const success = this.safeBool (response, 'success', true);
+        if (!success) {
             const spotErrorCode = this.safeString (response, 'code');
             const spotMessage = this.safeString (response, 'msg');
             const feedback = this.id + ' ' + body;
