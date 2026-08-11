@@ -3169,7 +3169,7 @@ export default class weex extends Exchange {
             market = this.safeMarket (marketId, undefined, undefined, marketType);
         }
         const timestamp = this.safeIntegerN (order, [ 'transactTime', 'time', 'createTime' ]);
-        const rawStatus = this.safeStringLower (order, 'status');
+        const rawStatus = this.safeStringLower2 (order, 'status', 'algoStatus'); // algo (trigger) order payloads carry algoStatus instead of status
         const triggerPrice = this.omitZero (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
         const rawType = this.safeStringUpper2 (order, 'type', 'orderType');
         const isReduceOnly = this.safeBool (order, 'reduceOnly');
