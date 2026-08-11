@@ -100,8 +100,8 @@ class xt extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
-                'fetchTradingFees' => false,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'fetchTradingLimits' => false,
                 'fetchTransactionFee' => false,
                 'fetchTransactionFees' => false,
@@ -259,6 +259,7 @@ class xt extends Exchange {
                             'future/user/v1/position/adl' => array( 'cost' => 1 ),
                             'future/user/v1/position/break-list' => array( 'cost' => 1 ),
                             'future/user/v1/position/list' => array( 'cost' => 1 ),
+                            'future/user/v1/user/step-rate' => array( 'cost' => 1 ),
                             'future/user/v1/user/collection/list' => array( 'cost' => 1 ),
                             'future/user/v1/user/listen-key' => array( 'cost' => 1 ),
                         ),
@@ -305,6 +306,7 @@ class xt extends Exchange {
                             'future/user/v1/position/adl' => array( 'cost' => 1 ),
                             'future/user/v1/position/break-list' => array( 'cost' => 1 ),
                             'future/user/v1/position/list' => array( 'cost' => 1 ),
+                            'future/user/v1/user/step-rate' => array( 'cost' => 1 ),
                             'future/user/v1/user/collection/list' => array( 'cost' => 1 ),
                             'future/user/v1/user/listen-key' => array( 'cost' => 1 ),
                         ),
@@ -4743,6 +4745,104 @@ class xt extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
         ), $market);
+    }
+
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
+        /**
+         * fetch the trading fees for a contract $market, the same account-level rate applies to all contract markets of the same subtype
+         *
+         * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new NotSupported($this->id . ' fetchTradingFee() supports contract markets only');
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchTradingFee', $market, $params);
+        $response = null;
+        if ($subType === 'inverse') {
+            $response = $this->privateInverseGetFutureUserV1UserStepRate($params);
+        } else {
+            $response = $this->privateLinearGetFutureUserV1UserStepRate($params);
+        }
+        //
+        //     {
+        //         "returnCode" => 0,
+        //         "msgInfo" => "success",
+        //         "error" => null,
+        //         "result" => {
+        //             "specialType" => false,
+        //             "vipProType" => false,
+        //             "stepRateProName" => null,
+        //             "discountLevel" => 0,
+        //             "makerFee" => "0.0002",
+        //             "takerFee" => "0.0006",
+        //             "levelReturnDay" => 90,
+        //             "totalTradeVolume" => "78.708",
+        //             "walletBalance" => "21.95",
+        //             "nextLvTradeVolume" => "200000",
+        //             "nextLvMakerFee" => "0.00018",
+        //             "nextLvTakerFee" => "0.00054",
+        //             "feeSource" => "step_rate"
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_trading_fee($result, $market);
+    }
+
+    public function fetch_trading_fees($params = array()): array {
+        /**
+         * fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+         *
+         * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] 'linear' (default) or 'inverse'
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market $symbol
+         */
+        $this->load_markets();
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchTradingFees', null, $params);
+        $isInverse = ($subType === 'inverse');
+        $response = null;
+        if ($isInverse) {
+            $response = $this->privateInverseGetFutureUserV1UserStepRate($params);
+        } else {
+            $response = $this->privateLinearGetFutureUserV1UserStepRate($params);
+        }
+        //
+        // same $response
+        //
+        $fee = $this->safe_dict($response, 'result', array());
+        $result = array();
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $matchesSubType = ($isInverse) ? $market['inverse'] : $market['linear'];
+            if ($market['contract'] && $matchesSubType) {
+                $result[$symbol] = $this->parse_trading_fee($fee, $market);
+            }
+        }
+        return $result;
+    }
+
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
+        $symbol = ($market !== null) ? $market['symbol'] : null;
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($fee, 'makerFee'),
+            'taker' => $this->safe_number($fee, 'takerFee'),
+            'percentage' => null,
+            'tierBased' => true,
+        );
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
