@@ -682,6 +682,7 @@ pub fn set_value(obj: &mut Value, key: &Value, val: Value) {
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => {
             if try_book_meta_write(m, k, &val) { return; }
+            if try_ws_subs_write(m, k, &val) { return; }
             Arc::make_mut(m).insert(k.clone(), val);
         }
         (Value::Arr(a), Value::Int(i)) => {
@@ -1193,6 +1194,27 @@ fn book_cache_len(id: i64) -> usize {
 /// Length of a cache handle Dict's backing store, or None if `m` isn't a handle.
 pub(crate) fn book_cache_len_of(m: &HashMap<String, Value>) -> Option<usize> {
     book_cache_id_of(m).map(book_cache_len)
+}
+
+/// If `m` is a tagged live-subscriptions snapshot, apply `client.subscriptions
+/// [key] = val` to the live WS client and return true.
+pub(crate) fn try_ws_subs_write(m: &HashMap<String, Value>, key: &str, val: &Value) -> bool {
+    if key == "__ws_subs_url" { return false; }
+    if let Some(Value::Str(url)) = m.get("__ws_subs_url") {
+        crate::pro::ws_client::value_subs_insert(url, key, val.clone());
+        return true;
+    }
+    false
+}
+
+/// If `m` is a tagged live-subscriptions snapshot, apply `delete
+/// client.subscriptions[key]` to the live WS client and return true.
+pub(crate) fn try_ws_subs_remove(m: &HashMap<String, Value>, key: &str) -> bool {
+    if let Some(Value::Str(url)) = m.get("__ws_subs_url") {
+        crate::pro::ws_client::value_subs_remove(url, key);
+        return true;
+    }
+    false
 }
 
 /// If `obj` is a cache handle, push `v` into its store and return true.

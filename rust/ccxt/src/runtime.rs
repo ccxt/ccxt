@@ -397,6 +397,7 @@ pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => {
             if crate::value::try_book_meta_write(m, k, &val) { return; }
+            if crate::value::try_ws_subs_write(m, k, &val) { return; }
             Arc::make_mut(m).insert(k.clone(), val);
         }
         (Value::Dict(m), other) => { Arc::make_mut(m).insert(stringify_simple(other), val); }
@@ -412,7 +413,10 @@ pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
 
 pub fn remove(obj: &mut Value, key: &Value) {
     match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => { Arc::make_mut(m).shift_remove(k); }
+        (Value::Dict(m), Value::Str(k)) => {
+            if crate::value::try_ws_subs_remove(m, k) { return; }
+            Arc::make_mut(m).shift_remove(k);
+        }
         (Value::Arr(a), Value::Int(i)) => {
             let idx = *i as usize;
             let a = Arc::make_mut(a);

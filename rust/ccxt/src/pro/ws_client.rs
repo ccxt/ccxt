@@ -209,9 +209,13 @@ impl ClientState {
 
     /// Snapshot of `subscriptions` as a `Value::Map { hash: subscription }` —
     /// the shape the transpiled `get_value(&client, "subscriptions")` reads.
+    /// Tagged with `__ws_subs_url` so that writes performed on the snapshot
+    /// (`client.subscriptions[chanId] = …`, common in bitfinex/chan-id venues)
+    /// route back to this live `ClientState` instead of a discarded clone.
     pub fn subscriptions_value(&self) -> Value {
         let subs = self.subscriptions.lock().unwrap();
         let mut m = indexmap::IndexMap::new();
+        m.insert("__ws_subs_url".to_string(), Value::Str(self.url.clone()));
         for (h, sub) in subs.iter() {
             m.insert(h.clone(), sub.clone());
         }
@@ -233,6 +237,17 @@ impl ClientState {
 pub fn get_client(url: &str) -> Option<Arc<ClientState>> {
     let reg = REGISTRY.lock().unwrap();
     reg.get(url).filter(|c| !c.is_closed()).cloned()
+}
+
+/// `client.subscriptions[key] = val` written on a tagged snapshot — persist it
+/// to the live client so subsequent `handle_message` snapshots see it.
+pub fn value_subs_insert(url: &str, key: &str, val: Value) {
+    if let Some(c) = get_client(url) { c.set_subscription(key, val); }
+}
+
+/// `delete client.subscriptions[key]` on a tagged snapshot.
+pub fn value_subs_remove(url: &str, key: &str) {
+    if let Some(c) = get_client(url) { c.subscriptions.lock().unwrap().remove(key); }
 }
 
 /// Ensure a live connection to `url`, connecting (and spawning the reader /
