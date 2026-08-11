@@ -265,7 +265,7 @@ export default class bitrue extends Exchange {
                                 'time': { 'cost': 0.24 } as Endpoint<Dict>,
                                 'contracts': { 'cost': 0.24 } as Endpoint<List>,
                                 'depth': { 'cost': 0.24 } as Endpoint<Dict>,
-                                'ticker': { 'cost': 0.24 } as Endpoint<List>,
+                                'ticker': { 'cost': 0.24 } as Endpoint<Dict | List>,
                                 'klines': { 'cost': 0.24 } as Endpoint<Dict>,
                             },
                         },
