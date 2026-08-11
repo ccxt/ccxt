@@ -264,11 +264,12 @@ public partial class BaseExchange
                     var convertedKeepAlive = Convert.ToInt64(this.keepAlive);
                     if (lastPongConverted + convertedKeepAlive * this.maxPingPongMisses < now)
                     {
-                        // sibling wording (ts/py/php/go), the previous message printed the raw
-                        // millisecond keepAlive labeled as "seconds" and named half the real
-                        // window (the kill threshold is keepAlive * maxPingPongMisses), and
-                        // raised a bare Exception the error-class handling cannot categorize
-                        this.onError(this, new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time"));
+                        // sibling wording (ts/py/php/go) plus the actual numbers — the raw value
+                        // is what surfaced this bug in the first place, so keep it, but print the
+                        // real kill window with the real unit instead of the millisecond keepAlive
+                        // labeled as "seconds", and raise RequestTimeout instead of a bare
+                        // Exception the error-class handling cannot categorize
+                        this.onError(this, new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time (no liveness within " + (convertedKeepAlive * this.maxPingPongMisses) + " ms = keepAlive " + convertedKeepAlive + " ms x " + this.maxPingPongMisses + " misses)"));
                         break;
                     }
                     else
