@@ -47,6 +47,11 @@ name = "watch_orderbook_compare"
 path = "src/watch_orderbook_compare.rs"
 required-features = ["ws"]
 
+[[bin]]
+name = "ws_health_probe"
+path = "src/ws_health_probe.rs"
+required-features = ["ws"]
+
 # Keep debug symbols in release so `sample`/Instruments can attribute
 # hot frames. Negligible perf impact, larger binary.
 [profile.release]
