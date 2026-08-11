@@ -2410,14 +2410,23 @@ export default class krakenfutures extends Exchange {
     parseLedgerEntryType (type: any) {
         const types: Dict = {
             'futures trade': 'trade',
+            'futures liquidation': 'trade',
             'futures assignee': 'trade',
             'futures assignor': 'trade',
+            'futures unwind counterparty': 'trade',
+            'futures unwind bankrupt': 'trade',
+            'covered liquidation': 'trade',
+            'settlement': 'trade',
             'conversion': 'trade',
             'funding rate change': 'fee',
+            'interest payment': 'fee',
+            'kfee applied': 'fee',
+            'tax withheld': 'fee',
+            'tax refund': 'rebate',
+            'transfer': 'transfer',
             'subaccount transfer': 'transfer',
             'cross-exchange transfer': 'transfer',
-            'deposit': 'transaction',
-            'withdrawal': 'transaction',
+            'admin transfer': 'transfer',
         };
         return this.safeString (types, (type as string), type);
     }
