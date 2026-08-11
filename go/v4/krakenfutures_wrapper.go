@@ -729,6 +729,52 @@ func (this *Krakenfutures) FetchMyTrades(options ...FetchMyTradesOptions) ([]Tra
 
 /**
  * @method
+ * @name krakenfutures#fetchLedger
+ * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+ * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+ * @param {string} [code] unified currency code, default is undefined
+ * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+ * @param {int} [limit] max number of ledger entries to return, default is undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest ledger entry
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+ */
+func (this *Krakenfutures) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
+
+	opts := FetchLedgerOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchLedger(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLedgerEntryArray(res), nil
+}
+
+/**
+ * @method
  * @name krakenfutures#fetchBalance
  * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
  * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
@@ -1228,9 +1274,6 @@ func (this *Krakenfutures) FetchIsolatedBorrowRates(params ...any) (IsolatedBorr
 }
 func (this *Krakenfutures) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
 	return this.exchangeTyped.FetchLastPrices(options...)
-}
-func (this *Krakenfutures) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedger(options...)
 }
 func (this *Krakenfutures) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
 	return this.exchangeTyped.FetchLedgerEntry(id, options...)

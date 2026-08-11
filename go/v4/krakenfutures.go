@@ -62,6 +62,7 @@ func (this *KrakenfuturesCore) Describe() any {
 			"fetchIsolatedBorrowRate":        false,
 			"fetchIsolatedBorrowRates":       false,
 			"fetchIsolatedPositions":         false,
+			"fetchLedger":                    true,
 			"fetchLeverage":                  true,
 			"fetchLeverages":                 true,
 			"fetchLeverageTiers":             true,
@@ -632,8 +633,8 @@ func (this *KrakenfuturesCore) FetchOrderBook(symbol any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes55512 := (<-this.LoadMarkets())
-			PanicOnError(retRes55512)
+			retRes55612 := (<-this.LoadMarkets())
+			PanicOnError(retRes55612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -702,8 +703,8 @@ func (this *KrakenfuturesCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes60812 := (<-this.LoadMarkets())
-			PanicOnError(retRes60812)
+			retRes60912 := (<-this.LoadMarkets())
+			PanicOnError(retRes60912)
 		}
 
 		response := (<-this.PublicGetTickers(params))
@@ -840,8 +841,8 @@ func (this *KrakenfuturesCore) FetchTradingFees(optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes7308 := (<-this.LoadMarkets())
-		PanicOnError(retRes7308)
+		retRes7318 := (<-this.LoadMarkets())
+		PanicOnError(retRes7318)
 
 		response := (<-this.PublicGetFeeschedules(params))
 		PanicOnError(response)
@@ -974,8 +975,8 @@ func (this *KrakenfuturesCore) FetchOHLCV(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes83812 := (<-this.LoadMarkets())
-			PanicOnError(retRes83812)
+			retRes83912 := (<-this.LoadMarkets())
+			PanicOnError(retRes83912)
 		}
 		var market any = this.Market(symbol)
 		var paginate any = false
@@ -984,9 +985,9 @@ func (this *KrakenfuturesCore) FetchOHLCV(symbol any, optionalArgs ...any) <-cha
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes84419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 2000))
-			PanicOnError(retRes84419)
-			ch <- retRes84419
+			retRes84519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 2000))
+			PanicOnError(retRes84519)
+			ch <- retRes84519
 			return nil
 		}
 		var request any = map[string]any{
@@ -1081,8 +1082,8 @@ func (this *KrakenfuturesCore) FetchTrades(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes92612 := (<-this.LoadMarkets())
-			PanicOnError(retRes92612)
+			retRes92712 := (<-this.LoadMarkets())
+			PanicOnError(retRes92712)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
@@ -1090,9 +1091,9 @@ func (this *KrakenfuturesCore) FetchTrades(symbol any, optionalArgs ...any) <-ch
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes93119 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-			PanicOnError(retRes93119)
-			ch <- retRes93119
+			retRes93219 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+			PanicOnError(retRes93219)
+			ch <- retRes93219
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -1468,8 +1469,8 @@ func (this *KrakenfuturesCore) CreateOrder(symbol any, typeVar any, side any, am
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes127612 := (<-this.LoadMarkets())
-			PanicOnError(retRes127612)
+			retRes127712 := (<-this.LoadMarkets())
+			PanicOnError(retRes127712)
 		}
 		var market any = this.Market(symbol)
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -1570,8 +1571,8 @@ func (this *KrakenfuturesCore) CreateOrders(orders any, optionalArgs ...any) <-c
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes136312 := (<-this.LoadMarkets())
-			PanicOnError(retRes136312)
+			retRes136412 := (<-this.LoadMarkets())
+			PanicOnError(retRes136412)
 		}
 		var ordersRequests any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -1649,8 +1650,8 @@ func (this *KrakenfuturesCore) EditOrder(id any, symbol any, typeVar any, side a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes142312 := (<-this.LoadMarkets())
-			PanicOnError(retRes142312)
+			retRes142412 := (<-this.LoadMarkets())
+			PanicOnError(retRes142412)
 		}
 		var request any = map[string]any{
 			"orderId": id,
@@ -1698,8 +1699,8 @@ func (this *KrakenfuturesCore) CancelOrder(id any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes145512 := (<-this.LoadMarkets())
-			PanicOnError(retRes145512)
+			retRes145612 := (<-this.LoadMarkets())
+			PanicOnError(retRes145612)
 		}
 
 		response := (<-this.PrivatePostCancelorder(this.Extend(map[string]any{
@@ -1746,8 +1747,8 @@ func (this *KrakenfuturesCore) CancelOrders(ids any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes148212 := (<-this.LoadMarkets())
-			PanicOnError(retRes148212)
+			retRes148312 := (<-this.LoadMarkets())
+			PanicOnError(retRes148312)
 		}
 		var orders any = []any{}
 		var clientOrderIds any = this.SafeValue(params, "clientOrderIds", []any{})
@@ -1901,8 +1902,8 @@ func (this *KrakenfuturesCore) CancelAllOrdersAfter(timeout any, optionalArgs ..
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes160112 := (<-this.LoadMarkets())
-			PanicOnError(retRes160112)
+			retRes160212 := (<-this.LoadMarkets())
+			PanicOnError(retRes160212)
 		}
 		var request any = map[string]any{
 			"timeout": Ternary(IsTrue((IsGreaterThan(timeout, 0))), (this.ParseToInt(Divide(timeout, 1000))), 0),
@@ -1954,8 +1955,8 @@ func (this *KrakenfuturesCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes163312 := (<-this.LoadMarkets())
-			PanicOnError(retRes163312)
+			retRes163412 := (<-this.LoadMarkets())
+			PanicOnError(retRes163412)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1999,8 +2000,8 @@ func (this *KrakenfuturesCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes165712 := (<-this.LoadMarkets())
-			PanicOnError(retRes165712)
+			retRes165812 := (<-this.LoadMarkets())
+			PanicOnError(retRes165812)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2039,8 +2040,8 @@ func (this *KrakenfuturesCore) FetchOrder(id any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes168012 := (<-this.LoadMarkets())
-			PanicOnError(retRes168012)
+			retRes168112 := (<-this.LoadMarkets())
+			PanicOnError(retRes168112)
 		}
 		var request any = map[string]any{
 			"orderIds": []any{id},
@@ -2088,8 +2089,8 @@ func (this *KrakenfuturesCore) FetchClosedOrders(optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes170812 := (<-this.LoadMarkets())
-			PanicOnError(retRes170812)
+			retRes170912 := (<-this.LoadMarkets())
+			PanicOnError(retRes170912)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2172,8 +2173,8 @@ func (this *KrakenfuturesCore) FetchCanceledOrders(optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes176912 := (<-this.LoadMarkets())
-			PanicOnError(retRes176912)
+			retRes177012 := (<-this.LoadMarkets())
+			PanicOnError(retRes177012)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2830,8 +2831,8 @@ func (this *KrakenfuturesCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes240212 := (<-this.LoadMarkets())
-			PanicOnError(retRes240212)
+			retRes240312 := (<-this.LoadMarkets())
+			PanicOnError(retRes240312)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2872,6 +2873,197 @@ func (this *KrakenfuturesCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 
 /**
  * @method
+ * @name krakenfutures#fetchLedger
+ * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+ * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+ * @param {string} [code] unified currency code, default is undefined
+ * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+ * @param {int} [limit] max number of ledger entries to return, default is undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest ledger entry
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+ */
+func (this *KrakenfuturesCore) FetchLedger(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		code := GetArg(optionalArgs, 0, nil)
+		_ = code
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]any{})
+		_ = params
+
+		retRes24488 := (<-this.LoadMarkets())
+		PanicOnError(retRes24488)
+		var currency any = nil
+		if IsTrue(!IsEqual(code, nil)) {
+			currency = this.Currency(code)
+		}
+		var request any = map[string]any{}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "since", since)
+			var sort any = this.SafeString(params, "sort")
+			if IsTrue(IsEqual(sort, nil)) {
+				AddElementToObject(request, "sort", "asc")
+			}
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			// each trade execution emits two rows and the position-size legs are
+			// filtered out below, so ask for twice the limit to compensate,
+			// parseLedger re-applies the limit on the filtered entries
+			AddElementToObject(request, "count", Multiply(limit, 2))
+		}
+		var until any = this.SafeInteger(params, "until")
+		if IsTrue(!IsEqual(until, nil)) {
+			params = this.Omit(params, "until")
+			AddElementToObject(request, "before", until)
+		}
+
+		response := (<-this.HistoryGetAccountLog(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//    {
+		//        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+		//        "logs": [
+		//            {
+		//                "asset": "usd",
+		//                "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+		//                "contract": "pf_dogeusd",
+		//                "date": "2026-08-11T19:55:24.251Z",
+		//                "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+		//                "fee": 0.0035,
+		//                "funding_rate": 0.000001129880786375,
+		//                "id": 9,
+		//                "info": "futures trade",
+		//                "margin_account": "flex",
+		//                "mark_price": 0.07091471613,
+		//                "new_balance": 0,
+		//                "old_balance": 0.0077,
+		//                "realized_funding": null,
+		//                "realized_pnl": -0.0042,
+		//                "trade_price": 0.070914
+		//            },
+		//            ...
+		//        ]
+		//    }
+		//
+		var logs any = this.SafeList(response, "logs", []any{})
+		// each execution emits two rows: a cash leg(asset is a currency) and
+		// a position-size leg(asset equals the contract id) - keep the cash legs only
+		var rows any = []any{}
+		for i := 0; IsLessThan(i, GetArrayLength(logs)); i++ {
+			var row any = GetValue(logs, i)
+			var asset any = this.SafeString(row, "asset")
+			var contract any = this.SafeString(row, "contract")
+			if IsTrue(IsTrue((!IsEqual(asset, nil))) && IsTrue((!IsEqual(asset, contract)))) {
+				AppendToArray(&rows, row)
+			}
+		}
+
+		ch <- this.ParseLedger(rows, currency, since, limit)
+		return nil
+
+	}()
+	return ch
+}
+func (this *KrakenfuturesCore) ParseLedgerEntryType(typeVar any) any {
+	var types any = map[string]any{
+		"futures trade":               "trade",
+		"futures liquidation":         "trade",
+		"futures assignee":            "trade",
+		"futures assignor":            "trade",
+		"futures unwind counterparty": "trade",
+		"futures unwind bankrupt":     "trade",
+		"covered liquidation":         "trade",
+		"settlement":                  "trade",
+		"conversion":                  "trade",
+		"funding rate change":         "fee",
+		"interest payment":            "fee",
+		"kfee applied":                "fee",
+		"tax withheld":                "fee",
+		"tax refund":                  "rebate",
+		"transfer":                    "transfer",
+		"subaccount transfer":         "transfer",
+		"cross-exchange transfer":     "transfer",
+		"admin transfer":              "transfer",
+	}
+	return this.SafeString(types, typeVar, typeVar)
+}
+func (this *KrakenfuturesCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
+	//
+	//    {
+	//        "asset": "usd",
+	//        "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+	//        "contract": "pf_dogeusd",
+	//        "date": "2026-08-11T19:55:24.251Z",
+	//        "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+	//        "fee": 0.0035,
+	//        "funding_rate": 0.000001129880786375,
+	//        "id": 9,
+	//        "info": "futures trade",
+	//        "margin_account": "flex",
+	//        "mark_price": 0.07091471613,
+	//        "new_balance": 0,
+	//        "old_balance": 0.0077,
+	//        "realized_funding": null,
+	//        "realized_pnl": -0.0042,
+	//        "trade_price": 0.070914
+	//    }
+	//
+	currency := GetArg(optionalArgs, 0, nil)
+	_ = currency
+	var timestamp any = this.Parse8601(this.SafeString(item, "date"))
+	var currencyId any = this.SafeString(item, "asset")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
+	currency = this.SafeCurrency(currencyId, currency)
+	var before any = this.SafeString(item, "old_balance")
+	var after any = this.SafeString(item, "new_balance")
+	var feeCost any = this.SafeString(item, "fee")
+	var amount any = nil
+	var direction any = nil
+	if IsTrue(IsTrue((!IsEqual(before, nil))) && IsTrue((!IsEqual(after, nil)))) {
+		amount = Precise.StringSub(after, before)
+		if IsTrue(!IsEqual(feeCost, nil)) {
+			// the fee is already deducted from the balance delta, add it
+			// back so that amount does not include the fee, matching the
+			// unified ledger contract: after = before +/- amount - fee
+			amount = Precise.StringAdd(amount, feeCost)
+		}
+		if IsTrue(Precise.StringLt(amount, "0")) {
+			direction = "out"
+			amount = Precise.StringAbs(amount)
+		} else {
+			direction = "in"
+		}
+	}
+	return this.SafeLedgerEntry(map[string]any{
+		"info":             item,
+		"id":               this.SafeString(item, "id"),
+		"direction":        direction,
+		"account":          this.SafeString(item, "margin_account"),
+		"referenceId":      this.SafeString2(item, "execution", "booking_uid"),
+		"referenceAccount": nil,
+		"type":             this.ParseLedgerEntryType(this.SafeString(item, "info")),
+		"currency":         code,
+		"amount":           this.ParseNumber(amount),
+		"before":           this.ParseNumber(before),
+		"after":            this.ParseNumber(after),
+		"status":           "ok",
+		"timestamp":        timestamp,
+		"datetime":         this.Iso8601(timestamp),
+		"fee": map[string]any{
+			"cost":     this.ParseNumber(feeCost),
+			"currency": code,
+		},
+	}, currency)
+}
+
+/**
+ * @method
  * @name krakenfutures#fetchBalance
  * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
  * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
@@ -2889,8 +3081,8 @@ func (this *KrakenfuturesCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes244612 := (<-this.LoadMarkets())
-			PanicOnError(retRes244612)
+			retRes261712 := (<-this.LoadMarkets())
+			PanicOnError(retRes261712)
 		}
 		var typeVar any = this.SafeString2(params, "type", "account")
 		var symbol any = this.SafeString(params, "symbol")
@@ -3134,8 +3326,8 @@ func (this *KrakenfuturesCore) FetchFundingRates(optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes267512 := (<-this.LoadMarkets())
-			PanicOnError(retRes267512)
+			retRes284612 := (<-this.LoadMarkets())
+			PanicOnError(retRes284612)
 		}
 		var marketIds any = this.MarketIds(symbols)
 
@@ -3261,8 +3453,8 @@ func (this *KrakenfuturesCore) FetchFundingRateHistory(optionalArgs ...any) <-ch
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes278012 := (<-this.LoadMarkets())
-			PanicOnError(retRes278012)
+			retRes295112 := (<-this.LoadMarkets())
+			PanicOnError(retRes295112)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -3328,8 +3520,8 @@ func (this *KrakenfuturesCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes283012 := (<-this.LoadMarkets())
-			PanicOnError(retRes283012)
+			retRes300112 := (<-this.LoadMarkets())
+			PanicOnError(retRes300112)
 		}
 		var request any = map[string]any{}
 
@@ -3452,8 +3644,8 @@ func (this *KrakenfuturesCore) FetchLeverageTiers(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes293312 := (<-this.LoadMarkets())
-			PanicOnError(retRes293312)
+			retRes310412 := (<-this.LoadMarkets())
+			PanicOnError(retRes310412)
 		}
 
 		response := (<-this.PublicGetInstruments(params))
@@ -3649,9 +3841,9 @@ func (this *KrakenfuturesCore) TransferOut(code any, amount any, optionalArgs ..
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes311415 := (<-this.Transfer(code, amount, "future", "spot", params))
-		PanicOnError(retRes311415)
-		ch <- retRes311415
+		retRes328515 := (<-this.Transfer(code, amount, "future", "spot", params))
+		PanicOnError(retRes328515)
+		ch <- retRes328515
 		return nil
 
 	}()
@@ -3680,8 +3872,8 @@ func (this *KrakenfuturesCore) Transfer(code any, amount any, fromAccount any, t
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes313212 := (<-this.LoadMarkets())
-			PanicOnError(retRes313212)
+			retRes330312 := (<-this.LoadMarkets())
+			PanicOnError(retRes330312)
 		}
 		var currency any = this.Currency(code)
 		if IsTrue(IsEqual(fromAccount, "spot")) {
@@ -3750,8 +3942,8 @@ func (this *KrakenfuturesCore) SetLeverage(leverage any, optionalArgs ...any) <-
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes318312 := (<-this.LoadMarkets())
-			PanicOnError(retRes318312)
+			retRes335412 := (<-this.LoadMarkets())
+			PanicOnError(retRes335412)
 		}
 		var marketIdUpper any = this.MarketId(symbol)
 		if IsTrue(IsEqual(marketIdUpper, nil)) {
@@ -3762,12 +3954,12 @@ func (this *KrakenfuturesCore) SetLeverage(leverage any, optionalArgs ...any) <-
 			"symbol":      ToUpper(marketIdUpper),
 		}
 
-		retRes319615 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params)))
-		PanicOnError(retRes319615)
+		retRes336715 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params)))
+		PanicOnError(retRes336715)
 		//
 		// { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
 		//
-		ch <- retRes319615
+		ch <- retRes336715
 		return nil
 
 	}()
@@ -3794,8 +3986,8 @@ func (this *KrakenfuturesCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes321012 := (<-this.LoadMarkets())
-			PanicOnError(retRes321012)
+			retRes338112 := (<-this.LoadMarkets())
+			PanicOnError(retRes338112)
 		}
 
 		response := (<-this.PrivateGetLeveragepreferences(params))
@@ -3842,8 +4034,8 @@ func (this *KrakenfuturesCore) FetchLeverage(symbol any, optionalArgs ...any) <-
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes324312 := (<-this.LoadMarkets())
-			PanicOnError(retRes324312)
+			retRes341412 := (<-this.LoadMarkets())
+			PanicOnError(retRes341412)
 		}
 		var market any = this.Market(symbol)
 		var marketIdUpper any = this.MarketId(symbol)
