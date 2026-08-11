@@ -22,6 +22,12 @@ public partial class BaseTest
         await Task.Delay(20);
         client.TryHandleMessage("not-json is fine too");
         Assert(Convert.ToInt64(client.lastPong) > first, "every inbound frame must refresh lastPong");
+        // the raw-binary receive arm (!decompressBinary) bypasses TryHandleMessage
+        // and calls markAlive directly, prove the shared touch point works
+        var beforeRaw = Convert.ToInt64(client.lastPong);
+        await Task.Delay(20);
+        client.markAlive();
+        Assert(Convert.ToInt64(client.lastPong) > beforeRaw, "markAlive must refresh lastPong for the raw-binary route");
 
         // 2. a silent connection is killed at the window with a RequestTimeout,
         // not a bare Exception

@@ -414,16 +414,21 @@ public partial class BaseExchange
         //    }
         // }
 
+        // any inbound frame proves the connection alive: .NET ClientWebSocket
+        // neither surfaces incoming pong frames to user code nor exposes an API
+        // to send unsolicited pings, so protocol-level pong tracking is
+        // impossible here — without this, lastPong freezes at the ping loop's
+        // first iteration and every protocol-ping exchange (hitbtc, derive,
+        // lyra, ...) is deterministically disconnected at exactly
+        // keepAlive * maxPingPongMisses while perfectly healthy
+        public void markAlive()
+        {
+            this.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
+
         public void TryHandleMessage(string message)
         {
-            // any inbound frame proves the connection alive: .NET ClientWebSocket
-            // neither surfaces incoming pong frames to user code nor exposes an API
-            // to send unsolicited pings, so protocol-level pong tracking is
-            // impossible here — without this, lastPong freezes at the ping loop's
-            // first iteration and every protocol-ping exchange (hitbtc, derive,
-            // lyra, ...) is deterministically disconnected at exactly
-            // keepAlive * maxPingPongMisses while perfectly healthy
-            this.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            this.markAlive();
             object deserializedMessages = message;
             if (isValidJson(message))
             {
@@ -487,6 +492,7 @@ public partial class BaseExchange
 
                         if (!this.decompressBinary)
                         {
+                            this.markAlive(); // this arm bypasses TryHandleMessage, raw-binary frames are liveness too
                             this.handleMessage(this, msgBinary);
                             continue;
                         }
