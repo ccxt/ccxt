@@ -770,6 +770,7 @@ export default class lighter extends Exchange {
         }
         if (postOnly) {
             timeInForceNum = 2;
+            orderExpiry = -1;
         }
         else {
             if (!isMarketOrder) {

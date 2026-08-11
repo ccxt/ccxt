@@ -735,6 +735,7 @@ class lighter(Exchange, ImplicitAPI):
             request['is_ask'] = 1
         if postOnly:
             timeInForceNum = 2
+            orderExpiry = -1
         else:
             if not isMarketOrder:
                 if timeInForce == 'ioc':
