@@ -142,6 +142,7 @@ public class Tests
             {
                 WsCacheTests();
                 WsOrderBookTests();
+                await WsClientRetentionTests();
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -175,6 +176,12 @@ public class Tests
     {
         baseTestInstance.testWsCache();
         Helper.Green(" [C#] ArrayCache tests passed");
+    }
+
+    static async Task WsClientRetentionTests()
+    {
+        await baseTestInstance.testWsClientRetention();
+        Helper.Green(" [C#] WebSocketClient retention tests passed");
     }
 
     static void WsOrderBookTests()
