@@ -68,7 +68,7 @@ class weex extends Exchange {
                 'createTakeProfitOrder' => true,
                 'createTrailingAmountOrder' => false,
                 'createTrailingPercentOrder' => false,
-                'createTriggerOrder' => false,
+                'createTriggerOrder' => true,
                 'deposit' => false,
                 'editOrder' => false,
                 'editOrders' => false,
@@ -625,7 +625,7 @@ class weex extends Exchange {
                     'sandbox' => true,
                     'createOrder' => array(
                         'marginMode' => true,
-                        'triggerPrice' => false,
+                        'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
                         'stopLossPrice' => true,
@@ -2366,17 +2366,20 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client order id
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-         * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered
+         * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered, takeProfit.stopPrice is supported alias
          * @param {string} [$params->takeProfit.triggerPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
+         * @param {float} [$params->takeProfit.price] not supported, the attached take profit always executes at $market $price
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-         * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered
+         * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered, stopLoss.stopPrice is supported alias
          * @param {string} [$params->stopLoss.triggerPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
-         * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
+         * @param {float} [$params->stopLoss.price] not supported, the attached stop loss always executes at $market $price
+         * @param {float} [$params->stopLossPrice] $price to trigger a standalone stop-loss order on an open position, the $price argument is used execution $price for limit orders
          * @param {string} [$params->stopLossPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
-         * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
+         * @param {float} [$params->takeProfitPrice] $price to trigger a standalone take-profit order on an open position, the $price argument is used execution $price for limit orders
          * @param {string} [$params->takeProfitPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
+         * @param {float} [$params->triggerPrice] the $price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
          * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-         * @param {string} [$params->timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
+         * @param {string} [$params->timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -2425,11 +2428,12 @@ class weex extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         list($triggerPrice, $stopLossPrice, $takeProfitPrice, $query) = $this->handle_trigger_prices_and_params($symbol, $params);
-        if ($triggerPrice !== null) {
-            throw new NotSupported($this->id . ' createOrder() does not support the $triggerPrice parameter');
-        }
+        $isTrigger = ($triggerPrice !== null);
         $isStopLoss = ($stopLossPrice !== null);
         $isTakeProfit = ($takeProfitPrice !== null);
+        if ($isTrigger && ($isStopLoss || $isTakeProfit)) {
+            throw new BadRequest($this->id . ' createOrder() cannot use the $triggerPrice parameter together with the $stopLossPrice or $takeProfitPrice parameters');
+        }
         $reduceOnly = $this->safe_bool($query, 'reduceOnly');
         if ($isStopLoss || $isTakeProfit) {
             $reduceOnly = true;
@@ -2448,6 +2452,13 @@ class weex extends Exchange {
         $hasTakeProfit = ($takeProfit !== null);
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $hasStopLoss = ($stopLoss !== null);
+        // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at $market $price
+        if ($hasTakeProfit && ($this->safe_number($takeProfit, 'price') !== null)) {
+            throw new NotSupported($this->id . ' createOrder() does not support the $price field inside the $takeProfit $params, the attached take profit executes at $market price');
+        }
+        if ($hasStopLoss && ($this->safe_number($stopLoss, 'price') !== null)) {
+            throw new NotSupported($this->id . ' createOrder() does not support the $price field inside the $stopLoss $params, the attached stop loss executes at $market price');
+        }
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
@@ -2455,7 +2466,39 @@ class weex extends Exchange {
             $clientOrderId = $partner . '-' . $this->uuid22();
         }
         $callerMethodName = $this->safe_string($params, 'callerMethodName');
-        if ($isStopLoss || $isTakeProfit) {
+        if ($isTrigger) {
+            // entry conditional order, triggers a regular order when the trigger $price is reached
+            if ($callerMethodName === 'createOrders') {
+                throw new NotSupported($this->id . ' createOrders() does not support trigger orders');
+            }
+            if ($timeInForce !== null) {
+                throw new BadRequest($this->id . ' createOrder() cannot use the $timeInForce parameter with trigger orders');
+            }
+            $request['clientAlgoId'] = $clientOrderId;
+            $params['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            if ($isMarketOrder) {
+                $params['type'] = 'STOP_MARKET';
+            } else {
+                $params['type'] = 'STOP';
+            }
+            // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
+            if ($hasStopLoss) {
+                $stopLossTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
+                $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                $stopLossPriceType = $this->safe_string($stopLoss, 'triggerPriceType');
+                if ($stopLossPriceType !== null) {
+                    $params['SlWorkingType'] = $this->encode_trigger_price_type($stopLossPriceType);
+                }
+            }
+            if ($hasTakeProfit) {
+                $takeProfitTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
+                $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $takeProfitPriceType = $this->safe_string($takeProfit, 'triggerPriceType');
+                if ($takeProfitPriceType !== null) {
+                    $params['TpWorkingType'] = $this->encode_trigger_price_type($takeProfitPriceType);
+                }
+            }
+        } elseif ($isStopLoss || $isTakeProfit) {
             if ($callerMethodName === 'createOrders') {
                 throw new NotSupported($this->id . ' createOrders() does not support stop loss and take profit orders');
             }
@@ -2500,7 +2543,7 @@ class weex extends Exchange {
             }
             $request['newClientOrderId'] = $clientOrderId;
             if ($hasStopLoss) {
-                $stopLossTriggerPrice = $this->safe_number($stopLoss, 'triggerPrice');
+                $stopLossTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
                 $request['slTriggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 $stopLossPriceType = $this->safe_string($stopLoss, 'triggerPriceType');
                 if ($stopLossPriceType !== null) {
@@ -2508,7 +2551,7 @@ class weex extends Exchange {
                 }
             }
             if ($hasTakeProfit) {
-                $takeProfitTriggerPrice = $this->safe_number($takeProfit, 'triggerPrice');
+                $takeProfitTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
                 $request['tpTriggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 $takeProfitPriceType = $this->safe_string($takeProfit, 'triggerPriceType');
                 if ($takeProfitPriceType !== null) {
@@ -3265,15 +3308,27 @@ class weex extends Exchange {
             $market = $this->safe_market($marketId, null, null, $marketType);
         }
         $timestamp = $this->safe_integer_n($order, array( 'transactTime', 'time', 'createTime' ));
-        $rawStatus = $this->safe_string_lower($order, 'status');
+        $rawStatus = $this->safe_string_lower_2($order, 'status', 'algoStatus'); // algo (trigger) $order payloads carry algoStatus instead of status
         $triggerPrice = $this->omit_zero($this->safe_string_2($order, 'triggerPrice', 'stopPrice'));
         $rawType = $this->safe_string_upper_2($order, 'type', 'orderType');
+        $isReduceOnly = $this->safe_bool($order, 'reduceOnly');
+        // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
+        // a missing reduceOnly counts-only to keep the legacy mapping for responses that omit the field
+        $isEntryTrigger = !($this->safe_bool($order, 'reduceOnly', true));
         $takeProfitPrice = null;
         $stopLossPrice = null;
-        if ($rawType === 'TAKE_PROFIT_MARKET' || $rawType === 'TAKE_PROFIT') {
-            $takeProfitPrice = $triggerPrice;
-        } elseif ($rawType === 'STOP_LOSS' || $rawType === 'STOP' || $rawType === 'STOP_MARKET') {
-            $stopLossPrice = $triggerPrice;
+        if (!$isEntryTrigger) {
+            if ($rawType === 'TAKE_PROFIT_MARKET' || $rawType === 'TAKE_PROFIT') {
+                $takeProfitPrice = $triggerPrice;
+            } elseif ($rawType === 'STOP_LOSS' || $rawType === 'STOP' || $rawType === 'STOP_MARKET') {
+                $stopLossPrice = $triggerPrice;
+            }
+        }
+        if ($takeProfitPrice === null) {
+            $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'tpTriggerPrice')); // attached take profit of a regular or conditional $order
+        }
+        if ($stopLossPrice === null) {
+            $stopLossPrice = $this->omit_zero($this->safe_string($order, 'slTriggerPrice')); // attached stop loss of a regular or conditional $order
         }
         return $this->safe_order(array(
             'id' => $this->safe_string_n($order, array( 'orderId', 'algoId', 'successOrderId' )),
@@ -3282,7 +3337,7 @@ class weex extends Exchange {
             'type' => $this->parse_order_type($rawType),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => null,
-            'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
+            'reduceOnly' => $isReduceOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'amount' => $this->safe_string_2($order, 'origQty', 'quantity'),
             'price' => $this->safe_string($order, 'price'),
