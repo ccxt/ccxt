@@ -17,8 +17,12 @@ import java.util.Map;
  */
 public class WsOrderBook extends java.util.AbstractMap<String, Object> {
 
-    public OrderBookSide.Asks asks;
-    public OrderBookSide.Bids bids;
+    // typed as the base side so IndexedOrderBook can carry id-keyed sides,
+    // see https://github.com/ccxt/ccxt/pull/29749 and the class docs on
+    // IndexedOrderBookSide; all external access goes through get()/put() and
+    // reflective calls, the concrete runtime type decides the behavior
+    public OrderBookSide asks;
+    public OrderBookSide bids;
     public String symbol;
     public Object timestamp;
     public Object datetime;
@@ -78,8 +82,8 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
     public synchronized Object put(String key, Object value) {
         Object prev = this.get(key);
         switch (key) {
-            case "asks": this.asks = (OrderBookSide.Asks) value; break;
-            case "bids": this.bids = (OrderBookSide.Bids) value; break;
+            case "asks": this.asks = (OrderBookSide) value; break;
+            case "bids": this.bids = (OrderBookSide) value; break;
             case "symbol": this.symbol = (String) value; break;
             case "timestamp": this.timestamp = value; break;
             case "datetime": this.datetime = value; break;
@@ -251,8 +255,8 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
         }
         synchronized (this.asks) {
             synchronized (this.bids) {
-                copy.asks = (OrderBookSide.Asks) this.asks.copy();
-                copy.bids = (OrderBookSide.Bids) this.bids.copy();
+                copy.asks = this.asks.copy();
+                copy.bids = this.bids.copy();
             }
         }
         copy.nonce = this.nonce;
@@ -264,10 +268,38 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
     // ─── Variants ───
 
     public static class IndexedOrderBook extends WsOrderBook {
+        @SuppressWarnings("unchecked")
         public IndexedOrderBook(Object snapshot, Object depth) {
-            super(snapshot, depth);
+            // the parent constructor would seed plain price-keyed sides; pass
+            // it no snapshot, install the id-keyed sides, then seed those
+            super(null, depth);
+            this.asks = new IndexedOrderBookSide.IndexedAsks(null, depth);
+            this.bids = new IndexedOrderBookSide.IndexedBids(null, depth);
+            if (snapshot instanceof Map) {
+                Map<String, Object> snap = (Map<String, Object>) snapshot;
+                this.symbol = (String) snap.get("symbol");
+                this.timestamp = snap.get("timestamp");
+                this.datetime = snap.get("datetime");
+                this.nonce = snap.get("nonce");
+                Object asksData = snap.get("asks");
+                if (asksData instanceof List) {
+                    synchronized (this.asks) {
+                        for (Object delta : (List<?>) asksData) {
+                            this.asks.storeArrayUnsafe(delta);
+                        }
+                    }
+                }
+                Object bidsData = snap.get("bids");
+                if (bidsData instanceof List) {
+                    synchronized (this.bids) {
+                        for (Object delta : (List<?>) bidsData) {
+                            this.bids.storeArrayUnsafe(delta);
+                        }
+                    }
+                }
+            }
         }
-        public IndexedOrderBook() { super(); }
+        public IndexedOrderBook() { this(null, null); }
     }
 
     public static class CountedOrderBook extends WsOrderBook {
