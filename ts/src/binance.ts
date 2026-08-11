@@ -873,7 +873,7 @@ export default class binance extends Exchange {
                         'fundingInfo': { 'cost': 1 } as Endpoint<List>,
                         'premiumIndex': { 'cost': 1 } as Endpoint<List>,
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
-                        'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict | List>,
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'openInterest': { 'cost': 1 } as Endpoint<Dict>,
                         'indexInfo': { 'cost': 1 } as Endpoint<List>,
@@ -982,7 +982,7 @@ export default class binance extends Exchange {
                 },
                 'fapiPublicV2': {
                     'get': {
-                        'ticker/price': { 'cost': 0 } as Endpoint<List>,
+                        'ticker/price': { 'cost': 0 } as Endpoint<Dict | List>,
                     },
                 },
                 'fapiPrivateV2': {
@@ -1078,7 +1078,7 @@ export default class binance extends Exchange {
                         'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16 } as Endpoint<Dict | List>,
                         'ticker': { 'cost': 0.4, 'noSymbol': 16 } as Endpoint<List>,
                         'ticker/tradingDay': { 'cost': 0.8 } as Endpoint<Dict>,
-                        'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 } as Endpoint<List>,
+                        'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 } as Endpoint<Dict | List>,
                         'ticker/bookTicker': { 'cost': 0.4, 'noSymbol': 0.8 } as Endpoint<List>,
                         'exchangeInfo': { 'cost': 4 } as Endpoint<Dict>, // Weight(IP): 20 => cost = 0.2 * 20 = 4
                         'avgPrice': { 'cost': 0.4 } as Endpoint<Dict>,
