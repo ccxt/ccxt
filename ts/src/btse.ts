@@ -14,7 +14,7 @@ import type { Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Lev
  * @augments Exchange
  */
 export default class btse extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'btse',
             'name': 'BTSE',
@@ -515,7 +515,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetSpotApiV33Time (params);
         //
         //     {
@@ -535,7 +535,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -546,7 +546,7 @@ export default class btse extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market: Dict): Market {
+    override parseMarket (market: Dict): Market {
         //
         // spot
         //     {
@@ -768,7 +768,7 @@ export default class btse extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const maxLimit = 300;
         let paginate = false;
@@ -823,7 +823,7 @@ export default class btse extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1770454800,
@@ -855,7 +855,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -905,7 +905,7 @@ export default class btse extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
         await this.loadMarkets ();
         let market = undefined;
         const request: Dict = {};
@@ -951,7 +951,7 @@ export default class btse extends Exchange {
         return this.parseFundingRateHistories (flattened, market, since, limit);
     }
 
-    parseFundingRateHistory (contract, market: Market = undefined) {
+    override parseFundingRateHistory (contract, market: Market = undefined) {
         //
         //     {
         //         "time": 1770451200,
@@ -979,7 +979,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+    override async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
@@ -1048,7 +1048,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
+    override async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['contract']) {
@@ -1069,7 +1069,7 @@ export default class btse extends Exchange {
      * @param {string} [params.type] default is 'spot' (if not 'spot', contract markets will be queried)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
@@ -1094,7 +1094,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1189,7 +1189,7 @@ export default class btse extends Exchange {
         return this.parseTicker (data, market);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const last = this.safeString (ticker, 'last');
@@ -1228,7 +1228,7 @@ export default class btse extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
      */
-    async fetchOpenInterest (symbol: string, params = {}) {
+    override async fetchOpenInterest (symbol: string, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
@@ -1251,14 +1251,14 @@ export default class btse extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+    override async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetFuturesApiV23MarketSummary (params);
         return this.parseOpenInterests (response, symbols) as OpenInterests;
     }
 
-    parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest, market: Market = undefined) {
         const marketId = this.safeString (interest, 'symbol');
         market = this.safeMarket (marketId, market);
         return this.safeOpenInterest ({
@@ -1280,7 +1280,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
@@ -1304,7 +1304,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
@@ -1314,7 +1314,7 @@ export default class btse extends Exchange {
         return this.parseFundingRates (response, symbols);
     }
 
-    parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "ETH-PERP",
@@ -1412,7 +1412,7 @@ export default class btse extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1464,7 +1464,7 @@ export default class btse extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap' or 'future', default is 'spot'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate) {
@@ -1571,7 +1571,7 @@ export default class btse extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap' or 'future', default is 'spot'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
@@ -1586,7 +1586,7 @@ export default class btse extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, params);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //     {
@@ -1718,7 +1718,7 @@ export default class btse extends Exchange {
      * @param {string} [params.stopLoss.priceType] *contract markets only* 'markPrice' or 'lastPrice', default is 'markPrice'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
@@ -2212,7 +2212,7 @@ export default class btse extends Exchange {
      * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -2261,7 +2261,7 @@ export default class btse extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order (required if id is not provided)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2299,7 +2299,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -2328,7 +2328,7 @@ export default class btse extends Exchange {
      * @param {string} [params.type] 'spot', 'swap' or 'future' (default is 'spot')
      * @returns {object} the api result
      */
-    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
             'timeout': timeout,
@@ -2357,7 +2357,7 @@ export default class btse extends Exchange {
      * @param {string} [params.type] 'spot', 'swap' or 'future' (default is 'spot')
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
         let market = undefined;
@@ -2377,7 +2377,7 @@ export default class btse extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder - spot
         //     {
@@ -2528,7 +2528,7 @@ export default class btse extends Exchange {
      * @param {string} [params.type] 'spot', 'swap' or 'future' (default is 'spot')
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
         let response = [];
         let marketType = 'spot';
@@ -2578,7 +2578,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -2612,7 +2612,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.privateGetFuturesApiV23UserPositions (params);
@@ -2629,7 +2629,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+    override async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         params = this.extend ({
@@ -2638,7 +2638,7 @@ export default class btse extends Exchange {
         return await this.fetchPositions ([ symbol ], params);
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "marginType": 91,
@@ -2745,7 +2745,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+    override async fetchPositionMode (symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPositionMode() requires a symbol argument');
         }
@@ -2783,7 +2783,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
         // NB!!! This method also sets margin mode to cross on btse
         // btse do not have specific endpoint for marginMode
         // both marginMode and positionMode are set and get with the same endpoints
@@ -2811,7 +2811,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+    override async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -2822,7 +2822,7 @@ export default class btse extends Exchange {
         return this.parseMarginMode (data, market);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    override parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         //
         //     {
         //         "symbol": "ETH-PERP",
@@ -2856,7 +2856,7 @@ export default class btse extends Exchange {
      * @param {bool} [params.hedged] set to true to use dualSidePosition, required for setting marginMode to cross on btse
      * @returns {object} response from the exchange
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         // btse do not have specific endpoint for marginMode
         // both marginMode and positionMode are set and get with the same endpoints
         // it terms of btse positionMode could be HEDGE, ONE_WAY or ISOLATED
@@ -2907,7 +2907,7 @@ export default class btse extends Exchange {
      * @param {string} [params.positionId] The position ID that you want to close. Mandatory when positionMode is HEDGE or ISOLATED
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -2938,7 +2938,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -3002,7 +3002,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3016,7 +3016,7 @@ export default class btse extends Exchange {
         return response;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const baseUrl = this.urls['api'][api];
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -3056,7 +3056,7 @@ export default class btse extends Exchange {
         return result;
     }
 
-    nonce () {
+    override nonce () {
         return this.milliseconds () - this.options['timeDifference'];
     }
 }
