@@ -77,7 +77,9 @@
     publicGetBboMarketInteractive::Function = publicGetBboMarketInteractive
     publicGetFundingData::Function = publicGetFundingData
     publicGetMarkets::Function = publicGetMarkets
+    publicGetMarketsHistory::Function = publicGetMarketsHistory
     publicGetMarketsKlines::Function = publicGetMarketsKlines
+    publicGetMarketsSettlementPrice::Function = publicGetMarketsSettlementPrice
     publicGetMarketsSummary::Function = publicGetMarketsSummary
     publicGetOrderbookMarket::Function = publicGetOrderbookMarket
     publicGetOrderbookMarketImpactPrice::Function = publicGetOrderbookMarketImpactPrice
@@ -315,125 +317,349 @@ function describe(self::Paradex, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("bbo/{market}") => 1,
-                Symbol("bbo/{market}/interactive") => 1,
-                Symbol("funding/data") => 1,
-                Symbol("markets") => 1,
-                Symbol("markets/klines") => 1,
-                Symbol("markets/summary") => 1,
-                Symbol("orderbook/{market}") => 1,
-                Symbol("orderbook/{market}/impact-price") => 1,
-                Symbol("orderbook/{market}/interactive") => 1,
-                Symbol("insurance") => 1,
-                Symbol("jwks.json") => 1,
-                Symbol("onboarding") => 1,
-                Symbol("referrals/config") => 1,
-                Symbol("staking/config") => 1,
-                Symbol("system/announcements") => 1,
-                Symbol("system/config") => 1,
-                Symbol("system/portfolio-margin-config") => 1,
-                Symbol("system/state") => 1,
-                Symbol("system/time") => 1,
-                Symbol("system/volume-tiers") => 1,
-                Symbol("trades") => 1,
-                Symbol("vaults") => 1,
-                Symbol("vaults/balance") => 1,
-                Symbol("vaults/config") => 1,
-                Symbol("vaults/history") => 1,
-                Symbol("vaults/positions") => 1,
-                Symbol("vaults/summary") => 1,
-                Symbol("vaults/transfers") => 1,
-                Symbol("xp/fee-config") => 1,
-                Symbol("xp/public-transfers") => 1,
-                Symbol("xp/transfer/{transfer_id}") => 1
+                Symbol("bbo/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bbo/{market}/interactive") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("funding/data") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/settlement-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook/{market}/impact-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook/{market}/interactive") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("insurance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("jwks.json") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("onboarding") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("referrals/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("staking/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("system/announcements") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("system/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("system/portfolio-margin-config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("system/state") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("system/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("system/volume-tiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vaults") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vaults/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vaults/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vaults/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vaults/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vaults/summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vaults/transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("xp/fee-config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("xp/public-transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("xp/transfer/{transfer_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("account") => 1,
-                Symbol("account/compliance") => 1,
-                Symbol("account/history") => 1,
-                Symbol("account/info") => 1,
-                Symbol("account/margin") => 1,
-                Symbol("account/profile") => 1,
-                Symbol("account/settings") => 1,
-                Symbol("account/subaccounts") => 1,
-                Symbol("account/summary") => 1,
-                Symbol("balance") => 1,
-                Symbol("fills") => 1,
-                Symbol("funding/payments") => 1,
-                Symbol("positions") => 1,
-                Symbol("tradebusts") => 1,
-                Symbol("transactions") => 1,
-                Symbol("account/keys/subkeys") => 1,
-                Symbol("account/keys/subkeys/{public_key}") => 1,
-                Symbol("account/tokens") => 1,
-                Symbol("algo/orders") => 1,
-                Symbol("algo/orders-history") => 1,
-                Symbol("algo/orders/{algo_id}") => 1,
-                Symbol("block-trades") => 1,
-                Symbol("block-trades/{block_trade_id}") => 1,
-                Symbol("block-trades/{block_trade_id}/offers") => 1,
-                Symbol("block-trades/{block_trade_id}/offers/{offer_id}") => 1,
-                Symbol("liquidations") => 1,
-                Symbol("orders") => 1,
-                Symbol("orders-history") => 1,
-                Symbol("orders/by_client_id/{client_id}") => 1,
-                Symbol("orders/{order_id}") => 1,
-                Symbol("referrals/qr-code") => 1,
-                Symbol("referrals/summary") => 1,
-                Symbol("staking/history") => 1,
-                Symbol("staking/summary") => 1,
-                Symbol("transfers") => 1,
-                Symbol("vaults/account-summary") => 1,
-                Symbol("vaults/mine") => 1,
-                Symbol("xp/account-balance") => 1,
-                Symbol("xp/transfers") => 1
+                Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/compliance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/profile") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/subaccounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("funding/payments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tradebusts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/keys/subkeys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/keys/subkeys/{public_key}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/tokens") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo/orders-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo/orders/{algo_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block-trades/{block_trade_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block-trades/{block_trade_id}/offers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block-trades/{block_trade_id}/offers/{offer_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("liquidations") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/by_client_id/{client_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("referrals/qr-code") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("referrals/summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("staking/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("staking/summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vaults/account-summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vaults/mine") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("xp/account-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("xp/transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("account/compliance") => 1,
-                Symbol("account/margin/{market}") => 1,
-                Symbol("account/profile/market_max_slippage/{market}") => 1,
-                Symbol("account/profile/notifications") => 1,
-                Symbol("account/profile/notifications/last_seen") => 1,
-                Symbol("account/profile/referral_code") => 1,
-                Symbol("account/profile/refresh_inventory") => 1,
-                Symbol("account/profile/size_currency_display") => 1,
-                Symbol("account/profile/username") => 1,
-                Symbol("account/referrer") => 1,
-                Symbol("account/settings/trading_value_display") => 1,
-                Symbol("account/keys/subkeys/activate") => 1,
-                Symbol("account/keys/subkeys") => 1,
-                Symbol("account/tokens") => 1,
-                Symbol("algo/orders") => 1,
-                Symbol("auth") => 1,
-                Symbol("block-trades") => 1,
-                Symbol("block-trades/{block_trade_id}/execute") => 1,
-                Symbol("block-trades/{block_trade_id}/offers") => 1,
-                Symbol("block-trades/{block_trade_id}/offers/{offer_id}/execute") => 1,
-                Symbol("onboarding") => 1,
-                Symbol("orders") => 1,
-                Symbol("orders/batch") => 1,
-                Symbol("v2/auth") => 1,
-                Symbol("v2/onboarding") => 1,
-                Symbol("vaults") => 1,
-                Symbol("xp/transfer") => 1
+                Symbol("account/compliance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/margin/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/profile/market_max_slippage/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/profile/notifications") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/profile/notifications/last_seen") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/profile/referral_code") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/profile/refresh_inventory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/profile/size_currency_display") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/profile/username") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/referrer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/settings/trading_value_display") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/keys/subkeys/activate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/keys/subkeys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/tokens") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block-trades/{block_trade_id}/execute") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block-trades/{block_trade_id}/offers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block-trades/{block_trade_id}/offers/{offer_id}/execute") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("onboarding") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/auth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/onboarding") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vaults") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("xp/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("account/profile") => 1,
-                Symbol("account/keys/subkeys/{public_key}") => 1,
-                Symbol("orders/{order_id}") => 1
+                Symbol("account/profile") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/keys/subkeys/{public_key}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("account/keys/subkeys/{public_key}") => 1,
-                Symbol("account/tokens/{lookup_id}") => 1,
-                Symbol("algo/orders/{algo_id}") => 1,
-                Symbol("block-trades/{block_trade_id}") => 1,
-                Symbol("block-trades/{block_trade_id}/offers/{offer_id}") => 1,
-                Symbol("orders") => 1,
-                Symbol("orders/batch") => 1,
-                Symbol("orders/by_client_id/{client_id}") => 1,
-                Symbol("orders/{order_id}") => 1
+                Symbol("account/keys/subkeys/{public_key}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/tokens/{lookup_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo/orders/{algo_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block-trades/{block_trade_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block-trades/{block_trade_id}/offers/{offer_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/by_client_id/{client_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -977,7 +1203,7 @@ function hashMessage(self::Paradex, message)
 
 end
 function signHash(self::Paradex, hash, privateKey)
-    signature = ecdsa(hash[-64 + 1:end], privateKey[-64 + 1:end], secp256k1, nothing);
+    signature = ecdsa(functions.ccxt_slice(hash, -64), functions.ccxt_slice(privateKey, -64), secp256k1, nothing);
     r = get(signature, Symbol("r"), nothing);
     s = get(signature, Symbol("s"), nothing);
     v = self.intToBase16(self.sum(27, get(signature, Symbol("v"), nothing)));
@@ -985,7 +1211,7 @@ function signHash(self::Paradex, hash, privateKey)
 
 end
 function signMessage(self::Paradex, message, privateKey)
-    return self.signHash(self.hashMessage(message), privateKey[-64 + 1:end])
+    return self.signHash(self.hashMessage(message), functions.ccxt_slice(privateKey, -64))
 
 end
 function getSystemConfig(self::Paradex, )
@@ -995,7 +1221,7 @@ function getSystemConfig(self::Paradex, )
     end
     response = Base.fetch(self.publicGetSystemConfig());
     self.options[Symbol("systemConfig")] = response;
-    return response
+    return self.safeDict(self.options, "systemConfig", Dict{Symbol, Any}())
 
 end
 function prepareParadexDomain(self::Paradex, l1=false)
@@ -1066,6 +1292,9 @@ function authenticateRest(self::Paradex, params=Dict())
     now = self.nonce();
     if functions.ccxtruthy(cachedToken != nothing)
         cachedExpires = safeInteger(self.options, "expires");
+        if functions.ccxtruthy(cachedExpires == nothing)
+            throw(ExchangeError(string(self.id, " authenticateRest() missing cachedExpires")));
+        end
         if functions.ccxtruthy(functions.ccxt_lt(now, cachedExpires))
                 return cachedToken
         end
@@ -1208,6 +1437,12 @@ function scaleNumber(self::Paradex, num)
 
 end
 function createOrderRequest(self::Paradex, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only");
     orderType = uppercase(type_var);
@@ -1291,6 +1526,9 @@ function signOrderRequest(self::Paradex, request, modify=false)
     account = Base.fetch(self.retrieveAccount());
     now = self.nonce();
     orderType = safeString(request, "type");
+    if functions.ccxtruthy(orderType == nothing)
+        throw(ExchangeError(string(self.id, " signOrderRequest() missing orderType")));
+    end
     isMarket = (findfirst("MARKET", orderType) !== nothing);
     orderReq = Dict{Symbol, Any}(
         Symbol("timestamp") => now * 1000,
@@ -1456,7 +1694,7 @@ function cancelOrders(self::Paradex, ids, symbol=nothing, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(results)))
         result = get(results, i + 1, nothing);
         marketId = safeString(result, "market");
-        market = self.safeMarket(marketId, nothing);
+        market = self.safeMarket(marketId);
         status = safeString(result, "status");
         orderStatus = nothing;
         if functions.ccxtruthy(status == "QUEUED_FOR_CANCELLATION")
@@ -1589,7 +1827,9 @@ function parseBalance(self::Paradex, response)
         code = self.safeCurrencyCode(currencyId);
         account = self.account();
         account[Symbol("total")] = safeString(balance, "size");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1919,8 +2159,8 @@ function setMarginMode(self::Paradex, marginMode, symbol=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    leverage = nothing;
-    (leverage, params) = self.handleOptionAndParams(params, "setMarginMode", "leverage", 1);
+    leverage = 1;
+    (leverage, params) = self.handleOptionAndParams(params, "setMarginMode", "leverage", leverage);
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing),
         Symbol("leverage") => leverage,
@@ -2195,452 +2435,513 @@ function handleErrors(self::Paradex, httpCode, reason, url, method, headers, bod
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Paradex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetBboMarket(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "bbo/{market}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "bbo/{market}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBboMarketInteractive(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "bbo/{market}/interactive", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "bbo/{market}/interactive", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetFundingData(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "funding/data", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "funding/data", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarkets(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetMarketsHistory(self::Paradex, params=Dict(), context=Dict())
+    return request(self, "markets/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsKlines(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "markets/klines", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/klines", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetMarketsSettlementPrice(self::Paradex, params=Dict(), context=Dict())
+    return request(self, "markets/settlement-price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "markets/summary", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/summary", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderbookMarket(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orderbook/{market}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderbook/{market}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderbookMarketImpactPrice(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orderbook/{market}/impact-price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderbook/{market}/impact-price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderbookMarketInteractive(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orderbook/{market}/interactive", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderbook/{market}/interactive", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetInsurance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "insurance", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "insurance", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetJwksJson(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "jwks.json", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "jwks.json", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOnboarding(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "onboarding", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "onboarding", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetReferralsConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "referrals/config", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "referrals/config", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStakingConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "staking/config", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "staking/config", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSystemAnnouncements(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/announcements", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "system/announcements", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSystemConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/config", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "system/config", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSystemPortfolioMarginConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/portfolio-margin-config", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "system/portfolio-margin-config", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSystemState(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/state", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "system/state", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSystemTime(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "system/time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSystemVolumeTiers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "system/volume-tiers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "system/volume-tiers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTrades(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetVaults(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vaults", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetVaultsBalance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/balance", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vaults/balance", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetVaultsConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/config", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vaults/config", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetVaultsHistory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vaults/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetVaultsPositions(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/positions", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vaults/positions", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetVaultsSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/summary", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vaults/summary", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetVaultsTransfers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/transfers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vaults/transfers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetXpFeeConfig(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/fee-config", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "xp/fee-config", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetXpPublicTransfers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/public-transfers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "xp/public-transfers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetXpTransferTransferId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/transfer/{transfer_id}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "xp/transfer/{transfer_id}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccount(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountCompliance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/compliance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/compliance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountHistory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountInfo(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountMargin(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/margin", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/margin", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountProfile(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/profile", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountSettings(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/settings", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/settings", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountSubaccounts(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/subaccounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/subaccounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/summary", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/summary", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetBalance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFills(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "fills", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fills", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFundingPayments(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "funding/payments", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "funding/payments", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPositions(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradebusts(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "tradebusts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tradebusts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTransactions(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "transactions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transactions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountKeysSubkeys(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/keys/subkeys", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountKeysSubkeysPublicKey(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys/{public_key}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/keys/subkeys/{public_key}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountTokens(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/tokens", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/tokens", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAlgoOrders(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "algo/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAlgoOrdersHistory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "algo/orders-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/orders-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAlgoOrdersAlgoId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "algo/orders/{algo_id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/orders/{algo_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetBlockTrades(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block-trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetBlockTradesBlockTradeId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block-trades/{block_trade_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetBlockTradesBlockTradeIdOffers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/offers", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block-trades/{block_trade_id}/offers", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetBlockTradesBlockTradeIdOffersOfferId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetLiquidations(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "liquidations", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "liquidations", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrders(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersHistory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersByClientIdClientId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/by_client_id/{client_id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/by_client_id/{client_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersOrderId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/{order_id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/{order_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetReferralsQrCode(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "referrals/qr-code", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "referrals/qr-code", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetReferralsSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "referrals/summary", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "referrals/summary", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetStakingHistory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "staking/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "staking/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetStakingSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "staking/summary", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "staking/summary", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTransfers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "transfers", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transfers", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetVaultsAccountSummary(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/account-summary", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vaults/account-summary", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetVaultsMine(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults/mine", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vaults/mine", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetXpAccountBalance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/account-balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "xp/account-balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetXpTransfers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/transfers", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "xp/transfers", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountCompliance(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/compliance", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/compliance", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountMarginMarket(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/margin/{market}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/margin/{market}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountProfileMarketMaxSlippageMarket(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/market_max_slippage/{market}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/profile/market_max_slippage/{market}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountProfileNotifications(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/notifications", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/profile/notifications", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountProfileNotificationsLastSeen(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/notifications/last_seen", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/profile/notifications/last_seen", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountProfileReferralCode(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/referral_code", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/profile/referral_code", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountProfileRefreshInventory(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/refresh_inventory", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/profile/refresh_inventory", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountProfileSizeCurrencyDisplay(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/size_currency_display", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/profile/size_currency_display", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountProfileUsername(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile/username", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/profile/username", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountReferrer(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/referrer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/referrer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountSettingsTradingValueDisplay(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/settings/trading_value_display", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/settings/trading_value_display", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountKeysSubkeysActivate(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys/activate", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/keys/subkeys/activate", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountKeysSubkeys(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/keys/subkeys", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountTokens(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/tokens", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/tokens", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAlgoOrders(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "algo/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuth(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "auth", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBlockTrades(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block-trades", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBlockTradesBlockTradeIdExecute(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/execute", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block-trades/{block_trade_id}/execute", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBlockTradesBlockTradeIdOffers(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/offers", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block-trades/{block_trade_id}/offers", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBlockTradesBlockTradeIdOffersOfferIdExecute(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}/execute", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}/execute", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOnboarding(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "onboarding", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "onboarding", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrders(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersBatch(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/batch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV2Auth(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "v2/auth", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/auth", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV2Onboarding(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "v2/onboarding", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/onboarding", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostVaults(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "vaults", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vaults", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostXpTransfer(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "xp/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "xp/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePutAccountProfile(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/profile", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/profile", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutAccountKeysSubkeysPublicKey(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys/{public_key}", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/keys/subkeys/{public_key}", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutOrdersOrderId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/{order_id}", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/{order_id}", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privateDeleteAccountKeysSubkeysPublicKey(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/keys/subkeys/{public_key}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/keys/subkeys/{public_key}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteAccountTokensLookupId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "account/tokens/{lookup_id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/tokens/{lookup_id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteAlgoOrdersAlgoId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "algo/orders/{algo_id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/orders/{algo_id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteBlockTradesBlockTradeId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block-trades/{block_trade_id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteBlockTradesBlockTradeIdOffersOfferId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block-trades/{block_trade_id}/offers/{offer_id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrders(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersBatch(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/batch", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersByClientIdClientId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/by_client_id/{client_id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/by_client_id/{client_id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersOrderId(self::Paradex, params=Dict(), context=Dict())
-    return request(self, "orders/{order_id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/{order_id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Paradex(; kwargs...)
-    inst = Paradex(Exchange(), describe, fetchTime, fetchStatus, fetchMarkets, parseMarket, parseTradingFee, fetchTradingFee, fetchTradingFees, fetchOHLCV, parseOHLCV, fetchTickers, fetchTicker, parseTicker, fetchOrderBook, fetchTrades, parseTrade, fetchOpenInterest, parseOpenInterest, hashMessage, signHash, signMessage, getSystemConfig, prepareParadexDomain, retrieveAccount, onboarding, authenticateRest, parseOrder, parseTimeInForce, parseOrderStatus, parseOrderType, scaleNumber, createOrderRequest, signOrderRequest, createOrder, editOrder, createOrders, cancelOrder, cancelOrders, cancelAllOrders, fetchOrder, fetchOrders, fetchOpenOrders, fetchBalance, parseBalance, fetchMyTrades, fetchPosition, fetchPositions, parsePosition, fetchMyLiquidations, parseLiquidation, fetchDeposits, fetchWithdrawals, fetchTransfers, parseTransfer, parseTransaction, parseTransactionStatus, fetchMarginMode, parseMarginMode, setMarginMode, fetchLeverage, parseLeverage, encodeMarginMode, setLeverage, fetchGreeks, fetchAllGreeks, parseGreeks, fetchFundingHistory, parseIncome, fetchFundingRateHistory, sign, handleErrors, publicGetBboMarket, publicGetBboMarketInteractive, publicGetFundingData, publicGetMarkets, publicGetMarketsKlines, publicGetMarketsSummary, publicGetOrderbookMarket, publicGetOrderbookMarketImpactPrice, publicGetOrderbookMarketInteractive, publicGetInsurance, publicGetJwksJson, publicGetOnboarding, publicGetReferralsConfig, publicGetStakingConfig, publicGetSystemAnnouncements, publicGetSystemConfig, publicGetSystemPortfolioMarginConfig, publicGetSystemState, publicGetSystemTime, publicGetSystemVolumeTiers, publicGetTrades, publicGetVaults, publicGetVaultsBalance, publicGetVaultsConfig, publicGetVaultsHistory, publicGetVaultsPositions, publicGetVaultsSummary, publicGetVaultsTransfers, publicGetXpFeeConfig, publicGetXpPublicTransfers, publicGetXpTransferTransferId, privateGetAccount, privateGetAccountCompliance, privateGetAccountHistory, privateGetAccountInfo, privateGetAccountMargin, privateGetAccountProfile, privateGetAccountSettings, privateGetAccountSubaccounts, privateGetAccountSummary, privateGetBalance, privateGetFills, privateGetFundingPayments, privateGetPositions, privateGetTradebusts, privateGetTransactions, privateGetAccountKeysSubkeys, privateGetAccountKeysSubkeysPublicKey, privateGetAccountTokens, privateGetAlgoOrders, privateGetAlgoOrdersHistory, privateGetAlgoOrdersAlgoId, privateGetBlockTrades, privateGetBlockTradesBlockTradeId, privateGetBlockTradesBlockTradeIdOffers, privateGetBlockTradesBlockTradeIdOffersOfferId, privateGetLiquidations, privateGetOrders, privateGetOrdersHistory, privateGetOrdersByClientIdClientId, privateGetOrdersOrderId, privateGetReferralsQrCode, privateGetReferralsSummary, privateGetStakingHistory, privateGetStakingSummary, privateGetTransfers, privateGetVaultsAccountSummary, privateGetVaultsMine, privateGetXpAccountBalance, privateGetXpTransfers, privatePostAccountCompliance, privatePostAccountMarginMarket, privatePostAccountProfileMarketMaxSlippageMarket, privatePostAccountProfileNotifications, privatePostAccountProfileNotificationsLastSeen, privatePostAccountProfileReferralCode, privatePostAccountProfileRefreshInventory, privatePostAccountProfileSizeCurrencyDisplay, privatePostAccountProfileUsername, privatePostAccountReferrer, privatePostAccountSettingsTradingValueDisplay, privatePostAccountKeysSubkeysActivate, privatePostAccountKeysSubkeys, privatePostAccountTokens, privatePostAlgoOrders, privatePostAuth, privatePostBlockTrades, privatePostBlockTradesBlockTradeIdExecute, privatePostBlockTradesBlockTradeIdOffers, privatePostBlockTradesBlockTradeIdOffersOfferIdExecute, privatePostOnboarding, privatePostOrders, privatePostOrdersBatch, privatePostV2Auth, privatePostV2Onboarding, privatePostVaults, privatePostXpTransfer, privatePutAccountProfile, privatePutAccountKeysSubkeysPublicKey, privatePutOrdersOrderId, privateDeleteAccountKeysSubkeysPublicKey, privateDeleteAccountTokensLookupId, privateDeleteAlgoOrdersAlgoId, privateDeleteBlockTradesBlockTradeId, privateDeleteBlockTradesBlockTradeIdOffersOfferId, privateDeleteOrders, privateDeleteOrdersBatch, privateDeleteOrdersByClientIdClientId, privateDeleteOrdersOrderId)
+    inst = Paradex(Exchange(), describe, fetchTime, fetchStatus, fetchMarkets, parseMarket, parseTradingFee, fetchTradingFee, fetchTradingFees, fetchOHLCV, parseOHLCV, fetchTickers, fetchTicker, parseTicker, fetchOrderBook, fetchTrades, parseTrade, fetchOpenInterest, parseOpenInterest, hashMessage, signHash, signMessage, getSystemConfig, prepareParadexDomain, retrieveAccount, onboarding, authenticateRest, parseOrder, parseTimeInForce, parseOrderStatus, parseOrderType, scaleNumber, createOrderRequest, signOrderRequest, createOrder, editOrder, createOrders, cancelOrder, cancelOrders, cancelAllOrders, fetchOrder, fetchOrders, fetchOpenOrders, fetchBalance, parseBalance, fetchMyTrades, fetchPosition, fetchPositions, parsePosition, fetchMyLiquidations, parseLiquidation, fetchDeposits, fetchWithdrawals, fetchTransfers, parseTransfer, parseTransaction, parseTransactionStatus, fetchMarginMode, parseMarginMode, setMarginMode, fetchLeverage, parseLeverage, encodeMarginMode, setLeverage, fetchGreeks, fetchAllGreeks, parseGreeks, fetchFundingHistory, parseIncome, fetchFundingRateHistory, sign, handleErrors, publicGetBboMarket, publicGetBboMarketInteractive, publicGetFundingData, publicGetMarkets, publicGetMarketsHistory, publicGetMarketsKlines, publicGetMarketsSettlementPrice, publicGetMarketsSummary, publicGetOrderbookMarket, publicGetOrderbookMarketImpactPrice, publicGetOrderbookMarketInteractive, publicGetInsurance, publicGetJwksJson, publicGetOnboarding, publicGetReferralsConfig, publicGetStakingConfig, publicGetSystemAnnouncements, publicGetSystemConfig, publicGetSystemPortfolioMarginConfig, publicGetSystemState, publicGetSystemTime, publicGetSystemVolumeTiers, publicGetTrades, publicGetVaults, publicGetVaultsBalance, publicGetVaultsConfig, publicGetVaultsHistory, publicGetVaultsPositions, publicGetVaultsSummary, publicGetVaultsTransfers, publicGetXpFeeConfig, publicGetXpPublicTransfers, publicGetXpTransferTransferId, privateGetAccount, privateGetAccountCompliance, privateGetAccountHistory, privateGetAccountInfo, privateGetAccountMargin, privateGetAccountProfile, privateGetAccountSettings, privateGetAccountSubaccounts, privateGetAccountSummary, privateGetBalance, privateGetFills, privateGetFundingPayments, privateGetPositions, privateGetTradebusts, privateGetTransactions, privateGetAccountKeysSubkeys, privateGetAccountKeysSubkeysPublicKey, privateGetAccountTokens, privateGetAlgoOrders, privateGetAlgoOrdersHistory, privateGetAlgoOrdersAlgoId, privateGetBlockTrades, privateGetBlockTradesBlockTradeId, privateGetBlockTradesBlockTradeIdOffers, privateGetBlockTradesBlockTradeIdOffersOfferId, privateGetLiquidations, privateGetOrders, privateGetOrdersHistory, privateGetOrdersByClientIdClientId, privateGetOrdersOrderId, privateGetReferralsQrCode, privateGetReferralsSummary, privateGetStakingHistory, privateGetStakingSummary, privateGetTransfers, privateGetVaultsAccountSummary, privateGetVaultsMine, privateGetXpAccountBalance, privateGetXpTransfers, privatePostAccountCompliance, privatePostAccountMarginMarket, privatePostAccountProfileMarketMaxSlippageMarket, privatePostAccountProfileNotifications, privatePostAccountProfileNotificationsLastSeen, privatePostAccountProfileReferralCode, privatePostAccountProfileRefreshInventory, privatePostAccountProfileSizeCurrencyDisplay, privatePostAccountProfileUsername, privatePostAccountReferrer, privatePostAccountSettingsTradingValueDisplay, privatePostAccountKeysSubkeysActivate, privatePostAccountKeysSubkeys, privatePostAccountTokens, privatePostAlgoOrders, privatePostAuth, privatePostBlockTrades, privatePostBlockTradesBlockTradeIdExecute, privatePostBlockTradesBlockTradeIdOffers, privatePostBlockTradesBlockTradeIdOffersOfferIdExecute, privatePostOnboarding, privatePostOrders, privatePostOrdersBatch, privatePostV2Auth, privatePostV2Onboarding, privatePostVaults, privatePostXpTransfer, privatePutAccountProfile, privatePutAccountKeysSubkeysPublicKey, privatePutOrdersOrderId, privateDeleteAccountKeysSubkeysPublicKey, privateDeleteAccountTokensLookupId, privateDeleteAlgoOrdersAlgoId, privateDeleteBlockTradesBlockTradeId, privateDeleteBlockTradesBlockTradeIdOffersOfferId, privateDeleteOrders, privateDeleteOrdersBatch, privateDeleteOrdersByClientIdClientId, privateDeleteOrdersOrderId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

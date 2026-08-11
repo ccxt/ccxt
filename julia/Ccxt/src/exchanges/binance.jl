@@ -1204,760 +1204,1888 @@ function describe(self::Binance, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("sapi") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("copyTrading/futures/userStatus") => 2,
-                Symbol("copyTrading/futures/leadSymbol") => 2,
-                Symbol("system/status") => 0.1,
-                Symbol("accountSnapshot") => 240,
-                Symbol("account/info") => 0.1,
-                Symbol("margin/asset") => 1,
-                Symbol("margin/pair") => 1,
-                Symbol("margin/allAssets") => 0.1,
-                Symbol("margin/allPairs") => 0.1,
-                Symbol("margin/priceIndex") => 1,
-                Symbol("spot/delist-schedule") => 10,
-                Symbol("asset/assetDividend") => 1,
-                Symbol("asset/dribblet") => 0.1,
-                Symbol("asset/transfer") => 0.1,
-                Symbol("asset/assetDetail") => 0.1,
-                Symbol("asset/tradeFee") => 0.1,
-                Symbol("asset/ledger-transfer/cloud-mining/queryByPage") => 4.0002,
-                Symbol("asset/convert-transfer/queryByPage") => 0.033335,
-                Symbol("asset/wallet/balance") => 6,
-                Symbol("asset/custody/transfer-history") => 6,
-                Symbol("margin/borrow-repay") => 1,
-                Symbol("margin/loan") => 1,
-                Symbol("margin/repay") => 1,
-                Symbol("margin/account") => 1,
-                Symbol("margin/transfer") => 0.1,
-                Symbol("margin/interestHistory") => 0.1,
-                Symbol("margin/forceLiquidationRec") => 0.1,
-                Symbol("margin/order") => 1,
-                Symbol("margin/openOrders") => 1,
-                Symbol("margin/allOrders") => 20,
-                Symbol("margin/myTrades") => 1,
-                Symbol("margin/maxBorrowable") => 5,
-                Symbol("margin/maxTransferable") => 5,
-                Symbol("margin/tradeCoeff") => 1,
-                Symbol("margin/isolated/transfer") => 0.1,
-                Symbol("margin/isolated/account") => 1,
-                Symbol("margin/isolated/pair") => 1,
-                Symbol("margin/isolated/allPairs") => 1,
-                Symbol("margin/isolated/accountLimit") => 0.1,
-                Symbol("margin/interestRateHistory") => 0.1,
-                Symbol("margin/orderList") => 1,
-                Symbol("margin/allOrderList") => 20,
-                Symbol("margin/openOrderList") => 1,
+                Symbol("copyTrading/futures/userStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("copyTrading/futures/leadSymbol") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("system/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("accountSnapshot") => Dict{Symbol, Any}(
+    Symbol("cost") => 240
+),
+                Symbol("account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/asset") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/pair") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/allAssets") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/allPairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/priceIndex") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/delist-schedule") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("asset/assetDividend") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("asset/dribblet") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("asset/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("asset/assetDetail") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("asset/tradeFee") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("asset/ledger-transfer/cloud-mining/queryByPage") => Dict{Symbol, Any}(
+    Symbol("cost") => 4.0002
+),
+                Symbol("asset/convert-transfer/queryByPage") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.033335
+),
+                Symbol("asset/wallet/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                Symbol("asset/custody/transfer-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                Symbol("margin/borrow-repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/loan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/interestHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/forceLiquidationRec") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("margin/myTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/maxBorrowable") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("margin/maxTransferable") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("margin/tradeCoeff") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/isolated/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/isolated/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/isolated/pair") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/isolated/allPairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/isolated/accountLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/interestRateHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/orderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/allOrderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("margin/openOrderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("margin/crossMarginData") => Dict{Symbol, Any}(
-                    Symbol("cost") => 0.1,
-                    Symbol("noCoin") => 0.5
-                ),
+    Symbol("cost") => 0.1,
+    Symbol("noCoin") => 0.5
+),
                 Symbol("margin/isolatedMarginData") => Dict{Symbol, Any}(
-                    Symbol("cost") => 0.1,
-                    Symbol("noCoin") => 1
-                ),
-                Symbol("margin/isolatedMarginTier") => 0.1,
-                Symbol("margin/rateLimit/order") => 2,
-                Symbol("margin/dribblet") => 0.1,
-                Symbol("margin/dust") => 20.001,
-                Symbol("margin/crossMarginCollateralRatio") => 10,
-                Symbol("margin/exchange-small-liability") => 0.6667,
-                Symbol("margin/exchange-small-liability-history") => 0.6667,
-                Symbol("margin/next-hourly-interest-rate") => 0.6667,
-                Symbol("margin/capital-flow") => 10,
-                Symbol("margin/delist-schedule") => 10,
-                Symbol("margin/available-inventory") => 0.3334,
-                Symbol("margin/leverageBracket") => 0.1,
-                Symbol("loan/vip/loanable/data") => 40,
-                Symbol("loan/vip/collateral/data") => 40,
-                Symbol("loan/vip/request/data") => 2.6668,
-                Symbol("loan/vip/request/interestRate") => 2.6668,
-                Symbol("loan/income") => 40.002,
-                Symbol("loan/ongoing/orders") => 40,
-                Symbol("loan/ltv/adjustment/history") => 40,
-                Symbol("loan/borrow/history") => 40,
-                Symbol("loan/repay/history") => 40,
-                Symbol("loan/loanable/data") => 40,
-                Symbol("loan/collateral/data") => 40,
-                Symbol("loan/repay/collateral/rate") => 600,
-                Symbol("loan/flexible/ongoing/orders") => 30,
-                Symbol("loan/flexible/borrow/history") => 40,
-                Symbol("loan/flexible/repay/history") => 40,
-                Symbol("loan/flexible/ltv/adjustment/history") => 40,
-                Symbol("loan/vip/ongoing/orders") => 40,
-                Symbol("loan/vip/repay/history") => 40,
-                Symbol("loan/vip/collateral/account") => 600,
-                Symbol("fiat/orders") => 600.03,
-                Symbol("fiat/payments") => 0.1,
-                Symbol("futures/transfer") => 1,
-                Symbol("futures/histDataLink") => 0.1,
-                Symbol("rebate/taxQuery") => 80.004,
-                Symbol("capital/config/getall") => 1,
-                Symbol("capital/deposit/address") => 1,
-                Symbol("capital/deposit/address/list") => 1,
-                Symbol("capital/deposit/hisrec") => 0.1,
-                Symbol("capital/deposit/subAddress") => 0.1,
-                Symbol("capital/deposit/subHisrec") => 0.1,
-                Symbol("capital/withdraw/history") => 2,
-                Symbol("capital/withdraw/address/list") => 10,
-                Symbol("capital/contract/convertible-coins") => 4.0002,
-                Symbol("convert/tradeFlow") => 20.001,
-                Symbol("convert/exchangeInfo") => 50,
-                Symbol("convert/assetInfo") => 10,
-                Symbol("convert/orderStatus") => 0.6667,
-                Symbol("convert/limit/queryOpenOrders") => 20.001,
-                Symbol("account/status") => 0.1,
-                Symbol("account/apiTradingStatus") => 0.1,
-                Symbol("account/apiRestrictions/ipRestriction") => 0.1,
-                Symbol("bnbBurn") => 0.1,
-                Symbol("sub-account/futures/account") => 1,
-                Symbol("sub-account/futures/accountSummary") => 0.1,
-                Symbol("sub-account/futures/positionRisk") => 1,
-                Symbol("sub-account/futures/internalTransfer") => 0.1,
-                Symbol("sub-account/list") => 0.1,
-                Symbol("sub-account/margin/account") => 1,
-                Symbol("sub-account/margin/accountSummary") => 1,
-                Symbol("sub-account/spotSummary") => 0.1,
-                Symbol("sub-account/status") => 1,
-                Symbol("sub-account/sub/transfer/history") => 0.1,
-                Symbol("sub-account/transfer/subUserHistory") => 0.1,
-                Symbol("sub-account/universalTransfer") => 0.1,
-                Symbol("sub-account/apiRestrictions/ipRestriction/thirdPartyList") => 1,
-                Symbol("sub-account/transaction-statistics") => 0.40002,
-                Symbol("sub-account/subAccountApi/ipRestriction") => 20.001,
-                Symbol("managed-subaccount/asset") => 0.1,
-                Symbol("managed-subaccount/accountSnapshot") => 240,
-                Symbol("managed-subaccount/queryTransLogForInvestor") => 0.1,
-                Symbol("managed-subaccount/queryTransLogForTradeParent") => 0.40002,
-                Symbol("managed-subaccount/fetch-future-asset") => 0.40002,
-                Symbol("managed-subaccount/marginAsset") => 0.1,
-                Symbol("managed-subaccount/info") => 0.40002,
-                Symbol("managed-subaccount/deposit/address") => 0.006667,
-                Symbol("managed-subaccount/query-trans-log") => 0.40002,
-                Symbol("lending/daily/product/list") => 0.1,
-                Symbol("lending/daily/userLeftQuota") => 0.1,
-                Symbol("lending/daily/userRedemptionQuota") => 0.1,
-                Symbol("lending/daily/token/position") => 0.1,
-                Symbol("lending/union/account") => 0.1,
-                Symbol("lending/union/purchaseRecord") => 0.1,
-                Symbol("lending/union/redemptionRecord") => 0.1,
-                Symbol("lending/union/interestHistory") => 0.1,
-                Symbol("lending/project/list") => 0.1,
-                Symbol("lending/project/position/list") => 0.1,
-                Symbol("eth-staking/eth/history/stakingHistory") => 15,
-                Symbol("eth-staking/eth/history/redemptionHistory") => 15,
-                Symbol("eth-staking/eth/history/rewardsHistory") => 15,
-                Symbol("eth-staking/eth/quota") => 15,
-                Symbol("eth-staking/eth/history/rateHistory") => 15,
-                Symbol("eth-staking/account") => 15,
-                Symbol("eth-staking/wbeth/history/wrapHistory") => 15,
-                Symbol("eth-staking/wbeth/history/unwrapHistory") => 15,
-                Symbol("eth-staking/eth/history/wbethRewardsHistory") => 15,
-                Symbol("sol-staking/sol/history/stakingHistory") => 15,
-                Symbol("sol-staking/sol/history/redemptionHistory") => 15,
-                Symbol("sol-staking/sol/history/bnsolRewardsHistory") => 15,
-                Symbol("sol-staking/sol/history/rateHistory") => 15,
-                Symbol("sol-staking/account") => 15,
-                Symbol("sol-staking/sol/quota") => 15,
-                Symbol("mining/pub/algoList") => 0.1,
-                Symbol("mining/pub/coinList") => 0.1,
-                Symbol("mining/worker/detail") => 0.5,
-                Symbol("mining/worker/list") => 0.5,
-                Symbol("mining/payment/list") => 0.5,
-                Symbol("mining/statistics/user/status") => 0.5,
-                Symbol("mining/statistics/user/list") => 0.5,
-                Symbol("mining/payment/uid") => 0.5,
-                Symbol("bswap/pools") => 0.1,
+    Symbol("cost") => 0.1,
+    Symbol("noCoin") => 1
+),
+                Symbol("margin/isolatedMarginTier") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/rateLimit/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("margin/dribblet") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/dust") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("margin/crossMarginCollateralRatio") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("margin/exchange-small-liability") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.6667
+),
+                Symbol("margin/exchange-small-liability-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.6667
+),
+                Symbol("margin/next-hourly-interest-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.6667
+),
+                Symbol("margin/capital-flow") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("margin/delist-schedule") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("margin/available-inventory") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.3334
+),
+                Symbol("margin/leverageBracket") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("loan/vip/loanable/data") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/vip/collateral/data") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/vip/request/data") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.6668
+),
+                Symbol("loan/vip/request/interestRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.6668
+),
+                Symbol("loan/income") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("loan/ongoing/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/ltv/adjustment/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/borrow/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/repay/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/loanable/data") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/collateral/data") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/repay/collateral/rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 600
+),
+                Symbol("loan/flexible/ongoing/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("loan/flexible/borrow/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/flexible/repay/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/flexible/ltv/adjustment/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/vip/ongoing/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/vip/repay/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/vip/collateral/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 600
+),
+                Symbol("fiat/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 600.03
+),
+                Symbol("fiat/payments") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("futures/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/histDataLink") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("rebate/taxQuery") => Dict{Symbol, Any}(
+    Symbol("cost") => 80.004
+),
+                Symbol("capital/config/getall") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("capital/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("capital/deposit/address/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("capital/deposit/hisrec") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("capital/deposit/subAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("capital/deposit/subHisrec") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("capital/withdraw/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("capital/withdraw/address/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capital/contract/convertible-coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 4.0002
+),
+                Symbol("convert/tradeFlow") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("convert/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("convert/assetInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("convert/orderStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.6667
+),
+                Symbol("convert/limit/queryOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("account/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("account/apiTradingStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("account/apiRestrictions/ipRestriction") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("bnbBurn") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/futures/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-account/futures/accountSummary") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/futures/positionRisk") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-account/futures/internalTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/margin/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-account/margin/accountSummary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-account/spotSummary") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-account/sub/transfer/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/transfer/subUserHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/universalTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/apiRestrictions/ipRestriction/thirdPartyList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-account/transaction-statistics") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.40002
+),
+                Symbol("sub-account/subAccountApi/ipRestriction") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("managed-subaccount/asset") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("managed-subaccount/accountSnapshot") => Dict{Symbol, Any}(
+    Symbol("cost") => 240
+),
+                Symbol("managed-subaccount/queryTransLogForInvestor") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("managed-subaccount/queryTransLogForTradeParent") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.40002
+),
+                Symbol("managed-subaccount/fetch-future-asset") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.40002
+),
+                Symbol("managed-subaccount/marginAsset") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("managed-subaccount/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.40002
+),
+                Symbol("managed-subaccount/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.006667
+),
+                Symbol("managed-subaccount/query-trans-log") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.40002
+),
+                Symbol("lending/daily/product/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/daily/userLeftQuota") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/daily/userRedemptionQuota") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/daily/token/position") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/union/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/union/purchaseRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/union/redemptionRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/union/interestHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/project/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/project/position/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("eth-staking/eth/history/stakingHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("eth-staking/eth/history/redemptionHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("eth-staking/eth/history/rewardsHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("eth-staking/eth/quota") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("eth-staking/eth/history/rateHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("eth-staking/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("eth-staking/wbeth/history/wrapHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("eth-staking/wbeth/history/unwrapHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("eth-staking/eth/history/wbethRewardsHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sol-staking/sol/history/stakingHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sol-staking/sol/history/redemptionHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sol-staking/sol/history/bnsolRewardsHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sol-staking/sol/history/rateHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sol-staking/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sol-staking/sol/quota") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("mining/pub/algoList") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("mining/pub/coinList") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("mining/worker/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("mining/worker/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("mining/payment/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("mining/statistics/user/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("mining/statistics/user/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("mining/payment/uid") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("bswap/pools") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
                 Symbol("bswap/liquidity") => Dict{Symbol, Any}(
-                    Symbol("cost") => 0.1,
-                    Symbol("noPoolId") => 1
-                ),
-                Symbol("bswap/liquidityOps") => 20.001,
-                Symbol("bswap/quote") => 1.00005,
-                Symbol("bswap/swap") => 20.001,
-                Symbol("bswap/poolConfigure") => 1.00005,
-                Symbol("bswap/addLiquidityPreview") => 1.00005,
-                Symbol("bswap/removeLiquidityPreview") => 1.00005,
-                Symbol("bswap/unclaimedRewards") => 6.667,
-                Symbol("bswap/claimedHistory") => 6.667,
-                Symbol("blvt/tokenInfo") => 0.1,
-                Symbol("blvt/subscribe/record") => 0.1,
-                Symbol("blvt/redeem/record") => 0.1,
-                Symbol("blvt/userLimit") => 0.1,
-                Symbol("apiReferral/ifNewUser") => 1,
-                Symbol("apiReferral/customization") => 1,
-                Symbol("apiReferral/userCustomization") => 1,
-                Symbol("apiReferral/rebate/recentRecord") => 1,
-                Symbol("apiReferral/rebate/historicalRecord") => 1,
-                Symbol("apiReferral/kickback/recentRecord") => 1,
-                Symbol("apiReferral/kickback/historicalRecord") => 1,
-                Symbol("broker/subAccountApi") => 1,
-                Symbol("broker/subAccount") => 1,
-                Symbol("broker/subAccountApi/commission/futures") => 1,
-                Symbol("broker/subAccountApi/commission/coinFutures") => 1,
-                Symbol("broker/info") => 1,
-                Symbol("broker/transfer") => 1,
-                Symbol("broker/transfer/futures") => 1,
-                Symbol("broker/rebate/recentRecord") => 1,
-                Symbol("broker/rebate/historicalRecord") => 1,
-                Symbol("broker/subAccount/bnbBurn/status") => 1,
-                Symbol("broker/subAccount/depositHist") => 1,
-                Symbol("broker/subAccount/spotSummary") => 1,
-                Symbol("broker/subAccount/marginSummary") => 1,
-                Symbol("broker/subAccount/futuresSummary") => 1,
-                Symbol("broker/rebate/futures/recentRecord") => 1,
-                Symbol("broker/subAccountApi/ipRestriction") => 1,
-                Symbol("broker/universalTransfer") => 1,
-                Symbol("account/apiRestrictions") => 0.1,
-                Symbol("c2c/orderMatch/listUserOrderHistory") => 0.1,
-                Symbol("nft/history/transactions") => 20.001,
-                Symbol("nft/history/deposit") => 20.001,
-                Symbol("nft/history/withdraw") => 20.001,
-                Symbol("nft/user/getAsset") => 20.001,
-                Symbol("pay/transactions") => 20.001,
-                Symbol("giftcard/verify") => 0.1,
-                Symbol("giftcard/cryptography/rsa-public-key") => 0.1,
-                Symbol("giftcard/buyCode/token-limit") => 0.1,
-                Symbol("algo/spot/openOrders") => 0.1,
-                Symbol("algo/spot/historicalOrders") => 0.1,
-                Symbol("algo/spot/subOrders") => 0.1,
-                Symbol("algo/futures/openOrders") => 0.1,
-                Symbol("algo/futures/historicalOrders") => 0.1,
-                Symbol("algo/futures/subOrders") => 0.1,
-                Symbol("portfolio/account") => 0.1,
-                Symbol("portfolio/collateralRate") => 5,
-                Symbol("portfolio/pmLoan") => 3.3335,
-                Symbol("portfolio/interest-history") => 0.6667,
-                Symbol("portfolio/asset-index-price") => 0.1,
-                Symbol("portfolio/repay-futures-switch") => 3,
-                Symbol("portfolio/margin-asset-leverage") => 5,
-                Symbol("portfolio/balance") => 2,
-                Symbol("portfolio/negative-balance-exchange-record") => 2,
-                Symbol("portfolio/pmloan-history") => 5,
-                Symbol("portfolio/earn-asset-balance") => 150,
-                Symbol("portfolio/delta-mode") => 150,
-                Symbol("staking/productList") => 0.1,
-                Symbol("staking/position") => 0.1,
-                Symbol("staking/stakingRecord") => 0.1,
-                Symbol("staking/personalLeftQuota") => 0.1,
-                Symbol("lending/auto-invest/target-asset/list") => 0.1,
-                Symbol("lending/auto-invest/target-asset/roi/list") => 0.1,
-                Symbol("lending/auto-invest/all/asset") => 0.1,
-                Symbol("lending/auto-invest/source-asset/list") => 0.1,
-                Symbol("lending/auto-invest/plan/list") => 0.1,
-                Symbol("lending/auto-invest/plan/id") => 0.1,
-                Symbol("lending/auto-invest/history/list") => 0.1,
-                Symbol("lending/auto-invest/index/info") => 0.1,
-                Symbol("lending/auto-invest/index/user-summary") => 0.1,
-                Symbol("lending/auto-invest/one-off/status") => 0.1,
-                Symbol("lending/auto-invest/redeem/history") => 0.1,
-                Symbol("lending/auto-invest/rebalance/history") => 0.1,
-                Symbol("simple-earn/flexible/list") => 15,
-                Symbol("simple-earn/locked/list") => 15,
-                Symbol("simple-earn/flexible/personalLeftQuota") => 15,
-                Symbol("simple-earn/locked/personalLeftQuota") => 15,
-                Symbol("simple-earn/flexible/subscriptionPreview") => 15,
-                Symbol("simple-earn/locked/subscriptionPreview") => 15,
-                Symbol("simple-earn/flexible/history/rateHistory") => 15,
-                Symbol("simple-earn/flexible/position") => 15,
-                Symbol("simple-earn/locked/position") => 15,
-                Symbol("simple-earn/account") => 15,
-                Symbol("simple-earn/flexible/history/subscriptionRecord") => 15,
-                Symbol("simple-earn/locked/history/subscriptionRecord") => 15,
-                Symbol("simple-earn/flexible/history/redemptionRecord") => 15,
-                Symbol("simple-earn/locked/history/redemptionRecord") => 15,
-                Symbol("simple-earn/flexible/history/rewardsRecord") => 15,
-                Symbol("simple-earn/locked/history/rewardsRecord") => 15,
-                Symbol("simple-earn/flexible/history/collateralRecord") => 0.1,
-                Symbol("dci/product/list") => 0.1,
-                Symbol("dci/product/positions") => 0.1,
-                Symbol("dci/product/accounts") => 0.1,
-                Symbol("accumulator/product/list") => 0.1,
-                Symbol("accumulator/product/position/list") => 0.1,
-                Symbol("accumulator/product/sum-holding") => 0.1
+    Symbol("cost") => 0.1,
+    Symbol("noPoolId") => 1
+),
+                Symbol("bswap/liquidityOps") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("bswap/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.00005
+),
+                Symbol("bswap/swap") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("bswap/poolConfigure") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.00005
+),
+                Symbol("bswap/addLiquidityPreview") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.00005
+),
+                Symbol("bswap/removeLiquidityPreview") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.00005
+),
+                Symbol("bswap/unclaimedRewards") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.667
+),
+                Symbol("bswap/claimedHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.667
+),
+                Symbol("blvt/tokenInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("blvt/subscribe/record") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("blvt/redeem/record") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("blvt/userLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("apiReferral/ifNewUser") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/customization") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/userCustomization") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/rebate/recentRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/rebate/historicalRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/kickback/recentRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/kickback/historicalRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/commission/futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/commission/coinFutures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/transfer/futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/rebate/recentRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/rebate/historicalRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount/bnbBurn/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount/depositHist") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount/spotSummary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount/marginSummary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount/futuresSummary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/rebate/futures/recentRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/ipRestriction") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/universalTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/apiRestrictions") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("c2c/orderMatch/listUserOrderHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("nft/history/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("nft/history/deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("nft/history/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("nft/user/getAsset") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("pay/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("giftcard/verify") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("giftcard/cryptography/rsa-public-key") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("giftcard/buyCode/token-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("algo/spot/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("algo/spot/historicalOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("algo/spot/subOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("algo/futures/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("algo/futures/historicalOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("algo/futures/subOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("portfolio/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("portfolio/collateralRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("portfolio/pmLoan") => Dict{Symbol, Any}(
+    Symbol("cost") => 3.3335
+),
+                Symbol("portfolio/interest-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.6667
+),
+                Symbol("portfolio/asset-index-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("portfolio/repay-futures-switch") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("portfolio/margin-asset-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("portfolio/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("portfolio/negative-balance-exchange-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("portfolio/pmloan-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("portfolio/earn-asset-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("portfolio/delta-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("staking/productList") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("staking/position") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("staking/stakingRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("staking/personalLeftQuota") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/target-asset/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/target-asset/roi/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/all/asset") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/source-asset/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/plan/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/plan/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/history/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/index/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/index/user-summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/one-off/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/redeem/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/rebalance/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("simple-earn/flexible/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/locked/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/flexible/personalLeftQuota") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/locked/personalLeftQuota") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/flexible/subscriptionPreview") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/locked/subscriptionPreview") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/flexible/history/rateHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/flexible/position") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/locked/position") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/flexible/history/subscriptionRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/locked/history/subscriptionRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/flexible/history/redemptionRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/locked/history/redemptionRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/flexible/history/rewardsRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/locked/history/rewardsRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/flexible/history/collateralRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("dci/product/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("dci/product/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("dci/product/accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("accumulator/product/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("accumulator/product/position/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("accumulator/product/sum-holding") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("asset/dust") => 0.06667,
-                Symbol("asset/dust-btc") => 0.1,
-                Symbol("asset/transfer") => 6.0003,
-                Symbol("asset/get-funding-asset") => 0.1,
-                Symbol("asset/convert-transfer") => 0.033335,
-                Symbol("account/disableFastWithdrawSwitch") => 0.1,
-                Symbol("account/enableFastWithdrawSwitch") => 0.1,
-                Symbol("capital/withdraw/apply") => 4.0002,
-                Symbol("capital/contract/convertible-coins") => 4.0002,
-                Symbol("capital/deposit/credit-apply") => 0.1,
-                Symbol("margin/borrow-repay") => 20.001,
-                Symbol("margin/transfer") => 4.0002,
-                Symbol("margin/loan") => 20.001,
-                Symbol("margin/repay") => 20.001,
-                Symbol("margin/order") => 0.040002,
-                Symbol("margin/order/oco") => 0.040002,
-                Symbol("margin/dust") => 20.001,
-                Symbol("margin/exchange-small-liability") => 20.001,
-                Symbol("margin/isolated/transfer") => 4.0002,
-                Symbol("margin/isolated/account") => 2.0001,
-                Symbol("margin/max-leverage") => 300,
-                Symbol("bnbBurn") => 0.1,
-                Symbol("sub-account/virtualSubAccount") => 0.1,
-                Symbol("sub-account/margin/transfer") => 4.0002,
-                Symbol("sub-account/margin/enable") => 0.1,
-                Symbol("sub-account/futures/enable") => 0.1,
-                Symbol("sub-account/futures/transfer") => 0.1,
-                Symbol("sub-account/futures/internalTransfer") => 0.1,
-                Symbol("sub-account/transfer/subToSub") => 0.1,
-                Symbol("sub-account/transfer/subToMaster") => 0.1,
-                Symbol("sub-account/universalTransfer") => 0.1,
-                Symbol("sub-account/options/enable") => 0.1,
-                Symbol("managed-subaccount/deposit") => 0.1,
-                Symbol("managed-subaccount/withdraw") => 0.1,
-                Symbol("userDataStream") => 0.1,
-                Symbol("userDataStream/isolated") => 0.1,
-                Symbol("userListenToken") => 0.1,
-                Symbol("futures/transfer") => 0.1,
-                Symbol("lending/customizedFixed/purchase") => 0.1,
-                Symbol("lending/daily/purchase") => 0.1,
-                Symbol("lending/daily/redeem") => 0.1,
-                Symbol("bswap/liquidityAdd") => 60,
-                Symbol("bswap/liquidityRemove") => 60,
-                Symbol("bswap/swap") => 60,
-                Symbol("bswap/claimRewards") => 6.667,
-                Symbol("blvt/subscribe") => 0.1,
-                Symbol("blvt/redeem") => 0.1,
-                Symbol("apiReferral/customization") => 1,
-                Symbol("apiReferral/userCustomization") => 1,
-                Symbol("apiReferral/rebate/historicalRecord") => 1,
-                Symbol("apiReferral/kickback/historicalRecord") => 1,
-                Symbol("broker/subAccount") => 1,
-                Symbol("broker/subAccount/margin") => 1,
-                Symbol("broker/subAccount/futures") => 1,
-                Symbol("broker/subAccountApi") => 1,
-                Symbol("broker/subAccountApi/permission") => 1,
-                Symbol("broker/subAccountApi/commission") => 1,
-                Symbol("broker/subAccountApi/commission/futures") => 1,
-                Symbol("broker/subAccountApi/commission/coinFutures") => 1,
-                Symbol("broker/transfer") => 1,
-                Symbol("broker/transfer/futures") => 1,
-                Symbol("broker/rebate/historicalRecord") => 1,
-                Symbol("broker/subAccount/bnbBurn/spot") => 1,
-                Symbol("broker/subAccount/bnbBurn/marginInterest") => 1,
-                Symbol("broker/subAccount/blvt") => 1,
-                Symbol("broker/subAccountApi/ipRestriction") => 1,
-                Symbol("broker/subAccountApi/ipRestriction/ipList") => 1,
-                Symbol("broker/universalTransfer") => 1,
-                Symbol("broker/subAccountApi/permission/universalTransfer") => 1,
-                Symbol("broker/subAccountApi/permission/vanillaOptions") => 1,
-                Symbol("giftcard/createCode") => 0.1,
-                Symbol("giftcard/redeemCode") => 0.1,
-                Symbol("giftcard/buyCode") => 0.1,
-                Symbol("algo/spot/newOrderTwap") => 20.001,
-                Symbol("algo/futures/newOrderVp") => 20.001,
-                Symbol("algo/futures/newOrderTwap") => 20.001,
-                Symbol("staking/purchase") => 0.1,
-                Symbol("staking/redeem") => 0.1,
-                Symbol("staking/setAutoStaking") => 0.1,
-                Symbol("eth-staking/eth/stake") => 15,
-                Symbol("eth-staking/eth/redeem") => 15,
-                Symbol("eth-staking/wbeth/wrap") => 15,
-                Symbol("sol-staking/sol/stake") => 15,
-                Symbol("sol-staking/sol/redeem") => 15,
-                Symbol("mining/hash-transfer/config") => 0.5,
-                Symbol("mining/hash-transfer/config/cancel") => 0.5,
-                Symbol("portfolio/repay") => 20.001,
-                Symbol("loan/vip/renew") => 40.002,
-                Symbol("loan/vip/borrow") => 40.002,
-                Symbol("loan/borrow") => 40.002,
-                Symbol("loan/repay") => 40.002,
-                Symbol("loan/adjust/ltv") => 40.002,
-                Symbol("loan/customize/margin_call") => 40.002,
-                Symbol("loan/flexible/repay") => 40.002,
-                Symbol("loan/flexible/adjust/ltv") => 40.002,
-                Symbol("loan/vip/repay") => 40.002,
-                Symbol("convert/getQuote") => 1.3334,
-                Symbol("convert/acceptQuote") => 3.3335,
-                Symbol("convert/limit/placeOrder") => 3.3335,
-                Symbol("convert/limit/cancelOrder") => 1.3334,
-                Symbol("portfolio/auto-collection") => 150,
-                Symbol("portfolio/asset-collection") => 6,
-                Symbol("portfolio/bnb-transfer") => 150,
-                Symbol("portfolio/repay-futures-switch") => 150,
-                Symbol("portfolio/repay-futures-negative-balance") => 150,
-                Symbol("portfolio/mint") => 20,
-                Symbol("portfolio/redeem") => 20,
-                Symbol("portfolio/earn-asset-transfer") => 150,
-                Symbol("portfolio/delta-mode") => 150,
-                Symbol("lending/auto-invest/plan/add") => 0.1,
-                Symbol("lending/auto-invest/plan/edit") => 0.1,
-                Symbol("lending/auto-invest/plan/edit-status") => 0.1,
-                Symbol("lending/auto-invest/one-off") => 0.1,
-                Symbol("lending/auto-invest/redeem") => 0.1,
-                Symbol("simple-earn/flexible/subscribe") => 0.1,
-                Symbol("simple-earn/locked/subscribe") => 0.1,
-                Symbol("simple-earn/flexible/redeem") => 0.1,
-                Symbol("simple-earn/locked/redeem") => 0.1,
-                Symbol("simple-earn/flexible/setAutoSubscribe") => 15,
-                Symbol("simple-earn/locked/setAutoSubscribe") => 15,
-                Symbol("simple-earn/locked/setRedeemOption") => 5,
-                Symbol("dci/product/subscribe") => 0.1,
-                Symbol("dci/product/auto_compound/edit") => 0.1,
-                Symbol("accumulator/product/subscribe") => 0.1
+                Symbol("asset/dust") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.06667
+),
+                Symbol("asset/dust-btc") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("asset/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.0003
+),
+                Symbol("asset/get-funding-asset") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("asset/convert-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.033335
+),
+                Symbol("account/disableFastWithdrawSwitch") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("account/enableFastWithdrawSwitch") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("capital/withdraw/apply") => Dict{Symbol, Any}(
+    Symbol("cost") => 4.0002
+),
+                Symbol("capital/contract/convertible-coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 4.0002
+),
+                Symbol("capital/deposit/credit-apply") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/borrow-repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("margin/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 4.0002
+),
+                Symbol("margin/loan") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("margin/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("margin/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.040002
+),
+                Symbol("margin/order/oco") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.040002
+),
+                Symbol("margin/dust") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("margin/exchange-small-liability") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("margin/isolated/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 4.0002
+),
+                Symbol("margin/isolated/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.0001
+),
+                Symbol("margin/max-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 300
+),
+                Symbol("bnbBurn") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/virtualSubAccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/margin/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 4.0002
+),
+                Symbol("sub-account/margin/enable") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/futures/enable") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/futures/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/futures/internalTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/transfer/subToSub") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/transfer/subToMaster") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/universalTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/options/enable") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("managed-subaccount/deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("managed-subaccount/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("userDataStream/isolated") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("userListenToken") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("futures/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/customizedFixed/purchase") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/daily/purchase") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/daily/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("bswap/liquidityAdd") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                Symbol("bswap/liquidityRemove") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                Symbol("bswap/swap") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                Symbol("bswap/claimRewards") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.667
+),
+                Symbol("blvt/subscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("blvt/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("apiReferral/customization") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/userCustomization") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/rebate/historicalRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/kickback/historicalRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount/futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/permission") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/commission") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/commission/futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/commission/coinFutures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/transfer/futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/rebate/historicalRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount/bnbBurn/spot") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount/bnbBurn/marginInterest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccount/blvt") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/ipRestriction") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/ipRestriction/ipList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/universalTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/permission/universalTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/permission/vanillaOptions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("giftcard/createCode") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("giftcard/redeemCode") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("giftcard/buyCode") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("algo/spot/newOrderTwap") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("algo/futures/newOrderVp") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("algo/futures/newOrderTwap") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("staking/purchase") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("staking/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("staking/setAutoStaking") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("eth-staking/eth/stake") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("eth-staking/eth/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("eth-staking/wbeth/wrap") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sol-staking/sol/stake") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sol-staking/sol/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("mining/hash-transfer/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("mining/hash-transfer/config/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("portfolio/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("loan/vip/renew") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("loan/vip/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("loan/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("loan/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("loan/adjust/ltv") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("loan/customize/margin_call") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("loan/flexible/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("loan/flexible/adjust/ltv") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("loan/vip/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("convert/getQuote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.3334
+),
+                Symbol("convert/acceptQuote") => Dict{Symbol, Any}(
+    Symbol("cost") => 3.3335
+),
+                Symbol("convert/limit/placeOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 3.3335
+),
+                Symbol("convert/limit/cancelOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.3334
+),
+                Symbol("portfolio/auto-collection") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("portfolio/asset-collection") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                Symbol("portfolio/bnb-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("portfolio/repay-futures-switch") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("portfolio/repay-futures-negative-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("portfolio/mint") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("portfolio/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("portfolio/earn-asset-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("portfolio/delta-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("lending/auto-invest/plan/add") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/plan/edit") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/plan/edit-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/one-off") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("lending/auto-invest/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("simple-earn/flexible/subscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("simple-earn/locked/subscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("simple-earn/flexible/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("simple-earn/locked/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("simple-earn/flexible/setAutoSubscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/locked/setAutoSubscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("simple-earn/locked/setRedeemOption") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("dci/product/subscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("dci/product/auto_compound/edit") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("accumulator/product/subscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("userDataStream") => 0.1,
-                Symbol("userDataStream/isolated") => 0.1
+                Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("userDataStream/isolated") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("margin/openOrders") => 0.1,
-                Symbol("margin/order") => 0.006667,
-                Symbol("margin/orderList") => 0.006667,
-                Symbol("margin/isolated/account") => 2.0001,
-                Symbol("userDataStream") => 0.1,
-                Symbol("userDataStream/isolated") => 0.1,
-                Symbol("broker/subAccountApi") => 1,
-                Symbol("broker/subAccountApi/ipRestriction/ipList") => 1,
-                Symbol("algo/spot/order") => 0.1,
-                Symbol("algo/futures/order") => 0.1,
-                Symbol("sub-account/subAccountApi/ipRestriction/ipList") => 20.001
+                Symbol("margin/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("margin/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.006667
+),
+                Symbol("margin/orderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.006667
+),
+                Symbol("margin/isolated/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.0001
+),
+                Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("userDataStream/isolated") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("broker/subAccountApi") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broker/subAccountApi/ipRestriction/ipList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo/spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("algo/futures/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/subAccountApi/ipRestriction/ipList") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+)
             )
         ),
         Symbol("sapiV2") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("eth-staking/account") => 15,
-                Symbol("sub-account/futures/account") => 0.1,
-                Symbol("sub-account/futures/accountSummary") => 1,
-                Symbol("sub-account/futures/positionRisk") => 0.1,
-                Symbol("loan/flexible/ongoing/orders") => 30,
-                Symbol("loan/flexible/borrow/history") => 40,
-                Symbol("loan/flexible/repay/history") => 40,
-                Symbol("loan/flexible/ltv/adjustment/history") => 40,
-                Symbol("loan/flexible/loanable/data") => 40,
-                Symbol("loan/flexible/collateral/data") => 40,
-                Symbol("portfolio/account") => 2
+                Symbol("eth-staking/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sub-account/futures/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("sub-account/futures/accountSummary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-account/futures/positionRisk") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("loan/flexible/ongoing/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("loan/flexible/borrow/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/flexible/repay/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/flexible/ltv/adjustment/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/flexible/loanable/data") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("loan/flexible/collateral/data") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("portfolio/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("eth-staking/eth/stake") => 15,
-                Symbol("sub-account/subAccountApi/ipRestriction") => 20.001,
-                Symbol("loan/flexible/borrow") => 40.002,
-                Symbol("loan/flexible/repay") => 40.002,
-                Symbol("loan/flexible/adjust/ltv") => 40.002
+                Symbol("eth-staking/eth/stake") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sub-account/subAccountApi/ipRestriction") => Dict{Symbol, Any}(
+    Symbol("cost") => 20.001
+),
+                Symbol("loan/flexible/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("loan/flexible/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+),
+                Symbol("loan/flexible/adjust/ltv") => Dict{Symbol, Any}(
+    Symbol("cost") => 40.002
+)
             )
         ),
         Symbol("sapiV3") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("sub-account/assets") => 0.40002
+                Symbol("sub-account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.40002
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("asset/getUserAsset") => 0.5
+                Symbol("asset/getUserAsset") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+)
             )
         ),
         Symbol("sapiV4") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("sub-account/assets") => 0.40002
+                Symbol("sub-account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.40002
+)
             )
         ),
         Symbol("dapiPublic") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("ping") => 1,
-                Symbol("time") => 1,
-                Symbol("exchangeInfo") => 1,
+                Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("depth") => Dict{Symbol, Any}(
-                    Symbol("cost") => 2,
-                    Symbol("byLimit") => [[50, 2], [100, 5], [500, 10], [1000, 20]]
-                ),
-                Symbol("trades") => 5,
-                Symbol("historicalTrades") => 20,
-                Symbol("aggTrades") => 20,
-                Symbol("premiumIndex") => 10,
-                Symbol("fundingRate") => 1,
+    Symbol("cost") => 2,
+    Symbol("byLimit") => [[50, 2], [100, 5], [500, 10], [1000, 20]]
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("historicalTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("aggTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("premiumIndex") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("fundingRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("klines") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
-                ),
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
+),
                 Symbol("continuousKlines") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
-                ),
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
+),
                 Symbol("indexPriceKlines") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
-                ),
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
+),
                 Symbol("markPriceKlines") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
-                ),
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
+),
                 Symbol("premiumIndexKlines") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
-                ),
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
+),
                 Symbol("ticker/24hr") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
                 Symbol("ticker/price") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 2
-                ),
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 2
+),
                 Symbol("ticker/bookTicker") => Dict{Symbol, Any}(
-                    Symbol("cost") => 2,
-                    Symbol("noSymbol") => 5
-                ),
-                Symbol("constituents") => 2,
-                Symbol("openInterest") => 1,
-                Symbol("fundingInfo") => 1
+    Symbol("cost") => 2,
+    Symbol("noSymbol") => 5
+),
+                Symbol("constituents") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("openInterest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fundingInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("dapiData") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("delivery-price") => 1,
-                Symbol("openInterestHist") => 1,
-                Symbol("topLongShortAccountRatio") => 1,
-                Symbol("topLongShortPositionRatio") => 1,
-                Symbol("globalLongShortAccountRatio") => 1,
-                Symbol("takerBuySellVol") => 1,
-                Symbol("basis") => 1
+                Symbol("delivery-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openInterestHist") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("topLongShortAccountRatio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("topLongShortPositionRatio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("globalLongShortAccountRatio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("takerBuySellVol") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("basis") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("dapiPrivate") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("positionSide/dual") => 30,
-                Symbol("orderAmendment") => 1,
-                Symbol("order") => 1,
-                Symbol("openOrder") => 1,
+                Symbol("positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("orderAmendment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("openOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 5
-                ),
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 5
+),
                 Symbol("openAlgoOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
-                Symbol("allOrders") => 5,
-                Symbol("balance") => 1,
-                Symbol("account") => 5,
-                Symbol("positionMargin/history") => 1,
-                Symbol("positionRisk") => 1,
-                Symbol("userTrades") => 5,
-                Symbol("income") => 20,
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
+                Symbol("allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("positionMargin/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positionRisk") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("income") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
                 Symbol("leverageBracket") => Dict{Symbol, Any}(
-                    Symbol("cost") => 2,
-                    Symbol("noSymbol") => 2
-                ),
+    Symbol("cost") => 2,
+    Symbol("noSymbol") => 2
+),
                 Symbol("forceOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 20,
-                    Symbol("noSymbol") => 50
-                ),
-                Symbol("adlQuantile") => 5,
-                Symbol("commissionRate") => 20,
-                Symbol("income/asyn") => 5,
-                Symbol("income/asyn/id") => 5,
-                Symbol("trade/asyn") => 0.5,
-                Symbol("trade/asyn/id") => 0.5,
-                Symbol("order/asyn") => 0.5,
-                Symbol("order/asyn/id") => 0.5,
-                Symbol("pmExchangeInfo") => 0.5,
-                Symbol("pmAccountInfo") => 0.5
+    Symbol("cost") => 20,
+    Symbol("noSymbol") => 50
+),
+                Symbol("adlQuantile") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("income/asyn") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("income/asyn/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("trade/asyn") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("trade/asyn/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("order/asyn") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("order/asyn/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("pmExchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("pmAccountInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("positionSide/dual") => 1,
-                Symbol("order") => 4,
-                Symbol("algoOrder") => 1,
-                Symbol("batchOrders") => 5,
-                Symbol("countdownCancelAll") => 10,
-                Symbol("leverage") => 1,
-                Symbol("marginType") => 1,
-                Symbol("positionMargin") => 1,
-                Symbol("listenKey") => 1
+                Symbol("positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("algoOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("countdownCancelAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("marginType") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positionMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("listenKey") => 1,
-                Symbol("order") => 1,
-                Symbol("batchOrders") => 5
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("order") => 1,
-                Symbol("algoOrder") => 1,
-                Symbol("allOpenOrders") => 1,
-                Symbol("batchOrders") => 5,
-                Symbol("listenKey") => 1
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algoOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("dapiPrivateV2") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("leverageBracket") => 1
+                Symbol("leverageBracket") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("fapiPublic") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("ping") => 1,
-                Symbol("time") => 1,
-                Symbol("exchangeInfo") => 1,
+                Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("depth") => Dict{Symbol, Any}(
-                    Symbol("cost") => 2,
-                    Symbol("byLimit") => [[50, 2], [100, 5], [500, 10], [1000, 20]]
-                ),
-                Symbol("rpiDepth") => 20,
-                Symbol("trades") => 5,
-                Symbol("historicalTrades") => 20,
-                Symbol("aggTrades") => 20,
+    Symbol("cost") => 2,
+    Symbol("byLimit") => [[50, 2], [100, 5], [500, 10], [1000, 20]]
+),
+                Symbol("rpiDepth") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("historicalTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("aggTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
                 Symbol("klines") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
-                ),
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
+),
                 Symbol("continuousKlines") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
-                ),
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
+),
                 Symbol("markPriceKlines") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
-                ),
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
+),
                 Symbol("indexPriceKlines") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
-                ),
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
+),
                 Symbol("premiumIndexKlines") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
-                ),
-                Symbol("fundingRate") => 1,
-                Symbol("fundingInfo") => 1,
-                Symbol("premiumIndex") => 1,
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
+),
+                Symbol("fundingRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fundingInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("premiumIndex") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("ticker/24hr") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
                 Symbol("ticker/price") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 2
-                ),
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 2
+),
                 Symbol("ticker/bookTicker") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 2
-                ),
-                Symbol("openInterest") => 1,
-                Symbol("indexInfo") => 1,
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 2
+),
+                Symbol("openInterest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("indexInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("assetIndex") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 10
-                ),
-                Symbol("constituents") => 2,
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 10
+),
+                Symbol("constituents") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
                 Symbol("apiTradingStatus") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 10
-                ),
-                Symbol("lvtKlines") => 1,
-                Symbol("convert/exchangeInfo") => 4,
-                Symbol("insuranceBalance") => 1,
-                Symbol("symbolAdlRisk") => 1,
-                Symbol("tradingSchedule") => 5
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 10
+),
+                Symbol("lvtKlines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("convert/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("insuranceBalance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("symbolAdlRisk") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tradingSchedule") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         ),
         Symbol("fapiData") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("delivery-price") => 1,
-                Symbol("openInterestHist") => 1,
-                Symbol("topLongShortAccountRatio") => 1,
-                Symbol("topLongShortPositionRatio") => 1,
-                Symbol("globalLongShortAccountRatio") => 1,
-                Symbol("takerlongshortRatio") => 1,
-                Symbol("basis") => 1
+                Symbol("delivery-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openInterestHist") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("topLongShortAccountRatio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("topLongShortPositionRatio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("globalLongShortAccountRatio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("takerlongshortRatio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("basis") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("fapiPrivate") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
                 Symbol("forceOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 20,
-                    Symbol("noSymbol") => 50
-                ),
-                Symbol("allOrders") => 5,
-                Symbol("openOrder") => 1,
+    Symbol("cost") => 20,
+    Symbol("noSymbol") => 50
+),
+                Symbol("allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("openOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("openOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
-                Symbol("order") => 1,
-                Symbol("account") => 5,
-                Symbol("balance") => 5,
-                Symbol("leverageBracket") => 1,
-                Symbol("positionMargin/history") => 1,
-                Symbol("positionRisk") => 5,
-                Symbol("positionSide/dual") => 30,
-                Symbol("userTrades") => 5,
-                Symbol("income") => 30,
-                Symbol("commissionRate") => 20,
-                Symbol("rateLimit/order") => 1,
-                Symbol("apiTradingStatus") => 1,
-                Symbol("multiAssetsMargin") => 30,
-                Symbol("apiReferral/ifNewUser") => 1,
-                Symbol("apiReferral/customization") => 1,
-                Symbol("apiReferral/userCustomization") => 1,
-                Symbol("apiReferral/traderNum") => 1,
-                Symbol("apiReferral/overview") => 1,
-                Symbol("apiReferral/tradeVol") => 1,
-                Symbol("apiReferral/rebateVol") => 1,
-                Symbol("apiReferral/traderSummary") => 1,
-                Symbol("adlQuantile") => 5,
-                Symbol("pmAccountInfo") => 5,
-                Symbol("orderAmendment") => 1,
-                Symbol("income/asyn") => 1000,
-                Symbol("income/asyn/id") => 10,
-                Symbol("order/asyn") => 1000,
-                Symbol("order/asyn/id") => 10,
-                Symbol("trade/asyn") => 1000,
-                Symbol("trade/asyn/id") => 10,
-                Symbol("feeBurn") => 1,
-                Symbol("symbolConfig") => 5,
-                Symbol("accountConfig") => 5,
-                Symbol("convert/orderStatus") => 5,
-                Symbol("algoOrder") => 1,
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("leverageBracket") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positionMargin/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positionRisk") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("income") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("rateLimit/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiTradingStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("multiAssetsMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("apiReferral/ifNewUser") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/customization") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/userCustomization") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/traderNum") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/overview") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/tradeVol") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/rebateVol") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/traderSummary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("adlQuantile") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("pmAccountInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("orderAmendment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("income/asyn") => Dict{Symbol, Any}(
+    Symbol("cost") => 1000
+),
+                Symbol("income/asyn/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("order/asyn") => Dict{Symbol, Any}(
+    Symbol("cost") => 1000
+),
+                Symbol("order/asyn/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("trade/asyn") => Dict{Symbol, Any}(
+    Symbol("cost") => 1000
+),
+                Symbol("trade/asyn/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("feeBurn") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("symbolConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("accountConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("convert/orderStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("algoOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("openAlgoOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
-                Symbol("allAlgoOrders") => 5,
-                Symbol("stock/contract") => 50
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
+                Symbol("allAlgoOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("stock/contract") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("batchOrders") => 5,
-                Symbol("positionSide/dual") => 1,
-                Symbol("positionMargin") => 1,
-                Symbol("marginType") => 1,
-                Symbol("order") => 4,
-                Symbol("order/test") => 1,
-                Symbol("leverage") => 1,
-                Symbol("listenKey") => 1,
-                Symbol("countdownCancelAll") => 10,
-                Symbol("multiAssetsMargin") => 1,
-                Symbol("apiReferral/customization") => 1,
-                Symbol("apiReferral/userCustomization") => 1,
-                Symbol("feeBurn") => 1,
-                Symbol("convert/getQuote") => 200,
-                Symbol("convert/acceptQuote") => 20,
-                Symbol("algoOrder") => 1
+                Symbol("batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positionMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("marginType") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("order/test") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("countdownCancelAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("multiAssetsMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/customization") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apiReferral/userCustomization") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("feeBurn") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("convert/getQuote") => Dict{Symbol, Any}(
+    Symbol("cost") => 200
+),
+                Symbol("convert/acceptQuote") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("algoOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("listenKey") => 1,
-                Symbol("order") => 1,
-                Symbol("batchOrders") => 5
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("batchOrders") => 1,
-                Symbol("order") => 1,
-                Symbol("allOpenOrders") => 1,
-                Symbol("listenKey") => 1,
-                Symbol("algoOrder") => 1,
-                Symbol("algoOpenOrders") => 1
+                Symbol("batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algoOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algoOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("fapiPublicV2") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("ticker/price") => 0
+                Symbol("ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 0
+)
             )
         ),
         Symbol("fapiPrivateV2") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("account") => 1,
-                Symbol("balance") => 1,
-                Symbol("positionRisk") => 1
+                Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positionRisk") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("fapiPublicV3") => Dict{Symbol, Any}(
@@ -1965,295 +3093,661 @@ function describe(self::Binance, )
         ),
         Symbol("fapiPrivateV3") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("account") => 1,
-                Symbol("balance") => 1,
-                Symbol("positionRisk") => 1
+                Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positionRisk") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("eapiPublic") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("ping") => 1,
-                Symbol("time") => 1,
-                Symbol("exchangeInfo") => 1,
-                Symbol("index") => 1,
-                Symbol("ticker") => 5,
-                Symbol("mark") => 5,
-                Symbol("depth") => 1,
-                Symbol("klines") => 1,
-                Symbol("trades") => 5,
-                Symbol("historicalTrades") => 20,
-                Symbol("exerciseHistory") => 3,
-                Symbol("openInterest") => 3
+                Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("mark") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("historicalTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("exerciseHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("openInterest") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+)
             )
         ),
         Symbol("eapiPrivate") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("account") => 3,
-                Symbol("position") => 5,
+                Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("position") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
                 Symbol("openOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
-                Symbol("historyOrders") => 3,
-                Symbol("userTrades") => 5,
-                Symbol("exerciseRecord") => 5,
-                Symbol("bill") => 1,
-                Symbol("income/asyn") => 5,
-                Symbol("income/asyn/id") => 5,
-                Symbol("marginAccount") => 3,
-                Symbol("mmp") => 1,
-                Symbol("countdownCancelAll") => 1,
-                Symbol("order") => 1,
-                Symbol("block/order/orders") => 5,
-                Symbol("block/order/execute") => 5,
-                Symbol("block/user-trades") => 5,
-                Symbol("blockTrades") => 5,
-                Symbol("comission") => 5
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
+                Symbol("historyOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exerciseRecord") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("bill") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("income/asyn") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("income/asyn/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("marginAccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("mmp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("countdownCancelAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block/order/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("block/order/execute") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("block/user-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("blockTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("comission") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("order") => 1,
-                Symbol("batchOrders") => 5,
-                Symbol("listenKey") => 1,
-                Symbol("mmpSet") => 1,
-                Symbol("mmpReset") => 1,
-                Symbol("countdownCancelAll") => 1,
-                Symbol("countdownCancelAllHeartBeat") => 10,
-                Symbol("block/order/create") => 5,
-                Symbol("block/order/execute") => 5
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("mmpSet") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("mmpReset") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("countdownCancelAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("countdownCancelAllHeartBeat") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("block/order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("block/order/execute") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("listenKey") => 1,
-                Symbol("block/order/create") => 5
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block/order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("order") => 1,
-                Symbol("batchOrders") => 1,
-                Symbol("allOpenOrders") => 1,
-                Symbol("allOpenOrdersByUnderlying") => 1,
-                Symbol("listenKey") => 1,
-                Symbol("block/order/create") => 5
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("allOpenOrdersByUnderlying") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block/order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         ),
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("ping") => 0.2,
-                Symbol("time") => 0.2,
+                Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
                 Symbol("depth") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[100, 1], [500, 5], [1000, 10], [5000, 50]]
-                ),
-                Symbol("trades") => 2,
-                Symbol("aggTrades") => 0.4,
-                Symbol("historicalTrades") => 2,
-                Symbol("klines") => 0.4,
-                Symbol("uiKlines") => 0.4,
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[100, 1], [500, 5], [1000, 10], [5000, 50]]
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("aggTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("historicalTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("uiKlines") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
                 Symbol("ticker/24hr") => Dict{Symbol, Any}(
-                    Symbol("cost") => 0.4,
-                    Symbol("noSymbol") => 16
-                ),
+    Symbol("cost") => 0.4,
+    Symbol("noSymbol") => 16
+),
                 Symbol("ticker") => Dict{Symbol, Any}(
-                    Symbol("cost") => 0.4,
-                    Symbol("noSymbol") => 16
-                ),
-                Symbol("ticker/tradingDay") => 0.8,
+    Symbol("cost") => 0.4,
+    Symbol("noSymbol") => 16
+),
+                Symbol("ticker/tradingDay") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.8
+),
                 Symbol("ticker/price") => Dict{Symbol, Any}(
-                    Symbol("cost") => 0.4,
-                    Symbol("noSymbol") => 0.8
-                ),
+    Symbol("cost") => 0.4,
+    Symbol("noSymbol") => 0.8
+),
                 Symbol("ticker/bookTicker") => Dict{Symbol, Any}(
-                    Symbol("cost") => 0.4,
-                    Symbol("noSymbol") => 0.8
-                ),
-                Symbol("exchangeInfo") => 4,
-                Symbol("avgPrice") => 0.4
+    Symbol("cost") => 0.4,
+    Symbol("noSymbol") => 0.8
+),
+                Symbol("exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("avgPrice") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("userDataStream") => 0.4
+                Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("userDataStream") => 0.4
+                Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("userDataStream") => 0.4
+                Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("allOrderList") => 4,
-                Symbol("openOrderList") => 1.2,
-                Symbol("orderList") => 0.8,
-                Symbol("order") => 0.8,
+                Symbol("allOrderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("openOrderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.2
+),
+                Symbol("orderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.8
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.8
+),
                 Symbol("openOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1.2,
-                    Symbol("noSymbol") => 16
-                ),
-                Symbol("allOrders") => 4,
-                Symbol("account") => 4,
-                Symbol("myTrades") => 4,
-                Symbol("rateLimit/order") => 8,
-                Symbol("myPreventedMatches") => 4,
-                Symbol("myAllocations") => 4,
-                Symbol("account/commission") => 4
+    Symbol("cost") => 1.2,
+    Symbol("noSymbol") => 16
+),
+                Symbol("allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("myTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("rateLimit/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                Symbol("myPreventedMatches") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("myAllocations") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("account/commission") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("order/oco") => 0.2,
-                Symbol("orderList/oco") => 0.2,
-                Symbol("orderList/oto") => 0.2,
-                Symbol("orderList/otoco") => 0.2,
-                Symbol("orderList/opo") => 0.2,
-                Symbol("orderList/opoco") => 0.2,
-                Symbol("sor/order") => 0.2,
-                Symbol("sor/order/test") => 0.2,
-                Symbol("order") => 0.2,
-                Symbol("order/cancelReplace") => 0.2,
-                Symbol("order/test") => 0.2
+                Symbol("order/oco") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("orderList/oco") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("orderList/oto") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("orderList/otoco") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("orderList/opo") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("orderList/opoco") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("sor/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("sor/order/test") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("order/cancelReplace") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("order/test") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("openOrders") => 0.2,
-                Symbol("orderList") => 0.2,
-                Symbol("order") => 0.2
+                Symbol("openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("orderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+)
             )
         ),
         Symbol("papi") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("ping") => 0.2,
-                Symbol("um/order") => 1,
-                Symbol("um/openOrder") => 1,
+                Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("um/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("um/openOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("um/openOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
-                Symbol("um/allOrders") => 5,
-                Symbol("cm/order") => 1,
-                Symbol("cm/openOrder") => 1,
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
+                Symbol("um/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("cm/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/openOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("cm/openOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
-                Symbol("cm/allOrders") => 20,
-                Symbol("um/conditional/openOrder") => 1,
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
+                Symbol("cm/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("um/conditional/openOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("um/conditional/openOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
-                Symbol("um/conditional/orderHistory") => 1,
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
+                Symbol("um/conditional/orderHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("um/conditional/allOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
-                Symbol("cm/conditional/openOrder") => 1,
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
+                Symbol("cm/conditional/openOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("cm/conditional/openOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
-                Symbol("cm/conditional/orderHistory") => 1,
-                Symbol("cm/conditional/allOrders") => 40,
-                Symbol("margin/order") => 10,
-                Symbol("margin/openOrders") => 5,
-                Symbol("margin/allOrders") => 100,
-                Symbol("margin/orderList") => 5,
-                Symbol("margin/allOrderList") => 100,
-                Symbol("margin/openOrderList") => 5,
-                Symbol("margin/myTrades") => 5,
-                Symbol("balance") => 4,
-                Symbol("account") => 4,
-                Symbol("margin/maxBorrowable") => 1,
-                Symbol("margin/maxWithdraw") => 1,
-                Symbol("um/positionRisk") => 1,
-                Symbol("cm/positionRisk") => 0.2,
-                Symbol("um/positionSide/dual") => 6,
-                Symbol("cm/positionSide/dual") => 6,
-                Symbol("um/userTrades") => 5,
-                Symbol("cm/userTrades") => 20,
-                Symbol("um/leverageBracket") => 0.2,
-                Symbol("cm/leverageBracket") => 0.2,
-                Symbol("margin/forceOrders") => 1,
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
+                Symbol("cm/conditional/orderHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/conditional/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("margin/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("margin/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("margin/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("margin/orderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("margin/allOrderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("margin/openOrderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("margin/myTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("margin/maxBorrowable") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/maxWithdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("um/positionRisk") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/positionRisk") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("um/positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                Symbol("cm/positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                Symbol("um/userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("cm/userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("um/leverageBracket") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("cm/leverageBracket") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("margin/forceOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("um/forceOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 20,
-                    Symbol("noSymbol") => 50
-                ),
+    Symbol("cost") => 20,
+    Symbol("noSymbol") => 50
+),
                 Symbol("cm/forceOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 20,
-                    Symbol("noSymbol") => 50
-                ),
+    Symbol("cost") => 20,
+    Symbol("noSymbol") => 50
+),
                 Symbol("um/apiTradingStatus") => Dict{Symbol, Any}(
-                    Symbol("cost") => 0.2,
-                    Symbol("noSymbol") => 2
-                ),
-                Symbol("um/commissionRate") => 4,
-                Symbol("cm/commissionRate") => 4,
-                Symbol("margin/marginLoan") => 2,
-                Symbol("margin/repayLoan") => 2,
-                Symbol("margin/marginInterestHistory") => 0.2,
-                Symbol("portfolio/interest-history") => 10,
-                Symbol("um/income") => 6,
-                Symbol("cm/income") => 6,
-                Symbol("um/account") => 1,
-                Symbol("cm/account") => 1,
-                Symbol("repay-futures-switch") => 6,
-                Symbol("um/adlQuantile") => 5,
-                Symbol("cm/adlQuantile") => 5,
-                Symbol("um/trade/asyn") => 300,
-                Symbol("um/trade/asyn/id") => 2,
-                Symbol("um/order/asyn") => 300,
-                Symbol("um/order/asyn/id") => 2,
-                Symbol("um/income/asyn") => 300,
-                Symbol("um/income/asyn/id") => 2,
-                Symbol("um/orderAmendment") => 1,
-                Symbol("cm/orderAmendment") => 1,
-                Symbol("um/feeBurn") => 30,
-                Symbol("um/accountConfig") => 1,
-                Symbol("um/symbolConfig") => 1,
-                Symbol("cm/accountConfig") => 1,
-                Symbol("cm/symbolConfig") => 1,
-                Symbol("rateLimit/order") => 1
+    Symbol("cost") => 0.2,
+    Symbol("noSymbol") => 2
+),
+                Symbol("um/commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("cm/commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("margin/marginLoan") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("margin/repayLoan") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("margin/marginInterestHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("portfolio/interest-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("um/income") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                Symbol("cm/income") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                Symbol("um/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("repay-futures-switch") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                Symbol("um/adlQuantile") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("cm/adlQuantile") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("um/trade/asyn") => Dict{Symbol, Any}(
+    Symbol("cost") => 300
+),
+                Symbol("um/trade/asyn/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("um/order/asyn") => Dict{Symbol, Any}(
+    Symbol("cost") => 300
+),
+                Symbol("um/order/asyn/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("um/income/asyn") => Dict{Symbol, Any}(
+    Symbol("cost") => 300
+),
+                Symbol("um/income/asyn/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("um/orderAmendment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/orderAmendment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("um/feeBurn") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("um/accountConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("um/symbolConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/accountConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/symbolConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rateLimit/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("um/order") => 1,
-                Symbol("um/conditional/order") => 1,
-                Symbol("cm/order") => 1,
-                Symbol("cm/conditional/order") => 1,
-                Symbol("margin/order") => 1,
-                Symbol("marginLoan") => 100,
-                Symbol("repayLoan") => 100,
-                Symbol("margin/order/oco") => 1,
-                Symbol("um/leverage") => 0.2,
-                Symbol("cm/leverage") => 0.2,
-                Symbol("um/positionSide/dual") => 0.2,
-                Symbol("cm/positionSide/dual") => 0.2,
-                Symbol("auto-collection") => 150,
-                Symbol("bnb-transfer") => 150,
-                Symbol("repay-futures-switch") => 150,
-                Symbol("repay-futures-negative-balance") => 150,
-                Symbol("listenKey") => 0.2,
-                Symbol("asset-collection") => 6,
-                Symbol("margin/repay-debt") => 3000,
-                Symbol("um/feeBurn") => 1,
-                Symbol("um/stock/contract") => 1
+                Symbol("um/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("um/conditional/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/conditional/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("marginLoan") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("repayLoan") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("margin/order/oco") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("um/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("cm/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("um/positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("cm/positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("auto-collection") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("bnb-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("repay-futures-switch") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("repay-futures-negative-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("asset-collection") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                Symbol("margin/repay-debt") => Dict{Symbol, Any}(
+    Symbol("cost") => 3000
+),
+                Symbol("um/feeBurn") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("um/stock/contract") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("listenKey") => 0.2,
-                Symbol("um/order") => 1,
-                Symbol("cm/order") => 1
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("um/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("um/order") => 1,
-                Symbol("um/conditional/order") => 1,
-                Symbol("um/allOpenOrders") => 1,
-                Symbol("um/conditional/allOpenOrders") => 1,
-                Symbol("cm/order") => 1,
-                Symbol("cm/conditional/order") => 1,
-                Symbol("cm/allOpenOrders") => 1,
-                Symbol("cm/conditional/allOpenOrders") => 1,
-                Symbol("margin/order") => 2,
-                Symbol("margin/allOpenOrders") => 5,
-                Symbol("margin/orderList") => 2,
-                Symbol("listenKey") => 0.2
+                Symbol("um/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("um/conditional/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("um/allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("um/conditional/allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/conditional/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cm/conditional/allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("margin/allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("margin/orderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+)
             )
         ),
         Symbol("papiV2") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("um/account") => 1
+                Symbol("um/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -2385,7 +3879,7 @@ function describe(self::Binance, )
             Symbol("DOGE") => "DOGE",
             Symbol("SOL") => "SOL",
             Symbol("SONIC") => "SONIC",
-            Symbol("ARBONE") => "ARBITRUM",
+            Symbol("ARBITRUM") => "ARBITRUM",
             Symbol("AVAXC") => "AVAXC",
             Symbol("MATIC") => "MATIC",
             Symbol("BASE") => "BASE",
@@ -3699,6 +5193,9 @@ function createExpiredOptionMarket(self::Binance, symbol)
 
 end
 function market(self::Binance, symbol)
+    if functions.ccxtruthy(symbol == nothing)
+        throw(ArgumentsRequired(string(self.id, " Ccxt.market() requires a symbol argument")));
+    end
     if functions.ccxtruthy(self.markets == nothing)
         throw(ExchangeError(string(self.id, " markets not loaded")));
     end
@@ -3708,18 +5205,18 @@ function market(self::Binance, symbol)
     isLegacyInverse = defaultType == "delivery";
     isLegacy = @functions.ccxt_or(isLegacyLinear, isLegacyInverse);
     if functions.ccxtruthy(isa(symbol, AbstractString))
-        if functions.ccxtruthy(ccxt_in(symbol, self.markets))
+        if functions.ccxtruthy(@functions.ccxt_and((self.markets != nothing), (ccxt_in(symbol, self.markets))))
             market = get(self.markets, Symbol(symbol), nothing);
             if functions.ccxtruthy(@functions.ccxt_and(isLegacy, get(market, Symbol("spot"), nothing)))
                 settle = functions.ccxtruthy(isLegacyLinear) ? get(market, Symbol("quote"), nothing) : get(market, Symbol("base"), nothing);
                 futuresSymbol = string(symbol, ":", settle);
-                if functions.ccxtruthy(ccxt_in(futuresSymbol, self.markets))
+                if functions.ccxtruthy(@functions.ccxt_and((self.markets != nothing), (ccxt_in(futuresSymbol, self.markets))))
                         return get(self.markets, Symbol(futuresSymbol), nothing)
                 end
             else
                 return market
             end
-        elseif functions.ccxtruthy(ccxt_in(symbol, self.markets_by_id))
+        elseif functions.ccxtruthy(@functions.ccxt_and((self.markets_by_id != nothing), (ccxt_in(symbol, self.markets_by_id))))
             markets = get(self.markets_by_id, Symbol(symbol), nothing);
             if functions.ccxtruthy(isLegacyLinear)
                 defaultType = "linear";
@@ -3734,7 +5231,7 @@ function market(self::Binance, symbol)
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
                 market = get(markets, i + 1, nothing);
-                if functions.ccxtruthy(get(market, Symbol(defaultType), nothing))
+                if functions.ccxtruthy(safeValue(market, defaultType))
                         return market
                 end
                 i += 1
@@ -3746,7 +5243,7 @@ function market(self::Binance, symbol)
                     (base, quote_var) = split(symbol, "/");
                     settle = functions.ccxtruthy((quote_var == "USD")) ? base : quote_var;
                     futuresSymbol = string(symbol, ":", settle);
-                    if functions.ccxtruthy(ccxt_in(futuresSymbol, self.markets))
+                    if functions.ccxtruthy(@functions.ccxt_and((self.markets != nothing), (ccxt_in(futuresSymbol, self.markets))))
                             return get(self.markets, Symbol(futuresSymbol), nothing)
                     end
                 end
@@ -3761,7 +5258,7 @@ function market(self::Binance, symbol)
 end
 function safeMarket(self::Binance, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     isOption = @functions.ccxt_and((marketId != nothing), (@functions.ccxt_or((findfirst("-C", marketId) !== nothing), (findfirst("-P", marketId) !== nothing))));
-    if functions.ccxtruthy(@functions.ccxt_and(isOption, !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))
+    if functions.ccxtruthy(@functions.ccxt_and(isOption, (@functions.ccxt_or((self.markets_by_id == nothing), !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))))
             return self.createExpiredOptionMarket(marketId)
     end
     return safeMarket(self.parent, marketId, market, delimiter, marketType)
@@ -3794,11 +5291,11 @@ function fetchTime(self::Binance, params=Dict())
     (subType, params) = self.handleSubTypeAndParams("fetchTime", nothing, params);
     response = nothing;
     if functions.ccxtruthy(self.isLinear(type_var, subType))
-        response = self.fapiPublicGetTime(query);
+        response = Base.fetch(self.fapiPublicGetTime(query));
     elseif functions.ccxtruthy(self.isInverse(type_var, subType))
-        response = self.dapiPublicGetTime(query);
+        response = Base.fetch(self.dapiPublicGetTime(query));
     else
-        response = self.publicGetTime(query);
+        response = Base.fetch(self.publicGetTime(query));
     end
     return safeInteger(response, "serverTime")
 
@@ -3823,7 +5320,7 @@ function fetchCurrencies(self::Binance, params=Dict())
     if functions.ccxtruthy(fetchMargins)
                 push!(promises, self.sapiGetMarginAllPairs(params));
     end
-    results = asyncmap(Base.fetch, promises);
+    results = Base.fetch(asyncmap(Base.fetch, promises));
     responseCurrencies = get(results, 1, nothing);
     marginablesById = nothing;
     if functions.ccxtruthy(fetchMargins)
@@ -3838,8 +5335,17 @@ function parseCurrenciesCustom(self::Binance, responseCurrencies, marginablesByI
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(responseCurrencies)))
         parsed = self.parseCurrency(get(responseCurrencies, i + 1, nothing));
+        if functions.ccxtruthy(parsed == nothing)
+            throw(ExchangeError(string(self.id, " parseCurrenciesCustom() could not resolve parsed")));
+        end
         code = get(parsed, Symbol("code"), nothing);
+        if functions.ccxtruthy(parsed == nothing)
+            throw(ExchangeError(string(self.id, " parseCurrenciesCustom() could not resolve parsed")));
+        end
         marginEntry = self.safeDict(marginablesById, get(parsed, Symbol("id"), nothing));
+        if functions.ccxtruthy(parsed == nothing)
+            throw(ExchangeError(string(self.id, " parseCurrenciesCustom() could not resolve parsed")));
+        end
         parsed[Symbol("margin")] = self.safeBool(marginEntry, "isBorrowable");
         result[Symbol(code)] = parsed;
         i += 1
@@ -3867,7 +5373,9 @@ function parseCurrency(self::Binance, rawCurrency)
         withdrawFee = self.safeNumber(networkItem, "withdrawFee");
         depositEnable = self.safeBool(networkItem, "depositEnable");
         withdrawEnable = self.safeBool(networkItem, "withdrawEnable");
-        fees[Symbol(networkCode)] = withdrawFee;
+        if functions.ccxtruthy(networkCode != nothing)
+            fees[Symbol(networkCode)] = withdrawFee;
+        end
         isDefault = self.safeBool(networkItem, "isDefault");
         if functions.ccxtruthy(@functions.ccxt_or(isDefault, (fee == nothing)))
             fee = withdrawFee;
@@ -3876,26 +5384,28 @@ function parseCurrency(self::Binance, rawCurrency)
         if functions.ccxtruthy(@functions.ccxt_and(withdrawPrecision == nothing, isFiat))
             withdrawPrecision = safeString(self.options, "defaultFiatWithdrawPrecision");
         end
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => networkItem,
-            Symbol("id") => network,
-            Symbol("network") => networkCode,
-            Symbol("active") => nothing,
-            Symbol("deposit") => depositEnable,
-            Symbol("withdraw") => withdrawEnable,
-            Symbol("fee") => withdrawFee,
-            Symbol("precision") => self.parseNumber(withdrawPrecision),
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(networkItem, "withdrawMin"),
-                    Symbol("max") => self.safeNumber(networkItem, "withdrawMax")
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(networkItem, "depositDust"),
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => networkItem,
+                Symbol("id") => network,
+                Symbol("network") => networkCode,
+                Symbol("active") => nothing,
+                Symbol("deposit") => depositEnable,
+                Symbol("withdraw") => withdrawEnable,
+                Symbol("fee") => withdrawFee,
+                Symbol("precision") => self.parseNumber(withdrawPrecision),
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(networkItem, "withdrawMin"),
+                        Symbol("max") => self.safeNumber(networkItem, "withdrawMax")
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(networkItem, "depositDust"),
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     type_var = nothing;
@@ -3977,7 +5487,7 @@ function fetchMarkets(self::Binance, params=Dict())
         end
         i += 1
     end
-    results = asyncmap(Base.fetch, promisesRaw);
+    results = Base.fetch(asyncmap(Base.fetch, promisesRaw));
     markets = [];
     self.options[Symbol("crossMarginPairsData")] = [];
     self.options[Symbol("isolatedMarginPairsData")] = [];
@@ -3999,7 +5509,7 @@ function fetchMarkets(self::Binance, params=Dict())
         i += 1
     end
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
-        self.loadTimeDifference();
+        Base.fetch(self.loadTimeDifference());
     end
     result = [];
     i = 0
@@ -4016,6 +5526,9 @@ function parseMarket(self::Binance, market)
     option = false;
     underlying = safeString(market, "underlying");
     id = safeString(market, "symbol");
+    if functions.ccxtruthy(id == nothing)
+        throw(ExchangeError(string(self.id, " parseMarket() missing id")));
+    end
     optionParts = split(id, "-");
     optionBase = safeString(optionParts, 0);
     lowercaseId = safeStringLower(market, "symbol");
@@ -4198,7 +5711,7 @@ function parseMarket(self::Binance, market)
         entry[Symbol("limits")][Symbol("cost")][Symbol("min")] = self.safeNumber2(filter_var, "minNotional", "notional");
         entry[Symbol("limits")][Symbol("cost")][Symbol("max")] = self.safeNumber(filter_var, "maxNotional");
     end
-    return entry
+    return self.safeMarketStructure(entry)
 
 end
 function parseBalanceHelper(self::Binance, entry)
@@ -4248,7 +5761,9 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
                 end
 
             end
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
             i += 1
         end
 
@@ -4268,7 +5783,9 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
                 interest = safeString(balance, "interest");
                 account[Symbol("debt")] = stringAdd(debt, interest);
             end
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
             i += 1
         end
     else
@@ -4284,8 +5801,12 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
                 baseCode = self.safeCurrencyCode(safeString(base, "asset"));
                 quoteCode = self.safeCurrencyCode(safeString(quote_var, "asset"));
                 subResult = Dict{Symbol, Any}();
-                subResult[Symbol(baseCode)] = self.parseBalanceHelper(base);
-                subResult[Symbol(quoteCode)] = self.parseBalanceHelper(quote_var);
+                if functions.ccxtruthy(baseCode != nothing)
+                    subResult[Symbol(baseCode)] = self.parseBalanceHelper(base);
+                end
+                if functions.ccxtruthy(quoteCode != nothing)
+                    subResult[Symbol(quoteCode)] = self.parseBalanceHelper(quote_var);
+                end
                 result[Symbol(symbol)] = self.safeBalance(subResult);
                 i += 1
             end
@@ -4301,7 +5822,9 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
                 usedAndTotal = safeString(entry, "amount");
                 account[Symbol("total")] = usedAndTotal;
                 account[Symbol("used")] = usedAndTotal;
-                result[Symbol(code)] = account;
+                if functions.ccxtruthy(code != nothing)
+                    result[Symbol(code)] = account;
+                end
                 i += 1
             end
         else
@@ -4317,7 +5840,9 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
                     withdrawing = safeString(entry, "withdrawing");
                     locked = safeString(entry, "locked");
                     account[Symbol("used")] = stringAdd(frozen, stringAdd(locked, withdrawing));
-                    result[Symbol(code)] = account;
+                    if functions.ccxtruthy(code != nothing)
+                        result[Symbol(code)] = account;
+                    end
                     i += 1
                 end
 
@@ -4329,13 +5854,19 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
                 i = 0
                 while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
                     balance = get(balances, i + 1, nothing);
+                    updateTime = safeInteger(balance, "updateTime");
+                    if functions.ccxtruthy(updateTime == 0)
+                        i += 1; continue
+                    end
                     currencyId = safeString(balance, "asset");
                     code = self.safeCurrencyCode(currencyId);
                     account = self.account();
                     account[Symbol("free")] = safeString(balance, "availableBalance");
                     account[Symbol("used")] = safeString(balance, "initialMargin");
                     account[Symbol("total")] = safeString2(balance, "marginBalance", "balance");
-                    result[Symbol(code)] = account;
+                    if functions.ccxtruthy(code != nothing)
+                        result[Symbol(code)] = account;
+                    end
                     i += 1
                 end
             end
@@ -4350,7 +5881,7 @@ function parseBalanceCustom(self::Binance, response, type_var=nothing, marginMod
 end
 function fetchBalance(self::Binance, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     defaultType = safeString2(self.options, "fetchBalance", "defaultType", "spot");
     type_var = safeString(params, "type", defaultType);
@@ -4371,33 +5902,38 @@ function fetchBalance(self::Binance, params=Dict())
             type_var = "inverse";
         end
         isPortfolioMargin = true;
-        response = self.papiGetBalance(extend(request, query));
+        response = Base.fetch(self.papiGetBalance(extend(request, query)));
     elseif functions.ccxtruthy(self.isLinear(type_var, subType))
         type_var = "linear";
         useV2 = nothing;
         (useV2, params) = self.handleOptionAndParams(params, "fetchBalance", "useV2", false);
         params = extend(request, query);
         if functions.ccxtruthy(!functions.ccxtruthy(useV2))
-            response = self.fapiPrivateV3GetAccount(params);
+            response = Base.fetch(self.fapiPrivateV3GetAccount(params));
         else
-            response = self.fapiPrivateV2GetAccount(params);
+            response = Base.fetch(self.fapiPrivateV2GetAccount(params));
         end
     else
         if functions.ccxtruthy(self.isInverse(type_var, subType))
             type_var = "inverse";
-            response = self.dapiPrivateGetAccount(extend(request, query));
+            response = Base.fetch(self.dapiPrivateGetAccount(extend(request, query)));
         elseif functions.ccxtruthy(marginMode == "isolated")
             paramSymbols = self.safeList(params, "symbols");
             query = omit(query, "symbols");
             if functions.ccxtruthy(paramSymbols != nothing)
                 symbols = "";
                 if functions.ccxtruthy(functions.ccxt_isArray(paramSymbols))
-                    symbols = self.marketId(get(paramSymbols, 1, nothing));
+                    mid = self.marketId(get(paramSymbols, 1, nothing));
+                    if functions.ccxtruthy(mid != nothing)
+                        symbols = mid;
+                    end
                     i = 1
                     while functions.ccxtruthy(functions.ccxt_lt(i, length(paramSymbols)))
                         symbol = get(paramSymbols, i + 1, nothing);
                         id = self.marketId(symbol);
-                        symbols += string(",", id);
+                        if functions.ccxtruthy(id != nothing)
+                            symbols += string(",", id);
+                        end
                         i += 1
                     end
 
@@ -4406,17 +5942,17 @@ function fetchBalance(self::Binance, params=Dict())
                 end
                 request[Symbol("symbols")] = symbols;
             end
-            response = self.sapiGetMarginIsolatedAccount(extend(request, query));
+            response = Base.fetch(self.sapiGetMarginIsolatedAccount(extend(request, query)));
         else
             if functions.ccxtruthy(@functions.ccxt_or((type_var == "margin"), (marginMode == "cross")))
-                response = self.sapiGetMarginAccount(extend(request, query));
+                response = Base.fetch(self.sapiGetMarginAccount(extend(request, query)));
             elseif functions.ccxtruthy(type_var == "savings")
-                response = self.sapiGetLendingUnionAccount(extend(request, query));
+                response = Base.fetch(self.sapiGetLendingUnionAccount(extend(request, query)));
             else
                 if functions.ccxtruthy(type_var == "funding")
-                    response = self.sapiPostAssetGetFundingAsset(extend(request, query));
+                    response = Base.fetch(self.sapiPostAssetGetFundingAsset(extend(request, query)));
                 else
-                    response = self.privateGetAccount(extend(request, query));
+                    response = Base.fetch(self.privateGetAccount(extend(request, query)));
                 end
 
             end
@@ -4429,7 +5965,7 @@ function fetchBalance(self::Binance, params=Dict())
 end
 function fetchOrderBook(self::Binance, symbol, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -4440,21 +5976,21 @@ function fetchOrderBook(self::Binance, symbol, limit=nothing, params=Dict())
     end
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
-        response = self.eapiPublicGetDepth(extend(request, params));
+        response = Base.fetch(self.eapiPublicGetDepth(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         rpi = safeValue(params, "rpi", false);
         params = omit(params, "rpi");
         if functions.ccxtruthy(rpi)
             request[Symbol("limit")] = 1000;
-            response = self.fapiPublicGetRpiDepth(extend(request, params));
+            response = Base.fetch(self.fapiPublicGetRpiDepth(extend(request, params)));
         else
-            response = self.fapiPublicGetDepth(extend(request, params));
+            response = Base.fetch(self.fapiPublicGetDepth(extend(request, params)));
         end
     else
         if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-            response = self.dapiPublicGetDepth(extend(request, params));
+            response = Base.fetch(self.dapiPublicGetDepth(extend(request, params)));
         else
-            response = self.publicGetDepth(extend(request, params));
+            response = Base.fetch(self.publicGetDepth(extend(request, params)));
         end
 
     end
@@ -4514,7 +6050,7 @@ function parseTicker(self::Binance, ticker, market=nothing)
 
 end
 function fetchStatus(self::Binance, params=Dict())
-    response = self.sapiGetSystemStatus(params);
+    response = Base.fetch(self.sapiGetSystemStatus(params));
     statusRaw = safeString(response, "status");
     return Dict{Symbol, Any}(
     Symbol("status") => safeString(Dict{Symbol, Any}(
@@ -4530,7 +6066,7 @@ function fetchStatus(self::Binance, params=Dict())
 end
 function fetchTicker(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -4538,19 +6074,19 @@ function fetchTicker(self::Binance, symbol, params=Dict())
     );
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
-        response = self.eapiPublicGetTicker(extend(request, params));
+        response = Base.fetch(self.eapiPublicGetTicker(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-        response = self.fapiPublicGetTicker24hr(extend(request, params));
+        response = Base.fetch(self.fapiPublicGetTicker24hr(extend(request, params)));
     else
         if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-            response = self.dapiPublicGetTicker24hr(extend(request, params));
+            response = Base.fetch(self.dapiPublicGetTicker24hr(extend(request, params)));
         else
             rolling = self.safeBool(params, "rolling", false);
             params = omit(params, "rolling");
             if functions.ccxtruthy(rolling)
-                response = self.publicGetTicker(extend(request, params));
+                response = Base.fetch(self.publicGetTicker(extend(request, params)));
             else
-                response = self.publicGetTicker24hr(extend(request, params));
+                response = Base.fetch(self.publicGetTicker24hr(extend(request, params)));
             end
         end
 
@@ -4559,12 +6095,15 @@ function fetchTicker(self::Binance, symbol, params=Dict())
         firstTicker = self.safeDict(response, 0, Dict{Symbol, Any}());
             return self.parseTicker(firstTicker, market)
     end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " fetchTicker() returned empty response")));
+    end
     return self.parseTicker(response, market)
 
 end
 function fetchBidsAsks(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols, nothing, true, true, true);
     market = self.getMarketFromSymbols(symbols);
@@ -4573,17 +6112,19 @@ function fetchBidsAsks(self::Binance, symbols=nothing, params=Dict())
     subType = nothing;
     (subType, params) = self.handleSubTypeAndParams("fetchBidsAsks", market, params);
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
-        response = self.fapiPublicGetTickerBookTicker(params);
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
-        response = self.dapiPublicGetTickerBookTicker(params);
+    if functions.ccxtruthy(type_var == "option")
+        response = Base.fetch(self.eapiPublicGetTicker(params));
+    elseif functions.ccxtruthy(self.isLinear(type_var, subType))
+        response = Base.fetch(self.fapiPublicGetTickerBookTicker(params));
     else
-        if functions.ccxtruthy(type_var == "spot")
+        if functions.ccxtruthy(self.isInverse(type_var, subType))
+            response = Base.fetch(self.dapiPublicGetTickerBookTicker(params));
+        elseif functions.ccxtruthy(type_var == "spot")
             request = Dict{Symbol, Any}();
             if functions.ccxtruthy(symbols != nothing)
                 request[Symbol("symbols")] = json(self.marketIds(symbols));
             end
-            response = self.publicGetTickerBookTicker(extend(request, params));
+            response = Base.fetch(self.publicGetTickerBookTicker(extend(request, params)));
         else
             throw(NotSupported(string(self.id, " fetchBidsAsks() does not support ", type_var, " markets yet")));
         end
@@ -4594,7 +6135,7 @@ function fetchBidsAsks(self::Binance, symbols=nothing, params=Dict())
 end
 function fetchLastPrices(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols, nothing, true, true, true);
     market = self.getMarketFromSymbols(symbols);
@@ -4604,12 +6145,12 @@ function fetchLastPrices(self::Binance, symbols=nothing, params=Dict())
     (subType, params) = self.handleSubTypeAndParams("fetchLastPrices", market, params);
     response = nothing;
     if functions.ccxtruthy(self.isLinear(type_var, subType))
-        response = self.fapiPublicV2GetTickerPrice(params);
+        response = Base.fetch(self.fapiPublicV2GetTickerPrice(params));
     elseif functions.ccxtruthy(self.isInverse(type_var, subType))
-        response = self.dapiPublicGetTickerPrice(params);
+        response = Base.fetch(self.dapiPublicGetTickerPrice(params));
     else
         if functions.ccxtruthy(type_var == "spot")
-            response = self.publicGetTickerPrice(params);
+            response = Base.fetch(self.publicGetTickerPrice(params));
         else
             throw(NotSupported(string(self.id, " fetchLastPrices() does not support ", type_var, " markets yet")));
         end
@@ -4635,7 +6176,7 @@ function parseLastPrice(self::Binance, entry, market=nothing)
 end
 function fetchTickers(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols, nothing, true, true, true);
     market = self.getMarketFromSymbols(symbols);
@@ -4645,9 +6186,9 @@ function fetchTickers(self::Binance, symbols=nothing, params=Dict())
     (subType, params) = self.handleSubTypeAndParams("fetchTickers", market, params);
     response = nothing;
     if functions.ccxtruthy(self.isLinear(type_var, subType))
-        response = self.fapiPublicGetTicker24hr(params);
+        response = Base.fetch(self.fapiPublicGetTicker24hr(params));
     elseif functions.ccxtruthy(self.isInverse(type_var, subType))
-        response = self.dapiPublicGetTicker24hr(params);
+        response = Base.fetch(self.dapiPublicGetTicker24hr(params));
     else
         if functions.ccxtruthy(type_var == "spot")
             rolling = self.safeBool(params, "rolling", false);
@@ -4657,17 +6198,17 @@ function fetchTickers(self::Binance, symbols=nothing, params=Dict())
                 request = Dict{Symbol, Any}(
                     Symbol("symbols") => json(self.marketIds(symbols))
                 );
-                response = self.publicGetTicker(extend(request, params));
+                response = Base.fetch(self.publicGetTicker(extend(request, params)));
                     return self.parseTickersForRolling(response, symbols)
             else
                 request = Dict{Symbol, Any}();
                 if functions.ccxtruthy(symbols != nothing)
                     request[Symbol("symbols")] = json(self.marketIds(symbols));
                 end
-                response = self.publicGetTicker24hr(extend(request, params));
+                response = Base.fetch(self.publicGetTicker24hr(extend(request, params)));
             end
         elseif functions.ccxtruthy(type_var == "option")
-            response = self.eapiPublicGetTicker(params);
+            response = Base.fetch(self.eapiPublicGetTicker(params));
         else
             throw(NotSupported(string(self.id, " fetchTickers() does not support ", type_var, " markets yet")));
         end
@@ -4692,7 +6233,7 @@ function parseTickersForRolling(self::Binance, response, symbols)
 end
 function fetchMarkPrice(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     type_var = nothing;
@@ -4703,22 +6244,30 @@ function fetchMarkPrice(self::Binance, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
-        response = self.fapiPublicGetPremiumIndex(extend(request, params));
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
-        response = self.dapiPublicGetPremiumIndex(extend(request, params));
+    if functions.ccxtruthy(get(market, Symbol("option"), nothing))
+        response = Base.fetch(self.eapiPublicGetMark(extend(request, params)));
+    elseif functions.ccxtruthy(self.isLinear(type_var, subType))
+        response = Base.fetch(self.fapiPublicGetPremiumIndex(extend(request, params)));
     else
-        throw(NotSupported(string(self.id, " fetchMarkPrice() does not support ", type_var, " markets yet")));
+        if functions.ccxtruthy(self.isInverse(type_var, subType))
+            response = Base.fetch(self.dapiPublicGetPremiumIndex(extend(request, params)));
+        else
+            throw(NotSupported(string(self.id, " fetchMarkPrice() does not support ", type_var, " markets yet")));
+        end
+
     end
     if functions.ccxtruthy(functions.ccxt_isArray(response))
             return self.parseTicker(self.safeDict(response, 0, Dict{Symbol, Any}()), market)
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " fetchMarkPrice() returned empty response")));
     end
     return self.parseTicker(response, market)
 
 end
 function fetchMarkPrices(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols, nothing, true, true, true);
     market = self.getMarketFromSymbols(symbols);
@@ -4727,12 +6276,17 @@ function fetchMarkPrices(self::Binance, symbols=nothing, params=Dict())
     subType = nothing;
     (subType, params) = self.handleSubTypeAndParams("fetchMarkPrices", market, params, "linear");
     response = nothing;
-    if functions.ccxtruthy(self.isLinear(type_var, subType))
-        response = self.fapiPublicGetPremiumIndex(params);
-    elseif functions.ccxtruthy(self.isInverse(type_var, subType))
-        response = self.dapiPublicGetPremiumIndex(params);
+    if functions.ccxtruthy(type_var == "option")
+        response = Base.fetch(self.eapiPublicGetMark(params));
+    elseif functions.ccxtruthy(self.isLinear(type_var, subType))
+        response = Base.fetch(self.fapiPublicGetPremiumIndex(params));
     else
-        throw(NotSupported(string(self.id, " fetchMarkPrices() does not support ", type_var, " markets yet")));
+        if functions.ccxtruthy(self.isInverse(type_var, subType))
+            response = Base.fetch(self.dapiPublicGetPremiumIndex(params));
+        else
+            throw(NotSupported(string(self.id, " fetchMarkPrices() does not support ", type_var, " markets yet")));
+        end
+
     end
     return self.parseTickers(response, symbols)
 
@@ -4745,12 +6299,12 @@ function parseOHLCV(self::Binance, ohlcv, market=nothing)
 end
 function fetchOHLCV(self::Binance, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000)
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
     end
     market = self.market(symbol);
     defaultLimit = 500;
@@ -4767,6 +6321,9 @@ function fetchOHLCV(self::Binance, symbol, timeframe="1m", since=nothing, limit=
         Symbol("limit") => limit
     );
     marketId = get(market, Symbol("id"), nothing);
+    if functions.ccxtruthy(marketId == nothing)
+        throw(ExchangeError(string(self.id, " fetchOHLCV() missing marketId")));
+    end
     if functions.ccxtruthy(price == "index")
         parts = split(marketId, "_");
         pair = safeString(parts, 0);
@@ -4790,39 +6347,39 @@ function fetchOHLCV(self::Binance, symbol, timeframe="1m", since=nothing, limit=
     end
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
-        response = self.eapiPublicGetKlines(extend(request, params));
+        response = Base.fetch(self.eapiPublicGetKlines(extend(request, params)));
     elseif functions.ccxtruthy(price == "mark")
         if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-            response = self.dapiPublicGetMarkPriceKlines(extend(request, params));
+            response = Base.fetch(self.dapiPublicGetMarkPriceKlines(extend(request, params)));
         else
-            response = self.fapiPublicGetMarkPriceKlines(extend(request, params));
+            response = Base.fetch(self.fapiPublicGetMarkPriceKlines(extend(request, params)));
         end
     else
         if functions.ccxtruthy(price == "index")
             if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-                response = self.dapiPublicGetIndexPriceKlines(extend(request, params));
+                response = Base.fetch(self.dapiPublicGetIndexPriceKlines(extend(request, params)));
             else
-                response = self.fapiPublicGetIndexPriceKlines(extend(request, params));
+                response = Base.fetch(self.fapiPublicGetIndexPriceKlines(extend(request, params)));
             end
         elseif functions.ccxtruthy(price == "premiumIndex")
             if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-                response = self.dapiPublicGetPremiumIndexKlines(extend(request, params));
+                response = Base.fetch(self.dapiPublicGetPremiumIndexKlines(extend(request, params)));
             else
-                response = self.fapiPublicGetPremiumIndexKlines(extend(request, params));
+                response = Base.fetch(self.fapiPublicGetPremiumIndexKlines(extend(request, params)));
             end
         else
             if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-                response = self.fapiPublicGetKlines(extend(request, params));
+                response = Base.fetch(self.fapiPublicGetKlines(extend(request, params)));
             elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-                response = self.dapiPublicGetKlines(extend(request, params));
+                response = Base.fetch(self.dapiPublicGetKlines(extend(request, params)));
             else
-                response = self.publicGetKlines(extend(request, params));
+                response = Base.fetch(self.publicGetKlines(extend(request, params)));
             end
 
         end
 
     end
-    candles = self.parseOHLCVs(response, market, timeframe, since, limit);
+    candles = self.parseOHLCVs(toArray(response), market, timeframe, since, limit);
     return candles
 
 end
@@ -4900,12 +6457,12 @@ function parseTrade(self::Binance, trade, market=nothing)
 end
 function fetchTrades(self::Binance, symbol, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params)
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -4946,32 +6503,32 @@ function fetchTrades(self::Binance, symbol, since=nothing, limit=nothing, params
     end
     response = nothing;
     if functions.ccxtruthy(method == "publicGetAggTrades")
-        response = self.publicGetAggTrades(extend(request, params));
+        response = Base.fetch(self.publicGetAggTrades(extend(request, params)));
     elseif functions.ccxtruthy(method == "publicGetTrades")
-        response = self.publicGetTrades(extend(request, params));
+        response = Base.fetch(self.publicGetTrades(extend(request, params)));
     else
         if functions.ccxtruthy(method == "publicGetHistoricalTrades")
-            response = self.publicGetHistoricalTrades(extend(request, params));
+            response = Base.fetch(self.publicGetHistoricalTrades(extend(request, params)));
         elseif functions.ccxtruthy(method == "fapiPublicGetAggTrades")
-            response = self.fapiPublicGetAggTrades(extend(request, params));
+            response = Base.fetch(self.fapiPublicGetAggTrades(extend(request, params)));
         else
             if functions.ccxtruthy(method == "fapiPublicGetTrades")
-                response = self.fapiPublicGetTrades(extend(request, params));
+                response = Base.fetch(self.fapiPublicGetTrades(extend(request, params)));
             elseif functions.ccxtruthy(method == "fapiPublicGetHistoricalTrades")
-                response = self.fapiPublicGetHistoricalTrades(extend(request, params));
+                response = Base.fetch(self.fapiPublicGetHistoricalTrades(extend(request, params)));
             else
                 if functions.ccxtruthy(method == "dapiPublicGetAggTrades")
-                    response = self.dapiPublicGetAggTrades(extend(request, params));
+                    response = Base.fetch(self.dapiPublicGetAggTrades(extend(request, params)));
                 elseif functions.ccxtruthy(method == "dapiPublicGetTrades")
-                    response = self.dapiPublicGetTrades(extend(request, params));
+                    response = Base.fetch(self.dapiPublicGetTrades(extend(request, params)));
                 else
                     if functions.ccxtruthy(method == "dapiPublicGetHistoricalTrades")
-                        response = self.dapiPublicGetHistoricalTrades(extend(request, params));
+                        response = Base.fetch(self.dapiPublicGetHistoricalTrades(extend(request, params)));
                     elseif functions.ccxtruthy(method == "eapiPublicGetTrades")
-                        response = self.eapiPublicGetTrades(extend(request, params));
+                        response = Base.fetch(self.eapiPublicGetTrades(extend(request, params)));
                     else
                         if functions.ccxtruthy(method == "eapiPublicGetHistoricalTrades")
-                            response = self.eapiPublicGetHistoricalTrades(extend(request, params));
+                            response = Base.fetch(self.eapiPublicGetHistoricalTrades(extend(request, params)));
                         else
                             throw(NotSupported(string(self.id, " fetchTrades() does not support this method")));
                         end
@@ -4985,26 +6542,39 @@ function fetchTrades(self::Binance, symbol, since=nothing, limit=nothing, params
         end
 
     end
-    return self.parseTrades(response, market, since, limit)
+    responseList = [];
+    if functions.ccxtruthy(response != nothing)
+        responseList = toArray(response);
+    end
+    return self.parseTrades(responseList, market, since, limit)
 
 end
 function editSpotOrder(self::Binance, id, symbol, type_var, side, amount, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
         throw(NotSupported(string(self.id, " editSpotOrder() does not support ", get(market, Symbol("type"), nothing), " orders")));
     end
     payload = self.editSpotOrderRequest(id, symbol, type_var, side, amount, price, params);
-    response = self.privatePostOrderCancelReplace(payload);
-    data = self.safeDict(response, "newOrderResponse");
+    response = Base.fetch(self.privatePostOrderCancelReplace(payload));
+    data = self.safeDict(response, "newOrderResponse", Dict{Symbol, Any}());
     return self.parseOrder(data, market)
 
 end
 function editSpotOrderRequest(self::Binance, id, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     clientOrderId = safeStringN(params, ["newClientOrderId", "clientOrderId", "origClientOrderId"]);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " editSpotOrderRequest() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("side") => uppercase(side)
@@ -5024,7 +6594,7 @@ function editSpotOrderRequest(self::Binance, id, symbol, type_var, side, amount,
         end
     end
     request[Symbol("type")] = uppercaseType;
-    validOrderTypes = self.safeList(get(market, Symbol("info"), nothing), "orderTypes");
+    validOrderTypes = self.safeList(get(market, Symbol("info"), nothing), "orderTypes", []);
     if functions.ccxtruthy(!functions.ccxtruthy(inArray(uppercaseType, validOrderTypes)))
         if functions.ccxtruthy(initialUppercaseType != uppercaseType)
             throw(InvalidOrder(string(self.id, " triggerPrice parameter is not allowed for ", symbol, " ", type_var, " orders")));
@@ -5120,12 +6690,21 @@ function editSpotOrderRequest(self::Binance, id, symbol, type_var, side, amount,
 
 end
 function editContractOrderRequest(self::Binance, id, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     if functions.ccxtruthy(@functions.ccxt_and((price == nothing), !functions.ccxtruthy((ccxt_in("priceMatch", params)))))
         throw(ArgumentsRequired(string(self.id, " editOrder() and editOrderWs() require a price argument for swap orders")));
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("contract"), nothing)))
         throw(NotSupported(string(self.id, " editContractOrder() does not support ", get(market, Symbol("type"), nothing), " orders")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " editContractOrder() requires a side argument")));
     end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -5146,7 +6725,7 @@ function editContractOrderRequest(self::Binance, id, symbol, type_var, side, amo
 end
 function editContractOrder(self::Binance, id, symbol, type_var, side, amount, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     isPortfolioMargin = nothing;
@@ -5155,38 +6734,41 @@ function editContractOrder(self::Binance, id, symbol, type_var, side, amount, pr
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiPutUmOrder(extend(request, params));
+            response = Base.fetch(self.papiPutUmOrder(extend(request, params)));
         else
-            response = self.fapiPrivatePutOrder(extend(request, params));
+            response = Base.fetch(self.fapiPrivatePutOrder(extend(request, params)));
         end
     elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiPutCmOrder(extend(request, params));
+            response = Base.fetch(self.papiPutCmOrder(extend(request, params)));
         else
-            response = self.dapiPrivatePutOrder(extend(request, params));
+            response = Base.fetch(self.dapiPrivatePutOrder(extend(request, params)));
         end
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
     return self.parseOrder(response, market)
 
 end
 function editOrder(self::Binance, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
         throw(NotSupported(string(self.id, " editOrder() does not support ", get(market, Symbol("type"), nothing), " orders")));
     end
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            return self.editSpotOrder(id, symbol, type_var, side, amount, price, params)
+            return Base.fetch(self.editSpotOrder(id, symbol, type_var, side, amount, price, params))
     else
-        return self.editContractOrder(id, symbol, type_var, side, amount, price, params)
+        return Base.fetch(self.editContractOrder(id, symbol, type_var, side, amount, price, params))
     end
 
 end
 function editOrders(self::Binance, orders, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     ordersRequests = [];
     orderSymbols = [];
@@ -5221,9 +6803,9 @@ function editOrders(self::Binance, orders, params=Dict())
     );
     request = extend(request, params);
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-        response = self.fapiPrivatePutBatchOrders(request);
+        response = Base.fetch(self.fapiPrivatePutBatchOrders(request));
     elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-        response = self.dapiPrivatePutBatchOrders(request);
+        response = Base.fetch(self.dapiPrivatePutBatchOrders(request));
     end
     return self.parseOrders(response)
 
@@ -5353,7 +6935,7 @@ function parseOrder(self::Binance, order, market=nothing)
 end
 function createOrders(self::Binance, orders, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     ordersRequests = [];
     orderSymbols = [];
@@ -5382,18 +6964,18 @@ function createOrders(self::Binance, orders, params=Dict())
     );
     request = extend(request, params);
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-        response = self.fapiPrivatePostBatchOrders(request);
+        response = Base.fetch(self.fapiPrivatePostBatchOrders(request));
     elseif functions.ccxtruthy(get(market, Symbol("option"), nothing))
-        response = self.eapiPrivatePostBatchOrders(request);
+        response = Base.fetch(self.eapiPrivatePostBatchOrders(request));
     else
-        response = self.dapiPrivatePostBatchOrders(request);
+        response = Base.fetch(self.dapiPrivatePostBatchOrders(request));
     end
     return self.parseOrders(response)
 
 end
 function createOrder(self::Binance, symbol, type_var, side, amount, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     marketType = safeString(params, "type", get(market, Symbol("type"), nothing));
@@ -5414,66 +6996,78 @@ function createOrder(self::Binance, symbol, type_var, side, amount, price=nothin
     request = self.createOrderRequest(symbol, type_var, side, amount, price, params);
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
-        response = self.eapiPrivatePostOrder(request);
+        response = Base.fetch(self.eapiPrivatePostOrder(request));
     elseif functions.ccxtruthy(sor)
         if functions.ccxtruthy(test)
-            response = self.privatePostSorOrderTest(request);
+            response = Base.fetch(self.privatePostSorOrderTest(request));
         else
-            response = self.privatePostSorOrder(request);
+            response = Base.fetch(self.privatePostSorOrder(request));
         end
     else
         if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
             if functions.ccxtruthy(isPortfolioMargin)
                 if functions.ccxtruthy(isConditional)
-                    response = self.papiPostUmConditionalOrder(request);
+                    response = Base.fetch(self.papiPostUmConditionalOrder(request));
                 else
-                    response = self.papiPostUmOrder(request);
+                    response = Base.fetch(self.papiPostUmOrder(request));
                 end
             else
                 if functions.ccxtruthy(isConditional)
                     request[Symbol("algoType")] = "CONDITIONAL";
-                    response = self.fapiPrivatePostAlgoOrder(request);
+                    response = Base.fetch(self.fapiPrivatePostAlgoOrder(request));
                 else
-                    response = self.fapiPrivatePostOrder(request);
+                    response = Base.fetch(self.fapiPrivatePostOrder(request));
                 end
             end
         elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             if functions.ccxtruthy(isPortfolioMargin)
                 if functions.ccxtruthy(isConditional)
-                    response = self.papiPostCmConditionalOrder(request);
+                    response = Base.fetch(self.papiPostCmConditionalOrder(request));
                 else
-                    response = self.papiPostCmOrder(request);
+                    response = Base.fetch(self.papiPostCmOrder(request));
                 end
             else
                 if functions.ccxtruthy(isConditional)
                     request[Symbol("algoType")] = "CONDITIONAL";
-                    response = self.dapiPrivatePostAlgoOrder(request);
+                    response = Base.fetch(self.dapiPrivatePostAlgoOrder(request));
                 else
-                    response = self.dapiPrivatePostOrder(request);
+                    response = Base.fetch(self.dapiPrivatePostOrder(request));
                 end
             end
         else
             if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(marketType == "margin", marginMode != nothing), isPortfolioMargin))
                 if functions.ccxtruthy(isPortfolioMargin)
-                    response = self.papiPostMarginOrder(request);
+                    response = Base.fetch(self.papiPostMarginOrder(request));
                 else
-                    response = self.sapiPostMarginOrder(request);
+                    response = Base.fetch(self.sapiPostMarginOrder(request));
                 end
             else
                 if functions.ccxtruthy(test)
-                    response = self.privatePostOrderTest(request);
+                    response = Base.fetch(self.privatePostOrderTest(request));
                 else
-                    response = self.privatePostOrder(request);
+                    response = Base.fetch(self.privatePostOrder(request));
                 end
             end
 
         end
 
     end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
+    end
     return self.parseOrder(response, market)
 
 end
 function createOrderRequest(self::Binance, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrderRequest() requires a side argument")));
+    end
     market = self.market(symbol);
     marketType = safeString(params, "type", get(market, Symbol("type"), nothing));
     clientOrderId = safeStringN(params, ["clientAlgoId", "newClientOrderId", "clientOrderId"]);
@@ -5573,7 +7167,7 @@ function createOrderRequest(self::Binance, symbol, type_var, side, amount, price
             throw(InvalidOrder(string(self.id, " ", type_var, " is not a valid order type for the ", symbol, " market")));
         end
     else
-        validOrderTypes = self.safeList(get(market, Symbol("info"), nothing), "orderTypes");
+        validOrderTypes = self.safeList(get(market, Symbol("info"), nothing), "orderTypes", []);
         if functions.ccxtruthy(!functions.ccxtruthy(inArray(uppercaseType, validOrderTypes)))
             if functions.ccxtruthy(initialUppercaseType != uppercaseType)
                 throw(InvalidOrder(string(self.id, " triggerPrice parameter is not allowed for ", symbol, " ", type_var, " orders")));
@@ -5774,7 +7368,7 @@ function createOrderRequest(self::Binance, symbol, type_var, side, amount, price
 end
 function createMarketOrderWithCost(self::Binance, symbol, side, cost, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
@@ -5783,12 +7377,12 @@ function createMarketOrderWithCost(self::Binance, symbol, side, cost, params=Dic
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return self.createOrder(symbol, "market", side, cost, nothing, extend(req, params))
+    return Base.fetch(self.createOrder(symbol, "market", side, cost, nothing, extend(req, params)))
 
 end
 function createMarketBuyOrderWithCost(self::Binance, symbol, cost, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
@@ -5797,19 +7391,19 @@ function createMarketBuyOrderWithCost(self::Binance, symbol, cost, params=Dict()
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return self.createOrder(symbol, "market", "buy", cost, nothing, extend(req, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, extend(req, params)))
 
 end
 function createMarketSellOrderWithCost(self::Binance, symbol, cost, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
         throw(NotSupported(string(self.id, " createMarketSellOrderWithCost() supports spot orders only")));
     end
     params[Symbol("quoteOrderQty")] = cost;
-    return self.createOrder(symbol, "market", "sell", cost, nothing, params)
+    return Base.fetch(self.createOrder(symbol, "market", "sell", cost, nothing, params))
 
 end
 function fetchOrder(self::Binance, id, symbol=nothing, params=Dict())
@@ -5817,7 +7411,7 @@ function fetchOrder(self::Binance, id, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     defaultType = safeString2(self.options, "fetchOrder", "defaultType", "spot");
@@ -5847,37 +7441,40 @@ function fetchOrder(self::Binance, id, symbol=nothing, params=Dict())
     params = omit(params, ["type", "clientOrderId", "origClientOrderId", "stop", "trigger", "conditional", "clientAlgoId"]);
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
-        response = self.eapiPrivateGetOrder(extend(request, params));
+        response = Base.fetch(self.eapiPrivateGetOrder(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetUmOrder(extend(request, params));
+            response = Base.fetch(self.papiGetUmOrder(extend(request, params)));
         else
             if functions.ccxtruthy(isConditional)
-                response = self.fapiPrivateGetAlgoOrder(extend(request, params));
+                response = Base.fetch(self.fapiPrivateGetAlgoOrder(extend(request, params)));
             else
-                response = self.fapiPrivateGetOrder(extend(request, params));
+                response = Base.fetch(self.fapiPrivateGetOrder(extend(request, params)));
             end
         end
     else
         if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiGetCmOrder(extend(request, params));
+                response = Base.fetch(self.papiGetCmOrder(extend(request, params)));
             else
-                response = self.dapiPrivateGetOrder(extend(request, params));
+                response = Base.fetch(self.dapiPrivateGetOrder(extend(request, params)));
             end
         elseif functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((type_var == "margin"), (marginMode != nothing)), isPortfolioMargin))
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiGetMarginOrder(extend(request, params));
+                response = Base.fetch(self.papiGetMarginOrder(extend(request, params)));
             else
                 if functions.ccxtruthy(marginMode == "isolated")
                     request[Symbol("isIsolated")] = true;
                 end
-                response = self.sapiGetMarginOrder(extend(request, params));
+                response = Base.fetch(self.sapiGetMarginOrder(extend(request, params)));
             end
         else
-            response = self.privateGetOrder(extend(request, params));
+            response = Base.fetch(self.privateGetOrder(extend(request, params)));
         end
 
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
     return self.parseOrder(response, market)
 
@@ -5887,12 +7484,12 @@ function fetchOrders(self::Binance, symbol=nothing, since=nothing, limit=nothing
         throw(ArgumentsRequired(string(self.id, " fetchOrders() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params)
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
     end
     market = self.market(symbol);
     defaultType = safeString2(self.options, "fetchOrders", "defaultType", get(market, Symbol("type"), nothing));
@@ -5915,42 +7512,42 @@ function fetchOrders(self::Binance, symbol=nothing, since=nothing, limit=nothing
     end
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
-        response = self.eapiPrivateGetHistoryOrders(extend(request, params));
+        response = Base.fetch(self.eapiPrivateGetHistoryOrders(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
             if functions.ccxtruthy(isConditional)
-                response = self.papiGetUmConditionalAllOrders(extend(request, params));
+                response = Base.fetch(self.papiGetUmConditionalAllOrders(extend(request, params)));
             else
-                response = self.papiGetUmAllOrders(extend(request, params));
+                response = Base.fetch(self.papiGetUmAllOrders(extend(request, params)));
             end
         else
             if functions.ccxtruthy(isConditional)
-                response = self.fapiPrivateGetAllAlgoOrders(extend(request, params));
+                response = Base.fetch(self.fapiPrivateGetAllAlgoOrders(extend(request, params)));
             else
-                response = self.fapiPrivateGetAllOrders(extend(request, params));
+                response = Base.fetch(self.fapiPrivateGetAllOrders(extend(request, params)));
             end
         end
     else
         if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             if functions.ccxtruthy(isPortfolioMargin)
                 if functions.ccxtruthy(isConditional)
-                    response = self.papiGetCmConditionalAllOrders(extend(request, params));
+                    response = Base.fetch(self.papiGetCmConditionalAllOrders(extend(request, params)));
                 else
-                    response = self.papiGetCmAllOrders(extend(request, params));
+                    response = Base.fetch(self.papiGetCmAllOrders(extend(request, params)));
                 end
             else
-                response = self.dapiPrivateGetAllOrders(extend(request, params));
+                response = Base.fetch(self.dapiPrivateGetAllOrders(extend(request, params)));
             end
         else
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiGetMarginAllOrders(extend(request, params));
+                response = Base.fetch(self.papiGetMarginAllOrders(extend(request, params)));
             elseif functions.ccxtruthy(@functions.ccxt_or(type_var == "margin", marginMode != nothing))
                 if functions.ccxtruthy(marginMode == "isolated")
                     request[Symbol("isIsolated")] = true;
                 end
-                response = self.sapiGetMarginAllOrders(extend(request, params));
+                response = Base.fetch(self.sapiGetMarginAllOrders(extend(request, params)));
             else
-                response = self.privateGetAllOrders(extend(request, params));
+                response = Base.fetch(self.privateGetAllOrders(extend(request, params)));
             end
         end
 
@@ -5960,7 +7557,7 @@ function fetchOrders(self::Binance, symbol=nothing, since=nothing, limit=nothing
 end
 function fetchOpenOrders(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     type_var = nothing;
@@ -5997,39 +7594,39 @@ function fetchOpenOrders(self::Binance, symbol=nothing, since=nothing, limit=not
         if functions.ccxtruthy(limit != nothing)
             request[Symbol("limit")] = limit;
         end
-        response = self.eapiPrivateGetOpenOrders(extend(request, params));
+        response = Base.fetch(self.eapiPrivateGetOpenOrders(extend(request, params)));
     elseif functions.ccxtruthy(self.isLinear(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
             if functions.ccxtruthy(isConditional)
-                response = self.papiGetUmConditionalOpenOrders(extend(request, params));
+                response = Base.fetch(self.papiGetUmConditionalOpenOrders(extend(request, params)));
             else
-                response = self.papiGetUmOpenOrders(extend(request, params));
+                response = Base.fetch(self.papiGetUmOpenOrders(extend(request, params)));
             end
         else
             if functions.ccxtruthy(isConditional)
-                response = self.fapiPrivateGetOpenAlgoOrders(extend(request, params));
+                response = Base.fetch(self.fapiPrivateGetOpenAlgoOrders(extend(request, params)));
             else
-                response = self.fapiPrivateGetOpenOrders(extend(request, params));
+                response = Base.fetch(self.fapiPrivateGetOpenOrders(extend(request, params)));
             end
         end
     else
         if functions.ccxtruthy(self.isInverse(type_var, subType))
             if functions.ccxtruthy(isPortfolioMargin)
                 if functions.ccxtruthy(isConditional)
-                    response = self.papiGetCmConditionalOpenOrders(extend(request, params));
+                    response = Base.fetch(self.papiGetCmConditionalOpenOrders(extend(request, params)));
                 else
-                    response = self.papiGetCmOpenOrders(extend(request, params));
+                    response = Base.fetch(self.papiGetCmOpenOrders(extend(request, params)));
                 end
             else
                 if functions.ccxtruthy(isConditional)
-                    response = self.dapiPrivateGetOpenAlgoOrders(extend(request, params));
+                    response = Base.fetch(self.dapiPrivateGetOpenAlgoOrders(extend(request, params)));
                 else
-                    response = self.dapiPrivateGetOpenOrders(extend(request, params));
+                    response = Base.fetch(self.dapiPrivateGetOpenOrders(extend(request, params)));
                 end
             end
         elseif functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(type_var == "margin", marginMode != nothing), isPortfolioMargin))
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiGetMarginOpenOrders(extend(request, params));
+                response = Base.fetch(self.papiGetMarginOpenOrders(extend(request, params)));
             else
                 if functions.ccxtruthy(marginMode == "isolated")
                     request[Symbol("isIsolated")] = true;
@@ -6037,10 +7634,10 @@ function fetchOpenOrders(self::Binance, symbol=nothing, since=nothing, limit=not
                         throw(ArgumentsRequired(string(self.id, " fetchOpenOrders() requires a symbol argument for isolated markets")));
                     end
                 end
-                response = self.sapiGetMarginOpenOrders(extend(request, params));
+                response = Base.fetch(self.sapiGetMarginOpenOrders(extend(request, params)));
             end
         else
-            response = self.privateGetOpenOrders(extend(request, params));
+            response = Base.fetch(self.privateGetOpenOrders(extend(request, params)));
         end
 
     end
@@ -6052,7 +7649,7 @@ function fetchOpenOrder(self::Binance, id, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " fetchOpenOrder() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -6069,22 +7666,22 @@ function fetchOpenOrder(self::Binance, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
             if functions.ccxtruthy(isConditional)
-                response = self.papiGetUmConditionalOpenOrder(extend(request, params));
+                response = Base.fetch(self.papiGetUmConditionalOpenOrder(extend(request, params)));
             else
-                response = self.papiGetUmOpenOrder(extend(request, params));
+                response = Base.fetch(self.papiGetUmOpenOrder(extend(request, params)));
             end
         else
-            response = self.fapiPrivateGetOpenOrder(extend(request, params));
+            response = Base.fetch(self.fapiPrivateGetOpenOrder(extend(request, params)));
         end
     elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
             if functions.ccxtruthy(isConditional)
-                response = self.papiGetCmConditionalOpenOrder(extend(request, params));
+                response = Base.fetch(self.papiGetCmConditionalOpenOrder(extend(request, params)));
             else
-                response = self.papiGetCmOpenOrder(extend(request, params));
+                response = Base.fetch(self.papiGetCmOpenOrder(extend(request, params)));
             end
         else
-            response = self.dapiPrivateGetOpenOrder(extend(request, params));
+            response = Base.fetch(self.dapiPrivateGetOpenOrder(extend(request, params)));
         end
     else
         if functions.ccxtruthy(get(market, Symbol("option"), nothing))
@@ -6093,6 +7690,9 @@ function fetchOpenOrder(self::Binance, id, symbol=nothing, params=Dict())
             throw(NotSupported(string(self.id, " fetchOpenOrder() does not support spot markets")));
         end
     end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
+    end
     return self.parseOrder(response, market)
 
 end
@@ -6100,7 +7700,7 @@ function fetchClosedOrders(self::Binance, symbol=nothing, since=nothing, limit=n
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchClosedOrders() requires a symbol argument")));
     end
-    orders = self.fetchOrders(symbol, since, nothing, params);
+    orders = Base.fetch(self.fetchOrders(symbol, since, nothing, params));
     filteredOrders = filterBy(orders, "status", "closed");
     return self.filterBySinceLimit(filteredOrders, since, limit)
 
@@ -6109,7 +7709,7 @@ function fetchCanceledOrders(self::Binance, symbol=nothing, since=nothing, limit
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchCanceledOrders() requires a symbol argument")));
     end
-    orders = self.fetchOrders(symbol, since, nothing, params);
+    orders = Base.fetch(self.fetchOrders(symbol, since, nothing, params));
     filteredOrders = filterBy(orders, "status", "canceled");
     return self.filterBySinceLimit(filteredOrders, since, limit)
 
@@ -6118,7 +7718,7 @@ function fetchCanceledAndClosedOrders(self::Binance, symbol=nothing, since=nothi
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchCanceledAndClosedOrders() requires a symbol argument")));
     end
-    orders = self.fetchOrders(symbol, since, nothing, params);
+    orders = Base.fetch(self.fetchOrders(symbol, since, nothing, params));
     canceledOrders = filterBy(orders, "status", "canceled");
     closedOrders = filterBy(orders, "status", "closed");
     filteredOrders = arrayConcat(canceledOrders, closedOrders);
@@ -6131,7 +7731,7 @@ function cancelOrder(self::Binance, id, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     defaultType = safeString2(self.options, "cancelOrder", "defaultType", "spot");
@@ -6169,49 +7769,52 @@ function cancelOrder(self::Binance, id, symbol=nothing, params=Dict())
     params = omit(params, ["type", "origClientOrderId", "clientOrderId", "newClientStrategyId", "stop", "trigger", "conditional", "clientAlgoId"]);
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
-        response = self.eapiPrivateDeleteOrder(extend(request, params));
+        response = Base.fetch(self.eapiPrivateDeleteOrder(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
             if functions.ccxtruthy(isConditional)
-                response = self.papiDeleteUmConditionalOrder(extend(request, params));
+                response = Base.fetch(self.papiDeleteUmConditionalOrder(extend(request, params)));
             else
-                response = self.papiDeleteUmOrder(extend(request, params));
+                response = Base.fetch(self.papiDeleteUmOrder(extend(request, params)));
             end
         else
             if functions.ccxtruthy(isConditional)
-                response = self.fapiPrivateDeleteAlgoOrder(extend(request, params));
+                response = Base.fetch(self.fapiPrivateDeleteAlgoOrder(extend(request, params)));
             else
-                response = self.fapiPrivateDeleteOrder(extend(request, params));
+                response = Base.fetch(self.fapiPrivateDeleteOrder(extend(request, params)));
             end
         end
     else
         if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             if functions.ccxtruthy(isPortfolioMargin)
                 if functions.ccxtruthy(isConditional)
-                    response = self.papiDeleteCmConditionalOrder(extend(request, params));
+                    response = Base.fetch(self.papiDeleteCmConditionalOrder(extend(request, params)));
                 else
-                    response = self.papiDeleteCmOrder(extend(request, params));
+                    response = Base.fetch(self.papiDeleteCmOrder(extend(request, params)));
                 end
             else
                 if functions.ccxtruthy(isConditional)
-                    response = self.dapiPrivateDeleteAlgoOrder(extend(request, params));
+                    response = Base.fetch(self.dapiPrivateDeleteAlgoOrder(extend(request, params)));
                 else
-                    response = self.dapiPrivateDeleteOrder(extend(request, params));
+                    response = Base.fetch(self.dapiPrivateDeleteOrder(extend(request, params)));
                 end
             end
         elseif functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((type_var == "margin"), (marginMode != nothing)), isPortfolioMargin))
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiDeleteMarginOrder(extend(request, params));
+                response = Base.fetch(self.papiDeleteMarginOrder(extend(request, params)));
             else
                 if functions.ccxtruthy(marginMode == "isolated")
                     request[Symbol("isIsolated")] = true;
                 end
-                response = self.sapiDeleteMarginOrder(extend(request, params));
+                response = Base.fetch(self.sapiDeleteMarginOrder(extend(request, params)));
             end
         else
-            response = self.privateDeleteOrder(extend(request, params));
+            response = Base.fetch(self.privateDeleteOrder(extend(request, params)));
         end
 
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
     return self.parseOrder(response, market)
 
@@ -6221,7 +7824,7 @@ function cancelAllOrders(self::Binance, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -6236,43 +7839,43 @@ function cancelAllOrders(self::Binance, symbol=nothing, params=Dict())
     (marginMode, params) = self.handleMarginModeAndParams("cancelAllOrders", params);
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
-        response = self.eapiPrivateDeleteAllOpenOrders(extend(request, params));
+        response = Base.fetch(self.eapiPrivateDeleteAllOpenOrders(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
             if functions.ccxtruthy(isConditional)
-                response = self.papiDeleteUmConditionalAllOpenOrders(extend(request, params));
+                response = Base.fetch(self.papiDeleteUmConditionalAllOpenOrders(extend(request, params)));
             else
-                response = self.papiDeleteUmAllOpenOrders(extend(request, params));
+                response = Base.fetch(self.papiDeleteUmAllOpenOrders(extend(request, params)));
             end
         else
             if functions.ccxtruthy(isConditional)
-                response = self.fapiPrivateDeleteAlgoOpenOrders(extend(request, params));
+                response = Base.fetch(self.fapiPrivateDeleteAlgoOpenOrders(extend(request, params)));
             else
-                response = self.fapiPrivateDeleteAllOpenOrders(extend(request, params));
+                response = Base.fetch(self.fapiPrivateDeleteAllOpenOrders(extend(request, params)));
             end
         end
     else
         if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
             if functions.ccxtruthy(isPortfolioMargin)
                 if functions.ccxtruthy(isConditional)
-                    response = self.papiDeleteCmConditionalAllOpenOrders(extend(request, params));
+                    response = Base.fetch(self.papiDeleteCmConditionalAllOpenOrders(extend(request, params)));
                 else
-                    response = self.papiDeleteCmAllOpenOrders(extend(request, params));
+                    response = Base.fetch(self.papiDeleteCmAllOpenOrders(extend(request, params)));
                 end
             else
-                response = self.dapiPrivateDeleteAllOpenOrders(extend(request, params));
+                response = Base.fetch(self.dapiPrivateDeleteAllOpenOrders(extend(request, params)));
             end
         elseif functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((type_var == "margin"), (marginMode != nothing)), isPortfolioMargin))
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiDeleteMarginAllOpenOrders(extend(request, params));
+                response = Base.fetch(self.papiDeleteMarginAllOpenOrders(extend(request, params)));
             else
                 if functions.ccxtruthy(marginMode == "isolated")
                     request[Symbol("isIsolated")] = true;
                 end
-                response = self.sapiDeleteMarginOpenOrders(extend(request, params));
+                response = Base.fetch(self.sapiDeleteMarginOpenOrders(extend(request, params)));
             end
         else
-            response = self.privateDeleteOpenOrders(extend(request, params));
+            response = Base.fetch(self.privateDeleteOpenOrders(extend(request, params)));
         end
 
     end
@@ -6291,7 +7894,7 @@ function cancelOrders(self::Binance, ids, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("contract"), nothing)))
@@ -6309,9 +7912,9 @@ function cancelOrders(self::Binance, ids, symbol=nothing, params=Dict())
     end
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-        response = self.fapiPrivateDeleteBatchOrders(extend(request, params));
+        response = Base.fetch(self.fapiPrivateDeleteBatchOrders(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-        response = self.dapiPrivateDeleteBatchOrders(extend(request, params));
+        response = Base.fetch(self.dapiPrivateDeleteBatchOrders(extend(request, params)));
     end
     return self.parseOrders(response, market)
 
@@ -6321,7 +7924,7 @@ function fetchOrderTrades(self::Binance, id, symbol=nothing, since=nothing, limi
         throw(ArgumentsRequired(string(self.id, " fetchOrderTrades() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     type_var = safeString(params, "type", get(market, Symbol("type"), nothing));
@@ -6332,17 +7935,17 @@ function fetchOrderTrades(self::Binance, id, symbol=nothing, since=nothing, limi
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
-    return self.fetchMyTrades(symbol, since, limit, extend(request, params))
+    return Base.fetch(self.fetchMyTrades(symbol, since, limit, extend(request, params)))
 
 end
 function fetchMyTrades(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params)
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -6362,7 +7965,8 @@ function fetchMyTrades(self::Binance, symbol=nothing, since=nothing, limit=nothi
         if functions.ccxtruthy(functions.ccxt_ge((currentTimestamp - startTime), oneWeek))
             if functions.ccxtruthy(@functions.ccxt_and((endTime == nothing), self.safeBool(market, "linear")))
                 endTime = self.sum(startTime, oneWeek);
-                endTime = min(endTime, currentTimestamp);
+                endTimeValue = functions.ccxtruthy((endTime == nothing)) ? 0 : endTime;
+                endTime = min(endTimeValue, currentTimestamp);
             end
         end
     end
@@ -6378,7 +7982,7 @@ function fetchMyTrades(self::Binance, symbol=nothing, since=nothing, limit=nothi
     end
     response = nothing;
     if functions.ccxtruthy(type_var == "option")
-        response = self.eapiPrivateGetUserTrades(extend(request, params));
+        response = Base.fetch(self.eapiPrivateGetUserTrades(extend(request, params)));
     else
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchMyTrades() requires a symbol argument")));
@@ -6388,38 +7992,42 @@ function fetchMyTrades(self::Binance, symbol=nothing, since=nothing, limit=nothi
         (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchMyTrades", "papi", "portfolioMargin", false);
         if functions.ccxtruthy(@functions.ccxt_or(type_var == "spot", type_var == "margin"))
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiGetMarginMyTrades(extend(request, params));
+                response = Base.fetch(self.papiGetMarginMyTrades(extend(request, params)));
             elseif functions.ccxtruthy(@functions.ccxt_or((type_var == "margin"), (marginMode != nothing)))
                 if functions.ccxtruthy(marginMode == "isolated")
                     request[Symbol("isIsolated")] = true;
                 end
-                response = self.sapiGetMarginMyTrades(extend(request, params));
+                response = Base.fetch(self.sapiGetMarginMyTrades(extend(request, params)));
             else
-                response = self.privateGetMyTrades(extend(request, params));
+                response = Base.fetch(self.privateGetMyTrades(extend(request, params)));
             end
         elseif functions.ccxtruthy(self.safeBool(market, "linear"))
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiGetUmUserTrades(extend(request, params));
+                response = Base.fetch(self.papiGetUmUserTrades(extend(request, params)));
             else
-                response = self.fapiPrivateGetUserTrades(extend(request, params));
+                response = Base.fetch(self.fapiPrivateGetUserTrades(extend(request, params)));
             end
         else
             if functions.ccxtruthy(self.safeBool(market, "inverse"))
                 if functions.ccxtruthy(isPortfolioMargin)
-                    response = self.papiGetCmUserTrades(extend(request, params));
+                    response = Base.fetch(self.papiGetCmUserTrades(extend(request, params)));
                 else
-                    response = self.dapiPrivateGetUserTrades(extend(request, params));
+                    response = Base.fetch(self.dapiPrivateGetUserTrades(extend(request, params)));
                 end
             end
 
         end
     end
-    return self.parseTrades(response, market, since, limit)
+    responseList = [];
+    if functions.ccxtruthy(response != nothing)
+        responseList = toArray(response);
+    end
+    return self.parseTrades(responseList, market, since, limit)
 
 end
 function fetchMyDustTrades(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(since != nothing)
@@ -6431,7 +8039,7 @@ function fetchMyDustTrades(self::Binance, symbol=nothing, since=nothing, limit=n
     if functions.ccxtruthy(accountType != nothing)
         request[Symbol("accountType")] = accountType;
     end
-    response = self.sapiGetAssetDribblet(extend(request, params));
+    response = Base.fetch(self.sapiGetAssetDribblet(extend(request, params)));
     results = self.safeList(response, "userAssetDribblets", []);
     rows = safeInteger(response, "total", 0);
     data = [];
@@ -6459,7 +8067,7 @@ function parseDustTrade(self::Binance, trade, market=nothing)
     earnedCurrency = get(bnb, Symbol("code"), nothing);
     applicantSymbol = string(earnedCurrency, "/", tradedCurrency);
     tradedCurrencyIsQuote = false;
-    if functions.ccxtruthy(ccxt_in(applicantSymbol, self.markets))
+    if functions.ccxtruthy(@functions.ccxt_and((self.markets != nothing), (ccxt_in(applicantSymbol, self.markets))))
         tradedCurrencyIsQuote = true;
     end
     feeCostString = safeString(trade, "serviceChargeAmount");
@@ -6513,12 +8121,12 @@ function parseDustTrade(self::Binance, trade, market=nothing)
 end
 function fetchDeposits(self::Binance, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params)
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
     end
     currency = nothing;
     response = nothing;
@@ -6528,7 +8136,7 @@ function fetchDeposits(self::Binance, code=nothing, since=nothing, limit=nothing
     params = omit(params, "fiatOnly");
     until = safeInteger(params, "until");
     params = omit(params, "until");
-    if functions.ccxtruthy(@functions.ccxt_or(fiatOnly, (ccxt_in(code, legalMoney))))
+    if functions.ccxtruthy(@functions.ccxt_or(fiatOnly, (@functions.ccxt_and((code != nothing), (ccxt_in(code, legalMoney))))))
         if functions.ccxtruthy(code != nothing)
             currency = self.currency(code);
         end
@@ -6539,7 +8147,7 @@ function fetchDeposits(self::Binance, code=nothing, since=nothing, limit=nothing
         if functions.ccxtruthy(until != nothing)
             request[Symbol("endTime")] = until;
         end
-        raw = self.sapiGetFiatOrders(extend(request, params));
+        raw = Base.fetch(self.sapiGetFiatOrders(extend(request, params)));
         response = self.safeList(raw, "data", []);
     else
         if functions.ccxtruthy(code != nothing)
@@ -6557,24 +8165,31 @@ function fetchDeposits(self::Binance, code=nothing, since=nothing, limit=nothing
         if functions.ccxtruthy(limit != nothing)
             request[Symbol("limit")] = limit;
         end
-        response = self.sapiGetCapitalDepositHisrec(extend(request, params));
+        response = Base.fetch(self.sapiGetCapitalDepositHisrec(extend(request, params)));
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " method() returned empty response")));
+    end
+    responseList = [];
+    if functions.ccxtruthy(response != nothing)
+        responseList = toArray(response);
     end
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        response[i + 1][Symbol("type")] = "deposit";
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(responseList)))
+        responseList[i + 1][Symbol("type")] = "deposit";
         i += 1
     end
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(responseList, currency, since, limit)
 
 end
 function fetchWithdrawals(self::Binance, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params)
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
     end
     legalMoney = self.safeDict(self.options, "legalMoney", Dict{Symbol, Any}());
     fiatOnly = self.safeBool(params, "fiat", false);
@@ -6587,7 +8202,7 @@ function fetchWithdrawals(self::Binance, code=nothing, since=nothing, limit=noth
     end
     response = nothing;
     currency = nothing;
-    if functions.ccxtruthy(@functions.ccxt_or(fiatOnly, (ccxt_in(code, legalMoney))))
+    if functions.ccxtruthy(@functions.ccxt_or(fiatOnly, (@functions.ccxt_and((code != nothing), (ccxt_in(code, legalMoney))))))
         if functions.ccxtruthy(code != nothing)
             currency = self.currency(code);
         end
@@ -6595,7 +8210,7 @@ function fetchWithdrawals(self::Binance, code=nothing, since=nothing, limit=noth
         if functions.ccxtruthy(since != nothing)
             request[Symbol("beginTime")] = since;
         end
-        raw = self.sapiGetFiatOrders(extend(request, params));
+        raw = Base.fetch(self.sapiGetFiatOrders(extend(request, params)));
         response = self.safeList(raw, "data", []);
     else
         if functions.ccxtruthy(code != nothing)
@@ -6609,14 +8224,24 @@ function fetchWithdrawals(self::Binance, code=nothing, since=nothing, limit=noth
         if functions.ccxtruthy(limit != nothing)
             request[Symbol("limit")] = limit;
         end
-        response = self.sapiGetCapitalWithdrawHistory(extend(request, params));
+        response = Base.fetch(self.sapiGetCapitalWithdrawHistory(extend(request, params)));
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " method() returned empty response")));
+    end
+    if functions.ccxtruthy(isa(response, AbstractString))
+        response = self.parseJson(response);
+    end
+    responseList = [];
+    if functions.ccxtruthy(response != nothing)
+        responseList = toArray(response);
     end
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        response[i + 1][Symbol("type")] = "withdrawal";
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(responseList)))
+        responseList[i + 1][Symbol("type")] = "withdrawal";
         i += 1
     end
-    return self.parseTransactions(response, currency, since, limit)
+    return self.parseTransactions(responseList, currency, since, limit)
 
 end
 function parseTransactionStatusByType(self::Binance, status, type_var=nothing)
@@ -6788,7 +8413,7 @@ function parseIncome(self::Binance, income, market=nothing)
 end
 function transfer(self::Binance, code, amount, fromAccount, toAccount, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -6870,20 +8495,20 @@ function transfer(self::Binance, code, amount, fromAccount, toAccount, params=Di
             request[Symbol("type")] = string(fromId, "_", toId);
         end
     end
-    response = self.sapiPostAssetTransfer(extend(request, params));
+    response = Base.fetch(self.sapiPostAssetTransfer(extend(request, params)));
     return self.parseTransfer(response, currency)
 
 end
 function fetchTransfers(self::Binance, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     internal = self.safeBool(params, "internal");
     params = omit(params, "internal");
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate");
     if functions.ccxtruthy(@functions.ccxt_and(paginate, !functions.ccxtruthy(internal)))
-            return self.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params)
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
     end
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
@@ -6927,9 +8552,9 @@ function fetchTransfers(self::Binance, code=nothing, since=nothing, limit=nothin
     end
     response = nothing;
     if functions.ccxtruthy(internal)
-        response = self.sapiGetPayTransactions(extend(request, params));
+        response = Base.fetch(self.sapiGetPayTransactions(extend(request, params)));
     else
-        response = self.sapiGetAssetTransfer(extend(request, params));
+        response = Base.fetch(self.sapiGetAssetTransfer(extend(request, params)));
     end
     rows = self.safeList2(response, "rows", "data", []);
     return self.parseTransfers(rows, currency, since, limit)
@@ -6937,7 +8562,7 @@ function fetchTransfers(self::Binance, code=nothing, since=nothing, limit=nothin
 end
 function fetchDepositAddress(self::Binance, code, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -6948,7 +8573,7 @@ function fetchDepositAddress(self::Binance, code, params=Dict())
     if functions.ccxtruthy(networkCode != nothing)
         request[Symbol("network")] = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
     end
-    response = self.sapiGetCapitalDepositAddress(extend(request, params));
+    response = Base.fetch(self.sapiGetCapitalDepositAddress(extend(request, params)));
     return self.parseDepositAddress(response, currency)
 
 end
@@ -6974,24 +8599,29 @@ function parseDepositAddress(self::Binance, response, currency=nothing)
 end
 function fetchTransactionFees(self::Binance, codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    response = self.sapiGetCapitalConfigGetall(params);
+    response = Base.fetch(self.sapiGetCapitalConfigGetall(params));
     withdrawFees = Dict{Symbol, Any}();
+    coins = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        entry = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(coins)))
+        entry = get(coins, i + 1, nothing);
         currencyId = safeString(entry, "coin");
         code = self.safeCurrencyCode(currencyId);
         networkList = self.safeList(entry, "networkList", []);
-        withdrawFees[Symbol(code)] = Dict{Symbol, Any}();
+        if functions.ccxtruthy(code != nothing)
+            withdrawFees[Symbol(code)] = Dict{Symbol, Any}();
+        end
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(networkList)))
             networkEntry = get(networkList, j + 1, nothing);
             networkId = safeString(networkEntry, "network");
             networkCode = self.safeCurrencyCode(networkId);
             fee = self.safeNumber(networkEntry, "withdrawFee");
-            withdrawFees[Symbol(code)][Symbol(networkCode)] = fee;
+            if functions.ccxtruthy(@functions.ccxt_and((code != nothing), (networkCode != nothing)))
+                withdrawFees[Symbol(code)][Symbol(networkCode)] = fee;
+            end
             j += 1
         end
         i += 1
@@ -7005,9 +8635,9 @@ function fetchTransactionFees(self::Binance, codes=nothing, params=Dict())
 end
 function fetchDepositWithdrawFees(self::Binance, codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    response = self.sapiGetCapitalConfigGetall(params);
+    response = Base.fetch(self.sapiGetCapitalConfigGetall(params));
     return self.parseDepositWithdrawFees(response, codes, "coin")
 
 end
@@ -7028,16 +8658,18 @@ function parseDepositWithdrawFee(self::Binance, fee, currency=nothing)
                 Symbol("percentage") => nothing
             );
         end
-        result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("withdraw") => Dict{Symbol, Any}(
-                Symbol("fee") => withdrawFee,
-                Symbol("percentage") => nothing
-            ),
-            Symbol("deposit") => Dict{Symbol, Any}(
-                Symbol("fee") => nothing,
-                Symbol("percentage") => nothing
-            )
-        );
+        if functions.ccxtruthy(networkCode != nothing)
+            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("withdraw") => Dict{Symbol, Any}(
+                    Symbol("fee") => withdrawFee,
+                    Symbol("percentage") => nothing
+                ),
+                Symbol("deposit") => Dict{Symbol, Any}(
+                    Symbol("fee") => nothing,
+                    Symbol("percentage") => nothing
+                )
+            );
+        end
         j += 1
     end
     return result
@@ -7047,7 +8679,7 @@ function withdraw(self::Binance, code, amount, address, tag=nothing, params=Dict
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     self.checkAddress(address);
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -7063,7 +8695,7 @@ function withdraw(self::Binance, code, amount, address, tag=nothing, params=Dict
         request[Symbol("network")] = self.networkCodeToId(networkCode, get(currency, Symbol("code"), nothing));
     end
     request[Symbol("amount")] = self.currencyToPrecision(get(currency, Symbol("code"), nothing), amount, networkCode);
-    response = self.sapiPostCapitalWithdrawApply(extend(request, params));
+    response = Base.fetch(self.sapiPostCapitalWithdrawApply(extend(request, params)));
     return self.parseTransaction(response, currency)
 
 end
@@ -7082,7 +8714,7 @@ function parseTradingFee(self::Binance, fee, market=nothing)
 end
 function fetchTradingFee(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     type_var = get(market, Symbol("type"), nothing);
@@ -7098,29 +8730,32 @@ function fetchTradingFee(self::Binance, symbol, params=Dict())
     response = nothing;
     if functions.ccxtruthy(isLinear)
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetUmCommissionRate(extend(request, params));
+            response = Base.fetch(self.papiGetUmCommissionRate(extend(request, params)));
         else
-            response = self.fapiPrivateGetCommissionRate(extend(request, params));
+            response = Base.fetch(self.fapiPrivateGetCommissionRate(extend(request, params)));
         end
     elseif functions.ccxtruthy(isInverse)
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetCmCommissionRate(extend(request, params));
+            response = Base.fetch(self.papiGetCmCommissionRate(extend(request, params)));
         else
-            response = self.dapiPrivateGetCommissionRate(extend(request, params));
+            response = Base.fetch(self.dapiPrivateGetCommissionRate(extend(request, params)));
         end
     else
-        response = self.sapiGetAssetTradeFee(extend(request, params));
+        response = Base.fetch(self.sapiGetAssetTradeFee(extend(request, params)));
     end
     data = response;
     if functions.ccxtruthy(functions.ccxt_isArray(data))
         data = self.safeDict(data, 0, Dict{Symbol, Any}());
+    end
+    if functions.ccxtruthy(data == nothing)
+        throw(NullResponse(string(self.id, " parseTradingFee() returned empty response")));
     end
     return self.parseTradingFee(data, market)
 
 end
 function fetchTradingFees(self::Binance, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
     (type_var, params) = self.handleMarketTypeAndParams("fetchTradingFees", nothing, params);
@@ -7131,28 +8766,38 @@ function fetchTradingFees(self::Binance, params=Dict())
     isInverse = self.isInverse(type_var, subType);
     response = nothing;
     if functions.ccxtruthy(isSpotOrMargin)
-        response = self.sapiGetAssetTradeFee(params);
+        response = Base.fetch(self.sapiGetAssetTradeFee(params));
     elseif functions.ccxtruthy(isLinear)
-        response = self.fapiPrivateGetAccountConfig(params);
+        response = Base.fetch(self.fapiPrivateGetAccountConfig(params));
     else
         if functions.ccxtruthy(isInverse)
-            response = self.dapiPrivateGetAccount(params);
+            response = Base.fetch(self.dapiPrivateGetAccount(params));
         end
 
     end
     if functions.ccxtruthy(isSpotOrMargin)
         result = Dict{Symbol, Any}();
+        if functions.ccxtruthy(response == nothing)
+            throw(NullResponse(string(self.id, " method() returned empty response")));
+        end
+        fees = toArray(response);
         i = 0
-        while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-            fee = self.parseTradingFee(get(response, i + 1, nothing));
+        while functions.ccxtruthy(functions.ccxt_lt(i, length(fees)))
+            fee = self.parseTradingFee(get(fees, i + 1, nothing));
             symbol = get(fee, Symbol("symbol"), nothing);
-            result[Symbol(symbol)] = fee;
+            if functions.ccxtruthy(symbol != nothing)
+                result[Symbol(symbol)] = fee;
+            end
             i += 1
         end
 
             return result
     elseif functions.ccxtruthy(isLinear)
-        symbols = objectKeys(self.markets);
+        markets = self.markets;
+        if functions.ccxtruthy(markets == nothing)
+            throw(ExchangeError(string(self.id, " markets not loaded")));
+        end
+        symbols = objectKeys(markets);
         result = Dict{Symbol, Any}();
         feeTier = safeInteger(response, "feeTier");
         feeTiers = get(get(get(self.fees, Symbol("linear"), nothing), Symbol("trading"), nothing), Symbol("tiers"), nothing);
@@ -7161,7 +8806,7 @@ function fetchTradingFees(self::Binance, params=Dict())
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
             symbol = get(symbols, i + 1, nothing);
-            market = get(self.markets, Symbol(symbol), nothing);
+            market = get(markets, Symbol(symbol), nothing);
             if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
                 result[Symbol(symbol)] = Dict{Symbol, Any}(
                     Symbol("info") => Dict{Symbol, Any}(
@@ -7177,7 +8822,11 @@ function fetchTradingFees(self::Binance, params=Dict())
         return result
     else
         if functions.ccxtruthy(isInverse)
-            symbols = objectKeys(self.markets);
+            markets = self.markets;
+            if functions.ccxtruthy(markets == nothing)
+                throw(ExchangeError(string(self.id, " markets not loaded")));
+            end
+            symbols = objectKeys(markets);
             result = Dict{Symbol, Any}();
             feeTier = safeInteger(response, "feeTier");
             feeTiers = get(get(get(self.fees, Symbol("inverse"), nothing), Symbol("trading"), nothing), Symbol("tiers"), nothing);
@@ -7186,7 +8835,7 @@ function fetchTradingFees(self::Binance, params=Dict())
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
                 symbol = get(symbols, i + 1, nothing);
-                market = get(self.markets, Symbol(symbol), nothing);
+                market = get(markets, Symbol(symbol), nothing);
                 if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
                     result[Symbol(symbol)] = Dict{Symbol, Any}(
                         Symbol("info") => Dict{Symbol, Any}(
@@ -7204,7 +8853,7 @@ function fetchTradingFees(self::Binance, params=Dict())
         end
 
     end
-    return nothing
+    throw(NotSupported(string(self.id, " fetchTradingFees() is not supported for ", type_var, " markets")));
 
 end
 function futuresTransfer(self::Binance, code, amount, type_var, params=Dict())
@@ -7212,7 +8861,7 @@ function futuresTransfer(self::Binance, code, amount, type_var, params=Dict())
         throw(ArgumentsRequired(string(self.id, " type must be between 1 and 4")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -7220,13 +8869,13 @@ function futuresTransfer(self::Binance, code, amount, type_var, params=Dict())
         Symbol("amount") => amount,
         Symbol("type") => type_var
     );
-    response = self.sapiPostFuturesTransfer(extend(request, params));
+    response = Base.fetch(self.sapiPostFuturesTransfer(extend(request, params)));
     return self.parseTransfer(response, currency)
 
 end
 function fetchFundingRate(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -7234,11 +8883,14 @@ function fetchFundingRate(self::Binance, symbol, params=Dict())
     );
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-        response = self.fapiPublicGetPremiumIndex(extend(request, params));
+        response = Base.fetch(self.fapiPublicGetPremiumIndex(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-        response = self.dapiPublicGetPremiumIndex(extend(request, params));
+        response = Base.fetch(self.dapiPublicGetPremiumIndex(extend(request, params)));
     else
         throw(NotSupported(string(self.id, " fetchFundingRate() supports linear and inverse contracts only")));
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " fetchFundingRate() returned empty response")));
     end
     if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
         response = get(response, 1, nothing);
@@ -7248,13 +8900,13 @@ function fetchFundingRate(self::Binance, symbol, params=Dict())
 end
 function fetchFundingRateHistory(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params)
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
     end
     defaultType = safeString2(self.options, "fetchFundingRateHistory", "defaultType", "future");
     type_var = safeString(params, "type", defaultType);
@@ -7281,9 +8933,9 @@ function fetchFundingRateHistory(self::Binance, symbol=nothing, since=nothing, l
     end
     response = nothing;
     if functions.ccxtruthy(self.isLinear(type_var, subType))
-        response = self.fapiPublicGetFundingRate(extend(request, params));
+        response = Base.fetch(self.fapiPublicGetFundingRate(extend(request, params)));
     elseif functions.ccxtruthy(self.isInverse(type_var, subType))
-        response = self.dapiPublicGetFundingRate(extend(request, params));
+        response = Base.fetch(self.dapiPublicGetFundingRate(extend(request, params)));
     else
         throw(NotSupported(string(self.id, " fetchFundingRateHistory() is not supported for ", type_var, " markets")));
     end
@@ -7303,7 +8955,7 @@ function parseFundingRateHistory(self::Binance, contract, market=nothing)
 end
 function fetchFundingRates(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols);
     defaultType = safeString2(self.options, "fetchFundingRates", "defaultType", "future");
@@ -7313,9 +8965,9 @@ function fetchFundingRates(self::Binance, symbols=nothing, params=Dict())
     query = omit(params, "type");
     response = nothing;
     if functions.ccxtruthy(self.isLinear(type_var, subType))
-        response = self.fapiPublicGetPremiumIndex(query);
+        response = Base.fetch(self.fapiPublicGetPremiumIndex(query));
     elseif functions.ccxtruthy(self.isInverse(type_var, subType))
-        response = self.dapiPublicGetPremiumIndex(query);
+        response = Base.fetch(self.dapiPublicGetPremiumIndex(query));
     else
         throw(NotSupported(string(self.id, " fetchFundingRates() supports linear and inverse contracts only")));
     end
@@ -7370,10 +9022,12 @@ function parseAccountPositions(self::Binance, account, filterClosed=false)
         code = self.safeCurrencyCode(currencyId);
         crossWalletBalance = safeString(entry, "crossWalletBalance");
         crossUnPnl = safeString(entry, "crossUnPnl");
-        balances[Symbol(code)] = Dict{Symbol, Any}(
-            Symbol("crossMargin") => stringAdd(crossWalletBalance, crossUnPnl),
-            Symbol("crossWalletBalance") => crossWalletBalance
-        );
+        if functions.ccxtruthy(code != nothing)
+            balances[Symbol(code)] = Dict{Symbol, Any}(
+                Symbol("crossMargin") => stringAdd(crossWalletBalance, crossUnPnl),
+                Symbol("crossWalletBalance") => crossWalletBalance
+            );
+        end
         i += 1
     end
     result = [];
@@ -7403,13 +9057,16 @@ function parseAccountPosition(self::Binance, position, market=nothing)
     marketId = safeString(position, "symbol");
     market = self.safeMarket(marketId, market, nothing, "contract");
     symbol = safeString(market, "symbol");
-    leverageString = safeString(position, "leverage");
+    leverageString = omitZero(safeString(position, "leverage"));
     leverage = functions.ccxtruthy((leverageString != nothing)) ? ccxt_parseInt(leverageString) : nothing;
     initialMarginString = safeString(position, "initialMargin");
     initialMargin = self.parseNumber(initialMarginString);
     initialMarginPercentageString = nothing;
     if functions.ccxtruthy(leverageString != nothing)
         initialMarginPercentageString = stringDiv("1", leverageString, 8);
+        if functions.ccxtruthy(leverage == nothing)
+            throw(ExchangeError(string(self.id, " method() missing leverage")));
+        end
         rational = self.isRoundNumber(1000 % leverage);
         if functions.ccxtruthy(!functions.ccxtruthy(rational))
             initialMarginPercentageString = stringDiv(stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
@@ -7647,7 +9304,7 @@ function parsePositionRisk(self::Binance, position, market=nothing)
     maintenanceMargin = self.parseNumber(maintenanceMarginString);
     initialMarginString = nothing;
     initialMarginPercentageString = nothing;
-    leverageString = safeString(position, "leverage");
+    leverageString = omitZero(safeString(position, "leverage"));
     if functions.ccxtruthy(leverageString != nothing)
         leverage = ccxt_parseInt(leverageString);
         rational = self.isRoundNumber(1000 % leverage);
@@ -7702,7 +9359,7 @@ function parsePositionRisk(self::Binance, position, market=nothing)
 end
 function loadLeverageBrackets(self::Binance, reload=false, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     leverageBrackets = self.safeDict(self.options, "leverageBrackets");
     if functions.ccxtruthy(@functions.ccxt_or((leverageBrackets == nothing), (reload)))
@@ -7716,23 +9373,27 @@ function loadLeverageBrackets(self::Binance, reload=false, params=Dict())
         response = nothing;
         if functions.ccxtruthy(self.isLinear(type_var, subType))
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiGetUmLeverageBracket(query);
+                response = Base.fetch(self.papiGetUmLeverageBracket(query));
             else
-                response = self.fapiPrivateGetLeverageBracket(query);
+                response = Base.fetch(self.fapiPrivateGetLeverageBracket(query));
             end
         elseif functions.ccxtruthy(self.isInverse(type_var, subType))
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiGetCmLeverageBracket(query);
+                response = Base.fetch(self.papiGetCmLeverageBracket(query));
             else
-                response = self.dapiPrivateV2GetLeverageBracket(query);
+                response = Base.fetch(self.dapiPrivateV2GetLeverageBracket(query));
             end
         else
             throw(NotSupported(string(self.id, " loadLeverageBrackets() supports linear and inverse contracts only")));
         end
         self.options[Symbol("leverageBrackets")] = self.createSafeDictionary();
+        if functions.ccxtruthy(response == nothing)
+            throw(NullResponse(string(self.id, " loadLeverageBrackets() returned empty response")));
+        end
+        entries = toArray(response);
         i = 0
-        while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-            entry = get(response, i + 1, nothing);
+        while functions.ccxtruthy(functions.ccxt_lt(i, length(entries)))
+            entry = get(entries, i + 1, nothing);
             marketId = safeString(entry, "symbol");
             symbol = self.safeSymbol(marketId, nothing, nothing, "contract");
             brackets = self.safeList(entry, "brackets", []);
@@ -7755,7 +9416,7 @@ function loadLeverageBrackets(self::Binance, reload=false, params=Dict())
 end
 function fetchLeverageTiers(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
     (type_var, params) = self.handleMarketTypeAndParams("fetchLeverageTiers", nothing, params);
@@ -7766,15 +9427,15 @@ function fetchLeverageTiers(self::Binance, symbols=nothing, params=Dict())
     response = nothing;
     if functions.ccxtruthy(self.isLinear(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetUmLeverageBracket(params);
+            response = Base.fetch(self.papiGetUmLeverageBracket(params));
         else
-            response = self.fapiPrivateGetLeverageBracket(params);
+            response = Base.fetch(self.fapiPrivateGetLeverageBracket(params));
         end
     elseif functions.ccxtruthy(self.isInverse(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetCmLeverageBracket(params);
+            response = Base.fetch(self.papiGetCmLeverageBracket(params));
         else
-            response = self.dapiPrivateV2GetLeverageBracket(params);
+            response = Base.fetch(self.dapiPrivateV2GetLeverageBracket(params));
         end
     else
         throw(NotSupported(string(self.id, " fetchLeverageTiers() supports linear and inverse contracts only")));
@@ -7807,7 +9468,7 @@ function parseMarketLeverageTiers(self::Binance, info, market=nothing)
 end
 function fetchPosition(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("option"), nothing)))
@@ -7816,13 +9477,13 @@ function fetchPosition(self::Binance, symbol, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
-    response = self.eapiPrivateGetPosition(extend(request, params));
-    return self.parseOptionPosition(get(response, 1, nothing), market)
+    response = Base.fetch(self.eapiPrivateGetPosition(extend(request, params)));
+    return self.parseOptionPosition(self.safeDict(response, 0, Dict{Symbol, Any}()), market)
 
 end
 function fetchOptionPositions(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols);
     request = Dict{Symbol, Any}();
@@ -7841,11 +9502,12 @@ function fetchOptionPositions(self::Binance, symbols=nothing, params=Dict())
         market = self.market(symbol);
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
-    response = self.eapiPrivateGetPosition(extend(request, params));
+    response = Base.fetch(self.eapiPrivateGetPosition(extend(request, params)));
     result = [];
+    positions = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        push!(result, self.parseOptionPosition(get(response, i + 1, nothing), market));
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
+        push!(result, self.parseOptionPosition(get(positions, i + 1, nothing), market));
         i += 1
     end
     return self.filterByArrayPositions(result, "symbol", symbols, false)
@@ -7900,12 +9562,12 @@ function fetchPositions(self::Binance, symbols=nothing, params=Dict())
         end
     end
     if functions.ccxtruthy(defaultMethod == "positionRisk")
-            return self.fetchPositionsRisk(symbols, params)
+            return Base.fetch(self.fetchPositionsRisk(symbols, params))
     elseif functions.ccxtruthy(defaultMethod == "account")
-        return self.fetchAccountPositions(symbols, params)
+        return Base.fetch(self.fetchAccountPositions(symbols, params))
     else
         if functions.ccxtruthy(defaultMethod == "option")
-                return self.fetchOptionPositions(symbols, params)
+                return Base.fetch(self.fetchOptionPositions(symbols, params))
         else
             throw(NotSupported(string(self.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"", defaultMethod, "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")));
         end
@@ -7920,9 +9582,9 @@ function fetchAccountPositions(self::Binance, symbols=nothing, params=Dict())
         end
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    self.loadLeverageBrackets(false, params);
+    Base.fetch(self.loadLeverageBrackets(false, params));
     defaultType = safeString(self.options, "defaultType", "future");
     type_var = safeString(params, "type", defaultType);
     params = omit(params, "type");
@@ -7933,21 +9595,21 @@ function fetchAccountPositions(self::Binance, symbols=nothing, params=Dict())
     response = nothing;
     if functions.ccxtruthy(self.isLinear(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiV2GetUmAccount(params);
+            response = Base.fetch(self.papiV2GetUmAccount(params));
         else
             useV2 = nothing;
             (useV2, params) = self.handleOptionAndParams(params, "fetchAccountPositions", "useV2", false);
             if functions.ccxtruthy(!functions.ccxtruthy(useV2))
-                response = self.fapiPrivateV3GetAccount(params);
+                response = Base.fetch(self.fapiPrivateV3GetAccount(params));
             else
-                response = self.fapiPrivateV2GetAccount(params);
+                response = Base.fetch(self.fapiPrivateV2GetAccount(params));
             end
         end
     elseif functions.ccxtruthy(self.isInverse(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetCmAccount(params);
+            response = Base.fetch(self.papiGetCmAccount(params));
         else
-            response = self.dapiPrivateGetAccount(params);
+            response = Base.fetch(self.dapiPrivateGetAccount(params));
         end
     else
         throw(NotSupported(string(self.id, " fetchPositions() supports linear and inverse contracts only")));
@@ -7966,9 +9628,9 @@ function fetchPositionsRisk(self::Binance, symbols=nothing, params=Dict())
         end
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    self.loadLeverageBrackets(false, params);
+    Base.fetch(self.loadLeverageBrackets(false, params));
     request = Dict{Symbol, Any}();
     defaultType = "future";
     defaultType = safeString(self.options, "defaultType", defaultType);
@@ -7981,33 +9643,37 @@ function fetchPositionsRisk(self::Binance, symbols=nothing, params=Dict())
     response = nothing;
     if functions.ccxtruthy(self.isLinear(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetUmPositionRisk(extend(request, params));
+            response = Base.fetch(self.papiGetUmPositionRisk(extend(request, params)));
         else
             useV2 = nothing;
             (useV2, params) = self.handleOptionAndParams(params, "fetchPositionsRisk", "useV2", false);
             params = extend(request, params);
             if functions.ccxtruthy(!functions.ccxtruthy(useV2))
-                response = self.fapiPrivateV3GetPositionRisk(params);
+                response = Base.fetch(self.fapiPrivateV3GetPositionRisk(params));
             else
-                response = self.fapiPrivateV2GetPositionRisk(params);
+                response = Base.fetch(self.fapiPrivateV2GetPositionRisk(params));
             end
         end
     elseif functions.ccxtruthy(self.isInverse(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetCmPositionRisk(extend(request, params));
+            response = Base.fetch(self.papiGetCmPositionRisk(extend(request, params)));
         else
-            response = self.dapiPrivateGetPositionRisk(extend(request, params));
+            response = Base.fetch(self.dapiPrivateGetPositionRisk(extend(request, params)));
         end
     else
         throw(NotSupported(string(self.id, " fetchPositionsRisk() supports linear and inverse contracts only")));
     end
     result = [];
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " method() returned empty response")));
+    end
+    positions = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        rawPosition = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
+        rawPosition = get(positions, i + 1, nothing);
         entryPriceString = safeString(rawPosition, "entryPrice");
         if functions.ccxtruthy(stringGt(entryPriceString, "0"))
-                        push!(result, self.parsePositionRisk(get(response, i + 1, nothing)));
+                        push!(result, self.parsePositionRisk(rawPosition));
         end
         i += 1
     end
@@ -8017,7 +9683,7 @@ function fetchPositionsRisk(self::Binance, symbols=nothing, params=Dict())
 end
 function fetchFundingHistory(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     request = Dict{Symbol, Any}(
@@ -8047,15 +9713,15 @@ function fetchFundingHistory(self::Binance, symbol=nothing, since=nothing, limit
     response = nothing;
     if functions.ccxtruthy(self.isLinear(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetUmIncome(extend(request, params));
+            response = Base.fetch(self.papiGetUmIncome(extend(request, params)));
         else
-            response = self.fapiPrivateGetIncome(extend(request, params));
+            response = Base.fetch(self.fapiPrivateGetIncome(extend(request, params)));
         end
     elseif functions.ccxtruthy(self.isInverse(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetCmIncome(extend(request, params));
+            response = Base.fetch(self.papiGetCmIncome(extend(request, params)));
         else
-            response = self.dapiPrivateGetIncome(extend(request, params));
+            response = Base.fetch(self.dapiPrivateGetIncome(extend(request, params)));
         end
     else
         throw(NotSupported(string(self.id, " fetchFundingHistory() supports linear and inverse contracts only")));
@@ -8071,7 +9737,7 @@ function setLeverage(self::Binance, leverage, symbol=nothing, params=Dict())
         throw(BadRequest(string(self.id, " leverage should be between 1 and 125")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -8083,18 +9749,21 @@ function setLeverage(self::Binance, leverage, symbol=nothing, params=Dict())
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiPostUmLeverage(extend(request, params));
+            response = Base.fetch(self.papiPostUmLeverage(extend(request, params)));
         else
-            response = self.fapiPrivatePostLeverage(extend(request, params));
+            response = Base.fetch(self.fapiPrivatePostLeverage(extend(request, params)));
         end
     elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiPostCmLeverage(extend(request, params));
+            response = Base.fetch(self.papiPostCmLeverage(extend(request, params)));
         else
-            response = self.dapiPrivatePostLeverage(extend(request, params));
+            response = Base.fetch(self.dapiPrivatePostLeverage(extend(request, params)));
         end
     else
         throw(NotSupported(string(self.id, " setLeverage() supports linear and inverse contracts only")));
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " setLeverage() returned empty response")));
     end
     return response
 
@@ -8111,7 +9780,7 @@ function setMarginMode(self::Binance, marginMode, symbol=nothing, params=Dict())
         throw(BadRequest(string(self.id, " marginMode must be either isolated or cross")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -8121,9 +9790,9 @@ function setMarginMode(self::Binance, marginMode, symbol=nothing, params=Dict())
     response = nothing;
     try
         if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-            response = self.fapiPrivatePostMarginType(extend(request, params));
+            response = Base.fetch(self.fapiPrivatePostMarginType(extend(request, params)));
         elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-            response = self.dapiPrivatePostMarginType(extend(request, params));
+            response = Base.fetch(self.dapiPrivatePostMarginType(extend(request, params)));
         else
             throw(NotSupported(string(self.id, " setMarginMode() supports linear and inverse contracts only")));
         end
@@ -8142,6 +9811,9 @@ function setMarginMode(self::Binance, marginMode, symbol=nothing, params=Dict())
             throw(e);
         end
 
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " setMarginMode() returned empty response")));
     end
     return response
 
@@ -8169,27 +9841,30 @@ function setPositionMode(self::Binance, hedged, symbol=nothing, params=Dict())
     response = nothing;
     if functions.ccxtruthy(self.isInverse(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiPostCmPositionSideDual(extend(request, params));
+            response = Base.fetch(self.papiPostCmPositionSideDual(extend(request, params)));
         else
-            response = self.dapiPrivatePostPositionSideDual(extend(request, params));
+            response = Base.fetch(self.dapiPrivatePostPositionSideDual(extend(request, params)));
         end
     elseif functions.ccxtruthy(self.isLinear(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiPostUmPositionSideDual(extend(request, params));
+            response = Base.fetch(self.papiPostUmPositionSideDual(extend(request, params)));
         else
-            response = self.fapiPrivatePostPositionSideDual(extend(request, params));
+            response = Base.fetch(self.fapiPrivatePostPositionSideDual(extend(request, params)));
         end
     else
         throw(BadRequest(string(self.id, " setPositionMode() supports linear and inverse contracts only")));
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " setPositionMode() returned empty response")));
     end
     return response
 
 end
 function fetchLeverages(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    self.loadLeverageBrackets(false, params);
+    Base.fetch(self.loadLeverageBrackets(false, params));
     type_var = nothing;
     (type_var, params) = self.handleMarketTypeAndParams("fetchLeverages", nothing, params);
     subType = nothing;
@@ -8199,15 +9874,15 @@ function fetchLeverages(self::Binance, symbols=nothing, params=Dict())
     response = nothing;
     if functions.ccxtruthy(self.isLinear(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetUmAccount(params);
+            response = Base.fetch(self.papiGetUmAccount(params));
         else
-            response = self.fapiPrivateGetSymbolConfig(params);
+            response = Base.fetch(self.fapiPrivateGetSymbolConfig(params));
         end
     elseif functions.ccxtruthy(self.isInverse(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetCmAccount(params);
+            response = Base.fetch(self.papiGetCmAccount(params));
         else
-            response = self.dapiPrivateGetAccount(params);
+            response = Base.fetch(self.dapiPrivateGetAccount(params));
         end
     else
         throw(NotSupported(string(self.id, " fetchLeverages() supports linear and inverse contracts only")));
@@ -8256,7 +9931,7 @@ function parseLeverage(self::Binance, leverage, market=nothing)
 end
 function fetchSettlementHistory(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = functions.ccxtruthy((symbol == nothing)) ? nothing : self.market(symbol);
     type_var = nothing;
@@ -8275,7 +9950,7 @@ function fetchSettlementHistory(self::Binance, symbol=nothing, since=nothing, li
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    response = self.eapiPublicGetExerciseHistory(extend(request, params));
+    response = Base.fetch(self.eapiPublicGetExerciseHistory(extend(request, params)));
     settlements = self.parseSettlements(response, market);
     sorted = sortBy(settlements, "timestamp");
     return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
@@ -8283,7 +9958,7 @@ function fetchSettlementHistory(self::Binance, symbol=nothing, since=nothing, li
 end
 function fetchMySettlementHistory(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = functions.ccxtruthy((symbol == nothing)) ? nothing : self.market(symbol);
     type_var = nothing;
@@ -8302,7 +9977,7 @@ function fetchMySettlementHistory(self::Binance, symbol=nothing, since=nothing, 
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    response = self.eapiPrivateGetExerciseRecord(extend(request, params));
+    response = Base.fetch(self.eapiPrivateGetExerciseRecord(extend(request, params)));
     settlements = self.parseSettlements(response, market);
     sorted = sortBy(settlements, "timestamp");
     return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
@@ -8332,7 +10007,7 @@ function parseSettlements(self::Binance, settlements, market)
 end
 function fetchLedgerEntry(self::Binance, id, code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
     (type_var, params) = self.handleMarketTypeAndParams("fetchLedgerEntry", nothing, params);
@@ -8345,19 +10020,19 @@ function fetchLedgerEntry(self::Binance, id, code=nothing, params=Dict())
         Symbol("recordId") => id,
         Symbol("currency") => get(currency, Symbol("id"), nothing)
     );
-    response = self.eapiPrivateGetBill(extend(request, params));
+    response = Base.fetch(self.eapiPrivateGetBill(extend(request, params)));
     first_var = self.safeDict(response, 0, response);
     return self.parseLedgerEntry(first_var, currency)
 
 end
 function fetchLedger(self::Binance, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, nothing, false)
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, nothing, false))
     end
     type_var = nothing;
     subType = nothing;
@@ -8384,20 +10059,23 @@ function fetchLedger(self::Binance, code=nothing, since=nothing, limit=nothing, 
     response = nothing;
     if functions.ccxtruthy(type_var == "option")
         self.checkRequiredArgument("fetchLedger", code, "code");
+        if functions.ccxtruthy(currency == nothing)
+            throw(ExchangeError(string(self.id, " fetchLedger() could not resolve currency")));
+        end
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
-        response = self.eapiPrivateGetBill(extend(request, params));
+        response = Base.fetch(self.eapiPrivateGetBill(extend(request, params)));
     elseif functions.ccxtruthy(self.isLinear(type_var, subType))
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetUmIncome(extend(request, params));
+            response = Base.fetch(self.papiGetUmIncome(extend(request, params)));
         else
-            response = self.fapiPrivateGetIncome(extend(request, params));
+            response = Base.fetch(self.fapiPrivateGetIncome(extend(request, params)));
         end
     else
         if functions.ccxtruthy(self.isInverse(type_var, subType))
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiGetCmIncome(extend(request, params));
+                response = Base.fetch(self.papiGetCmIncome(extend(request, params)));
             else
-                response = self.dapiPrivateGetIncome(extend(request, params));
+                response = Base.fetch(self.dapiPrivateGetIncome(extend(request, params)));
             end
         else
             throw(NotSupported(string(self.id, " fetchLedger() supports contract wallets only")));
@@ -8478,7 +10156,8 @@ function getNetworkCodeByNetworkUrl(self::Binance, currencyCode, depositUrl=noth
         currentNetworkCode = get(networkCodes, i + 1, nothing);
         info = self.safeDict(get(networks, Symbol(currentNetworkCode), nothing), "info", Dict{Symbol, Any}());
         siteUrl = safeString(info, "contractAddressUrl");
-        if functions.ccxtruthy(@functions.ccxt_and(siteUrl != nothing, startswith(depositUrl, self.getBaseDomainFromUrl(siteUrl))))
+        baseDomain = self.getBaseDomainFromUrl(siteUrl);
+        if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(siteUrl != nothing, baseDomain != nothing), startswith(depositUrl, baseDomain)))
             networkCode = currentNetworkCode;
         end
         i += 1
@@ -8649,6 +10328,9 @@ function sign(self::Binance, path, api="public", method="GET", params=Dict(), he
 
 end
 function getExceptionsByUrl(self::Binance, url, exactOrBroad)
+    if functions.ccxtruthy(url == nothing)
+            return Dict{Symbol, Any}()
+    end
     marketType = nothing;
     hostname = functions.ccxtruthy((self.hostname != nothing)) ? self.hostname : "binance.com";
     if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(startswith(url, string("https://api.", hostname, "/")), startswith(url, "https://demo-api")), startswith(url, "https://testnet.binance.vision")))
@@ -8679,7 +10361,7 @@ function handleErrors(self::Binance, code, reason, url, method, headers, body, r
     if functions.ccxtruthy(@functions.ccxt_or((code == 418), (code == 429)))
         throw(DDoSProtection(string(self.id, " ", code, " ", reason, " ", body)));
     end
-    if functions.ccxtruthy(functions.ccxt_ge(code, 400))
+    if functions.ccxtruthy(@functions.ccxt_and((functions.ccxt_ge(code, 400)), (body != nothing)))
         if functions.ccxtruthy(findfirst("Price * QTY is zero or less", body) !== nothing)
             throw(InvalidOrder(string(self.id, " order cost = amount * price is zero or less ", body)));
         end
@@ -8759,7 +10441,7 @@ function calculateRateLimiterCost(self::Binance, api, method, path, params, conf
                 return get(config, Symbol("noPoolId"), nothing)
         elseif functions.ccxtruthy(@functions.ccxt_and((ccxt_in("byLimit", config)), (ccxt_in("limit", params))))
             limit = get(params, Symbol("limit"), nothing);
-            byLimit = get(config, Symbol("byLimit"), nothing);
+            byLimit = safeValue(config, "byLimit");
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(byLimit)))
                 entry = get(byLimit, i + 1, nothing);
@@ -8775,7 +10457,7 @@ function calculateRateLimiterCost(self::Binance, api, method, path, params, conf
 
 end
 function request(self::Binance, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing, config=Dict())
-    response = self.fetch2(path, api, method, params, headers, body, config);
+    response = Base.fetch(self.fetch2(path, api, method, params, headers, body, config));
     if functions.ccxtruthy(api == "private")
         self.options[Symbol("hasAlreadyAuthenticatedSuccessfully")] = true;
     end
@@ -8792,7 +10474,7 @@ function modifyMarginHelper(self::Binance, symbol, amount, addOrReduce, params=D
         throw(NotSupported(string(self.id, " add / reduce margin only supported with type future or delivery")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     amount = self.amountToPrecision(symbol, amount);
@@ -8805,10 +10487,13 @@ function modifyMarginHelper(self::Binance, symbol, amount, addOrReduce, params=D
     code = nothing;
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         code = get(market, Symbol("quote"), nothing);
-        response = self.fapiPrivatePostPositionMargin(extend(request, params));
+        response = Base.fetch(self.fapiPrivatePostPositionMargin(extend(request, params)));
     else
         code = get(market, Symbol("base"), nothing);
-        response = self.dapiPrivatePostPositionMargin(extend(request, params));
+        response = Base.fetch(self.dapiPrivatePostPositionMargin(extend(request, params)));
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseMarginModification() returned empty response")));
     end
     return extend(self.parseMarginModification(response, market), Dict{Symbol, Any}(
     Symbol("code") => code
@@ -8838,22 +10523,22 @@ function parseMarginModification(self::Binance, data, market=nothing)
 
 end
 function reduceMargin(self::Binance, symbol, amount, params=Dict())
-    return self.modifyMarginHelper(symbol, amount, 2, params)
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, 2, params))
 
 end
 function addMargin(self::Binance, symbol, amount, params=Dict())
-    return self.modifyMarginHelper(symbol, amount, 1, params)
+    return Base.fetch(self.modifyMarginHelper(symbol, amount, 1, params))
 
 end
 function fetchCrossBorrowRate(self::Binance, code, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("asset") => get(currency, Symbol("id"), nothing)
     );
-    response = self.sapiGetMarginInterestRateHistory(extend(request, params));
+    response = Base.fetch(self.sapiGetMarginInterestRateHistory(extend(request, params)));
     rate = self.safeDict(response, 0);
     return self.parseBorrowRate(rate)
 
@@ -8862,13 +10547,13 @@ function fetchIsolatedBorrowRate(self::Binance, symbol, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("symbol") => symbol
     );
-    borrowRates = self.fetchIsolatedBorrowRates(extend(request, params));
+    borrowRates = Base.fetch(self.fetchIsolatedBorrowRates(extend(request, params)));
     return self.safeDict(borrowRates, symbol)
 
 end
 function fetchIsolatedBorrowRates(self::Binance, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     symbol = safeString(params, "symbol");
@@ -8877,13 +10562,13 @@ function fetchIsolatedBorrowRates(self::Binance, params=Dict())
         market = self.market(symbol);
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
-    response = self.sapiGetMarginIsolatedMarginData(extend(request, params));
+    response = Base.fetch(self.sapiGetMarginIsolatedMarginData(extend(request, params)));
     return self.parseIsolatedBorrowRates(response)
 
 end
 function fetchBorrowRateHistory(self::Binance, code, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     if functions.ccxtruthy(limit == nothing)
         limit = 93;
@@ -8901,7 +10586,7 @@ function fetchBorrowRateHistory(self::Binance, code, since=nothing, limit=nothin
         now = milliseconds();
         request[Symbol("endTime")] = min(endTime, now);
     end
-    response = self.sapiGetMarginInterestRateHistory(extend(request, params));
+    response = Base.fetch(self.sapiGetMarginInterestRateHistory(extend(request, params)));
     return self.parseBorrowRateHistory(response, code, since, limit)
 
 end
@@ -8939,14 +10624,14 @@ function parseIsolatedBorrowRate(self::Binance, info, market=nothing)
 end
 function createGiftCode(self::Binance, code, amount, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("token") => get(currency, Symbol("id"), nothing),
         Symbol("amount") => amount
     );
-    response = self.sapiPostGiftcardCreateCode(extend(request, params));
+    response = Base.fetch(self.sapiPostGiftcardCreateCode(extend(request, params)));
     data = self.safeDict(response, "data");
     giftcardCode = safeString(data, "code");
     id = safeString(data, "referenceNo");
@@ -8963,7 +10648,7 @@ function redeemGiftCode(self::Binance, giftcardCode, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("code") => giftcardCode
     );
-    response = self.sapiPostGiftcardRedeemCode(extend(request, params));
+    response = Base.fetch(self.sapiPostGiftcardRedeemCode(extend(request, params)));
     return response
 
 end
@@ -8971,13 +10656,13 @@ function verifyGiftCode(self::Binance, id, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("referenceNo") => id
     );
-    response = self.sapiGetGiftcardVerify(extend(request, params));
+    response = Base.fetch(self.sapiGetGiftcardVerify(extend(request, params)));
     return response
 
 end
 function fetchBorrowInterest(self::Binance, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     isPortfolioMargin = nothing;
     (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "fetchBorrowInterest", "papi", "portfolioMargin", false);
@@ -8996,13 +10681,13 @@ function fetchBorrowInterest(self::Binance, code=nothing, symbol=nothing, since=
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = nothing;
     if functions.ccxtruthy(isPortfolioMargin)
-        response = self.papiGetMarginMarginInterestHistory(extend(request, params));
+        response = Base.fetch(self.papiGetMarginMarginInterestHistory(extend(request, params)));
     else
         if functions.ccxtruthy(symbol != nothing)
             market = self.market(symbol);
             request[Symbol("isolatedSymbol")] = get(market, Symbol("id"), nothing);
         end
-        response = self.sapiGetMarginInterestHistory(extend(request, params));
+        response = Base.fetch(self.sapiGetMarginInterestHistory(extend(request, params)));
     end
     rows = self.safeList(response, "rows");
     interest = self.parseBorrowInterests(rows, market);
@@ -9028,7 +10713,7 @@ function parseBorrowInterest(self::Binance, info, market=nothing)
 end
 function repayCrossMargin(self::Binance, code, amount, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -9042,21 +10727,21 @@ function repayCrossMargin(self::Binance, code, amount, params=Dict())
         method = nothing;
         (method, params) = self.handleOptionAndParams2(params, "repayCrossMargin", "repayCrossMarginMethod", "method");
         if functions.ccxtruthy(method == "papiPostMarginRepayDebt")
-            response = self.papiPostMarginRepayDebt(extend(request, params));
+            response = Base.fetch(self.papiPostMarginRepayDebt(extend(request, params)));
         else
-            response = self.papiPostRepayLoan(extend(request, params));
+            response = Base.fetch(self.papiPostRepayLoan(extend(request, params)));
         end
     else
         request[Symbol("isIsolated")] = "FALSE";
         request[Symbol("type")] = "REPAY";
-        response = self.sapiPostMarginBorrowRepay(extend(request, params));
+        response = Base.fetch(self.sapiPostMarginBorrowRepay(extend(request, params)));
     end
     return self.parseMarginLoan(response, currency)
 
 end
 function repayIsolatedMargin(self::Binance, symbol, code, amount, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     market = self.market(symbol);
@@ -9067,13 +10752,13 @@ function repayIsolatedMargin(self::Binance, symbol, code, amount, params=Dict())
         Symbol("isIsolated") => "TRUE",
         Symbol("type") => "REPAY"
     );
-    response = self.sapiPostMarginBorrowRepay(extend(request, params));
+    response = Base.fetch(self.sapiPostMarginBorrowRepay(extend(request, params)));
     return self.parseMarginLoan(response, currency)
 
 end
 function borrowCrossMargin(self::Binance, code, amount, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -9084,18 +10769,18 @@ function borrowCrossMargin(self::Binance, code, amount, params=Dict())
     isPortfolioMargin = nothing;
     (isPortfolioMargin, params) = self.handleOptionAndParams2(params, "borrowCrossMargin", "papi", "portfolioMargin", false);
     if functions.ccxtruthy(isPortfolioMargin)
-        response = self.papiPostMarginLoan(extend(request, params));
+        response = Base.fetch(self.papiPostMarginLoan(extend(request, params)));
     else
         request[Symbol("isIsolated")] = "FALSE";
         request[Symbol("type")] = "BORROW";
-        response = self.sapiPostMarginBorrowRepay(extend(request, params));
+        response = Base.fetch(self.sapiPostMarginBorrowRepay(extend(request, params)));
     end
     return self.parseMarginLoan(response, currency)
 
 end
 function borrowIsolatedMargin(self::Binance, symbol, code, amount, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     market = self.market(symbol);
@@ -9106,7 +10791,7 @@ function borrowIsolatedMargin(self::Binance, symbol, code, amount, params=Dict()
         Symbol("isIsolated") => "TRUE",
         Symbol("type") => "BORROW"
     );
-    response = self.sapiPostMarginBorrowRepay(extend(request, params));
+    response = Base.fetch(self.sapiPostMarginBorrowRepay(extend(request, params)));
     return self.parseMarginLoan(response, currency)
 
 end
@@ -9114,7 +10799,7 @@ function parseMarginLoan(self::Binance, info, currency=nothing)
     currencyId = safeString(info, "asset");
     timestamp = safeInteger(info, "updateTime");
     return Dict{Symbol, Any}(
-    Symbol("id") => safeInteger(info, "tranId"),
+    Symbol("id") => safeString(info, "tranId"),
     Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
     Symbol("amount") => self.safeNumber(info, "amount"),
     Symbol("symbol") => nothing,
@@ -9129,12 +10814,12 @@ function fetchOpenInterestHistory(self::Binance, symbol, timeframe="5m", since=n
         throw(BadRequest(string(self.id, " fetchOpenInterestHistory cannot use the 1m timeframe")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false);
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500)
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -9165,16 +10850,16 @@ function fetchOpenInterestHistory(self::Binance, symbol, timeframe="5m", since=n
     end
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-        response = self.dapiDataGetOpenInterestHist(extend(request, params));
+        response = Base.fetch(self.dapiDataGetOpenInterestHist(extend(request, params)));
     else
-        response = self.fapiDataGetOpenInterestHist(extend(request, params));
+        response = Base.fetch(self.fapiDataGetOpenInterestHist(extend(request, params)));
     end
     return self.parseOpenInterestsHistory(response, market, since, limit)
 
 end
 function fetchOpenInterest(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}();
@@ -9189,11 +10874,11 @@ function fetchOpenInterest(self::Binance, symbol, params=Dict())
     end
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
-        response = self.eapiPublicGetOpenInterest(extend(request, params));
+        response = Base.fetch(self.eapiPublicGetOpenInterest(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-        response = self.dapiPublicGetOpenInterest(extend(request, params));
+        response = Base.fetch(self.dapiPublicGetOpenInterest(extend(request, params)));
     else
-        response = self.fapiPublicGetOpenInterest(extend(request, params));
+        response = Base.fetch(self.fapiPublicGetOpenInterest(extend(request, params)));
     end
     if functions.ccxtruthy(get(market, Symbol("option"), nothing))
         symbol = get(market, Symbol("symbol"), nothing);
@@ -9207,10 +10892,10 @@ function fetchOpenInterest(self::Binance, symbol, params=Dict())
             i += 1
         end
 
+        throw(NullResponse(string(self.id, " fetchOpenInterest() could not find open interest for ", symbol)));
     else
         return self.parseOpenInterest(response, market)
     end
-    return nothing
 
 end
 function parseOpenInterest(self::Binance, interest, market=nothing)
@@ -9232,12 +10917,12 @@ function parseOpenInterest(self::Binance, interest, market=nothing)
 end
 function fetchMyLiquidations(self::Binance, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyLiquidations", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100)
+            return Base.fetch(self.fetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -9273,30 +10958,36 @@ function fetchMyLiquidations(self::Binance, symbol=nothing, since=nothing, limit
     response = nothing;
     if functions.ccxtruthy(type_var == "spot")
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetMarginForceOrders(extend(request, params));
+            response = Base.fetch(self.papiGetMarginForceOrders(extend(request, params)));
         else
-            response = self.sapiGetMarginForceLiquidationRec(extend(request, params));
+            response = Base.fetch(self.sapiGetMarginForceLiquidationRec(extend(request, params)));
         end
     elseif functions.ccxtruthy(subType == "linear")
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetUmForceOrders(extend(request, params));
+            response = Base.fetch(self.papiGetUmForceOrders(extend(request, params)));
         else
-            response = self.fapiPrivateGetForceOrders(extend(request, params));
+            response = Base.fetch(self.fapiPrivateGetForceOrders(extend(request, params)));
         end
     else
         if functions.ccxtruthy(subType == "inverse")
             if functions.ccxtruthy(isPortfolioMargin)
-                response = self.papiGetCmForceOrders(extend(request, params));
+                response = Base.fetch(self.papiGetCmForceOrders(extend(request, params)));
             else
-                response = self.dapiPrivateGetForceOrders(extend(request, params));
+                response = Base.fetch(self.dapiPrivateGetForceOrders(extend(request, params)));
             end
         else
             throw(NotSupported(string(self.id, " fetchMyLiquidations() does not support ", safeString(market, "type"), " markets")));
         end
 
     end
-    liquidations = self.safeList(response, "rows", response);
-    return self.parseLiquidations(liquidations, market, since, limit)
+    liquidationsList = [];
+    rows = self.safeList(response, "rows");
+    if functions.ccxtruthy(rows != nothing)
+        liquidationsList = rows;
+    elseif functions.ccxtruthy(functions.ccxt_isArray(response))
+        liquidationsList = response;
+    end
+    return self.parseLiquidations(liquidationsList, market, since, limit)
 
 end
 function parseLiquidation(self::Binance, liquidation, market=nothing)
@@ -9318,19 +11009,19 @@ function parseLiquidation(self::Binance, liquidation, market=nothing)
 end
 function fetchGreeks(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
-    response = self.eapiPublicGetMark(extend(request, params));
-    return self.parseGreeks(get(response, 1, nothing), market)
+    response = Base.fetch(self.eapiPublicGetMark(extend(request, params)));
+    return self.parseGreeks(self.safeDict(response, 0, Dict{Symbol, Any}()), market)
 
 end
 function fetchAllGreeks(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols, nothing, true, true, true);
     request = Dict{Symbol, Any}();
@@ -9342,7 +11033,7 @@ function fetchAllGreeks(self::Binance, symbols=nothing, params=Dict())
             request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         end
     end
-    response = self.eapiPublicGetMark(extend(request, params));
+    response = Base.fetch(self.eapiPublicGetMark(extend(request, params)));
     return self.parseAllGreeks(response, symbols)
 
 end
@@ -9373,14 +11064,19 @@ function parseGreeks(self::Binance, greeks, market=nothing)
 
 end
 function fetchTradingLimits(self::Binance, symbols=nothing, params=Dict())
-    markets = self.fetchMarkets();
+    markets = Base.fetch(self.fetchMarkets());
     tradingLimits = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
         market = get(markets, i + 1, nothing);
         symbol = safeString(market, "symbol");
+        if functions.ccxtruthy(market == nothing)
+            throw(ExchangeError(string(self.id, " fetchTradingLimits() could not resolve market")));
+        end
         if functions.ccxtruthy(@functions.ccxt_or((symbols == nothing), (inArray(symbol, symbols))))
-            tradingLimits[Symbol(symbol)] = get(get(market, Symbol("limits"), nothing), Symbol("amount"), nothing);
+            if functions.ccxtruthy(symbol != nothing)
+                tradingLimits[Symbol(symbol)] = get(get(market, Symbol("limits"), nothing), Symbol("amount"), nothing);
+            end
         end
         i += 1
     end
@@ -9396,9 +11092,9 @@ function fetchPositionMode(self::Binance, symbol=nothing, params=Dict())
     (subType, params) = self.handleSubTypeAndParams("fetchPositionMode", market, params);
     response = nothing;
     if functions.ccxtruthy(subType == "inverse")
-        response = self.dapiPrivateGetPositionSideDual(params);
+        response = Base.fetch(self.dapiPrivateGetPositionSideDual(params));
     else
-        response = self.fapiPrivateGetPositionSideDual(params);
+        response = Base.fetch(self.fapiPrivateGetPositionSideDual(params));
     end
     dualSidePosition = self.safeBool(response, "dualSidePosition");
     return Dict{Symbol, Any}(
@@ -9409,7 +11105,7 @@ function fetchPositionMode(self::Binance, symbol=nothing, params=Dict())
 end
 function fetchMarginModes(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
@@ -9420,9 +11116,9 @@ function fetchMarginModes(self::Binance, symbols=nothing, params=Dict())
     (subType, params) = self.handleSubTypeAndParams("fetchMarginMode", market, params);
     response = nothing;
     if functions.ccxtruthy(subType == "linear")
-        response = self.fapiPrivateGetSymbolConfig(params);
+        response = Base.fetch(self.fapiPrivateGetSymbolConfig(params));
     elseif functions.ccxtruthy(subType == "inverse")
-        response = self.dapiPrivateGetAccount(params);
+        response = Base.fetch(self.dapiPrivateGetAccount(params));
     else
         throw(BadRequest(string(self.id, " fetchMarginModes () supports linear and inverse subTypes only")));
     end
@@ -9435,7 +11131,7 @@ function fetchMarginModes(self::Binance, symbols=nothing, params=Dict())
 end
 function fetchMarginMode(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     subType = nothing;
@@ -9445,12 +11141,15 @@ function fetchMarginMode(self::Binance, symbol, params=Dict())
         request = Dict{Symbol, Any}(
             Symbol("symbol") => get(market, Symbol("id"), nothing)
         );
-        response = self.fapiPrivateGetSymbolConfig(extend(request, params));
+        response = Base.fetch(self.fapiPrivateGetSymbolConfig(extend(request, params)));
     elseif functions.ccxtruthy(subType == "inverse")
-        fetchMarginModesResponse = self.fetchMarginModes([symbol], params);
+        fetchMarginModesResponse = Base.fetch(self.fetchMarginModes([symbol], params));
         return get(fetchMarginModesResponse, Symbol(symbol), nothing)
     else
         throw(BadRequest(string(self.id, " fetchMarginMode () supports linear and inverse subTypes only")));
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " fetchMarginMode() returned empty response")));
     end
     return self.parseMarginMode(get(response, 1, nothing), market)
 
@@ -9476,13 +11175,13 @@ function parseMarginMode(self::Binance, marginMode, market=nothing)
 end
 function fetchOption(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
-    response = self.eapiPublicGetTicker(extend(request, params));
+    response = Base.fetch(self.eapiPublicGetTicker(extend(request, params)));
     chain = self.safeDict(response, 0, Dict{Symbol, Any}());
     return self.parseOption(chain, nothing, market)
 
@@ -9513,7 +11212,7 @@ function parseOption(self::Binance, chain, currency=nothing, market=nothing)
 end
 function fetchMarginAdjustmentHistory(self::Binance, symbol=nothing, type_var=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchMarginAdjustmentHistory () requires a symbol argument")));
@@ -9538,55 +11237,61 @@ function fetchMarginAdjustmentHistory(self::Binance, symbol=nothing, type_var=no
     end
     response = nothing;
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
-        response = self.fapiPrivateGetPositionMarginHistory(extend(request, params));
+        response = Base.fetch(self.fapiPrivateGetPositionMarginHistory(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
-        response = self.dapiPrivateGetPositionMarginHistory(extend(request, params));
+        response = Base.fetch(self.dapiPrivateGetPositionMarginHistory(extend(request, params)));
     else
         throw(BadRequest(string(self.id, " fetchMarginAdjustmentHistory () is not supported for markets of type ", get(market, Symbol("type"), nothing))));
     end
-    modifications = self.parseMarginModifications(response);
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseMarginModifications() returned empty response")));
+    end
+    modifications = self.parseMarginModifications(toArray(response));
     return self.filterBySymbolSinceLimit(modifications, symbol, since, limit)
 
 end
 function fetchConvertCurrencies(self::Binance, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    response = self.sapiGetConvertAssetInfo(params);
+    response = Base.fetch(self.sapiGetConvertAssetInfo(params));
     result = Dict{Symbol, Any}();
+    assets = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        entry = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(assets)))
+        entry = get(assets, i + 1, nothing);
         id = safeString(entry, "asset");
         code = self.safeCurrencyCode(id);
-        result[Symbol(code)] = Dict{Symbol, Any}(
-            Symbol("info") => entry,
-            Symbol("id") => id,
-            Symbol("code") => code,
-            Symbol("networks") => nothing,
-            Symbol("type") => nothing,
-            Symbol("name") => nothing,
-            Symbol("active") => nothing,
-            Symbol("deposit") => nothing,
-            Symbol("withdraw") => nothing,
-            Symbol("fee") => nothing,
-            Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(entry, "fraction"))),
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("amount") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = Dict{Symbol, Any}(
+                Symbol("info") => entry,
+                Symbol("id") => id,
+                Symbol("code") => code,
+                Symbol("networks") => nothing,
+                Symbol("type") => nothing,
+                Symbol("name") => nothing,
+                Symbol("active") => nothing,
+                Symbol("deposit") => nothing,
+                Symbol("withdraw") => nothing,
+                Symbol("fee") => nothing,
+                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(entry, "fraction"))),
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("amount") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
                 ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                )
-            ),
-            Symbol("created") => nothing
-        );
+                Symbol("created") => nothing
+            );
+        end
         i += 1
     end
     return result
@@ -9597,22 +11302,25 @@ function fetchConvertQuote(self::Binance, fromCode, toCode, amount=nothing, para
         throw(ArgumentsRequired(string(self.id, " fetchConvertQuote() requires an amount argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("fromAsset") => fromCode,
         Symbol("toAsset") => toCode,
         Symbol("fromAmount") => amount
     );
-    response = self.sapiPostConvertGetQuote(extend(request, params));
+    response = Base.fetch(self.sapiPostConvertGetQuote(extend(request, params)));
     fromCurrency = self.currency(fromCode);
     toCurrency = self.currency(toCode);
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseConversion() returned empty response")));
+    end
     return self.parseConversion(response, fromCurrency, toCurrency)
 
 end
 function createConvertTrade(self::Binance, id, fromCode, toCode, amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     response = nothing;
@@ -9624,19 +11332,22 @@ function createConvertTrade(self::Binance, id, fromCode, toCode, amount=nothing,
         request[Symbol("asset")] = fromCode;
         request[Symbol("targetAsset")] = toCode;
         request[Symbol("amount")] = amount;
-        response = self.sapiPostAssetConvertTransfer(extend(request, params));
+        response = Base.fetch(self.sapiPostAssetConvertTransfer(extend(request, params)));
     else
         request[Symbol("quoteId")] = id;
-        response = self.sapiPostConvertAcceptQuote(extend(request, params));
+        response = Base.fetch(self.sapiPostConvertAcceptQuote(extend(request, params)));
     end
     fromCurrency = self.currency(fromCode);
     toCurrency = self.currency(toCode);
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseConversion() returned empty response")));
+    end
     return self.parseConversion(response, fromCurrency, toCurrency)
 
 end
 function fetchConvertTrade(self::Binance, id, code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     response = nothing;
@@ -9650,10 +11361,10 @@ function fetchConvertTrade(self::Binance, id, code=nothing, params=Dict())
         request[Symbol("tranId")] = id;
         request[Symbol("startTime")] = now - msInDay;
         request[Symbol("endTime")] = now;
-        response = self.sapiGetAssetConvertTransferQueryByPage(extend(request, params));
+        response = Base.fetch(self.sapiGetAssetConvertTransferQueryByPage(extend(request, params)));
     else
         request[Symbol("orderId")] = id;
-        response = self.sapiGetConvertOrderStatus(extend(request, params));
+        response = Base.fetch(self.sapiGetConvertOrderStatus(extend(request, params)));
     end
     data = response;
     if functions.ccxtruthy(code == "BUSD")
@@ -9670,12 +11381,15 @@ function fetchConvertTrade(self::Binance, id, code=nothing, params=Dict())
     if functions.ccxtruthy(toCurrencyId != nothing)
         toCurrency = self.currency(toCurrencyId);
     end
+    if functions.ccxtruthy(data == nothing)
+        throw(NullResponse(string(self.id, " parseConversion() returned empty response")));
+    end
     return self.parseConversion(data, fromCurrency, toCurrency)
 
 end
 function fetchConvertTradeHistory(self::Binance, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     msInThirtyDays = 2592000000;
@@ -9705,7 +11419,7 @@ function fetchConvertTradeHistory(self::Binance, code=nothing, since=nothing, li
         fromCurrencyKey = "deductedAsset";
         toCurrencyKey = "targetAsset";
         responseQuery = "rows";
-        response = self.sapiGetAssetConvertTransferQueryByPage(extend(request, params));
+        response = Base.fetch(self.sapiGetAssetConvertTransferQueryByPage(extend(request, params)));
     else
         if functions.ccxtruthy(functions.ccxt_gt((get(request, Symbol("endTime"), nothing) - get(request, Symbol("startTime"), nothing)), msInThirtyDays))
             throw(BadRequest(string(self.id, " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")));
@@ -9716,7 +11430,7 @@ function fetchConvertTradeHistory(self::Binance, code=nothing, since=nothing, li
         fromCurrencyKey = "fromAsset";
         toCurrencyKey = "toAsset";
         responseQuery = "list";
-        response = self.sapiGetConvertTradeFlow(extend(request, params));
+        response = Base.fetch(self.sapiGetConvertTradeFlow(extend(request, params)));
     end
     rows = self.safeList(response, responseQuery, []);
     return self.parseConversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit)
@@ -9744,7 +11458,7 @@ function parseConversion(self::Binance, conversion, fromCurrency=nothing, toCurr
 end
 function fetchFundingIntervals(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbols != nothing)
@@ -9756,9 +11470,9 @@ function fetchFundingIntervals(self::Binance, symbols=nothing, params=Dict())
     (subType, params) = self.handleSubTypeAndParams("fetchFundingIntervals", market, params, "linear");
     response = nothing;
     if functions.ccxtruthy(self.isLinear(type_var, subType))
-        response = self.fapiPublicGetFundingInfo(params);
+        response = Base.fetch(self.fapiPublicGetFundingInfo(params));
     elseif functions.ccxtruthy(self.isInverse(type_var, subType))
-        response = self.dapiPublicGetFundingInfo(params);
+        response = Base.fetch(self.dapiPublicGetFundingInfo(params));
     else
         throw(NotSupported(string(self.id, " fetchFundingIntervals() supports linear and inverse swap contracts only")));
     end
@@ -9767,7 +11481,7 @@ function fetchFundingIntervals(self::Binance, symbols=nothing, params=Dict())
 end
 function fetchLongShortRatioHistory(self::Binance, symbol=nothing, timeframe=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(timeframe == nothing)
@@ -9788,10 +11502,10 @@ function fetchLongShortRatioHistory(self::Binance, symbol=nothing, timeframe=not
     response = nothing;
     if functions.ccxtruthy(subType == "linear")
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
-        response = self.fapiDataGetGlobalLongShortAccountRatio(extend(request, params));
+        response = Base.fetch(self.fapiDataGetGlobalLongShortAccountRatio(extend(request, params)));
     elseif functions.ccxtruthy(subType == "inverse")
         request[Symbol("pair")] = get(get(market, Symbol("info"), nothing), Symbol("pair"), nothing);
-        response = self.dapiDataGetGlobalLongShortAccountRatio(extend(request, params));
+        response = Base.fetch(self.dapiDataGetGlobalLongShortAccountRatio(extend(request, params)));
     else
         throw(BadRequest(string(self.id, " fetchLongShortRatioHistory() supports linear and inverse subTypes only")));
     end
@@ -9813,7 +11527,7 @@ function parseLongShortRatio(self::Binance, info, market=nothing)
 end
 function fetchADLRank(self::Binance, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -9823,16 +11537,19 @@ function fetchADLRank(self::Binance, symbol, params=Dict())
     (subType, params) = self.handleSubTypeAndParams("fetchADLRank", market, params);
     response = nothing;
     if functions.ccxtruthy(subType == "linear")
-        response = self.fapiPublicGetSymbolAdlRisk(extend(request, params));
+        response = Base.fetch(self.fapiPublicGetSymbolAdlRisk(extend(request, params)));
     else
         throw(BadRequest(string(self.id, " fetchADLRank() supports linear subTypes only")));
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseADLRank() returned empty response")));
     end
     return self.parseADLRank(response, market)
 
 end
 function fetchPositionsADLRank(self::Binance, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols, nothing, true, true, true);
     market = self.getMarketFromSymbols(symbols);
@@ -9843,20 +11560,24 @@ function fetchPositionsADLRank(self::Binance, symbols=nothing, params=Dict())
     response = nothing;
     if functions.ccxtruthy(subType == "linear")
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetUmAdlQuantile(params);
+            response = Base.fetch(self.papiGetUmAdlQuantile(params));
         else
-            response = self.fapiPrivateGetAdlQuantile(params);
+            response = Base.fetch(self.fapiPrivateGetAdlQuantile(params));
         end
     elseif functions.ccxtruthy(subType == "inverse")
         if functions.ccxtruthy(isPortfolioMargin)
-            response = self.papiGetCmAdlQuantile(params);
+            response = Base.fetch(self.papiGetCmAdlQuantile(params));
         else
-            response = self.dapiPrivateGetAdlQuantile(params);
+            response = Base.fetch(self.dapiPrivateGetAdlQuantile(params));
         end
     else
         throw(BadRequest(string(self.id, " fetchPositionsADLRank() supports linear and inverse subTypes only")));
     end
-    return self.parseADLRanks(response, symbols)
+    responseList = [];
+    if functions.ccxtruthy(response != nothing)
+        responseList = toArray(response);
+    end
+    return self.parseADLRanks(responseList, symbols)
 
 end
 function parseADLRank(self::Binance, info, market=nothing)
@@ -9896,3171 +11617,3171 @@ Base.getproperty(self::Binance, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function sapiGetCopyTradingFuturesUserStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "copyTrading/futures/userStatus", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "copyTrading/futures/userStatus", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetCopyTradingFuturesLeadSymbol(self::Binance, params=Dict(), context=Dict())
-    return request(self, "copyTrading/futures/leadSymbol", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "copyTrading/futures/leadSymbol", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSystemStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "system/status", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "system/status", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAccountSnapshot(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accountSnapshot", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 240))
+    return request(self, "accountSnapshot", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAccountInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/info", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "account/info", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/asset", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/asset", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginPair(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/pair", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/pair", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginAllAssets(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allAssets", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/allAssets", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginAllPairs(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allPairs", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/allPairs", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginPriceIndex(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/priceIndex", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/priceIndex", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSpotDelistSchedule(self::Binance, params=Dict(), context=Dict())
-    return request(self, "spot/delist-schedule", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/delist-schedule", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAssetAssetDividend(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/assetDividend", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "asset/assetDividend", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAssetDribblet(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/dribblet", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "asset/dribblet", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAssetTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/transfer", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "asset/transfer", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAssetAssetDetail(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/assetDetail", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "asset/assetDetail", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAssetTradeFee(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/tradeFee", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "asset/tradeFee", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAssetLedgerTransferCloudMiningQueryByPage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/ledger-transfer/cloud-mining/queryByPage", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4.0002))
+    return request(self, "asset/ledger-transfer/cloud-mining/queryByPage", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAssetConvertTransferQueryByPage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/convert-transfer/queryByPage", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.033335))
+    return request(self, "asset/convert-transfer/queryByPage", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAssetWalletBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/wallet/balance", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "asset/wallet/balance", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAssetCustodyTransferHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/custody/transfer-history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "asset/custody/transfer-history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginBorrowRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/borrow-repay", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/borrow-repay", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/loan", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/loan", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/repay", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/repay", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/account", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/account", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/transfer", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/transfer", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginInterestHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/interestHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/interestHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginForceLiquidationRec(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/forceLiquidationRec", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/forceLiquidationRec", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/order", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/openOrders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/openOrders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allOrders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "margin/allOrders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginMyTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/myTrades", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/myTrades", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginMaxBorrowable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/maxBorrowable", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "margin/maxBorrowable", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginMaxTransferable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/maxTransferable", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "margin/maxTransferable", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginTradeCoeff(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/tradeCoeff", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/tradeCoeff", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginIsolatedTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/transfer", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/isolated/transfer", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginIsolatedAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/account", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/isolated/account", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginIsolatedPair(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/pair", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/isolated/pair", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginIsolatedAllPairs(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/allPairs", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/isolated/allPairs", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginIsolatedAccountLimit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/accountLimit", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/isolated/accountLimit", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginInterestRateHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/interestRateHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/interestRateHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/orderList", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/orderList", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginAllOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allOrderList", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "margin/allOrderList", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginOpenOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/openOrderList", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/openOrderList", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginCrossMarginData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/crossMarginData", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1, Symbol("noCoin") => 0.5))
+    return request(self, "margin/crossMarginData", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginIsolatedMarginData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolatedMarginData", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1, Symbol("noCoin") => 1))
+    return request(self, "margin/isolatedMarginData", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginIsolatedMarginTier(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolatedMarginTier", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/isolatedMarginTier", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginRateLimitOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/rateLimit/order", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/rateLimit/order", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginDribblet(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/dribblet", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/dribblet", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginDust(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/dust", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "margin/dust", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginCrossMarginCollateralRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/crossMarginCollateralRatio", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "margin/crossMarginCollateralRatio", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginExchangeSmallLiability(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/exchange-small-liability", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.6667))
+    return request(self, "margin/exchange-small-liability", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginExchangeSmallLiabilityHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/exchange-small-liability-history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.6667))
+    return request(self, "margin/exchange-small-liability-history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginNextHourlyInterestRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/next-hourly-interest-rate", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.6667))
+    return request(self, "margin/next-hourly-interest-rate", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginCapitalFlow(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/capital-flow", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "margin/capital-flow", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginDelistSchedule(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/delist-schedule", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "margin/delist-schedule", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginAvailableInventory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/available-inventory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.3334))
+    return request(self, "margin/available-inventory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMarginLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/leverageBracket", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/leverageBracket", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanVipLoanableData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/loanable/data", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/vip/loanable/data", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanVipCollateralData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/collateral/data", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/vip/collateral/data", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanVipRequestData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/request/data", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.6668))
+    return request(self, "loan/vip/request/data", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanVipRequestInterestRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/request/interestRate", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.6668))
+    return request(self, "loan/vip/request/interestRate", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanIncome(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/income", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/income", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanOngoingOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/ongoing/orders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/ongoing/orders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanLtvAdjustmentHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/ltv/adjustment/history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/ltv/adjustment/history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanBorrowHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/borrow/history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/borrow/history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanRepayHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/repay/history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/repay/history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanLoanableData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/loanable/data", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/loanable/data", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanCollateralData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/collateral/data", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/collateral/data", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanRepayCollateralRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/repay/collateral/rate", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 600))
+    return request(self, "loan/repay/collateral/rate", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanFlexibleOngoingOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/ongoing/orders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "loan/flexible/ongoing/orders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanFlexibleBorrowHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/borrow/history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/flexible/borrow/history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanFlexibleRepayHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/repay/history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/flexible/repay/history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanFlexibleLtvAdjustmentHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/ltv/adjustment/history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/flexible/ltv/adjustment/history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanVipOngoingOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/ongoing/orders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/vip/ongoing/orders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanVipRepayHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/repay/history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/vip/repay/history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLoanVipCollateralAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/collateral/account", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 600))
+    return request(self, "loan/vip/collateral/account", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetFiatOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fiat/orders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 600.03))
+    return request(self, "fiat/orders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetFiatPayments(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fiat/payments", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "fiat/payments", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetFuturesTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "futures/transfer", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/transfer", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetFuturesHistDataLink(self::Binance, params=Dict(), context=Dict())
-    return request(self, "futures/histDataLink", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "futures/histDataLink", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetRebateTaxQuery(self::Binance, params=Dict(), context=Dict())
-    return request(self, "rebate/taxQuery", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 80.004))
+    return request(self, "rebate/taxQuery", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetCapitalConfigGetall(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/config/getall", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "capital/config/getall", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetCapitalDepositAddress(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/address", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "capital/deposit/address", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetCapitalDepositAddressList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/address/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "capital/deposit/address/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetCapitalDepositHisrec(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/hisrec", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "capital/deposit/hisrec", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetCapitalDepositSubAddress(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/subAddress", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "capital/deposit/subAddress", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetCapitalDepositSubHisrec(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/subHisrec", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "capital/deposit/subHisrec", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetCapitalWithdrawHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw/history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "capital/withdraw/history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetCapitalWithdrawAddressList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw/address/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capital/withdraw/address/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetCapitalContractConvertibleCoins(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/contract/convertible-coins", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4.0002))
+    return request(self, "capital/contract/convertible-coins", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetConvertTradeFlow(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/tradeFlow", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "convert/tradeFlow", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetConvertExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/exchangeInfo", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "convert/exchangeInfo", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetConvertAssetInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/assetInfo", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "convert/assetInfo", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetConvertOrderStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/orderStatus", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.6667))
+    return request(self, "convert/orderStatus", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetConvertLimitQueryOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/limit/queryOpenOrders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "convert/limit/queryOpenOrders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAccountStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/status", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "account/status", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAccountApiTradingStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/apiTradingStatus", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "account/apiTradingStatus", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAccountApiRestrictionsIpRestriction(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/apiRestrictions/ipRestriction", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "account/apiRestrictions/ipRestriction", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBnbBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bnbBurn", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "bnbBurn", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountFuturesAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/account", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-account/futures/account", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountFuturesAccountSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/accountSummary", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/futures/accountSummary", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountFuturesPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/positionRisk", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-account/futures/positionRisk", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountFuturesInternalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/internalTransfer", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/futures/internalTransfer", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountMarginAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/margin/account", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-account/margin/account", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountMarginAccountSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/margin/accountSummary", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-account/margin/accountSummary", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountSpotSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/spotSummary", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/spotSummary", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/status", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-account/status", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountSubTransferHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/sub/transfer/history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/sub/transfer/history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountTransferSubUserHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/transfer/subUserHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/transfer/subUserHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountUniversalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/universalTransfer", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/universalTransfer", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/apiRestrictions/ipRestriction/thirdPartyList", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-account/apiRestrictions/ipRestriction/thirdPartyList", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountTransactionStatistics(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/transaction-statistics", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.40002))
+    return request(self, "sub-account/transaction-statistics", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSubAccountSubAccountApiIpRestriction(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/subAccountApi/ipRestriction", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "sub-account/subAccountApi/ipRestriction", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetManagedSubaccountAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/asset", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "managed-subaccount/asset", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetManagedSubaccountAccountSnapshot(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/accountSnapshot", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 240))
+    return request(self, "managed-subaccount/accountSnapshot", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetManagedSubaccountQueryTransLogForInvestor(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/queryTransLogForInvestor", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "managed-subaccount/queryTransLogForInvestor", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetManagedSubaccountQueryTransLogForTradeParent(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/queryTransLogForTradeParent", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.40002))
+    return request(self, "managed-subaccount/queryTransLogForTradeParent", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetManagedSubaccountFetchFutureAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/fetch-future-asset", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.40002))
+    return request(self, "managed-subaccount/fetch-future-asset", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetManagedSubaccountMarginAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/marginAsset", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "managed-subaccount/marginAsset", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetManagedSubaccountInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/info", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.40002))
+    return request(self, "managed-subaccount/info", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetManagedSubaccountDepositAddress(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/deposit/address", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.006667))
+    return request(self, "managed-subaccount/deposit/address", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetManagedSubaccountQueryTransLog(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/query-trans-log", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.40002))
+    return request(self, "managed-subaccount/query-trans-log", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingDailyProductList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/product/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/daily/product/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingDailyUserLeftQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/userLeftQuota", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/daily/userLeftQuota", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingDailyUserRedemptionQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/userRedemptionQuota", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/daily/userRedemptionQuota", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingDailyTokenPosition(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/token/position", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/daily/token/position", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingUnionAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/union/account", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/union/account", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingUnionPurchaseRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/union/purchaseRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/union/purchaseRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingUnionRedemptionRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/union/redemptionRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/union/redemptionRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingUnionInterestHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/union/interestHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/union/interestHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingProjectList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/project/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/project/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingProjectPositionList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/project/position/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/project/position/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetEthStakingEthHistoryStakingHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/history/stakingHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/eth/history/stakingHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetEthStakingEthHistoryRedemptionHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/history/redemptionHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/eth/history/redemptionHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetEthStakingEthHistoryRewardsHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/history/rewardsHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/eth/history/rewardsHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetEthStakingEthQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/quota", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/eth/quota", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetEthStakingEthHistoryRateHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/history/rateHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/eth/history/rateHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetEthStakingAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/account", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/account", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetEthStakingWbethHistoryWrapHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/wbeth/history/wrapHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/wbeth/history/wrapHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetEthStakingWbethHistoryUnwrapHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/wbeth/history/unwrapHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/wbeth/history/unwrapHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetEthStakingEthHistoryWbethRewardsHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/history/wbethRewardsHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/eth/history/wbethRewardsHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSolStakingSolHistoryStakingHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/history/stakingHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sol-staking/sol/history/stakingHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSolStakingSolHistoryRedemptionHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/history/redemptionHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sol-staking/sol/history/redemptionHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSolStakingSolHistoryBnsolRewardsHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/history/bnsolRewardsHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sol-staking/sol/history/bnsolRewardsHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSolStakingSolHistoryRateHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/history/rateHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sol-staking/sol/history/rateHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSolStakingAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/account", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sol-staking/account", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSolStakingSolQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/quota", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sol-staking/sol/quota", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMiningPubAlgoList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/pub/algoList", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "mining/pub/algoList", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMiningPubCoinList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/pub/coinList", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "mining/pub/coinList", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMiningWorkerDetail(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/worker/detail", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "mining/worker/detail", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMiningWorkerList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/worker/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "mining/worker/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMiningPaymentList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/payment/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "mining/payment/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMiningStatisticsUserStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/statistics/user/status", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "mining/statistics/user/status", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMiningStatisticsUserList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/statistics/user/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "mining/statistics/user/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetMiningPaymentUid(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/payment/uid", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "mining/payment/uid", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBswapPools(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/pools", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "bswap/pools", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBswapLiquidity(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/liquidity", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1, Symbol("noPoolId") => 1))
+    return request(self, "bswap/liquidity", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBswapLiquidityOps(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/liquidityOps", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "bswap/liquidityOps", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBswapQuote(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/quote", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.00005))
+    return request(self, "bswap/quote", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBswapSwap(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/swap", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "bswap/swap", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBswapPoolConfigure(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/poolConfigure", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.00005))
+    return request(self, "bswap/poolConfigure", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBswapAddLiquidityPreview(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/addLiquidityPreview", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.00005))
+    return request(self, "bswap/addLiquidityPreview", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBswapRemoveLiquidityPreview(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/removeLiquidityPreview", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.00005))
+    return request(self, "bswap/removeLiquidityPreview", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBswapUnclaimedRewards(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/unclaimedRewards", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.667))
+    return request(self, "bswap/unclaimedRewards", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBswapClaimedHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/claimedHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.667))
+    return request(self, "bswap/claimedHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBlvtTokenInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/tokenInfo", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "blvt/tokenInfo", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBlvtSubscribeRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/subscribe/record", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "blvt/subscribe/record", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBlvtRedeemRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/redeem/record", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "blvt/redeem/record", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBlvtUserLimit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/userLimit", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "blvt/userLimit", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetApiReferralIfNewUser(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/ifNewUser", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/ifNewUser", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetApiReferralCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/customization", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/customization", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetApiReferralUserCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/userCustomization", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/userCustomization", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetApiReferralRebateRecentRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/rebate/recentRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/rebate/recentRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetApiReferralRebateHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/rebate/historicalRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/rebate/historicalRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetApiReferralKickbackRecentRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/kickback/recentRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/kickback/recentRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetApiReferralKickbackHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/kickback/historicalRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/kickback/historicalRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerSubAccountApi(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerSubAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerSubAccountApiCommissionFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/commission/futures", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/commission/futures", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerSubAccountApiCommissionCoinFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/commission/coinFutures", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/commission/coinFutures", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/info", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/info", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/transfer", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/transfer", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerTransferFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/transfer/futures", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/transfer/futures", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerRebateRecentRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/rebate/recentRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/rebate/recentRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerRebateHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/rebate/historicalRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/rebate/historicalRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerSubAccountBnbBurnStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/bnbBurn/status", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount/bnbBurn/status", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerSubAccountDepositHist(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/depositHist", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount/depositHist", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerSubAccountSpotSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/spotSummary", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount/spotSummary", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerSubAccountMarginSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/marginSummary", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount/marginSummary", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerSubAccountFuturesSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/futuresSummary", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount/futuresSummary", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerRebateFuturesRecentRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/rebate/futures/recentRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/rebate/futures/recentRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerSubAccountApiIpRestriction(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/ipRestriction", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/ipRestriction", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetBrokerUniversalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/universalTransfer", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/universalTransfer", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAccountApiRestrictions(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/apiRestrictions", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "account/apiRestrictions", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetC2cOrderMatchListUserOrderHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "c2c/orderMatch/listUserOrderHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "c2c/orderMatch/listUserOrderHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetNftHistoryTransactions(self::Binance, params=Dict(), context=Dict())
-    return request(self, "nft/history/transactions", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "nft/history/transactions", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetNftHistoryDeposit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "nft/history/deposit", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "nft/history/deposit", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetNftHistoryWithdraw(self::Binance, params=Dict(), context=Dict())
-    return request(self, "nft/history/withdraw", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "nft/history/withdraw", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetNftUserGetAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "nft/user/getAsset", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "nft/user/getAsset", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPayTransactions(self::Binance, params=Dict(), context=Dict())
-    return request(self, "pay/transactions", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "pay/transactions", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetGiftcardVerify(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/verify", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "giftcard/verify", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetGiftcardCryptographyRsaPublicKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/cryptography/rsa-public-key", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "giftcard/cryptography/rsa-public-key", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetGiftcardBuyCodeTokenLimit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/buyCode/token-limit", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "giftcard/buyCode/token-limit", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAlgoSpotOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/spot/openOrders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "algo/spot/openOrders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAlgoSpotHistoricalOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/spot/historicalOrders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "algo/spot/historicalOrders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAlgoSpotSubOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/spot/subOrders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "algo/spot/subOrders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAlgoFuturesOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/openOrders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "algo/futures/openOrders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAlgoFuturesHistoricalOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/historicalOrders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "algo/futures/historicalOrders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAlgoFuturesSubOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/subOrders", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "algo/futures/subOrders", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/account", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "portfolio/account", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioCollateralRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/collateralRate", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "portfolio/collateralRate", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioPmLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/pmLoan", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3.3335))
+    return request(self, "portfolio/pmLoan", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioInterestHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/interest-history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.6667))
+    return request(self, "portfolio/interest-history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioAssetIndexPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/asset-index-price", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "portfolio/asset-index-price", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioRepayFuturesSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/repay-futures-switch", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "portfolio/repay-futures-switch", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioMarginAssetLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/margin-asset-leverage", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "portfolio/margin-asset-leverage", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/balance", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "portfolio/balance", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioNegativeBalanceExchangeRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/negative-balance-exchange-record", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "portfolio/negative-balance-exchange-record", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioPmloanHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/pmloan-history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "portfolio/pmloan-history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioEarnAssetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/earn-asset-balance", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "portfolio/earn-asset-balance", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetPortfolioDeltaMode(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/delta-mode", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "portfolio/delta-mode", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetStakingProductList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/productList", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "staking/productList", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetStakingPosition(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/position", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "staking/position", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetStakingStakingRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/stakingRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "staking/stakingRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetStakingPersonalLeftQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/personalLeftQuota", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "staking/personalLeftQuota", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestTargetAssetList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/target-asset/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/target-asset/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestTargetAssetRoiList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/target-asset/roi/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/target-asset/roi/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestAllAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/all/asset", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/all/asset", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestSourceAssetList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/source-asset/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/source-asset/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestPlanList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/plan/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/plan/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestPlanId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/plan/id", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/plan/id", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestHistoryList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/history/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/history/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestIndexInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/index/info", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/index/info", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestIndexUserSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/index/user-summary", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/index/user-summary", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestOneOffStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/one-off/status", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/one-off/status", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestRedeemHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/redeem/history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/redeem/history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetLendingAutoInvestRebalanceHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/rebalance/history", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/rebalance/history", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnFlexibleList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/flexible/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnLockedList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/locked/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnFlexiblePersonalLeftQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/personalLeftQuota", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/flexible/personalLeftQuota", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnLockedPersonalLeftQuota(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/personalLeftQuota", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/locked/personalLeftQuota", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnFlexibleSubscriptionPreview(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/subscriptionPreview", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/flexible/subscriptionPreview", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnLockedSubscriptionPreview(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/subscriptionPreview", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/locked/subscriptionPreview", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnFlexibleHistoryRateHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/history/rateHistory", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/flexible/history/rateHistory", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnFlexiblePosition(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/position", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/flexible/position", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnLockedPosition(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/position", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/locked/position", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/account", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/account", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnFlexibleHistorySubscriptionRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/history/subscriptionRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/flexible/history/subscriptionRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnLockedHistorySubscriptionRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/history/subscriptionRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/locked/history/subscriptionRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnFlexibleHistoryRedemptionRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/history/redemptionRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/flexible/history/redemptionRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnLockedHistoryRedemptionRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/history/redemptionRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/locked/history/redemptionRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnFlexibleHistoryRewardsRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/history/rewardsRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/flexible/history/rewardsRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnLockedHistoryRewardsRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/history/rewardsRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/locked/history/rewardsRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetSimpleEarnFlexibleHistoryCollateralRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/history/collateralRecord", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "simple-earn/flexible/history/collateralRecord", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetDciProductList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "dci/product/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "dci/product/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetDciProductPositions(self::Binance, params=Dict(), context=Dict())
-    return request(self, "dci/product/positions", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "dci/product/positions", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetDciProductAccounts(self::Binance, params=Dict(), context=Dict())
-    return request(self, "dci/product/accounts", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "dci/product/accounts", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAccumulatorProductList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accumulator/product/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "accumulator/product/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAccumulatorProductPositionList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accumulator/product/position/list", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "accumulator/product/position/list", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiGetAccumulatorProductSumHolding(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accumulator/product/sum-holding", "sapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "accumulator/product/sum-holding", "sapi", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPostAssetDust(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/dust", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.06667))
+    return request(self, "asset/dust", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostAssetDustBtc(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/dust-btc", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "asset/dust-btc", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostAssetTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/transfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 6.0003))
+    return request(self, "asset/transfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostAssetGetFundingAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/get-funding-asset", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "asset/get-funding-asset", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostAssetConvertTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/convert-transfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.033335))
+    return request(self, "asset/convert-transfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostAccountDisableFastWithdrawSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/disableFastWithdrawSwitch", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "account/disableFastWithdrawSwitch", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostAccountEnableFastWithdrawSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/enableFastWithdrawSwitch", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "account/enableFastWithdrawSwitch", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostCapitalWithdrawApply(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw/apply", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4.0002))
+    return request(self, "capital/withdraw/apply", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostCapitalContractConvertibleCoins(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/contract/convertible-coins", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4.0002))
+    return request(self, "capital/contract/convertible-coins", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostCapitalDepositCreditApply(self::Binance, params=Dict(), context=Dict())
-    return request(self, "capital/deposit/credit-apply", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "capital/deposit/credit-apply", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMarginBorrowRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/borrow-repay", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "margin/borrow-repay", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMarginTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/transfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4.0002))
+    return request(self, "margin/transfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMarginLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/loan", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "margin/loan", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMarginRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/repay", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "margin/repay", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.040002))
+    return request(self, "margin/order", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMarginOrderOco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order/oco", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.040002))
+    return request(self, "margin/order/oco", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMarginDust(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/dust", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "margin/dust", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMarginExchangeSmallLiability(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/exchange-small-liability", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "margin/exchange-small-liability", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMarginIsolatedTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/transfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4.0002))
+    return request(self, "margin/isolated/transfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMarginIsolatedAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/account", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.0001))
+    return request(self, "margin/isolated/account", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMarginMaxLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/max-leverage", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 300))
+    return request(self, "margin/max-leverage", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBnbBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bnbBurn", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "bnbBurn", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSubAccountVirtualSubAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/virtualSubAccount", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/virtualSubAccount", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSubAccountMarginTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/margin/transfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4.0002))
+    return request(self, "sub-account/margin/transfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSubAccountMarginEnable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/margin/enable", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/margin/enable", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSubAccountFuturesEnable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/enable", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/futures/enable", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSubAccountFuturesTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/transfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/futures/transfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSubAccountFuturesInternalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/internalTransfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/futures/internalTransfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSubAccountTransferSubToSub(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/transfer/subToSub", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/transfer/subToSub", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSubAccountTransferSubToMaster(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/transfer/subToMaster", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/transfer/subToMaster", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSubAccountUniversalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/universalTransfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/universalTransfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSubAccountOptionsEnable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/options/enable", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/options/enable", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostManagedSubaccountDeposit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/deposit", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "managed-subaccount/deposit", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostManagedSubaccountWithdraw(self::Binance, params=Dict(), context=Dict())
-    return request(self, "managed-subaccount/withdraw", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "managed-subaccount/withdraw", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "userDataStream", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostUserDataStreamIsolated(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream/isolated", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "userDataStream/isolated", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostUserListenToken(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userListenToken", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "userListenToken", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostFuturesTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "futures/transfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "futures/transfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLendingCustomizedFixedPurchase(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/customizedFixed/purchase", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/customizedFixed/purchase", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLendingDailyPurchase(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/purchase", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/daily/purchase", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLendingDailyRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/daily/redeem", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/daily/redeem", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBswapLiquidityAdd(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/liquidityAdd", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "bswap/liquidityAdd", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBswapLiquidityRemove(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/liquidityRemove", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "bswap/liquidityRemove", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBswapSwap(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/swap", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "bswap/swap", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBswapClaimRewards(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bswap/claimRewards", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 6.667))
+    return request(self, "bswap/claimRewards", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBlvtSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/subscribe", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "blvt/subscribe", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBlvtRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blvt/redeem", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "blvt/redeem", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostApiReferralCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/customization", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/customization", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostApiReferralUserCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/userCustomization", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/userCustomization", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostApiReferralRebateHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/rebate/historicalRecord", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/rebate/historicalRecord", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostApiReferralKickbackHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/kickback/historicalRecord", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/kickback/historicalRecord", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountMargin(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/margin", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount/margin", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/futures", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount/futures", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountApi(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountApiPermission(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/permission", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/permission", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountApiCommission(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/commission", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/commission", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountApiCommissionFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/commission/futures", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/commission/futures", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountApiCommissionCoinFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/commission/coinFutures", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/commission/coinFutures", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/transfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/transfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerTransferFutures(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/transfer/futures", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/transfer/futures", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerRebateHistoricalRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/rebate/historicalRecord", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/rebate/historicalRecord", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountBnbBurnSpot(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/bnbBurn/spot", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount/bnbBurn/spot", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountBnbBurnMarginInterest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/bnbBurn/marginInterest", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount/bnbBurn/marginInterest", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountBlvt(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccount/blvt", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccount/blvt", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountApiIpRestriction(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/ipRestriction", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/ipRestriction", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountApiIpRestrictionIpList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/ipRestriction/ipList", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/ipRestriction/ipList", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerUniversalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/universalTransfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/universalTransfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountApiPermissionUniversalTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/permission/universalTransfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/permission/universalTransfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostBrokerSubAccountApiPermissionVanillaOptions(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/permission/vanillaOptions", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/permission/vanillaOptions", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostGiftcardCreateCode(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/createCode", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "giftcard/createCode", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostGiftcardRedeemCode(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/redeemCode", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "giftcard/redeemCode", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostGiftcardBuyCode(self::Binance, params=Dict(), context=Dict())
-    return request(self, "giftcard/buyCode", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "giftcard/buyCode", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostAlgoSpotNewOrderTwap(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/spot/newOrderTwap", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "algo/spot/newOrderTwap", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostAlgoFuturesNewOrderVp(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/newOrderVp", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "algo/futures/newOrderVp", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostAlgoFuturesNewOrderTwap(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/newOrderTwap", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "algo/futures/newOrderTwap", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostStakingPurchase(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/purchase", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "staking/purchase", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostStakingRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/redeem", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "staking/redeem", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostStakingSetAutoStaking(self::Binance, params=Dict(), context=Dict())
-    return request(self, "staking/setAutoStaking", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "staking/setAutoStaking", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostEthStakingEthStake(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/stake", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/eth/stake", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostEthStakingEthRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/redeem", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/eth/redeem", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostEthStakingWbethWrap(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/wbeth/wrap", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/wbeth/wrap", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSolStakingSolStake(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/stake", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sol-staking/sol/stake", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSolStakingSolRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sol-staking/sol/redeem", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sol-staking/sol/redeem", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMiningHashTransferConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/hash-transfer/config", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "mining/hash-transfer/config", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostMiningHashTransferConfigCancel(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mining/hash-transfer/config/cancel", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "mining/hash-transfer/config/cancel", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostPortfolioRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/repay", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "portfolio/repay", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLoanVipRenew(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/renew", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/vip/renew", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLoanVipBorrow(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/borrow", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/vip/borrow", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLoanBorrow(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/borrow", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/borrow", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLoanRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/repay", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/repay", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLoanAdjustLtv(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/adjust/ltv", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/adjust/ltv", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLoanCustomizeMarginCall(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/customize/margin_call", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/customize/margin_call", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLoanFlexibleRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/repay", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/flexible/repay", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLoanFlexibleAdjustLtv(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/adjust/ltv", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/flexible/adjust/ltv", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLoanVipRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/vip/repay", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/vip/repay", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostConvertGetQuote(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/getQuote", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1.3334))
+    return request(self, "convert/getQuote", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostConvertAcceptQuote(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/acceptQuote", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3.3335))
+    return request(self, "convert/acceptQuote", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostConvertLimitPlaceOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/limit/placeOrder", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3.3335))
+    return request(self, "convert/limit/placeOrder", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostConvertLimitCancelOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/limit/cancelOrder", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1.3334))
+    return request(self, "convert/limit/cancelOrder", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostPortfolioAutoCollection(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/auto-collection", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "portfolio/auto-collection", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostPortfolioAssetCollection(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/asset-collection", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "portfolio/asset-collection", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostPortfolioBnbTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/bnb-transfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "portfolio/bnb-transfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostPortfolioRepayFuturesSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/repay-futures-switch", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "portfolio/repay-futures-switch", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostPortfolioRepayFuturesNegativeBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/repay-futures-negative-balance", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "portfolio/repay-futures-negative-balance", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostPortfolioMint(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/mint", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "portfolio/mint", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostPortfolioRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/redeem", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "portfolio/redeem", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostPortfolioEarnAssetTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/earn-asset-transfer", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "portfolio/earn-asset-transfer", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostPortfolioDeltaMode(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/delta-mode", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "portfolio/delta-mode", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLendingAutoInvestPlanAdd(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/plan/add", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/plan/add", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLendingAutoInvestPlanEdit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/plan/edit", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/plan/edit", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLendingAutoInvestPlanEditStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/plan/edit-status", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/plan/edit-status", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLendingAutoInvestOneOff(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/one-off", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/one-off", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostLendingAutoInvestRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lending/auto-invest/redeem", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "lending/auto-invest/redeem", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSimpleEarnFlexibleSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/subscribe", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "simple-earn/flexible/subscribe", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSimpleEarnLockedSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/subscribe", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "simple-earn/locked/subscribe", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSimpleEarnFlexibleRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/redeem", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "simple-earn/flexible/redeem", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSimpleEarnLockedRedeem(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/redeem", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "simple-earn/locked/redeem", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSimpleEarnFlexibleSetAutoSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/flexible/setAutoSubscribe", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/flexible/setAutoSubscribe", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSimpleEarnLockedSetAutoSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/setAutoSubscribe", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "simple-earn/locked/setAutoSubscribe", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostSimpleEarnLockedSetRedeemOption(self::Binance, params=Dict(), context=Dict())
-    return request(self, "simple-earn/locked/setRedeemOption", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "simple-earn/locked/setRedeemOption", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostDciProductSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "dci/product/subscribe", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "dci/product/subscribe", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostDciProductAutoCompoundEdit(self::Binance, params=Dict(), context=Dict())
-    return request(self, "dci/product/auto_compound/edit", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "dci/product/auto_compound/edit", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPostAccumulatorProductSubscribe(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accumulator/product/subscribe", "sapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "accumulator/product/subscribe", "sapi", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPutUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "sapi", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "userDataStream", "sapi", "PUT", params, nothing, nothing, Dict())
 end
 
 function sapiPutUserDataStreamIsolated(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream/isolated", "sapi", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "userDataStream/isolated", "sapi", "PUT", params, nothing, nothing, Dict())
 end
 
 function sapiDeleteMarginOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/openOrders", "sapi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "margin/openOrders", "sapi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiDeleteMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "sapi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.006667))
+    return request(self, "margin/order", "sapi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiDeleteMarginOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/orderList", "sapi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.006667))
+    return request(self, "margin/orderList", "sapi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiDeleteMarginIsolatedAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/isolated/account", "sapi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 2.0001))
+    return request(self, "margin/isolated/account", "sapi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiDeleteUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "sapi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "userDataStream", "sapi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiDeleteUserDataStreamIsolated(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream/isolated", "sapi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "userDataStream/isolated", "sapi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiDeleteBrokerSubAccountApi(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi", "sapi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi", "sapi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiDeleteBrokerSubAccountApiIpRestrictionIpList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "broker/subAccountApi/ipRestriction/ipList", "sapi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/subAccountApi/ipRestriction/ipList", "sapi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiDeleteAlgoSpotOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/spot/order", "sapi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "algo/spot/order", "sapi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiDeleteAlgoFuturesOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algo/futures/order", "sapi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "algo/futures/order", "sapi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/subAccountApi/ipRestriction/ipList", "sapi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "sub-account/subAccountApi/ipRestriction/ipList", "sapi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiV2GetEthStakingAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/account", "sapiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/account", "sapiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV2GetSubAccountFuturesAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/account", "sapiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/futures/account", "sapiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV2GetSubAccountFuturesAccountSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/accountSummary", "sapiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-account/futures/accountSummary", "sapiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV2GetSubAccountFuturesPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/futures/positionRisk", "sapiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "sub-account/futures/positionRisk", "sapiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV2GetLoanFlexibleOngoingOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/ongoing/orders", "sapiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "loan/flexible/ongoing/orders", "sapiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV2GetLoanFlexibleBorrowHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/borrow/history", "sapiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/flexible/borrow/history", "sapiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV2GetLoanFlexibleRepayHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/repay/history", "sapiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/flexible/repay/history", "sapiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV2GetLoanFlexibleLtvAdjustmentHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/ltv/adjustment/history", "sapiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/flexible/ltv/adjustment/history", "sapiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV2GetLoanFlexibleLoanableData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/loanable/data", "sapiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/flexible/loanable/data", "sapiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV2GetLoanFlexibleCollateralData(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/collateral/data", "sapiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "loan/flexible/collateral/data", "sapiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV2GetPortfolioAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/account", "sapiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "portfolio/account", "sapiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV2PostEthStakingEthStake(self::Binance, params=Dict(), context=Dict())
-    return request(self, "eth-staking/eth/stake", "sapiV2", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "eth-staking/eth/stake", "sapiV2", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiV2PostSubAccountSubAccountApiIpRestriction(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/subAccountApi/ipRestriction", "sapiV2", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20.001))
+    return request(self, "sub-account/subAccountApi/ipRestriction", "sapiV2", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiV2PostLoanFlexibleBorrow(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/borrow", "sapiV2", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/flexible/borrow", "sapiV2", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiV2PostLoanFlexibleRepay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/repay", "sapiV2", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/flexible/repay", "sapiV2", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiV2PostLoanFlexibleAdjustLtv(self::Binance, params=Dict(), context=Dict())
-    return request(self, "loan/flexible/adjust/ltv", "sapiV2", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40.002))
+    return request(self, "loan/flexible/adjust/ltv", "sapiV2", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiV3GetSubAccountAssets(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/assets", "sapiV3", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.40002))
+    return request(self, "sub-account/assets", "sapiV3", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiV3PostAssetGetUserAsset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset/getUserAsset", "sapiV3", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "asset/getUserAsset", "sapiV3", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiV4GetSubAccountAssets(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sub-account/assets", "sapiV4", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.40002))
+    return request(self, "sub-account/assets", "sapiV4", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetPing(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ping", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ping", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetTime(self::Binance, params=Dict(), context=Dict())
-    return request(self, "time", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "time", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exchangeInfo", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "exchangeInfo", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetDepth(self::Binance, params=Dict(), context=Dict())
-    return request(self, "depth", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "depth", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trades", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "trades", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetHistoricalTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "historicalTrades", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "historicalTrades", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetAggTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "aggTrades", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "aggTrades", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetPremiumIndex(self::Binance, params=Dict(), context=Dict())
-    return request(self, "premiumIndex", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "premiumIndex", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetFundingRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fundingRate", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fundingRate", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "klines", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "klines", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetContinuousKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "continuousKlines", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "continuousKlines", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetIndexPriceKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "indexPriceKlines", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "indexPriceKlines", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetMarkPriceKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "markPriceKlines", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markPriceKlines", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetPremiumIndexKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "premiumIndexKlines", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "premiumIndexKlines", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetTicker24hr(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "ticker/24hr", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetTickerPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/price", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 2))
+    return request(self, "ticker/price", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetTickerBookTicker(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/bookTicker", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2, Symbol("noSymbol") => 5))
+    return request(self, "ticker/bookTicker", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetConstituents(self::Binance, params=Dict(), context=Dict())
-    return request(self, "constituents", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "constituents", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetOpenInterest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openInterest", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openInterest", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPublicGetFundingInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fundingInfo", "dapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fundingInfo", "dapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiDataGetDeliveryPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "delivery-price", "dapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "delivery-price", "dapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiDataGetOpenInterestHist(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openInterestHist", "dapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openInterestHist", "dapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiDataGetTopLongShortAccountRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "topLongShortAccountRatio", "dapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "topLongShortAccountRatio", "dapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiDataGetTopLongShortPositionRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "topLongShortPositionRatio", "dapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "topLongShortPositionRatio", "dapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiDataGetGlobalLongShortAccountRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "globalLongShortAccountRatio", "dapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "globalLongShortAccountRatio", "dapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiDataGetTakerBuySellVol(self::Binance, params=Dict(), context=Dict())
-    return request(self, "takerBuySellVol", "dapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "takerBuySellVol", "dapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiDataGetBasis(self::Binance, params=Dict(), context=Dict())
-    return request(self, "basis", "dapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "basis", "dapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionSide/dual", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "positionSide/dual", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetOrderAmendment(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderAmendment", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderAmendment", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrder", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openOrder", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 5))
+    return request(self, "openOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetOpenAlgoOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openAlgoOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "openAlgoOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "allOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "balance", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "balance", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "account", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetPositionMarginHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionMargin/history", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positionMargin/history", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionRisk", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positionRisk", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userTrades", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "userTrades", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetIncome(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "income", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "leverageBracket", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2, Symbol("noSymbol") => 2))
+    return request(self, "leverageBracket", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetForceOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "forceOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20, Symbol("noSymbol") => 50))
+    return request(self, "forceOrders", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetAdlQuantile(self::Binance, params=Dict(), context=Dict())
-    return request(self, "adlQuantile", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "adlQuantile", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetCommissionRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "commissionRate", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "commissionRate", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetIncomeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "income/asyn", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetIncomeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn/id", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "income/asyn/id", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetTradeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trade/asyn", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "trade/asyn", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetTradeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trade/asyn/id", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "trade/asyn/id", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetOrderAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/asyn", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "order/asyn", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetOrderAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/asyn/id", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "order/asyn/id", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetPmExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "pmExchangeInfo", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "pmExchangeInfo", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateGetPmAccountInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "pmAccountInfo", "dapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "pmAccountInfo", "dapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePostPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionSide/dual", "dapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positionSide/dual", "dapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePostOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "dapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "order", "dapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePostAlgoOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOrder", "dapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algoOrder", "dapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePostBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "dapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "batchOrders", "dapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePostCountdownCancelAll(self::Binance, params=Dict(), context=Dict())
-    return request(self, "countdownCancelAll", "dapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "countdownCancelAll", "dapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePostLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "leverage", "dapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "leverage", "dapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePostMarginType(self::Binance, params=Dict(), context=Dict())
-    return request(self, "marginType", "dapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "marginType", "dapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePostPositionMargin(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionMargin", "dapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positionMargin", "dapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePostListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "dapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "listenKey", "dapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePutListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "dapiPrivate", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "listenKey", "dapiPrivate", "PUT", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePutOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "dapiPrivate", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "dapiPrivate", "PUT", params, nothing, nothing, Dict())
 end
 
 function dapiPrivatePutBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "dapiPrivate", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "batchOrders", "dapiPrivate", "PUT", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateDeleteOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "dapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "dapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateDeleteAlgoOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOrder", "dapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algoOrder", "dapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateDeleteAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOpenOrders", "dapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "allOpenOrders", "dapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateDeleteBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "dapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "batchOrders", "dapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateDeleteListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "dapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "listenKey", "dapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function dapiPrivateV2GetLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "leverageBracket", "dapiPrivateV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "leverageBracket", "dapiPrivateV2", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetPing(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ping", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ping", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetTime(self::Binance, params=Dict(), context=Dict())
-    return request(self, "time", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "time", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetDepth(self::Binance, params=Dict(), context=Dict())
-    return request(self, "depth", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "depth", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetRpiDepth(self::Binance, params=Dict(), context=Dict())
-    return request(self, "rpiDepth", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "rpiDepth", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trades", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "trades", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetHistoricalTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "historicalTrades", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "historicalTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetAggTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "aggTrades", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "aggTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "klines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "klines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetContinuousKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "continuousKlines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "continuousKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetMarkPriceKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "markPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetIndexPriceKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "indexPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "indexPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetPremiumIndexKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "premiumIndexKlines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "premiumIndexKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetFundingRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fundingRate", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fundingRate", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetFundingInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "fundingInfo", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fundingInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetPremiumIndex(self::Binance, params=Dict(), context=Dict())
-    return request(self, "premiumIndex", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "premiumIndex", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetTicker24hr(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "ticker/24hr", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetTickerPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/price", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 2))
+    return request(self, "ticker/price", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetTickerBookTicker(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/bookTicker", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 2))
+    return request(self, "ticker/bookTicker", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetOpenInterest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openInterest", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openInterest", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetIndexInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "indexInfo", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "indexInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetAssetIndex(self::Binance, params=Dict(), context=Dict())
-    return request(self, "assetIndex", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 10))
+    return request(self, "assetIndex", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetConstituents(self::Binance, params=Dict(), context=Dict())
-    return request(self, "constituents", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "constituents", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetApiTradingStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiTradingStatus", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 10))
+    return request(self, "apiTradingStatus", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetLvtKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "lvtKlines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "lvtKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetConvertExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "convert/exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetInsuranceBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "insuranceBalance", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "insuranceBalance", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetSymbolAdlRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "symbolAdlRisk", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "symbolAdlRisk", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetTradingSchedule(self::Binance, params=Dict(), context=Dict())
-    return request(self, "tradingSchedule", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "tradingSchedule", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiDataGetDeliveryPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "delivery-price", "fapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "delivery-price", "fapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiDataGetOpenInterestHist(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openInterestHist", "fapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openInterestHist", "fapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiDataGetTopLongShortAccountRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "topLongShortAccountRatio", "fapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "topLongShortAccountRatio", "fapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiDataGetTopLongShortPositionRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "topLongShortPositionRatio", "fapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "topLongShortPositionRatio", "fapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiDataGetGlobalLongShortAccountRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "globalLongShortAccountRatio", "fapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "globalLongShortAccountRatio", "fapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiDataGetTakerlongshortRatio(self::Binance, params=Dict(), context=Dict())
-    return request(self, "takerlongshortRatio", "fapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "takerlongshortRatio", "fapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiDataGetBasis(self::Binance, params=Dict(), context=Dict())
-    return request(self, "basis", "fapiData", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "basis", "fapiData", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetForceOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "forceOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20, Symbol("noSymbol") => 50))
+    return request(self, "forceOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "allOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "openOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "account", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "balance", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "balance", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "leverageBracket", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "leverageBracket", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetPositionMarginHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionMargin/history", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positionMargin/history", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionRisk", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "positionRisk", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionSide/dual", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "positionSide/dual", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userTrades", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "userTrades", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetIncome(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "income", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetCommissionRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "commissionRate", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "commissionRate", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetRateLimitOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "rateLimit/order", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "rateLimit/order", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetApiTradingStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiTradingStatus", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiTradingStatus", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetMultiAssetsMargin(self::Binance, params=Dict(), context=Dict())
-    return request(self, "multiAssetsMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "multiAssetsMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetApiReferralIfNewUser(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/ifNewUser", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/ifNewUser", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetApiReferralCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/customization", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/customization", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetApiReferralUserCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/userCustomization", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/userCustomization", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetApiReferralTraderNum(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/traderNum", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/traderNum", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetApiReferralOverview(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/overview", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/overview", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetApiReferralTradeVol(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/tradeVol", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/tradeVol", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetApiReferralRebateVol(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/rebateVol", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/rebateVol", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetApiReferralTraderSummary(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/traderSummary", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/traderSummary", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetAdlQuantile(self::Binance, params=Dict(), context=Dict())
-    return request(self, "adlQuantile", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "adlQuantile", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetPmAccountInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "pmAccountInfo", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "pmAccountInfo", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetOrderAmendment(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderAmendment", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderAmendment", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetIncomeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1000))
+    return request(self, "income/asyn", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetIncomeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn/id", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "income/asyn/id", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetOrderAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/asyn", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1000))
+    return request(self, "order/asyn", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetOrderAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/asyn/id", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "order/asyn/id", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetTradeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trade/asyn", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1000))
+    return request(self, "trade/asyn", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetTradeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trade/asyn/id", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "trade/asyn/id", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetFeeBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "feeBurn", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "feeBurn", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetSymbolConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "symbolConfig", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "symbolConfig", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetAccountConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "accountConfig", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "accountConfig", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetConvertOrderStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/orderStatus", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "convert/orderStatus", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetAlgoOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algoOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetOpenAlgoOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openAlgoOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "openAlgoOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetAllAlgoOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allAlgoOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "allAlgoOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetStockContract(self::Binance, params=Dict(), context=Dict())
-    return request(self, "stock/contract", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "stock/contract", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "batchOrders", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionSide/dual", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positionSide/dual", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostPositionMargin(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positionMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostMarginType(self::Binance, params=Dict(), context=Dict())
-    return request(self, "marginType", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "marginType", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "order", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostOrderTest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/test", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/test", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "leverage", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "leverage", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "listenKey", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostCountdownCancelAll(self::Binance, params=Dict(), context=Dict())
-    return request(self, "countdownCancelAll", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "countdownCancelAll", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostMultiAssetsMargin(self::Binance, params=Dict(), context=Dict())
-    return request(self, "multiAssetsMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "multiAssetsMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostApiReferralCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/customization", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/customization", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostApiReferralUserCustomization(self::Binance, params=Dict(), context=Dict())
-    return request(self, "apiReferral/userCustomization", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apiReferral/userCustomization", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostFeeBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "feeBurn", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "feeBurn", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostConvertGetQuote(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/getQuote", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 200))
+    return request(self, "convert/getQuote", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostConvertAcceptQuote(self::Binance, params=Dict(), context=Dict())
-    return request(self, "convert/acceptQuote", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "convert/acceptQuote", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostAlgoOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOrder", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algoOrder", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePutListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "fapiPrivate", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "listenKey", "fapiPrivate", "PUT", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePutOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "fapiPrivate", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "fapiPrivate", "PUT", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePutBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "fapiPrivate", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "batchOrders", "fapiPrivate", "PUT", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "batchOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "allOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "listenKey", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteAlgoOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOrder", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algoOrder", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteAlgoOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "algoOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algoOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPublicV2GetTickerPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/price", "fapiPublicV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0))
+    return request(self, "ticker/price", "fapiPublicV2", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateV2GetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "fapiPrivateV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account", "fapiPrivateV2", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateV2GetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "balance", "fapiPrivateV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "balance", "fapiPrivateV2", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateV2GetPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionRisk", "fapiPrivateV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positionRisk", "fapiPrivateV2", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateV3GetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "fapiPrivateV3", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account", "fapiPrivateV3", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateV3GetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "balance", "fapiPrivateV3", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "balance", "fapiPrivateV3", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateV3GetPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "positionRisk", "fapiPrivateV3", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positionRisk", "fapiPrivateV3", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetPing(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ping", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ping", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetTime(self::Binance, params=Dict(), context=Dict())
-    return request(self, "time", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "time", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exchangeInfo", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "exchangeInfo", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetIndex(self::Binance, params=Dict(), context=Dict())
-    return request(self, "index", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetTicker(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "ticker", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetMark(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mark", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "mark", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetDepth(self::Binance, params=Dict(), context=Dict())
-    return request(self, "depth", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "depth", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "klines", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "klines", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trades", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "trades", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetHistoricalTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "historicalTrades", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "historicalTrades", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetExerciseHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exerciseHistory", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "exerciseHistory", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPublicGetOpenInterest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openInterest", "eapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "openInterest", "eapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "account", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetPosition(self::Binance, params=Dict(), context=Dict())
-    return request(self, "position", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "position", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrders", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "openOrders", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetHistoryOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "historyOrders", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "historyOrders", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userTrades", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "userTrades", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetExerciseRecord(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exerciseRecord", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exerciseRecord", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetBill(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bill", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "bill", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetIncomeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "income/asyn", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetIncomeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "income/asyn/id", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "income/asyn/id", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetMarginAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "marginAccount", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "marginAccount", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetMmp(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mmp", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mmp", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetCountdownCancelAll(self::Binance, params=Dict(), context=Dict())
-    return request(self, "countdownCancelAll", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "countdownCancelAll", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetBlockOrderOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/orders", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "block/order/orders", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetBlockOrderExecute(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/execute", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "block/order/execute", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetBlockUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/user-trades", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "block/user-trades", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetBlockTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "blockTrades", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "blockTrades", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateGetComission(self::Binance, params=Dict(), context=Dict())
-    return request(self, "comission", "eapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "comission", "eapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function eapiPrivatePostOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "eapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "eapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function eapiPrivatePostBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "eapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "batchOrders", "eapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function eapiPrivatePostListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "eapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "listenKey", "eapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function eapiPrivatePostMmpSet(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mmpSet", "eapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mmpSet", "eapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function eapiPrivatePostMmpReset(self::Binance, params=Dict(), context=Dict())
-    return request(self, "mmpReset", "eapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mmpReset", "eapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function eapiPrivatePostCountdownCancelAll(self::Binance, params=Dict(), context=Dict())
-    return request(self, "countdownCancelAll", "eapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "countdownCancelAll", "eapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function eapiPrivatePostCountdownCancelAllHeartBeat(self::Binance, params=Dict(), context=Dict())
-    return request(self, "countdownCancelAllHeartBeat", "eapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "countdownCancelAllHeartBeat", "eapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function eapiPrivatePostBlockOrderCreate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/create", "eapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "block/order/create", "eapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function eapiPrivatePostBlockOrderExecute(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/execute", "eapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "block/order/execute", "eapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function eapiPrivatePutListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "eapiPrivate", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "listenKey", "eapiPrivate", "PUT", params, nothing, nothing, Dict())
 end
 
 function eapiPrivatePutBlockOrderCreate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/create", "eapiPrivate", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "block/order/create", "eapiPrivate", "PUT", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateDeleteOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "eapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateDeleteBatchOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "batchOrders", "eapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "batchOrders", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateDeleteAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOpenOrders", "eapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "allOpenOrders", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateDeleteAllOpenOrdersByUnderlying(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOpenOrdersByUnderlying", "eapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "allOpenOrdersByUnderlying", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateDeleteListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "eapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "listenKey", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function eapiPrivateDeleteBlockOrderCreate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "block/order/create", "eapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "block/order/create", "eapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function publicGetPing(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ping", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "ping", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTime(self::Binance, params=Dict(), context=Dict())
-    return request(self, "time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDepth(self::Binance, params=Dict(), context=Dict())
-    return request(self, "depth", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "depth", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAggTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "aggTrades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "aggTrades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetHistoricalTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "historicalTrades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "historicalTrades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "klines", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "klines", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetUiKlines(self::Binance, params=Dict(), context=Dict())
-    return request(self, "uiKlines", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "uiKlines", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker24hr(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4, Symbol("noSymbol") => 16))
+    return request(self, "ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4, Symbol("noSymbol") => 16))
+    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickerTradingDay(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/tradingDay", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.8))
+    return request(self, "ticker/tradingDay", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickerPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4, Symbol("noSymbol") => 0.8))
+    return request(self, "ticker/price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickerBookTicker(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4, Symbol("noSymbol") => 0.8))
+    return request(self, "ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetExchangeInfo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "exchangeInfo", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "exchangeInfo", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAvgPrice(self::Binance, params=Dict(), context=Dict())
-    return request(self, "avgPrice", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "avgPrice", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicPutUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "public", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "userDataStream", "public", "PUT", params, nothing, nothing, Dict())
 end
 
 function publicPostUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "userDataStream", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function publicDeleteUserDataStream(self::Binance, params=Dict(), context=Dict())
-    return request(self, "userDataStream", "public", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "userDataStream", "public", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateGetAllOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOrderList", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "allOrderList", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrderList", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.2))
+    return request(self, "openOrderList", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.8))
+    return request(self, "orderList", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.8))
+    return request(self, "order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.2, Symbol("noSymbol") => 16))
+    return request(self, "openOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "allOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "allOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMyTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "myTrades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "myTrades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetRateLimitOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "rateLimit/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "rateLimit/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMyPreventedMatches(self::Binance, params=Dict(), context=Dict())
-    return request(self, "myPreventedMatches", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "myPreventedMatches", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMyAllocations(self::Binance, params=Dict(), context=Dict())
-    return request(self, "myAllocations", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "myAllocations", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountCommission(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account/commission", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "account/commission", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderOco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/oco", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order/oco", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderListOco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList/oco", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "orderList/oco", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderListOto(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList/oto", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "orderList/oto", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderListOtoco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList/otoco", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "orderList/otoco", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderListOpo(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList/opo", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "orderList/opo", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderListOpoco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList/opoco", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "orderList/opoco", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSorOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sor/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "sor/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSorOrderTest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "sor/order/test", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "sor/order/test", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderCancelReplace(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/cancelReplace", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order/cancelReplace", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderTest(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order/test", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order/test", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "openOrders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "openOrders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "orderList", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "orderList", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiGetPing(self::Binance, params=Dict(), context=Dict())
-    return request(self, "ping", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "ping", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/order", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/openOrder", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/openOrder", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/openOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "um/openOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/allOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "um/allOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/order", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/order", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/openOrder", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/openOrder", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/openOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "cm/openOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/allOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "cm/allOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmConditionalOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/openOrder", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/conditional/openOrder", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmConditionalOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/openOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "um/conditional/openOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmConditionalOrderHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/orderHistory", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/conditional/orderHistory", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmConditionalAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/allOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "um/conditional/allOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmConditionalOpenOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/openOrder", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/conditional/openOrder", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmConditionalOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/openOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "cm/conditional/openOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmConditionalOrderHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/orderHistory", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/conditional/orderHistory", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmConditionalAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/allOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "cm/conditional/allOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "margin/order", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/openOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "margin/openOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginAllOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "margin/allOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/orderList", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "margin/orderList", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginAllOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allOrderList", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "margin/allOrderList", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginOpenOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/openOrderList", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "margin/openOrderList", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginMyTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/myTrades", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "margin/myTrades", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "balance", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "balance", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "account", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "account", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginMaxBorrowable(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/maxBorrowable", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/maxBorrowable", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginMaxWithdraw(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/maxWithdraw", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/maxWithdraw", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/positionRisk", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/positionRisk", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmPositionRisk(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/positionRisk", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "cm/positionRisk", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/positionSide/dual", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "um/positionSide/dual", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/positionSide/dual", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "cm/positionSide/dual", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/userTrades", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "um/userTrades", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmUserTrades(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/userTrades", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "cm/userTrades", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/leverageBracket", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "um/leverageBracket", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmLeverageBracket(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/leverageBracket", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "cm/leverageBracket", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginForceOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/forceOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/forceOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmForceOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/forceOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20, Symbol("noSymbol") => 50))
+    return request(self, "um/forceOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmForceOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/forceOrders", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20, Symbol("noSymbol") => 50))
+    return request(self, "cm/forceOrders", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmApiTradingStatus(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/apiTradingStatus", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2, Symbol("noSymbol") => 2))
+    return request(self, "um/apiTradingStatus", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmCommissionRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/commissionRate", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "um/commissionRate", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmCommissionRate(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/commissionRate", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "cm/commissionRate", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginMarginLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/marginLoan", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/marginLoan", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginRepayLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/repayLoan", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/repayLoan", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetMarginMarginInterestHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/marginInterestHistory", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "margin/marginInterestHistory", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetPortfolioInterestHistory(self::Binance, params=Dict(), context=Dict())
-    return request(self, "portfolio/interest-history", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "portfolio/interest-history", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmIncome(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/income", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "um/income", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmIncome(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/income", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "cm/income", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/account", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/account", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/account", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/account", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetRepayFuturesSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "repay-futures-switch", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "repay-futures-switch", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmAdlQuantile(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/adlQuantile", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "um/adlQuantile", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmAdlQuantile(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/adlQuantile", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "cm/adlQuantile", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmTradeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/trade/asyn", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 300))
+    return request(self, "um/trade/asyn", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmTradeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/trade/asyn/id", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "um/trade/asyn/id", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmOrderAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order/asyn", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 300))
+    return request(self, "um/order/asyn", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmOrderAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order/asyn/id", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "um/order/asyn/id", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmIncomeAsyn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/income/asyn", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 300))
+    return request(self, "um/income/asyn", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmIncomeAsynId(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/income/asyn/id", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "um/income/asyn/id", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmOrderAmendment(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/orderAmendment", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/orderAmendment", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmOrderAmendment(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/orderAmendment", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/orderAmendment", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmFeeBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/feeBurn", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "um/feeBurn", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmAccountConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/accountConfig", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/accountConfig", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetUmSymbolConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/symbolConfig", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/symbolConfig", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmAccountConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/accountConfig", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/accountConfig", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetCmSymbolConfig(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/symbolConfig", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/symbolConfig", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiGetRateLimitOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "rateLimit/order", "papi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "rateLimit/order", "papi", "GET", params, nothing, nothing, Dict())
 end
 
 function papiPostUmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/order", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostUmConditionalOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/order", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/conditional/order", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostCmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/order", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/order", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostCmConditionalOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/order", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/conditional/order", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/order", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostMarginLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "marginLoan", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "marginLoan", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostRepayLoan(self::Binance, params=Dict(), context=Dict())
-    return request(self, "repayLoan", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "repayLoan", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostMarginOrderOco(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order/oco", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/order/oco", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostUmLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/leverage", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "um/leverage", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostCmLeverage(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/leverage", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "cm/leverage", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostUmPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/positionSide/dual", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "um/positionSide/dual", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostCmPositionSideDual(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/positionSide/dual", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "cm/positionSide/dual", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostAutoCollection(self::Binance, params=Dict(), context=Dict())
-    return request(self, "auto-collection", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "auto-collection", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostBnbTransfer(self::Binance, params=Dict(), context=Dict())
-    return request(self, "bnb-transfer", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "bnb-transfer", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostRepayFuturesSwitch(self::Binance, params=Dict(), context=Dict())
-    return request(self, "repay-futures-switch", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "repay-futures-switch", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostRepayFuturesNegativeBalance(self::Binance, params=Dict(), context=Dict())
-    return request(self, "repay-futures-negative-balance", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "repay-futures-negative-balance", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "listenKey", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostAssetCollection(self::Binance, params=Dict(), context=Dict())
-    return request(self, "asset-collection", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "asset-collection", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostMarginRepayDebt(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/repay-debt", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3000))
+    return request(self, "margin/repay-debt", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostUmFeeBurn(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/feeBurn", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/feeBurn", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPostUmStockContract(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/stock/contract", "papi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/stock/contract", "papi", "POST", params, nothing, nothing, Dict())
 end
 
 function papiPutListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "papi", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "listenKey", "papi", "PUT", params, nothing, nothing, Dict())
 end
 
 function papiPutUmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order", "papi", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/order", "papi", "PUT", params, nothing, nothing, Dict())
 end
 
 function papiPutCmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/order", "papi", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/order", "papi", "PUT", params, nothing, nothing, Dict())
 end
 
 function papiDeleteUmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/order", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/order", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiDeleteUmConditionalOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/order", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/conditional/order", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiDeleteUmAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiDeleteUmConditionalAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/conditional/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/conditional/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiDeleteCmOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/order", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/order", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiDeleteCmConditionalOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/order", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/conditional/order", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiDeleteCmAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiDeleteCmConditionalAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "cm/conditional/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cm/conditional/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiDeleteMarginOrder(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/order", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/order", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiDeleteMarginAllOpenOrders(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "margin/allOpenOrders", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiDeleteMarginOrderList(self::Binance, params=Dict(), context=Dict())
-    return request(self, "margin/orderList", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/orderList", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiDeleteListenKey(self::Binance, params=Dict(), context=Dict())
-    return request(self, "listenKey", "papi", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "listenKey", "papi", "DELETE", params, nothing, nothing, Dict())
 end
 
 function papiV2GetUmAccount(self::Binance, params=Dict(), context=Dict())
-    return request(self, "um/account", "papiV2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "um/account", "papiV2", "GET", params, nothing, nothing, Dict())
 end
 
 function Binance(; kwargs...)
@@ -13072,17 +14793,29 @@ function Binance(; kwargs...)
     # wholesale would drop the base defaults an exchange does not restate —
     # e.g. `options.defaultNetworkCodeReplacements`, which every
     # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
         key = Symbol(k)
-        if v isa AbstractDict
+        if v isa AbstractDict && key !== :features
             inst[key] = deepExtend(get(inst, key, nothing), v)
         else
             inst[key] = v
         end
     end
     for (k, v) in kwargs
-        if v isa AbstractDict
+        if v isa AbstractDict && k !== :features
             inst[k] = deepExtend(get(inst, k, nothing), v)
         else
             inst[k] = v
@@ -13101,8 +14834,12 @@ function Binance(; kwargs...)
     end
     newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
     inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
     inst.afterConstruct()
-    if ccxtruthy(inst.safeBool2(inst.options, "sandbox", "testnet", false))
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
         inst.setSandboxMode(true)
     end
     inst.loadExchangeSpecificFiles()

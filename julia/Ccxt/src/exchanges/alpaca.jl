@@ -30,6 +30,7 @@
     fetchDepositAddress::Function = fetchDepositAddress
     parseDepositAddress::Function = parseDepositAddress
     withdraw::Function = withdraw
+    setSandboxMode::Function = setSandboxMode
     fetchTransactionsHelper::Function = fetchTransactionsHelper
     fetchDepositsWithdrawals::Function = fetchDepositsWithdrawals
     fetchDeposits::Function = fetchDeposits
@@ -157,6 +158,7 @@ function describe(self::Alpaca, )
         Symbol("createMarketBuyOrder") => true,
         Symbol("createMarketBuyOrderWithCost") => true,
         Symbol("createMarketOrderWithCost") => true,
+        Symbol("createMarketSellOrderWithCost") => true,
         Symbol("createOrder") => true,
         Symbol("createOrderWithTakeProfitAndStopLoss") => false,
         Symbol("createOrderWithTakeProfitAndStopLossWs") => false,
@@ -256,19 +258,236 @@ function describe(self::Alpaca, )
         Symbol("broker") => Dict{Symbol, Any}(),
         Symbol("trader") => Dict{Symbol, Any}(
             Symbol("private") => Dict{Symbol, Any}(
-                Symbol("get") => ["v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements", "v2/wallets", "v2/wallets/transfers"],
-                Symbol("post") => ["v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/wallets/transfers"],
-                Symbol("put") => ["v2/orders/{order_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"],
-                Symbol("patch") => ["v2/orders/{order_id}", "v2/account/configurations"],
-                Symbol("delete") => ["v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/watchlists/{watchlist_id}/{symbol}"]
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("v2/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/positions/{symbol_or_asset_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/account/portfolio/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/watchlists") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/watchlists/{watchlist_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/watchlists:by_name") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/account/configurations") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/account/activities") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/account/activities/{activity_type}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/calendar") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/clock") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/assets/{symbol_or_asset_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/corporate_actions/announcements/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/corporate_actions/announcements") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/wallets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/wallets/transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                ),
+                Symbol("post") => Dict{Symbol, Any}(
+                    Symbol("v2/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/watchlists") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/watchlists/{watchlist_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/watchlists:by_name") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/wallets/transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                ),
+                Symbol("put") => Dict{Symbol, Any}(
+                    Symbol("v2/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/watchlists/{watchlist_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/watchlists:by_name") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                ),
+                Symbol("patch") => Dict{Symbol, Any}(
+                    Symbol("v2/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/account/configurations") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                ),
+                Symbol("delete") => Dict{Symbol, Any}(
+                    Symbol("v2/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/positions/{symbol_or_asset_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/watchlists/{watchlist_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/watchlists:by_name") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/watchlists/{watchlist_id}/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             )
         ),
         Symbol("market") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
-                Symbol("get") => ["v1beta3/crypto/{loc}/bars", "v1beta3/crypto/{loc}/latest/bars", "v1beta3/crypto/{loc}/latest/orderbooks", "v1beta3/crypto/{loc}/latest/quotes", "v1beta3/crypto/{loc}/latest/trades", "v1beta3/crypto/{loc}/quotes", "v1beta3/crypto/{loc}/snapshots", "v1beta3/crypto/{loc}/trades"]
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("v1beta3/crypto/{loc}/bars") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta3/crypto/{loc}/latest/bars") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta3/crypto/{loc}/latest/orderbooks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta3/crypto/{loc}/latest/quotes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta3/crypto/{loc}/latest/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta3/crypto/{loc}/quotes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta3/crypto/{loc}/snapshots") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta3/crypto/{loc}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             ),
             Symbol("private") => Dict{Symbol, Any}(
-                Symbol("get") => ["v1beta1/corporate-actions", "v1beta1/forex/latest/rates", "v1beta1/forex/rates", "v1beta1/logos/{symbol}", "v1beta1/news", "v1beta1/screener/stocks/most-actives", "v1beta1/screener/{market_type}/movers", "v2/stocks/auctions", "v2/stocks/bars", "v2/stocks/bars/latest", "v2/stocks/meta/conditions/{ticktype}", "v2/stocks/meta/exchanges", "v2/stocks/quotes", "v2/stocks/quotes/latest", "v2/stocks/snapshots", "v2/stocks/trades", "v2/stocks/trades/latest", "v2/stocks/{symbol}/auctions", "v2/stocks/{symbol}/bars", "v2/stocks/{symbol}/bars/latest", "v2/stocks/{symbol}/quotes", "v2/stocks/{symbol}/quotes/latest", "v2/stocks/{symbol}/snapshot", "v2/stocks/{symbol}/trades", "v2/stocks/{symbol}/trades/latest"]
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("v1beta1/corporate-actions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta1/forex/latest/rates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta1/forex/rates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta1/logos/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta1/news") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta1/screener/stocks/most-actives") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1beta1/screener/{market_type}/movers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/auctions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/bars") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/bars/latest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/meta/conditions/{ticktype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/meta/exchanges") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/quotes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/quotes/latest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/snapshots") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/trades/latest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/{symbol}/auctions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/{symbol}/bars") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/{symbol}/bars/latest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/{symbol}/quotes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/{symbol}/quotes/latest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/{symbol}/snapshot") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/{symbol}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/stocks/{symbol}/trades/latest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             )
         )
     ),
@@ -422,10 +641,22 @@ end
 function fetchTime(self::Alpaca, params=Dict())
     response = self.traderPrivateGetV2Clock(params);
     timestamp = safeString(response, "timestamp");
-    localTime = timestamp[0 + 1:23];
+    if functions.ccxtruthy(timestamp == nothing)
+        throw(ExchangeError(string(self.id, " fetchTime() missing timestamp")));
+    end
+    localTime = functions.ccxt_slice(timestamp, 0, 23);
+    if functions.ccxtruthy(timestamp == nothing)
+        throw(ExchangeError(string(self.id, " fetchTime() missing timestamp")));
+    end
     jetlagStrStart = length(timestamp) - 6;
+    if functions.ccxtruthy(timestamp == nothing)
+        throw(ExchangeError(string(self.id, " fetchTime() missing timestamp")));
+    end
     jetlagStrEnd = length(timestamp) - 3;
-    jetlag = timestamp[jetlagStrStart + 1:jetlagStrEnd];
+    if functions.ccxtruthy(timestamp == nothing)
+        throw(ExchangeError(string(self.id, " fetchTime() missing timestamp")));
+    end
+    jetlag = functions.ccxt_slice(timestamp, jetlagStrStart, jetlagStrEnd);
     iso = self.parseToInt(self.parse8601(localTime)) - self.parseToNumeric(jetlag) * 3600 * 1000;
     return iso
 
@@ -441,6 +672,9 @@ function fetchMarkets(self::Alpaca, params=Dict())
 end
 function parseMarket(self::Alpaca, asset)
     marketId = safeString(asset, "symbol");
+    if functions.ccxtruthy(marketId == nothing)
+        throw(ExchangeError(string(self.id, " parseMarket() missing marketId")));
+    end
     parts = split(marketId, "/");
     assetClass = safeString(asset, "class");
     baseId = safeString(parts, 0);
@@ -456,7 +690,7 @@ function parseMarket(self::Alpaca, asset)
     minAmount = self.safeNumber(asset, "min_order_size");
     amount = self.safeNumber(asset, "min_trade_increment");
     price = self.safeNumber(asset, "price_increment");
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -504,7 +738,7 @@ function parseMarket(self::Alpaca, asset)
     ),
     Symbol("created") => nothing,
     Symbol("info") => asset
-)
+))
 
 end
 function fetchTrades(self::Alpaca, symbol, since=nothing, limit=nothing, params=Dict())
@@ -534,12 +768,16 @@ function fetchTrades(self::Alpaca, symbol, since=nothing, limit=nothing, params=
     elseif functions.ccxtruthy(method == "marketPublicGetV1beta3CryptoLocLatestTrades")
         response = self.marketPublicGetV1beta3CryptoLocLatestTrades(extend(request, params));
         trades = self.safeDict(response, "trades", Dict{Symbol, Any}());
-        symbolTrades = self.safeDict(trades, marketId, Dict{Symbol, Any}());
-        symbolTrades = [symbolTrades];
+        symbolTrade = self.safeDict(trades, marketId, Dict{Symbol, Any}());
+        symbolTrades = [symbolTrade];
     else
         throw(NotSupported(string(self.id, " fetchTrades() does not support ", method, ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")));
     end
-    return self.parseTrades(symbolTrades, market, since, limit)
+    symbolTradesList = [];
+    if functions.ccxtruthy(symbolTrades != nothing)
+        symbolTradesList = symbolTrades;
+    end
+    return self.parseTrades(symbolTradesList, market, since, limit)
 
 end
 function fetchOrderBook(self::Alpaca, symbol, limit=nothing, params=Dict())
@@ -588,8 +826,8 @@ function fetchOHLCV(self::Alpaca, symbol, timeframe="1m", since=nothing, limit=n
     elseif functions.ccxtruthy(method == "marketPublicGetV1beta3CryptoLocLatestBars")
         response = self.marketPublicGetV1beta3CryptoLocLatestBars(extend(request, params));
         bars = self.safeDict(response, "bars", Dict{Symbol, Any}());
-        ohlcvs = self.safeDict(bars, marketId, Dict{Symbol, Any}());
-        ohlcvs = [ohlcvs];
+        bar = self.safeDict(bars, marketId, Dict{Symbol, Any}());
+        ohlcvs = [bar];
     else
         throw(NotSupported(string(self.id, " fetchOHLCV() does not support ", method, ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")));
     end
@@ -721,7 +959,7 @@ function createOrder(self::Alpaca, symbol, type_var, side, amount, price=nothing
         Symbol("side") => side,
         Symbol("type") => type_var
     );
-    triggerPrice = safeStringN(params, ["triggerPrice", "stop_price"]);
+    triggerPrice = safeString2(params, "triggerPrice", "stop_price");
     if functions.ccxtruthy(triggerPrice != nothing)
 
         if functions.ccxtruthy(findfirst("limit", type_var) !== nothing)
@@ -842,7 +1080,7 @@ function editOrder(self::Alpaca, id, symbol, type_var, side, amount=nothing, pri
     if functions.ccxtruthy(amount != nothing)
         request[Symbol("qty")] = self.amountToPrecision(symbol, amount);
     end
-    triggerPrice = safeStringN(params, ["triggerPrice", "stop_price"]);
+    triggerPrice = safeString2(params, "triggerPrice", "stop_price");
     if functions.ccxtruthy(triggerPrice != nothing)
         request[Symbol("stop_price")] = self.priceToPrecision(symbol, triggerPrice);
         params = omit(params, "triggerPrice");
@@ -1030,6 +1268,11 @@ function withdraw(self::Alpaca, code, amount, address, tag=nothing, params=Dict(
     return self.parseTransaction(response, currency)
 
 end
+function setSandboxMode(self::Alpaca, enable)
+    setSandboxMode(self.parent, enable);
+    self.options[Symbol("sandboxMode")] = enable;
+
+end
 function fetchTransactionsHelper(self::Alpaca, type_var, code, since, limit, params)
     if functions.ccxtruthy(self.markets == nothing)
         self.loadMarkets();
@@ -1038,11 +1281,41 @@ function fetchTransactionsHelper(self::Alpaca, type_var, code, since, limit, par
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
+    sandboxMode = @functions.ccxt_or(self.isSandboxModeEnabled, self.safeBool(self.options, "sandboxMode", false));
+    if functions.ccxtruthy(sandboxMode)
+        request = Dict{Symbol, Any}(
+            Symbol("activity_types") => "CSD,CSW,TRANS"
+        );
+        activities = self.traderPrivateGetV2AccountActivities(extend(request, params));
+        filtered = [];
+        ledger = [];
+        if functions.ccxtruthy(functions.ccxt_isArray(activities))
+            ledger = activities;
+        end
+        i = 0
+        while functions.ccxtruthy(functions.ccxt_lt(i, length(ledger)))
+            entry = get(ledger, i + 1, nothing);
+            activityType = safeString(entry, "activity_type");
+            amount = safeString(entry, "net_amount");
+            isIncoming = @functions.ccxt_or((activityType == "CSD"), (@functions.ccxt_and((activityType == "TRANS"), !functions.ccxtruthy(stringLt(amount, "0")))));
+            entryDirection = functions.ccxtruthy(isIncoming) ? "INCOMING" : "OUTGOING";
+            if functions.ccxtruthy(@functions.ccxt_or((type_var == "BOTH"), (entryDirection == type_var)))
+                                push!(filtered, entry);
+            end
+            i += 1
+        end
+
+            return self.parseTransactions(filtered, currency, since, limit, params)
+    end
     response = self.traderPrivateGetV2WalletsTransfers(params);
     results = [];
+    transfers = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        transfers = response;
+    end
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        entry = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(transfers)))
+        entry = get(transfers, i + 1, nothing);
         direction = safeString(entry, "direction");
         if functions.ccxtruthy(direction == type_var)
                         push!(results, entry);
@@ -1067,37 +1340,81 @@ function fetchWithdrawals(self::Alpaca, code=nothing, since=nothing, limit=nothi
 
 end
 function parseTransaction(self::Alpaca, transaction, currency=nothing)
-    datetime = safeString(transaction, "created_at");
-    currencyId = safeString(transaction, "asset");
-    code = self.safeCurrencyCode(currencyId, currency);
-    fees = safeString(transaction, "fees");
-    networkFee = safeString(transaction, "network_fee");
-    totalFee = stringAdd(fees, networkFee);
-    fee = Dict{Symbol, Any}(
-        Symbol("cost") => self.parseNumber(totalFee),
-        Symbol("currency") => code
-    );
+    activityType = safeString(transaction, "activity_type");
+    txid = nothing;
+    timestamp = nothing;
+    datetime = nothing;
+    network = nothing;
+    address = nothing;
+    addressTo = nothing;
+    addressFrom = nothing;
+    type_var = nothing;
+    amount = nothing;
+    code = nothing;
+    status = nothing;
+    comment = nothing;
+    internal = nothing;
+    fee = nothing;
+    if functions.ccxtruthy(activityType != nothing)
+        netAmount = safeString(transaction, "net_amount");
+        isIncoming = @functions.ccxt_or((activityType == "CSD"), (@functions.ccxt_and((activityType == "TRANS"), !functions.ccxtruthy(stringLt(netAmount, "0")))));
+        timestamp = self.parse8601(string(safeString(transaction, "date"), "T00:00:00Z"));
+        datetime = self.iso8601(timestamp);
+        type_var = functions.ccxtruthy(isIncoming) ? "deposit" : "withdrawal";
+        amount = self.parseNumber(stringAbs(netAmount));
+        activityCurrencyId = safeString2(transaction, "symbol", "asset");
+        if functions.ccxtruthy(activityCurrencyId != nothing)
+            code = self.safeCurrencyCode(activityCurrencyId);
+        elseif functions.ccxtruthy(@functions.ccxt_or((activityType == "CSD"), (activityType == "CSW")))
+            code = "USD";
+        else
+            code = self.safeCurrencyCode(nothing, currency);
+        end
+        status = self.parseTransactionStatus(safeString(transaction, "status"));
+        comment = activityType;
+        internal = (activityType != "TRANS");
+    else
+        txid = safeString(transaction, "tx_hash");
+        datetime = safeString(transaction, "created_at");
+        timestamp = self.parse8601(datetime);
+        network = safeString(transaction, "chain");
+        address = safeString(transaction, "to_address");
+        addressTo = safeString(transaction, "to_address");
+        addressFrom = safeString(transaction, "from_address");
+        type_var = self.parseTransactionType(safeString(transaction, "direction"));
+        amount = self.safeNumber(transaction, "amount");
+        currencyId = safeString(transaction, "asset");
+        code = self.safeCurrencyCode(currencyId, currency);
+        status = self.parseTransactionStatus(safeString(transaction, "status"));
+        fees = safeString(transaction, "fees");
+        networkFee = safeString(transaction, "network_fee");
+        totalFee = stringAdd(fees, networkFee);
+        fee = Dict{Symbol, Any}(
+            Symbol("cost") => self.parseNumber(totalFee),
+            Symbol("currency") => code
+        );
+    end
     return Dict{Symbol, Any}(
     Symbol("info") => transaction,
     Symbol("id") => safeString(transaction, "id"),
-    Symbol("txid") => safeString(transaction, "tx_hash"),
-    Symbol("timestamp") => self.parse8601(datetime),
+    Symbol("txid") => txid,
+    Symbol("timestamp") => timestamp,
     Symbol("datetime") => datetime,
-    Symbol("network") => safeString(transaction, "chain"),
-    Symbol("address") => safeString(transaction, "to_address"),
-    Symbol("addressTo") => safeString(transaction, "to_address"),
-    Symbol("addressFrom") => safeString(transaction, "from_address"),
+    Symbol("network") => network,
+    Symbol("address") => address,
+    Symbol("addressTo") => addressTo,
+    Symbol("addressFrom") => addressFrom,
     Symbol("tag") => nothing,
     Symbol("tagTo") => nothing,
     Symbol("tagFrom") => nothing,
-    Symbol("type") => self.parseTransactionType(safeString(transaction, "direction")),
-    Symbol("amount") => self.safeNumber(transaction, "amount"),
+    Symbol("type") => type_var,
+    Symbol("amount") => amount,
     Symbol("currency") => code,
-    Symbol("status") => self.parseTransactionStatus(safeString(transaction, "status")),
+    Symbol("status") => status,
     Symbol("updated") => nothing,
-    Symbol("fee") => fee,
-    Symbol("comment") => nothing,
-    Symbol("internal") => nothing
+    Symbol("comment") => comment,
+    Symbol("internal") => internal,
+    Symbol("fee") => fee
 )
 
 end
@@ -1105,7 +1422,10 @@ function parseTransactionStatus(self::Alpaca, status)
     statuses = Dict{Symbol, Any}(
         Symbol("PROCESSING") => "pending",
         Symbol("FAILED") => "failed",
-        Symbol("COMPLETE") => "ok"
+        Symbol("COMPLETE") => "ok",
+        Symbol("executed") => "ok",
+        Symbol("canceled") => "canceled",
+        Symbol("pending") => "pending"
     );
     return safeString(statuses, status, status)
 
@@ -1135,7 +1455,9 @@ function parseBalance(self::Alpaca, response)
     code = self.safeCurrencyCode(currencyId);
     account[Symbol("free")] = safeString(response, "cash");
     account[Symbol("total")] = safeString(response, "equity");
-    result[Symbol(code)] = account;
+    if functions.ccxtruthy(code != nothing)
+        result[Symbol(code)] = account;
+    end
     return self.safeBalance(result)
 
 end
@@ -1185,7 +1507,7 @@ function handleErrors(self::Alpaca, code, reason, url, method, headers, body, re
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Alpaca, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1471,10 +1793,63 @@ function marketPrivateGetV2StocksSymbolTradesLatest(self::Alpaca, params=Dict(),
 end
 
 function Alpaca(; kwargs...)
-    inst = Alpaca(Exchange(), describe, fetchTime, fetchMarkets, parseMarket, fetchTrades, fetchOrderBook, fetchOHLCV, parseOHLCV, fetchTicker, fetchTickers, generateClientOrderId, createMarketOrderWithCost, createMarketBuyOrderWithCost, createMarketSellOrderWithCost, createOrder, cancelOrder, cancelAllOrders, fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, editOrder, parseOrder, parseOrderStatus, parseTimeInForce, fetchMyTrades, parseTrade, fetchDepositAddress, parseDepositAddress, withdraw, fetchTransactionsHelper, fetchDepositsWithdrawals, fetchDeposits, fetchWithdrawals, parseTransaction, parseTransactionStatus, parseTransactionType, fetchBalance, parseBalance, sign, handleErrors, traderPrivateGetV2Account, traderPrivateGetV2Orders, traderPrivateGetV2OrdersOrderId, traderPrivateGetV2Positions, traderPrivateGetV2PositionsSymbolOrAssetId, traderPrivateGetV2AccountPortfolioHistory, traderPrivateGetV2Watchlists, traderPrivateGetV2WatchlistsWatchlistId, traderPrivateGetV2WatchlistsByName, traderPrivateGetV2AccountConfigurations, traderPrivateGetV2AccountActivities, traderPrivateGetV2AccountActivitiesActivityType, traderPrivateGetV2Calendar, traderPrivateGetV2Clock, traderPrivateGetV2Assets, traderPrivateGetV2AssetsSymbolOrAssetId, traderPrivateGetV2CorporateActionsAnnouncementsId, traderPrivateGetV2CorporateActionsAnnouncements, traderPrivateGetV2Wallets, traderPrivateGetV2WalletsTransfers, traderPrivatePostV2Orders, traderPrivatePostV2Watchlists, traderPrivatePostV2WatchlistsWatchlistId, traderPrivatePostV2WatchlistsByName, traderPrivatePostV2WalletsTransfers, traderPrivatePutV2OrdersOrderId, traderPrivatePutV2WatchlistsWatchlistId, traderPrivatePutV2WatchlistsByName, traderPrivatePatchV2OrdersOrderId, traderPrivatePatchV2AccountConfigurations, traderPrivateDeleteV2Orders, traderPrivateDeleteV2OrdersOrderId, traderPrivateDeleteV2Positions, traderPrivateDeleteV2PositionsSymbolOrAssetId, traderPrivateDeleteV2WatchlistsWatchlistId, traderPrivateDeleteV2WatchlistsByName, traderPrivateDeleteV2WatchlistsWatchlistIdSymbol, marketPublicGetV1beta3CryptoLocBars, marketPublicGetV1beta3CryptoLocLatestBars, marketPublicGetV1beta3CryptoLocLatestOrderbooks, marketPublicGetV1beta3CryptoLocLatestQuotes, marketPublicGetV1beta3CryptoLocLatestTrades, marketPublicGetV1beta3CryptoLocQuotes, marketPublicGetV1beta3CryptoLocSnapshots, marketPublicGetV1beta3CryptoLocTrades, marketPrivateGetV1beta1CorporateActions, marketPrivateGetV1beta1ForexLatestRates, marketPrivateGetV1beta1ForexRates, marketPrivateGetV1beta1LogosSymbol, marketPrivateGetV1beta1News, marketPrivateGetV1beta1ScreenerStocksMostActives, marketPrivateGetV1beta1ScreenerMarketTypeMovers, marketPrivateGetV2StocksAuctions, marketPrivateGetV2StocksBars, marketPrivateGetV2StocksBarsLatest, marketPrivateGetV2StocksMetaConditionsTicktype, marketPrivateGetV2StocksMetaExchanges, marketPrivateGetV2StocksQuotes, marketPrivateGetV2StocksQuotesLatest, marketPrivateGetV2StocksSnapshots, marketPrivateGetV2StocksTrades, marketPrivateGetV2StocksTradesLatest, marketPrivateGetV2StocksSymbolAuctions, marketPrivateGetV2StocksSymbolBars, marketPrivateGetV2StocksSymbolBarsLatest, marketPrivateGetV2StocksSymbolQuotes, marketPrivateGetV2StocksSymbolQuotesLatest, marketPrivateGetV2StocksSymbolSnapshot, marketPrivateGetV2StocksSymbolTrades, marketPrivateGetV2StocksSymbolTradesLatest)
+    inst = Alpaca(Exchange(), describe, fetchTime, fetchMarkets, parseMarket, fetchTrades, fetchOrderBook, fetchOHLCV, parseOHLCV, fetchTicker, fetchTickers, generateClientOrderId, createMarketOrderWithCost, createMarketBuyOrderWithCost, createMarketSellOrderWithCost, createOrder, cancelOrder, cancelAllOrders, fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, editOrder, parseOrder, parseOrderStatus, parseTimeInForce, fetchMyTrades, parseTrade, fetchDepositAddress, parseDepositAddress, withdraw, setSandboxMode, fetchTransactionsHelper, fetchDepositsWithdrawals, fetchDeposits, fetchWithdrawals, parseTransaction, parseTransactionStatus, parseTransactionType, fetchBalance, parseBalance, sign, handleErrors, traderPrivateGetV2Account, traderPrivateGetV2Orders, traderPrivateGetV2OrdersOrderId, traderPrivateGetV2Positions, traderPrivateGetV2PositionsSymbolOrAssetId, traderPrivateGetV2AccountPortfolioHistory, traderPrivateGetV2Watchlists, traderPrivateGetV2WatchlistsWatchlistId, traderPrivateGetV2WatchlistsByName, traderPrivateGetV2AccountConfigurations, traderPrivateGetV2AccountActivities, traderPrivateGetV2AccountActivitiesActivityType, traderPrivateGetV2Calendar, traderPrivateGetV2Clock, traderPrivateGetV2Assets, traderPrivateGetV2AssetsSymbolOrAssetId, traderPrivateGetV2CorporateActionsAnnouncementsId, traderPrivateGetV2CorporateActionsAnnouncements, traderPrivateGetV2Wallets, traderPrivateGetV2WalletsTransfers, traderPrivatePostV2Orders, traderPrivatePostV2Watchlists, traderPrivatePostV2WatchlistsWatchlistId, traderPrivatePostV2WatchlistsByName, traderPrivatePostV2WalletsTransfers, traderPrivatePutV2OrdersOrderId, traderPrivatePutV2WatchlistsWatchlistId, traderPrivatePutV2WatchlistsByName, traderPrivatePatchV2OrdersOrderId, traderPrivatePatchV2AccountConfigurations, traderPrivateDeleteV2Orders, traderPrivateDeleteV2OrdersOrderId, traderPrivateDeleteV2Positions, traderPrivateDeleteV2PositionsSymbolOrAssetId, traderPrivateDeleteV2WatchlistsWatchlistId, traderPrivateDeleteV2WatchlistsByName, traderPrivateDeleteV2WatchlistsWatchlistIdSymbol, marketPublicGetV1beta3CryptoLocBars, marketPublicGetV1beta3CryptoLocLatestBars, marketPublicGetV1beta3CryptoLocLatestOrderbooks, marketPublicGetV1beta3CryptoLocLatestQuotes, marketPublicGetV1beta3CryptoLocLatestTrades, marketPublicGetV1beta3CryptoLocQuotes, marketPublicGetV1beta3CryptoLocSnapshots, marketPublicGetV1beta3CryptoLocTrades, marketPrivateGetV1beta1CorporateActions, marketPrivateGetV1beta1ForexLatestRates, marketPrivateGetV1beta1ForexRates, marketPrivateGetV1beta1LogosSymbol, marketPrivateGetV1beta1News, marketPrivateGetV1beta1ScreenerStocksMostActives, marketPrivateGetV1beta1ScreenerMarketTypeMovers, marketPrivateGetV2StocksAuctions, marketPrivateGetV2StocksBars, marketPrivateGetV2StocksBarsLatest, marketPrivateGetV2StocksMetaConditionsTicktype, marketPrivateGetV2StocksMetaExchanges, marketPrivateGetV2StocksQuotes, marketPrivateGetV2StocksQuotesLatest, marketPrivateGetV2StocksSnapshots, marketPrivateGetV2StocksTrades, marketPrivateGetV2StocksTradesLatest, marketPrivateGetV2StocksSymbolAuctions, marketPrivateGetV2StocksSymbolBars, marketPrivateGetV2StocksSymbolBarsLatest, marketPrivateGetV2StocksSymbolQuotes, marketPrivateGetV2StocksSymbolQuotesLatest, marketPrivateGetV2StocksSymbolSnapshot, marketPrivateGetV2StocksSymbolTrades, marketPrivateGetV2StocksSymbolTradesLatest)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

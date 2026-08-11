@@ -133,8 +133,8 @@ function describe(self::Tokocrypto, )
         Symbol("fetchPremiumIndexOHLCV") => false,
         Symbol("fetchSettlementHistory") => false,
         Symbol("fetchStatus") => false,
-        Symbol("fetchTicker") => false,
-        Symbol("fetchTickers") => false,
+        Symbol("fetchTicker") => true,
+        Symbol("fetchTickers") => true,
         Symbol("fetchTime") => true,
         Symbol("fetchTrades") => true,
         Symbol("fetchTradingFee") => false,
@@ -193,67 +193,125 @@ function describe(self::Tokocrypto, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("binance") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("ping") => 1,
-                Symbol("time") => 1,
+                Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("depth") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[100, 1], [500, 5], [1000, 10], [5000, 50]]
-                ),
-                Symbol("trades") => 1,
-                Symbol("aggTrades") => 1,
-                Symbol("historicalTrades") => 5,
-                Symbol("klines") => 1,
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[100, 1], [500, 5], [1000, 10], [5000, 50]]
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("aggTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("historicalTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("ticker/24hr") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
                 Symbol("ticker/price") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 2
-                ),
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 2
+),
                 Symbol("ticker/bookTicker") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 2
-                ),
-                Symbol("exchangeInfo") => 10
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 2
+),
+                Symbol("exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("userDataStream") => 1
+                Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("userDataStream") => 1
+                Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("userDataStream") => 1
+                Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("open/v1/common/time") => 1,
-                Symbol("open/v1/common/symbols") => 1,
-                Symbol("open/v1/market/depth") => 1,
-                Symbol("open/v1/market/trades") => 1,
-                Symbol("open/v1/market/agg-trades") => 1,
-                Symbol("open/v1/market/klines") => 1
+                Symbol("open/v1/common/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/common/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/market/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/market/agg-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/market/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("open/v1/orders/detail") => 1,
-                Symbol("open/v1/orders") => 1,
-                Symbol("open/v1/account/spot") => 1,
-                Symbol("open/v1/account/spot/asset") => 1,
-                Symbol("open/v1/orders/trades") => 1,
-                Symbol("open/v1/withdraws") => 1,
-                Symbol("open/v1/deposits") => 1,
-                Symbol("open/v1/deposits/address") => 1
+                Symbol("open/v1/orders/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/account/spot") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/account/spot/asset") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/orders/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/withdraws") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/deposits/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("open/v1/orders") => 1,
-                Symbol("open/v1/orders/cancel") => 1,
-                Symbol("open/v1/orders/oco") => 1,
-                Symbol("open/v1/withdraws") => 1,
-                Symbol("open/v1/user-data-stream") => 1
+                Symbol("open/v1/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/orders/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/orders/oco") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/withdraws") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open/v1/user-data-stream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -967,7 +1025,8 @@ function fetchTrades(self::Tokocrypto, symbol, since=nothing, limit=nothing, par
     else
         response = Base.fetch(self.binanceGetTrades(extend(request, params)));
     end
-    return self.parseTrades(response, market, since, limit)
+    responseList = toArray(response);
+    return self.parseTrades(responseList, market, since, limit)
 
 end
 function parseTicker(self::Tokocrypto, ticker, market=nothing)
@@ -1084,7 +1143,12 @@ function fetchOHLCV(self::Tokocrypto, symbol, timeframe="1m", since=nothing, lim
     else
         response = Base.fetch(self.publicGetOpenV1MarketKlines(extend(request, params)));
     end
-    data = self.safeList(response, "data", response);
+    data = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        data = response;
+    else
+        data = self.safeList(response, "data", []);
+    end
     return self.parseOHLCVs(data, market, timeframe, since, limit)
 
 end
@@ -1118,7 +1182,9 @@ function parseBalanceCustom(self::Tokocrypto, response, type_var=nothing, margin
         account = self.account();
         account[Symbol("free")] = safeString(balance, "free");
         account[Symbol("used")] = safeString(balance, "locked");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1535,7 +1601,7 @@ function parseTransaction(self::Tokocrypto, transaction, currency=nothing)
     end
     txid = safeString(transaction, "txId");
     if functions.ccxtruthy(@functions.ccxt_and((txid != nothing), (findfirst("Internal transfer ", txid) !== nothing)))
-        txid = txid[18 + 1:end];
+        txid = functions.ccxt_slice(txid, 18);
     end
     currencyId = safeString2(transaction, "coin", "fiatCurrency");
     code = self.safeCurrencyCode(currencyId, currency);
@@ -1712,7 +1778,7 @@ function handleErrors(self::Tokocrypto, code, reason, url, method, headers, body
         parsedMessage = nothing;
         if functions.ccxtruthy(messageInner != nothing)
             try
-                parsedMessage = JSON3.parse(messageInner);
+                parsedMessage = functions.ccxt_json_parse(messageInner);
             catch e
                 parsedMessage = nothing;
 
@@ -1758,7 +1824,7 @@ function calculateRateLimiterCost(self::Tokocrypto, api, method, path, params, c
                 return get(config, Symbol("noPoolId"), nothing)
         elseif functions.ccxtruthy(@functions.ccxt_and((ccxt_in("byLimit", config)), (ccxt_in("limit", params))))
             limit = get(params, Symbol("limit"), nothing);
-            byLimit = get(config, Symbol("byLimit"), nothing);
+            byLimit = self.safeList(config, "byLimit", []);
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(byLimit)))
                 entry = get(byLimit, i + 1, nothing);
@@ -1774,15 +1840,68 @@ function calculateRateLimiterCost(self::Tokocrypto, api, method, path, params, c
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Tokocrypto, name::Symbol) = ccxt_getproperty(self, name)
 
 function Tokocrypto(; kwargs...)
     inst = Tokocrypto(Exchange(), describe, nonce, fetchTime, fetchMarkets, fetchOrderBook, parseTrade, fetchTrades, parseTicker, fetchTickers, getMarketIdByType, fetchTicker, fetchBidsAsks, parseOHLCV, fetchOHLCV, fetchBalance, parseBalanceCustom, parseOrderStatus, parseOrder, parseOrderType, createOrder, fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, cancelOrder, fetchMyTrades, fetchDepositAddress, fetchDeposits, fetchWithdrawals, parseTransactionStatusByType, parseTransaction, withdraw, sign, handleErrors, calculateRateLimiterCost)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

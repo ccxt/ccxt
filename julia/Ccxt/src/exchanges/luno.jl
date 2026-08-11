@@ -33,12 +33,18 @@
     createDepositAddress::Function = createDepositAddress
     fetchDepositAddress::Function = fetchDepositAddress
     parseDepositAddress::Function = parseDepositAddress
+    fetchDepositWithdrawFee::Function = fetchDepositWithdrawFee
     sign::Function = sign
     handleErrors::Function = handleErrors
 
 # Generated REST endpoint fields
     exchangeGetMarkets::Function = exchangeGetMarkets
     exchangePrivateGetCandles::Function = exchangePrivateGetCandles
+    exchangePrivateGetMove::Function = exchangePrivateGetMove
+    exchangePrivateGetMoveListMoves::Function = exchangePrivateGetMoveListMoves
+    exchangePrivateGetTransfers::Function = exchangePrivateGetTransfers
+    exchangePrivatePostConvert::Function = exchangePrivatePostConvert
+    exchangePrivatePostMove::Function = exchangePrivatePostMove
     publicGetOrderbook::Function = publicGetOrderbook
     publicGetOrderbookTop::Function = publicGetOrderbookTop
     publicGetTicker::Function = publicGetTicker
@@ -58,6 +64,7 @@
     privateGetWithdrawals::Function = privateGetWithdrawals
     privateGetWithdrawalsId::Function = privateGetWithdrawalsId
     privateGetTransfers::Function = privateGetTransfers
+    privateGetUsersLinked::Function = privateGetUsersLinked
     privatePostAccounts::Function = privatePostAccounts
     privatePostAddressValidate::Function = privatePostAddressValidate
     privatePostPostorder::Function = privatePostPostorder
@@ -112,6 +119,8 @@ function describe(self::Luno, )
         Symbol("fetchCrossBorrowRates") => false,
         Symbol("fetchCurrencies") => true,
         Symbol("fetchDepositAddress") => true,
+        Symbol("fetchDepositWithdrawFee") => true,
+        Symbol("fetchDepositWithdrawFees") => false,
         Symbol("fetchFundingHistory") => false,
         Symbol("fetchFundingInterval") => false,
         Symbol("fetchFundingIntervals") => false,
@@ -187,63 +196,151 @@ function describe(self::Luno, )
             Symbol("exchangePrivate") => "https://api.luno.com/api/exchange"
         ),
         Symbol("www") => "https://www.luno.com",
-        Symbol("doc") => ["https://www.luno.com/en/api", "https://npmjs.org/package/bitx", "https://github.com/bausmeier/node-bitx"]
+        Symbol("doc") => ["https://www.luno.com/en/developers/api", "https://npmjs.org/package/bitx", "https://github.com/bausmeier/node-bitx"]
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("exchange") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("markets") => 1
+                Symbol("markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("exchangePrivate") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("candles") => 1
+                Symbol("candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("move") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("move/list_moves") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("move") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("orderbook") => 1,
-                Symbol("orderbook_top") => 1,
-                Symbol("ticker") => 1,
-                Symbol("tickers") => 1,
-                Symbol("trades") => 1
+                Symbol("orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook_top") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("accounts/{id}/pending") => 1,
-                Symbol("accounts/{id}/transactions") => 1,
-                Symbol("balance") => 1,
-                Symbol("beneficiaries") => 1,
-                Symbol("send/networks") => 1,
-                Symbol("fee_info") => 1,
-                Symbol("funding_address") => 1,
-                Symbol("listorders") => 1,
-                Symbol("listtrades") => 1,
-                Symbol("send_fee") => 1,
-                Symbol("orders/{id}") => 1,
-                Symbol("withdrawals") => 1,
-                Symbol("withdrawals/{id}") => 1,
-                Symbol("transfers") => 1
+                Symbol("accounts/{id}/pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts/{id}/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("beneficiaries") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("send/networks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fee_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("funding_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("listorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("listtrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("send_fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawals/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("users/linked") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("accounts") => 1,
-                Symbol("address/validate") => 1,
-                Symbol("postorder") => 1,
-                Symbol("marketorder") => 1,
-                Symbol("stoporder") => 1,
-                Symbol("funding_address") => 1,
-                Symbol("withdrawals") => 1,
-                Symbol("send") => 1,
-                Symbol("oauth2/grant") => 1,
-                Symbol("beneficiaries") => 1
+                Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("address/validate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("postorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("marketorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("stoporder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("funding_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("send") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("oauth2/grant") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("beneficiaries") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("accounts/{id}/name") => 1
+                Symbol("accounts/{id}/name") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("withdrawals/{id}") => 1,
-                Symbol("beneficiaries/{id}") => 1
+                Symbol("withdrawals/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("beneficiaries/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -263,8 +360,110 @@ function describe(self::Luno, )
         Symbol("trading") => Dict{Symbol, Any}(
             Symbol("tierBased") => true,
             Symbol("percentage") => true,
-            Symbol("taker") => self.parseNumber("0.001"),
-            Symbol("maker") => self.parseNumber("0")
+            Symbol("taker") => self.parseNumber("0.006"),
+            Symbol("maker") => self.parseNumber("0.004"),
+            Symbol("tiers") => Dict{Symbol, Any}(
+                Symbol("taker") => [[self.parseNumber("0"), self.parseNumber("0.006")], [self.parseNumber("20000"), self.parseNumber("0.005")], [self.parseNumber("200000"), self.parseNumber("0.004")], [self.parseNumber("1000000"), self.parseNumber("0.003")], [self.parseNumber("2000000"), self.parseNumber("0.002")], [self.parseNumber("5000000"), self.parseNumber("0.0015")], [self.parseNumber("10000000"), self.parseNumber("0.001")], [self.parseNumber("20000000"), self.parseNumber("0.0009")], [self.parseNumber("40000000"), self.parseNumber("0.0008")], [self.parseNumber("80000000"), self.parseNumber("0.0007")], [self.parseNumber("120000000"), self.parseNumber("0.0006")], [self.parseNumber("160000000"), self.parseNumber("0.0005")], [self.parseNumber("300000000"), self.parseNumber("0.0005")]],
+                Symbol("maker") => [[self.parseNumber("0"), self.parseNumber("0.004")], [self.parseNumber("20000"), self.parseNumber("0.003")], [self.parseNumber("200000"), self.parseNumber("0.002")], [self.parseNumber("1000000"), self.parseNumber("0.001")], [self.parseNumber("2000000"), self.parseNumber("0.0008")], [self.parseNumber("5000000"), self.parseNumber("0.0006")], [self.parseNumber("10000000"), self.parseNumber("0")], [self.parseNumber("20000000"), self.parseNumber("0")], [self.parseNumber("40000000"), self.parseNumber("-0.0001")], [self.parseNumber("80000000"), self.parseNumber("-0.0001")], [self.parseNumber("120000000"), self.parseNumber("-0.0002")], [self.parseNumber("160000000"), self.parseNumber("-0.0002")], [self.parseNumber("300000000"), self.parseNumber("-0.0002")]]
+            )
+        )
+    ),
+    Symbol("exceptions") => Dict{Symbol, Any}(
+        Symbol("exact") => Dict{Symbol, Any}(
+            Symbol("ErrAccountIsMigrating") => OperationRejected,
+            Symbol("ErrAccountLimit") => OperationRejected,
+            Symbol("ErrAccountNotFound") => ExchangeError,
+            Symbol("ErrAccountsNotDifferent") => BadRequest,
+            Symbol("ErrActiveCryptoRequestExists") => OperationRejected,
+            Symbol("ErrAddressCreateRateLimitReached") => RateLimitExceeded,
+            Symbol("ErrAddressLimitReached") => OperationRejected,
+            Symbol("ErrAmountTooBig") => BadRequest,
+            Symbol("ErrAmountTooSmall") => BadRequest,
+            Symbol("ErrApiKeyRevoked") => AuthenticationError,
+            Symbol("ErrBeneficiaryNotFound") => ExchangeError,
+            Symbol("ErrBlockedSendsCurrency") => OperationRejected,
+            Symbol("ErrCannotStopUnknownOrNonPendingOrder") => InvalidOrder,
+            Symbol("ErrCannotTradeWhileQuoteActive") => OperationRejected,
+            Symbol("ErrConvertPairNotSupported") => BadRequest,
+            Symbol("ErrConvertRateLimited") => RateLimitExceeded,
+            Symbol("ErrCounterDenominationNotAllowed") => InvalidOrder,
+            Symbol("ErrCreditAccountNotTransactional") => BadRequest,
+            Symbol("ErrCustomRefNotAllowed") => BadRequest,
+            Symbol("ErrDeadlineExceeded") => RequestTimeout,
+            Symbol("ErrDebitAccountNotTransactional") => BadRequest,
+            Symbol("ErrDescriptionTooLong") => BadRequest,
+            Symbol("ErrDifferentCurrencies") => BadRequest,
+            Symbol("ErrDisallowedTarget") => InvalidAddress,
+            Symbol("ErrDuplicateClientMoveID") => OperationRejected,
+            Symbol("ErrDuplicateClientOrderID") => DuplicateOrderId,
+            Symbol("ErrDuplicateExternalID") => OperationRejected,
+            Symbol("ErrERC20AddressAlreadyAssigned") => OperationRejected,
+            Symbol("ErrERC20AssignNonDefault") => BadRequest,
+            Symbol("ErrFundsMoveNotFound") => ExchangeError,
+            Symbol("ErrIdempotencyKeyConflict") => OperationRejected,
+            Symbol("ErrIdempotencyKeyRequestMismatch") => BadRequest,
+            Symbol("ErrIncompatibleBeneficiary") => BadRequest,
+            Symbol("ErrIncorrectPin") => AuthenticationError,
+            Symbol("ErrInsufficientBalance") => InsufficientFunds,
+            Symbol("ErrInsufficientFunds") => InsufficientFunds,
+            Symbol("ErrInsufficientPerms") => PermissionDenied,
+            Symbol("ErrInternal") => ExchangeNotAvailable,
+            Symbol("ErrInvalidAccount") => BadRequest,
+            Symbol("ErrInvalidAccountID") => BadRequest,
+            Symbol("ErrInvalidAccountNumber") => BadRequest,
+            Symbol("ErrInvalidAmount") => BadRequest,
+            Symbol("ErrInvalidArguments") => BadRequest,
+            Symbol("ErrInvalidBaseVolume") => InvalidOrder,
+            Symbol("ErrInvalidBranchCode") => BadRequest,
+            Symbol("ErrInvalidClientOrderId") => InvalidOrder,
+            Symbol("ErrInvalidCounterVolume") => InvalidOrder,
+            Symbol("ErrInvalidCurrency") => BadRequest,
+            Symbol("ErrInvalidDetails") => BadRequest,
+            Symbol("ErrInvalidMarketPair") => BadSymbol,
+            Symbol("ErrInvalidOrderRef") => InvalidOrder,
+            Symbol("ErrInvalidOrderSide") => InvalidOrder,
+            Symbol("ErrInvalidParameters") => BadRequest,
+            Symbol("ErrInvalidPrice") => InvalidOrder,
+            Symbol("ErrInvalidRequestType") => BadRequest,
+            Symbol("ErrInvalidSourceAccount") => BadRequest,
+            Symbol("ErrInvalidStopDirection") => InvalidOrder,
+            Symbol("ErrInvalidStopPrice") => InvalidOrder,
+            Symbol("ErrInvalidVolume") => InvalidOrder,
+            Symbol("ErrLimitOutOfRange") => BadRequest,
+            Symbol("ErrMarketNotAllowed") => PermissionDenied,
+            Symbol("ErrMarketUnavailable") => ExchangeError,
+            Symbol("ErrMaxActiveFiatRequestsExists") => OperationRejected,
+            Symbol("ErrMissingIdempotencyKey") => BadRequest,
+            Symbol("ErrNoAddressesAssigned") => InvalidAddress,
+            Symbol("ErrNoTradesToInferStopDirection") => InvalidOrder,
+            Symbol("ErrNotEnoughLiquidity") => InvalidOrder,
+            Symbol("ErrNotFound") => ExchangeError,
+            Symbol("ErrOrderCanceled") => InvalidOrder,
+            Symbol("ErrOrderNotFound") => OrderNotFound,
+            Symbol("ErrPostOnlyMode") => InvalidOrder,
+            Symbol("ErrPostOnlyNotAllowed") => InvalidOrder,
+            Symbol("ErrPriceDenominationNotAllowed") => InvalidOrder,
+            Symbol("ErrPriceTooHigh") => InvalidOrder,
+            Symbol("ErrPriceTooLow") => InvalidOrder,
+            Symbol("ErrRejectedBeneficiary") => OperationRejected,
+            Symbol("ErrRequestTypeDoesNotSupportFastWithdrawals") => BadRequest,
+            Symbol("ErrStopPriceTooHigh") => InvalidOrder,
+            Symbol("ErrStopPriceTooLow") => InvalidOrder,
+            Symbol("ErrTooManyRequests") => RateLimitExceeded,
+            Symbol("ErrTooManyRowsRequested") => BadRequest,
+            Symbol("ErrTravelRule") => ManualInteractionNeeded,
+            Symbol("ErrUnauthorised") => AuthenticationError,
+            Symbol("ErrUnderMaintenance") => OnMaintenance,
+            Symbol("ErrUpdateRequired") => ExchangeError,
+            Symbol("ErrUserBlockedForCancelWithdrawal") => PermissionDenied,
+            Symbol("ErrUserNotVerifiedForCurrency") => AccountNotEnabled,
+            Symbol("ErrValueTooHigh") => InvalidOrder,
+            Symbol("ErrVerificationLevelTooLow") => AccountNotEnabled,
+            Symbol("ErrVolumeDenominationNotAllowed") => InvalidOrder,
+            Symbol("ErrVolumeTooHigh") => InvalidOrder,
+            Symbol("ErrVolumeTooLow") => InvalidOrder,
+            Symbol("ErrWithdrawalBlocked") => PermissionDenied,
+            Symbol("ErrWithdrawalNotFound") => ExchangeError
         )
     ),
     Symbol("precisionMode") => TICK_SIZE,
@@ -373,26 +572,28 @@ function parseCurrency(self::Luno, rawCurrency)
         networkEntry = get(rawCurrency, i + 1, nothing);
         networkId = safeString(networkEntry, "name");
         networkCode = self.networkIdToCode(networkId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
                 ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                )
-            ),
-            Symbol("active") => nothing,
-            Symbol("deposit") => nothing,
-            Symbol("withdraw") => nothing,
-            Symbol("fee") => nothing,
-            Symbol("precision") => nothing,
-            Symbol("info") => networkEntry
-        );
+                Symbol("active") => nothing,
+                Symbol("deposit") => nothing,
+                Symbol("withdraw") => nothing,
+                Symbol("fee") => nothing,
+                Symbol("precision") => nothing,
+                Symbol("info") => networkEntry
+            );
+        end
         i += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -433,9 +634,28 @@ function fetchMarkets(self::Luno, params=Dict())
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
         status = safeString(market, "trading_status");
+        fiats = ["ZAR"];
+        unverifiedQuotes = ["MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"];
+        stablecoins = ["USDT", "USDC"];
+        taker = nothing;
+        maker = nothing;
+        if functions.ccxtruthy(inArray(quote_var, fiats))
+            if functions.ccxtruthy(inArray(base, stablecoins))
+                taker = self.parseNumber("0.002");
+                maker = self.parseNumber("-0.0001");
+            else
+                taker = self.parseNumber("0.006");
+                maker = self.parseNumber("0.004");
+            end
+        elseif functions.ccxtruthy(!functions.ccxtruthy(inArray(quote_var, unverifiedQuotes)))
+            taker = self.parseNumber("0.001");
+            maker = self.parseNumber("0.0008");
+        end
         push!(result, Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
+    Symbol("taker") => taker,
+    Symbol("maker") => maker,
     Symbol("base") => base,
     Symbol("quote") => quote_var,
     Symbol("settle") => nothing,
@@ -500,7 +720,7 @@ function fetchAccounts(self::Luno, params=Dict())
         push!(result, Dict{Symbol, Any}(
     Symbol("id") => accountId,
     Symbol("type") => nothing,
-    Symbol("currency") => code,
+    Symbol("code") => code,
     Symbol("info") => account
 ));
         i += 1
@@ -525,10 +745,10 @@ function parseBalance(self::Luno, response)
         balance = safeString(wallet, "balance");
         reservedUnconfirmed = stringAdd(reserved, unconfirmed);
         balanceUnconfirmed = stringAdd(balance, unconfirmed);
-        if functions.ccxtruthy(ccxt_in(code, result))
+        if functions.ccxtruthy(@functions.ccxt_and((code != nothing), (ccxt_in(code, result))))
             result[Symbol(code)][Symbol("used")] = stringAdd(get(get(result, Symbol(code), nothing), Symbol("used"), nothing), reservedUnconfirmed);
             result[Symbol(code)][Symbol("total")] = stringAdd(get(get(result, Symbol(code), nothing), Symbol("total"), nothing), balanceUnconfirmed);
-        else
+        elseif functions.ccxtruthy(code != nothing)
             account = self.account();
             account[Symbol("used")] = reservedUnconfirmed;
             account[Symbol("total")] = balanceUnconfirmed;
@@ -705,7 +925,8 @@ function fetchTickers(self::Luno, symbols=nothing, params=Dict())
     end
     symbols = self.marketSymbols(symbols);
     response = Base.fetch(self.publicGetTickers(params));
-    tickers = indexBy(get(response, Symbol("tickers"), nothing), "pair");
+    rawTickers = self.safeList(response, "tickers", []);
+    tickers = indexBy(rawTickers, "pair");
     ids = objectKeys(tickers);
     result = Dict{Symbol, Any}();
     i = 0
@@ -880,6 +1101,9 @@ function createOrder(self::Luno, symbol, type_var, side, amount, price=nothing, 
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = nothing;
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
+    end
     if functions.ccxtruthy(type_var == "market")
         request[Symbol("type")] =         uppercase(side);
         if functions.ccxtruthy(side == "buy")
@@ -893,6 +1117,9 @@ function createOrder(self::Luno, symbol, type_var, side, amount, price=nothing, 
         request[Symbol("price")] = self.priceToPrecision(get(market, Symbol("symbol"), nothing), price);
         request[Symbol("type")] = functions.ccxtruthy((side == "buy")) ? "BID" : "ASK";
         response = Base.fetch(self.privatePostPostorder(extend(request, params)));
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " createOrder() returned empty response")));
     end
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
@@ -1099,6 +1326,23 @@ function parseDepositAddress(self::Luno, depositAddress, currency=nothing)
 )
 
 end
+function fetchDepositWithdrawFee(self::Luno, code, params=Dict())
+    address = safeString(params, "address");
+    if functions.ccxtruthy(address == nothing)
+        throw(ArgumentsRequired(string(self.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")));
+    end
+    Base.fetch(self.loadMarkets());
+    currency = self.currency(code);
+    request = Dict{Symbol, Any}(
+        Symbol("currency") => get(currency, Symbol("id"), nothing)
+    );
+    response = Base.fetch(self.privateGetSendFee(extend(request, params)));
+    result = self.depositWithdrawFee(response);
+    result[Symbol("withdraw")][Symbol("fee")] = self.safeNumber(response, "fee");
+    result[Symbol("withdraw")][Symbol("percentage")] = false;
+    return self.assignDefaultDepositWithdrawFees(result, currency)
+
+end
 function sign(self::Luno, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     url = string(get(get(self.urls, Symbol("api"), nothing), Symbol(api), nothing), "/", self.version, "/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
@@ -1126,158 +1370,238 @@ function handleErrors(self::Luno, httpCode, reason, url, method, headers, body, 
     end
     error = safeValue(response, "error");
     if functions.ccxtruthy(error != nothing)
-        throw(ExchangeError(string(self.id, " ", json(response))));
+        feedback = string(self.id, " ", json(response));
+        errorCode = safeString(response, "error_code");
+        self.throwExactlyMatchedException(get(self.exceptions, Symbol("exact"), nothing), errorCode, feedback);
+        throw(ExchangeError(feedback));
     end
     return nothing
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Luno, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function exchangeGetMarkets(self::Luno, params=Dict(), context=Dict())
-    return request(self, "markets", "exchange", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets", "exchange", "GET", params, nothing, nothing, Dict())
 end
 
 function exchangePrivateGetCandles(self::Luno, params=Dict(), context=Dict())
-    return request(self, "candles", "exchangePrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "candles", "exchangePrivate", "GET", params, nothing, nothing, Dict())
+end
+
+function exchangePrivateGetMove(self::Luno, params=Dict(), context=Dict())
+    return request(self, "move", "exchangePrivate", "GET", params, nothing, nothing, Dict())
+end
+
+function exchangePrivateGetMoveListMoves(self::Luno, params=Dict(), context=Dict())
+    return request(self, "move/list_moves", "exchangePrivate", "GET", params, nothing, nothing, Dict())
+end
+
+function exchangePrivateGetTransfers(self::Luno, params=Dict(), context=Dict())
+    return request(self, "transfers", "exchangePrivate", "GET", params, nothing, nothing, Dict())
+end
+
+function exchangePrivatePostConvert(self::Luno, params=Dict(), context=Dict())
+    return request(self, "convert", "exchangePrivate", "POST", params, nothing, nothing, Dict())
+end
+
+function exchangePrivatePostMove(self::Luno, params=Dict(), context=Dict())
+    return request(self, "move", "exchangePrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderbook(self::Luno, params=Dict(), context=Dict())
-    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderbookTop(self::Luno, params=Dict(), context=Dict())
-    return request(self, "orderbook_top", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderbook_top", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker(self::Luno, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickers(self::Luno, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTrades(self::Luno, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountsIdPending(self::Luno, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}/pending", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accounts/{id}/pending", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountsIdTransactions(self::Luno, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}/transactions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accounts/{id}/transactions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetBalance(self::Luno, params=Dict(), context=Dict())
-    return request(self, "balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetBeneficiaries(self::Luno, params=Dict(), context=Dict())
-    return request(self, "beneficiaries", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "beneficiaries", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSendNetworks(self::Luno, params=Dict(), context=Dict())
-    return request(self, "send/networks", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "send/networks", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFeeInfo(self::Luno, params=Dict(), context=Dict())
-    return request(self, "fee_info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fee_info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFundingAddress(self::Luno, params=Dict(), context=Dict())
-    return request(self, "funding_address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "funding_address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetListorders(self::Luno, params=Dict(), context=Dict())
-    return request(self, "listorders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "listorders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetListtrades(self::Luno, params=Dict(), context=Dict())
-    return request(self, "listtrades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "listtrades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSendFee(self::Luno, params=Dict(), context=Dict())
-    return request(self, "send_fee", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "send_fee", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersId(self::Luno, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWithdrawals(self::Luno, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawals", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWithdrawalsId(self::Luno, params=Dict(), context=Dict())
-    return request(self, "withdrawals/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawals/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTransfers(self::Luno, params=Dict(), context=Dict())
-    return request(self, "transfers", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transfers", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetUsersLinked(self::Luno, params=Dict(), context=Dict())
+    return request(self, "users/linked", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAccounts(self::Luno, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accounts", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAddressValidate(self::Luno, params=Dict(), context=Dict())
-    return request(self, "address/validate", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "address/validate", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPostorder(self::Luno, params=Dict(), context=Dict())
-    return request(self, "postorder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "postorder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMarketorder(self::Luno, params=Dict(), context=Dict())
-    return request(self, "marketorder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "marketorder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostStoporder(self::Luno, params=Dict(), context=Dict())
-    return request(self, "stoporder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "stoporder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFundingAddress(self::Luno, params=Dict(), context=Dict())
-    return request(self, "funding_address", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "funding_address", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawals(self::Luno, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawals", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSend(self::Luno, params=Dict(), context=Dict())
-    return request(self, "send", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "send", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOauth2Grant(self::Luno, params=Dict(), context=Dict())
-    return request(self, "oauth2/grant", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "oauth2/grant", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBeneficiaries(self::Luno, params=Dict(), context=Dict())
-    return request(self, "beneficiaries", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "beneficiaries", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePutAccountsIdName(self::Luno, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}/name", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accounts/{id}/name", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privateDeleteWithdrawalsId(self::Luno, params=Dict(), context=Dict())
-    return request(self, "withdrawals/{id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawals/{id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteBeneficiariesId(self::Luno, params=Dict(), context=Dict())
-    return request(self, "beneficiaries/{id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "beneficiaries/{id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Luno(; kwargs...)
-    inst = Luno(Exchange(), describe, fetchCurrencies, parseCurrency, fetchMarkets, fetchAccounts, parseBalance, fetchBalance, fetchOrderBook, parseOrderStatus, parseOrder, fetchOrder, fetchOrdersByState, fetchOrders, fetchOpenOrders, fetchClosedOrders, parseTicker, fetchTickers, fetchTicker, parseTrade, fetchTrades, fetchOHLCV, parseOHLCV, fetchMyTrades, fetchTradingFee, createOrder, cancelOrder, fetchLedgerByEntries, fetchLedger, parseLedgerComment, parseLedgerEntry, createDepositAddress, fetchDepositAddress, parseDepositAddress, sign, handleErrors, exchangeGetMarkets, exchangePrivateGetCandles, publicGetOrderbook, publicGetOrderbookTop, publicGetTicker, publicGetTickers, publicGetTrades, privateGetAccountsIdPending, privateGetAccountsIdTransactions, privateGetBalance, privateGetBeneficiaries, privateGetSendNetworks, privateGetFeeInfo, privateGetFundingAddress, privateGetListorders, privateGetListtrades, privateGetSendFee, privateGetOrdersId, privateGetWithdrawals, privateGetWithdrawalsId, privateGetTransfers, privatePostAccounts, privatePostAddressValidate, privatePostPostorder, privatePostMarketorder, privatePostStoporder, privatePostFundingAddress, privatePostWithdrawals, privatePostSend, privatePostOauth2Grant, privatePostBeneficiaries, privatePutAccountsIdName, privateDeleteWithdrawalsId, privateDeleteBeneficiariesId)
+    inst = Luno(Exchange(), describe, fetchCurrencies, parseCurrency, fetchMarkets, fetchAccounts, parseBalance, fetchBalance, fetchOrderBook, parseOrderStatus, parseOrder, fetchOrder, fetchOrdersByState, fetchOrders, fetchOpenOrders, fetchClosedOrders, parseTicker, fetchTickers, fetchTicker, parseTrade, fetchTrades, fetchOHLCV, parseOHLCV, fetchMyTrades, fetchTradingFee, createOrder, cancelOrder, fetchLedgerByEntries, fetchLedger, parseLedgerComment, parseLedgerEntry, createDepositAddress, fetchDepositAddress, parseDepositAddress, fetchDepositWithdrawFee, sign, handleErrors, exchangeGetMarkets, exchangePrivateGetCandles, exchangePrivateGetMove, exchangePrivateGetMoveListMoves, exchangePrivateGetTransfers, exchangePrivatePostConvert, exchangePrivatePostMove, publicGetOrderbook, publicGetOrderbookTop, publicGetTicker, publicGetTickers, publicGetTrades, privateGetAccountsIdPending, privateGetAccountsIdTransactions, privateGetBalance, privateGetBeneficiaries, privateGetSendNetworks, privateGetFeeInfo, privateGetFundingAddress, privateGetListorders, privateGetListtrades, privateGetSendFee, privateGetOrdersId, privateGetWithdrawals, privateGetWithdrawalsId, privateGetTransfers, privateGetUsersLinked, privatePostAccounts, privatePostAddressValidate, privatePostPostorder, privatePostMarketorder, privatePostStoporder, privatePostFundingAddress, privatePostWithdrawals, privatePostSend, privatePostOauth2Grant, privatePostBeneficiaries, privatePutAccountsIdName, privateDeleteWithdrawalsId, privateDeleteBeneficiariesId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

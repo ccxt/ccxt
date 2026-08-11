@@ -246,70 +246,178 @@ function describe(self::Dydx, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("indexer") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("addresses/{address}") => 1,
-                Symbol("addresses/{address}/parentSubaccountNumber/{number}") => 1,
-                Symbol("addresses/{address}/subaccountNumber/{subaccountNumber}") => 1,
-                Symbol("assetPositions") => 1,
-                Symbol("assetPositions/parentSubaccountNumber") => 1,
-                Symbol("candles/perpetualMarkets/{market}") => 1,
-                Symbol("compliance/screen/{address}") => 1,
-                Symbol("fills") => 1,
-                Symbol("fills/parentSubaccountNumber") => 1,
-                Symbol("fundingPayments") => 1,
-                Symbol("fundingPayments/parentSubaccount") => 1,
-                Symbol("height") => 0.1,
-                Symbol("historical-pnl") => 1,
-                Symbol("historical-pnl/parentSubaccountNumber") => 1,
-                Symbol("historicalBlockTradingRewards/{address}") => 1,
-                Symbol("historicalFunding/{market}") => 1,
-                Symbol("historicalTradingRewardAggregations/{address}") => 1,
-                Symbol("orderbooks/perpetualMarket/{market}") => 1,
-                Symbol("orders") => 1,
-                Symbol("orders/parentSubaccountNumber") => 1,
-                Symbol("orders/{orderId}") => 1,
-                Symbol("perpetualMarkets") => 1,
-                Symbol("perpetualPositions") => 1,
-                Symbol("perpetualPositions/parentSubaccountNumber") => 1,
-                Symbol("screen") => 1,
-                Symbol("sparklines") => 1,
-                Symbol("time") => 1,
-                Symbol("trades/perpetualMarket/{market}") => 1,
-                Symbol("transfers") => 1,
-                Symbol("transfers/between") => 1,
-                Symbol("transfers/parentSubaccountNumber") => 1,
-                Symbol("vault/v1/megavault/historicalPnl") => 1,
-                Symbol("vault/v1/megavault/positions") => 1,
-                Symbol("vault/v1/vaults/historicalPnl") => 1,
-                Symbol("perpetualMarketSparklines") => 1,
-                Symbol("perpetualMarkets/{ticker}") => 1,
-                Symbol("perpetualMarkets/{ticker}/orderbook") => 1,
-                Symbol("trades/perpetualMarket/{ticker}") => 1,
-                Symbol("historicalFunding/{ticker}") => 1,
-                Symbol("candles/{ticker}/{resolution}") => 1,
-                Symbol("addresses/{address}/subaccounts") => 1,
-                Symbol("addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions") => 1,
-                Symbol("addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions") => 1,
-                Symbol("addresses/{address}/subaccountNumber/{subaccountNumber}/orders") => 1,
-                Symbol("fills/parentSubaccount") => 1,
-                Symbol("historical-pnl/parentSubaccount") => 1
+                Symbol("addresses/{address}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("addresses/{address}/parentSubaccountNumber/{number}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("addresses/{address}/subaccountNumber/{subaccountNumber}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assetPositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assetPositions/parentSubaccountNumber") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("candles/perpetualMarkets/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("compliance/screen/{address}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fills/parentSubaccountNumber") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fundingPayments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fundingPayments/parentSubaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("height") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("historical-pnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("historical-pnl/parentSubaccountNumber") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("historicalBlockTradingRewards/{address}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("historicalFunding/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("historicalTradingRewardAggregations/{address}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbooks/perpetualMarket/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/parentSubaccountNumber") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{orderId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("perpetualMarkets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("perpetualPositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("perpetualPositions/parentSubaccountNumber") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("screen") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sparklines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades/perpetualMarket/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfers/between") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfers/parentSubaccountNumber") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vault/v1/megavault/historicalPnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vault/v1/megavault/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vault/v1/vaults/historicalPnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("perpetualMarketSparklines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("perpetualMarkets/{ticker}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("perpetualMarkets/{ticker}/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades/perpetualMarket/{ticker}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("historicalFunding/{ticker}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("candles/{ticker}/{resolution}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("addresses/{address}/subaccounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("addresses/{address}/subaccountNumber/{subaccountNumber}/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fills/parentSubaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("historical-pnl/parentSubaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("nodeRpc") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("abci_info") => 1,
-                Symbol("block") => 1,
-                Symbol("broadcast_tx_async") => 1,
-                Symbol("broadcast_tx_sync") => 1,
-                Symbol("tx") => 1
+                Symbol("abci_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broadcast_tx_async") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("broadcast_tx_sync") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tx") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("nodeRest") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("cosmos/auth/v1beta1/account_info/{dydxAddress}") => 1
+                Symbol("cosmos/auth/v1beta1/account_info/{dydxAddress}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("cosmos/tx/v1beta1/encode") => 1,
-                Symbol("cosmos/tx/v1beta1/simulate") => 1
+                Symbol("cosmos/tx/v1beta1/encode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cosmos/tx/v1beta1/simulate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -554,6 +662,9 @@ end
 function parseMarket(self::Dydx, market)
     quoteId = "USDC";
     marketId = safeString(market, "ticker");
+    if functions.ccxtruthy(marketId == nothing)
+        throw(ExchangeError(string(self.id, " parseMarket() missing marketId")));
+    end
     parts = split(marketId, "-");
     baseName = safeString(parts, 0);
     baseId = safeString(market, "baseId", baseName);
@@ -912,7 +1023,7 @@ function fetchPositions(self::Dydx, symbols=nothing, params=Dict())
     userAddress = nothing;
     subAccountNumber = nothing;
     (userAddress, params) = self.handlePublicAddress("fetchPositions", params);
-    (subAccountNumber, params) = self.handleOptionAndParams(params, "fetchOrders", "subAccountNumber", "0");
+    (subAccountNumber, params) = self.handleOptionAndParams(params, "fetchPositions", "subAccountNumber", "0");
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -931,7 +1042,7 @@ function hashMessage(self::Dydx, message)
 
 end
 function signHash(self::Dydx, hash, privateKey)
-    signature = ecdsa(hash[-64 + 1:end], privateKey[-64 + 1:end], secp256k1, nothing);
+    signature = ecdsa(functions.ccxt_slice(hash, -64), functions.ccxt_slice(privateKey, -64), secp256k1, nothing);
     r = get(signature, Symbol("r"), nothing);
     s = get(signature, Symbol("s"), nothing);
     return Dict{Symbol, Any}(
@@ -942,7 +1053,7 @@ function signHash(self::Dydx, hash, privateKey)
 
 end
 function signMessage(self::Dydx, message, privateKey)
-    return self.signHash(self.hashMessage(message), privateKey[-64 + 1:end])
+    return self.signHash(self.hashMessage(message), functions.ccxt_slice(privateKey, -64))
 
 end
 function signOnboardingAction(self::Dydx, )
@@ -1027,9 +1138,18 @@ function pow(self::Dydx, n, m)
 
 end
 function createOrderRequest(self::Dydx, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only", false);
     orderType = uppercase(type_var);
     market = self.market(symbol);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrderRequest() requires a side argument")));
+    end
     orderSide = uppercase(side);
     subaccountId = 0;
     (subaccountId, params) = self.handleOptionAndParams(params, "createOrder", "subAccountId", subaccountId);
@@ -1098,6 +1218,9 @@ function createOrderRequest(self::Dydx, symbol, type_var, side, amount, price=no
     (goodTillBlockTimeInSeconds, params) = self.handleOptionAndParams(params, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
     if functions.ccxtruthy(orderFlag == 0)
         if functions.ccxtruthy(goodTillBlock == nothing)
+            if functions.ccxtruthy(latestBlockHeight == nothing)
+                throw(ExchangeError(string(self.id, " method() missing latestBlockHeight")));
+            end
             goodTillBlock = latestBlockHeight + 20;
         end
     else
@@ -1138,7 +1261,13 @@ function createOrderRequest(self::Dydx, symbol, type_var, side, amount, price=no
         Symbol("value") => orderPayload
     );
     params = omit(params, ["reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"]);
-    orderId = self.createOrderIdFromParts(self.getWalletAddress(), subaccountId, clientOrderId, orderFlag, get(marketInfo, Symbol("clobPairId"), nothing));
+    walletAddress = self.getWalletAddress();
+    clobPairId = safeInteger(marketInfo, "clobPairId", 0);
+    subaccountIdValue = functions.ccxtruthy((subaccountId == nothing)) ? 0 : subaccountId;
+    clientOrderIdValue = functions.ccxtruthy((clientOrderId == nothing)) ? 0 : clientOrderId;
+    orderFlagValue = functions.ccxtruthy((orderFlag == nothing)) ? 0 : orderFlag;
+    clobPairIdValue = functions.ccxtruthy((clobPairId == nothing)) ? 0 : clobPairId;
+    orderId = self.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
     return [orderId, extend(signingPayload, params)]
 
 end
@@ -1154,7 +1283,11 @@ function fetchLatestBlockHeight(self::Dydx, params=Dict())
     response = Base.fetch(self.nodeRpcGetAbciInfo(params));
     result = self.safeDict(response, "result");
     info = self.safeDict(result, "response");
-    return safeInteger(info, "last_block_height")
+    height = safeInteger(info, "last_block_height");
+    if functions.ccxtruthy(height == nothing)
+        throw(ExchangeError(string(self.id, " fetchLatestBlockHeight() could not parse last_block_height")));
+    end
+    return height
 
 end
 function createOrder(self::Dydx, symbol, type_var, side, amount, price=nothing, params=Dict())
@@ -1406,6 +1539,9 @@ function estimateTxFee(self::Dydx, message, memo, account)
     end
     gasLimit = ceil(self.parseToNumeric(stringMul(gasUsed, defaultFeeMultiplier)));
     feeAmount = stringMul(numberToString(gasLimit), gasPrice);
+    if functions.ccxtruthy(feeAmount == nothing)
+        throw(ExchangeError(string(self.id, " estimateTxFee() missing feeAmount")));
+    end
     if functions.ccxtruthy(findfirst(".", feeAmount) !== nothing)
         feeAmount = numberToString(ceil(self.parseToNumeric(feeAmount)));
     end
@@ -1697,9 +1833,9 @@ function fetchBalance(self::Dydx, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     userAddress = nothing;
-    (userAddress, params) = self.handlePublicAddress("fetchAccounts", params);
+    (userAddress, params) = self.handlePublicAddress("fetchBalance", params);
     subaccountNumber = nothing;
-    (subaccountNumber, params) = self.handleOptionAndParams(params, "fetchAccounts", "subaccountNumber", 0);
+    (subaccountNumber, params) = self.handleOptionAndParams(params, "fetchBalance", "subaccountNumber", 0);
     request = Dict{Symbol, Any}(
         Symbol("address") => userAddress,
         Symbol("subaccountNumber") => subaccountNumber
@@ -1739,7 +1875,7 @@ function getWalletAddress(self::Dydx, )
 end
 function sign(self::Dydx, path, section="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     pathWithParams = self.implodeParams(path, params);
-    url = self.implodeHostname(get(get(self.urls, Symbol("api"), nothing), Symbol(section), nothing));
+    url = get(get(self.urls, Symbol("api"), nothing), Symbol(section), nothing);
     params = omit(params, self.extractParams(path));
     params = keysort(params);
     url += string("/", pathWithParams);
@@ -1790,232 +1926,285 @@ function setSandboxMode(self::Dydx, enable)
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Dydx, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function indexerGetAddressesAddress(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "addresses/{address}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetAddressesAddressParentSubaccountNumberNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/parentSubaccountNumber/{number}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "addresses/{address}/parentSubaccountNumber/{number}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetAddressesAddressSubaccountNumberSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetAssetPositions(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "assetPositions", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assetPositions", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetAssetPositionsParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "assetPositions/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assetPositions/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetCandlesPerpetualMarketsMarket(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "candles/perpetualMarkets/{market}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "candles/perpetualMarkets/{market}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetComplianceScreenAddress(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "compliance/screen/{address}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "compliance/screen/{address}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetFills(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "fills", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fills", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetFillsParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "fills/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fills/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetFundingPayments(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "fundingPayments", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fundingPayments", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetFundingPaymentsParentSubaccount(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "fundingPayments/parentSubaccount", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fundingPayments/parentSubaccount", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetHeight(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "height", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "height", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetHistoricalPnl(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historical-pnl", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "historical-pnl", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetHistoricalPnlParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historical-pnl/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "historical-pnl/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetHistoricalBlockTradingRewardsAddress(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historicalBlockTradingRewards/{address}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "historicalBlockTradingRewards/{address}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetHistoricalFundingMarket(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historicalFunding/{market}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "historicalFunding/{market}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetHistoricalTradingRewardAggregationsAddress(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historicalTradingRewardAggregations/{address}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "historicalTradingRewardAggregations/{address}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetOrderbooksPerpetualMarketMarket(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "orderbooks/perpetualMarket/{market}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderbooks/perpetualMarket/{market}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetOrders(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "orders", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetOrdersParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "orders/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetOrdersOrderId(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "orders/{orderId}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/{orderId}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetPerpetualMarkets(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualMarkets", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "perpetualMarkets", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetPerpetualPositions(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualPositions", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "perpetualPositions", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetPerpetualPositionsParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualPositions/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "perpetualPositions/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetScreen(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "screen", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "screen", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetSparklines(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "sparklines", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sparklines", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetTime(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "time", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "time", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetTradesPerpetualMarketMarket(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "trades/perpetualMarket/{market}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades/perpetualMarket/{market}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetTransfers(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "transfers", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transfers", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetTransfersBetween(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "transfers/between", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transfers/between", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetTransfersParentSubaccountNumber(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "transfers/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transfers/parentSubaccountNumber", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetVaultV1MegavaultHistoricalPnl(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "vault/v1/megavault/historicalPnl", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vault/v1/megavault/historicalPnl", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetVaultV1MegavaultPositions(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "vault/v1/megavault/positions", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vault/v1/megavault/positions", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetVaultV1VaultsHistoricalPnl(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "vault/v1/vaults/historicalPnl", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vault/v1/vaults/historicalPnl", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetPerpetualMarketSparklines(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualMarketSparklines", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "perpetualMarketSparklines", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetPerpetualMarketsTicker(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualMarkets/{ticker}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "perpetualMarkets/{ticker}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetPerpetualMarketsTickerOrderbook(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "perpetualMarkets/{ticker}/orderbook", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "perpetualMarkets/{ticker}/orderbook", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetTradesPerpetualMarketTicker(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "trades/perpetualMarket/{ticker}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades/perpetualMarket/{ticker}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetHistoricalFundingTicker(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historicalFunding/{ticker}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "historicalFunding/{ticker}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetCandlesTickerResolution(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "candles/{ticker}/{resolution}", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "candles/{ticker}/{resolution}", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetAddressesAddressSubaccounts(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/subaccounts", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "addresses/{address}/subaccounts", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/orders", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "addresses/{address}/subaccountNumber/{subaccountNumber}/orders", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetFillsParentSubaccount(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "fills/parentSubaccount", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fills/parentSubaccount", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function indexerGetHistoricalPnlParentSubaccount(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "historical-pnl/parentSubaccount", "indexer", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "historical-pnl/parentSubaccount", "indexer", "GET", params, nothing, nothing, Dict())
 end
 
 function nodeRpcGetAbciInfo(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "abci_info", "nodeRpc", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "abci_info", "nodeRpc", "GET", params, nothing, nothing, Dict())
 end
 
 function nodeRpcGetBlock(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "block", "nodeRpc", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block", "nodeRpc", "GET", params, nothing, nothing, Dict())
 end
 
 function nodeRpcGetBroadcastTxAsync(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "broadcast_tx_async", "nodeRpc", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broadcast_tx_async", "nodeRpc", "GET", params, nothing, nothing, Dict())
 end
 
 function nodeRpcGetBroadcastTxSync(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "broadcast_tx_sync", "nodeRpc", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broadcast_tx_sync", "nodeRpc", "GET", params, nothing, nothing, Dict())
 end
 
 function nodeRpcGetTx(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "tx", "nodeRpc", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tx", "nodeRpc", "GET", params, nothing, nothing, Dict())
 end
 
 function nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "cosmos/auth/v1beta1/account_info/{dydxAddress}", "nodeRest", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cosmos/auth/v1beta1/account_info/{dydxAddress}", "nodeRest", "GET", params, nothing, nothing, Dict())
 end
 
 function nodeRestPostCosmosTxV1beta1Encode(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "cosmos/tx/v1beta1/encode", "nodeRest", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cosmos/tx/v1beta1/encode", "nodeRest", "POST", params, nothing, nothing, Dict())
 end
 
 function nodeRestPostCosmosTxV1beta1Simulate(self::Dydx, params=Dict(), context=Dict())
-    return request(self, "cosmos/tx/v1beta1/simulate", "nodeRest", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cosmos/tx/v1beta1/simulate", "nodeRest", "POST", params, nothing, nothing, Dict())
 end
 
 function Dydx(; kwargs...)
     inst = Dydx(Exchange(), describe, fetchTime, parseMarket, fetchMarkets, parseTrade, fetchTrades, parseOHLCV, fetchOHLCV, fetchFundingRateHistory, handlePublicAddress, parseOrder, parseOrderStatus, parseOrderType, fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, parsePosition, fetchPosition, fetchPositions, hashMessage, signHash, signMessage, signOnboardingAction, signDydxTx, retrieveCredentials, fetchDydxAccount, pow, createOrderRequest, createOrderIdFromParts, fetchLatestBlockHeight, createOrder, cancelOrder, cancelOrders, fetchOrderBook, parseLedgerEntry, parseLedgerEntryType, fetchLedger, estimateTxFee, transfer, parseTransfer, fetchTransfers, parseTransaction, withdraw, fetchWithdrawals, fetchDeposits, fetchDepositsWithdrawals, fetchTransactionsHelper, fetchAccounts, fetchBalance, parseBalance, nonce, getWalletAddress, sign, handleErrors, setSandboxMode, indexerGetAddressesAddress, indexerGetAddressesAddressParentSubaccountNumberNumber, indexerGetAddressesAddressSubaccountNumberSubaccountNumber, indexerGetAssetPositions, indexerGetAssetPositionsParentSubaccountNumber, indexerGetCandlesPerpetualMarketsMarket, indexerGetComplianceScreenAddress, indexerGetFills, indexerGetFillsParentSubaccountNumber, indexerGetFundingPayments, indexerGetFundingPaymentsParentSubaccount, indexerGetHeight, indexerGetHistoricalPnl, indexerGetHistoricalPnlParentSubaccountNumber, indexerGetHistoricalBlockTradingRewardsAddress, indexerGetHistoricalFundingMarket, indexerGetHistoricalTradingRewardAggregationsAddress, indexerGetOrderbooksPerpetualMarketMarket, indexerGetOrders, indexerGetOrdersParentSubaccountNumber, indexerGetOrdersOrderId, indexerGetPerpetualMarkets, indexerGetPerpetualPositions, indexerGetPerpetualPositionsParentSubaccountNumber, indexerGetScreen, indexerGetSparklines, indexerGetTime, indexerGetTradesPerpetualMarketMarket, indexerGetTransfers, indexerGetTransfersBetween, indexerGetTransfersParentSubaccountNumber, indexerGetVaultV1MegavaultHistoricalPnl, indexerGetVaultV1MegavaultPositions, indexerGetVaultV1VaultsHistoricalPnl, indexerGetPerpetualMarketSparklines, indexerGetPerpetualMarketsTicker, indexerGetPerpetualMarketsTickerOrderbook, indexerGetTradesPerpetualMarketTicker, indexerGetHistoricalFundingTicker, indexerGetCandlesTickerResolution, indexerGetAddressesAddressSubaccounts, indexerGetAddressesAddressSubaccountNumberSubaccountNumberAssetPositions, indexerGetAddressesAddressSubaccountNumberSubaccountNumberPerpetualPositions, indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders, indexerGetFillsParentSubaccount, indexerGetHistoricalPnlParentSubaccount, nodeRpcGetAbciInfo, nodeRpcGetBlock, nodeRpcGetBroadcastTxAsync, nodeRpcGetBroadcastTxSync, nodeRpcGetTx, nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress, nodeRestPostCosmosTxV1beta1Encode, nodeRestPostCosmosTxV1beta1Simulate)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

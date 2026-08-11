@@ -257,72 +257,144 @@ function describe(self::Bitvavo, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("{market}/book") => 1,
-                Symbol("report/{market}/book") => 1,
-                Symbol("{market}/trades") => 5,
-                Symbol("report/{market}/trades") => 5,
-                Symbol("ticker/price") => 1,
-                Symbol("ticker/book") => 1,
-                Symbol("{market}/candles") => 1,
+                Symbol("{market}/book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("report/{market}/book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{market}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("report/{market}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker/book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{market}/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("ticker/24h") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noMarket") => 25
-                ),
-                Symbol("time") => 1,
-                Symbol("markets") => 1,
-                Symbol("assets") => 1
+    Symbol("cost") => 1,
+    Symbol("noMarket") => 25
+),
+                Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("order") => 1,
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("ordersOpen") => Dict{Symbol, Any}(
-                    Symbol("cost") => 5,
-                    Symbol("noMarket") => 100
-                ),
-                Symbol("trades") => 5,
-                Symbol("orders") => 5,
-                Symbol("deposit") => 1,
-                Symbol("depositHistory") => 5,
-                Symbol("withdrawalHistory") => 5,
-                Symbol("account") => 1,
-                Symbol("balance") => 5,
-                Symbol("stakingBalance") => 1,
-                Symbol("account/fees") => 1,
-                Symbol("account/history") => 1,
-                Symbol("subaccounts") => 5,
-                Symbol("subaccounts/transfers") => 5,
-                Symbol("subaccounts/transfers/{transferId}") => 5,
-                Symbol("institutional/subaccounts/balance") => 5,
-                Symbol("institutional/subaccounts/history") => 5,
+    Symbol("cost") => 5,
+    Symbol("noMarket") => 100
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("depositHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("withdrawalHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("stakingBalance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("subaccounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("subaccounts/transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("subaccounts/transfers/{transferId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("institutional/subaccounts/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("institutional/subaccounts/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
                 Symbol("institutional/subaccounts/orders/open") => Dict{Symbol, Any}(
-                    Symbol("cost") => 5,
-                    Symbol("noMarket") => 100
-                )
+    Symbol("cost") => 5,
+    Symbol("noMarket") => 100
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("order") => 1,
-                Symbol("cancelOrdersAfter") => 5,
-                Symbol("withdrawal") => 1,
-                Symbol("crypto/withdrawal") => 25,
-                Symbol("subaccounts") => 5,
-                Symbol("subaccounts/transfers") => 5
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelOrdersAfter") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("crypto/withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("subaccounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("subaccounts/transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("order") => 1
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("order") => 1,
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("orders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 25,
-                    Symbol("noMarket") => 100
-                ),
-                Symbol("atomic/orders") => 100,
-                Symbol("institutional/subaccounts/order") => 1,
+    Symbol("cost") => 25,
+    Symbol("noMarket") => 100
+),
+                Symbol("atomic/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("institutional/subaccounts/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("institutional/subaccounts/orders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 25,
-                    Symbol("noMarket") => 100
-                )
+    Symbol("cost") => 25,
+    Symbol("noMarket") => 100
+)
             )
         )
     ),
@@ -445,7 +517,7 @@ function describe(self::Bitvavo, )
             Symbol("230") => ExchangeError,
             Symbol("231") => ExchangeError,
             Symbol("232") => BadRequest,
-            Symbol("233") => InvalidOrder,
+            Symbol("233") => OrderNotFound,
             Symbol("234") => InvalidOrder,
             Symbol("235") => ExchangeError,
             Symbol("236") => BadRequest,
@@ -610,22 +682,24 @@ function parseCurrency(self::Bitvavo, rawCurrency)
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networksArray)))
         networkId = get(networksArray, j + 1, nothing);
         networkCode = self.networkIdToCode(networkId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => rawCurrency,
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("active") => active,
-            Symbol("deposit") => deposit,
-            Symbol("withdraw") => withdrawal,
-            Symbol("fee") => withdrawFee,
-            Symbol("precision") => self.parseNumber(self.parsePrecision(precision)),
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => minWithdraw,
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => rawCurrency,
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("active") => active,
+                Symbol("deposit") => deposit,
+                Symbol("withdraw") => withdrawal,
+                Symbol("fee") => withdrawFee,
+                Symbol("precision") => self.parseNumber(self.parsePrecision(precision)),
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => minWithdraw,
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -882,7 +956,7 @@ function fetchOHLCV(self::Bitvavo, symbol, timeframe="1m", since=nothing, limit=
     end
     request = self.fetchOHLCVRequest(symbol, timeframe, since, limit, params);
     response = Base.fetch(self.publicGetMarketCandles(request));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
 
 end
 function parseBalance(self::Bitvavo, response)
@@ -899,7 +973,9 @@ function parseBalance(self::Bitvavo, response)
         account = self.account();
         account[Symbol("free")] = safeString(balance, "available");
         account[Symbol("used")] = safeString(balance, "inOrder");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1073,6 +1149,12 @@ function fetchDepositAddress(self::Bitvavo, code, params=Dict())
 
 end
 function createOrderRequest(self::Bitvavo, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing),
@@ -1703,10 +1785,12 @@ function parseDepositWithdrawFee(self::Bitvavo, fee, currency=nothing)
         networkId = currencyCode;
     end
     networkCode = self.networkIdToCode(networkId, currencyCode);
-    result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-        Symbol("deposit") => get(result, Symbol("deposit"), nothing),
-        Symbol("withdraw") => get(result, Symbol("withdraw"), nothing)
-    );
+    if functions.ccxtruthy(networkCode != nothing)
+        result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+            Symbol("deposit") => get(result, Symbol("deposit"), nothing),
+            Symbol("withdraw") => get(result, Symbol("withdraw"), nothing)
+        );
+    end
     return result
 
 end
@@ -1782,180 +1866,233 @@ function calculateRateLimiterCost(self::Bitvavo, api, method, path, params, conf
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitvavo, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarketBook(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "{market}/book", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "{market}/book", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetReportMarketBook(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "report/{market}/book", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "report/{market}/book", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketTrades(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "{market}/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "{market}/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetReportMarketTrades(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "report/{market}/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "report/{market}/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickerPrice(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "ticker/price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker/price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickerBook(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "ticker/book", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker/book", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketCandles(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "{market}/candles", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "{market}/candles", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker24h(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "ticker/24h", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noMarket") => 25))
+    return request(self, "ticker/24h", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTime(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarkets(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAssets(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "assets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrder(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersOpen(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "ordersOpen", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5, Symbol("noMarket") => 100))
+    return request(self, "ordersOpen", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTrades(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrders(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeposit(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "deposit", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deposit", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDepositHistory(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "depositHistory", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "depositHistory", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWithdrawalHistory(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "withdrawalHistory", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "withdrawalHistory", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccount(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetBalance(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetStakingBalance(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "stakingBalance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "stakingBalance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountFees(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "account/fees", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/fees", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountHistory(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubaccounts(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "subaccounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "subaccounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubaccountsTransfers(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfers", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "subaccounts/transfers", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubaccountsTransfersTransferId(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfers/{transferId}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "subaccounts/transfers/{transferId}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetInstitutionalSubaccountsBalance(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "institutional/subaccounts/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "institutional/subaccounts/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetInstitutionalSubaccountsHistory(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "institutional/subaccounts/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "institutional/subaccounts/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetInstitutionalSubaccountsOrdersOpen(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "institutional/subaccounts/orders/open", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5, Symbol("noMarket") => 100))
+    return request(self, "institutional/subaccounts/orders/open", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostOrder(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelOrdersAfter(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "cancelOrdersAfter", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "cancelOrdersAfter", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawal(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "withdrawal", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawal", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCryptoWithdrawal(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "crypto/withdrawal", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "crypto/withdrawal", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubaccounts(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "subaccounts", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "subaccounts", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubaccountsTransfers(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfers", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "subaccounts/transfers", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePutOrder(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "order", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrder(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrders(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 25, Symbol("noMarket") => 100))
+    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteAtomicOrders(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "atomic/orders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "atomic/orders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteInstitutionalSubaccountsOrder(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "institutional/subaccounts/order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "institutional/subaccounts/order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteInstitutionalSubaccountsOrders(self::Bitvavo, params=Dict(), context=Dict())
-    return request(self, "institutional/subaccounts/orders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 25, Symbol("noMarket") => 100))
+    return request(self, "institutional/subaccounts/orders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Bitvavo(; kwargs...)
     inst = Bitvavo(Exchange(), describe, fetchTime, fetchMarkets, parseMarkets, fetchCurrencies, parseCurrency, fetchTicker, parseTicker, fetchTickers, fetchTrades, parseTrade, fetchTradingFees, parseTradingFees, fetchTradingFee, parseTradingFee, fetchOrderBook, parseOHLCV, fetchOHLCVRequest, fetchOHLCV, parseBalance, fetchBalance, fetchAccounts, parseAccount, transfer, fetchTransfers, fetchTransfer, parseTransferStatus, parseTransfer, fetchDepositAddress, createOrderRequest, createOrder, editOrderRequest, editOrder, cancelOrderRequest, cancelOrder, cancelAllOrders, cancelAllOrdersAfter, fetchOrder, fetchOrdersRequest, fetchOrders, fetchOpenOrders, parseOrderStatus, parseOrder, fetchMyTradesRequest, fetchMyTrades, fetchLedger, parseLedgerEntryType, parseLedgerEntry, withdrawRequest, withdraw, fetchWithdrawalsRequest, fetchWithdrawals, fetchDepositsRequest, fetchDeposits, parseTransactionStatus, parseTransaction, parseDepositWithdrawFee, fetchDepositWithdrawFees, sign, handleErrors, calculateRateLimiterCost, publicGetMarketBook, publicGetReportMarketBook, publicGetMarketTrades, publicGetReportMarketTrades, publicGetTickerPrice, publicGetTickerBook, publicGetMarketCandles, publicGetTicker24h, publicGetTime, publicGetMarkets, publicGetAssets, privateGetOrder, privateGetOrdersOpen, privateGetTrades, privateGetOrders, privateGetDeposit, privateGetDepositHistory, privateGetWithdrawalHistory, privateGetAccount, privateGetBalance, privateGetStakingBalance, privateGetAccountFees, privateGetAccountHistory, privateGetSubaccounts, privateGetSubaccountsTransfers, privateGetSubaccountsTransfersTransferId, privateGetInstitutionalSubaccountsBalance, privateGetInstitutionalSubaccountsHistory, privateGetInstitutionalSubaccountsOrdersOpen, privatePostOrder, privatePostCancelOrdersAfter, privatePostWithdrawal, privatePostCryptoWithdrawal, privatePostSubaccounts, privatePostSubaccountsTransfers, privatePutOrder, privateDeleteOrder, privateDeleteOrders, privateDeleteAtomicOrders, privateDeleteInstitutionalSubaccountsOrder, privateDeleteInstitutionalSubaccountsOrders)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

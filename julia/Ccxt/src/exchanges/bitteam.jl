@@ -223,41 +223,91 @@ function describe(self::Bitteam, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("history") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("api/tw/history/{pairName}/{resolution}") => 1
+                Symbol("api/tw/history/{pairName}/{resolution}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("trade/api/asset") => 1,
-                Symbol("trade/api/currencies") => 1,
-                Symbol("trade/api/orderbooks/{symbol}") => 1,
-                Symbol("trade/api/orders") => 1,
-                Symbol("trade/api/pair/{name}") => 1,
-                Symbol("trade/api/pairs") => 1,
-                Symbol("trade/api/pairs/precisions") => 1,
-                Symbol("trade/api/rates") => 1,
-                Symbol("trade/api/trade/{id}") => 1,
-                Symbol("trade/api/trades") => 1,
-                Symbol("trade/api/ccxt/pairs") => 1,
-                Symbol("trade/api/cmc/assets") => 1,
-                Symbol("trade/api/cmc/orderbook/{pair}") => 1,
-                Symbol("trade/api/cmc/summary") => 1,
-                Symbol("trade/api/cmc/ticker") => 1,
-                Symbol("trade/api/cmc/trades/{pair}") => 1
+                Symbol("trade/api/asset") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/orderbooks/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/pair/{name}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/pairs/precisions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/rates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/trade/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/ccxt/pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/cmc/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/cmc/orderbook/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/cmc/summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/cmc/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/cmc/trades/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("trade/api/ccxt/balance") => 1,
-                Symbol("trade/api/ccxt/order/{id}") => 1,
-                Symbol("trade/api/ccxt/ordersOfUser") => 1,
-                Symbol("trade/api/ccxt/tradesOfUser") => 1,
-                Symbol("trade/api/transactionsOfUser") => 1
+                Symbol("trade/api/ccxt/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/ccxt/order/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/ccxt/ordersOfUser") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/ccxt/tradesOfUser") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/transactionsOfUser") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("trade/api/ccxt/cancel-all-order") => 1,
-                Symbol("trade/api/ccxt/cancelorder") => 1,
-                Symbol("trade/api/ccxt/ordercreate") => 1
+                Symbol("trade/api/ccxt/cancel-all-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/ccxt/cancelorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/api/ccxt/ordercreate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -487,6 +537,7 @@ function fetchCurrencies(self::Bitteam, params=Dict())
     statusesResponse = indexBy(statusesResponse, "unified_cryptoasset_id");
     self.options[Symbol("_temp_currencies_statuses")] = statusesResponse;
     result = self.parseCurrencies(currencies);
+    delete!(self.options, :_temp_currencies_statuses);
     return result
 
 end
@@ -523,30 +574,32 @@ function parseCurrency(self::Bitteam, currency)
         networkId = get(networkIds, j + 1, nothing);
         networkCode = self.networkIdToCode(networkId, code);
         networkFee = self.safeNumber(feesByNetworkId, networkId);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("deposit") => deposit,
-            Symbol("withdraw") => withdraw,
-            Symbol("active") => active,
-            Symbol("fee") => networkFee,
-            Symbol("precision") => networkPrecision,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("amount") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("deposit") => deposit,
+                Symbol("withdraw") => withdraw,
+                Symbol("active") => active,
+                Symbol("fee") => networkFee,
+                Symbol("precision") => networkPrecision,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("amount") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.parseNumber(minWithdraw),
+                        Symbol("max") => self.parseNumber(maxWithdraw)
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.parseNumber(minDeposit),
+                        Symbol("max") => nothing
+                    )
                 ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.parseNumber(minWithdraw),
-                    Symbol("max") => self.parseNumber(maxWithdraw)
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.parseNumber(minDeposit),
-                    Symbol("max") => nothing
-                )
-            ),
-            Symbol("info") => currency
-        );
+                Symbol("info") => currency
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -829,12 +882,13 @@ function fetchTickers(self::Bitteam, symbols=nothing, params=Dict())
     end
     response = Base.fetch(self.publicGetTradeApiCmcSummary());
     tickers = [];
-    if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(response)))
-        response = [];
+    rawTickers = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        rawTickers = response;
     end
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        rawTicker = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawTickers)))
+        rawTicker = get(rawTickers, i + 1, nothing);
         ticker = self.parseTicker(rawTicker);
         push!(tickers, ticker);
         i += 1
@@ -1014,11 +1068,13 @@ function parseBalance(self::Bitteam, response)
         used = safeString(currencyBalance, "used");
         total = safeString(currencyBalance, "total");
         currencyCode = self.safeCurrencyCode(lowercase(rawCurrencyId));
-        balance[Symbol(currencyCode)] = Dict{Symbol, Any}(
-            Symbol("free") => free,
-            Symbol("used") => used,
-            Symbol("total") => total
-        );
+        if functions.ccxtruthy(currencyCode != nothing)
+            balance[Symbol(currencyCode)] = Dict{Symbol, Any}(
+                Symbol("free") => free,
+                Symbol("used") => used,
+                Symbol("total") => total
+            );
+        end
         i += 1
     end
     return self.safeBalance(balance)
@@ -1161,116 +1217,169 @@ function handleErrors(self::Bitteam, code, reason, url, method, headers, body, r
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitteam, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function historyGetApiTwHistoryPairNameResolution(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "api/tw/history/{pairName}/{resolution}", "history", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/tw/history/{pairName}/{resolution}", "history", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiAsset(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/asset", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/asset", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiCurrencies(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/currencies", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/currencies", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiOrderbooksSymbol(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/orderbooks/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/orderbooks/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiOrders(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/orders", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/orders", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiPairName(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/pair/{name}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/pair/{name}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiPairs(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/pairs", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/pairs", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiPairsPrecisions(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/pairs/precisions", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/pairs/precisions", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiRates(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/rates", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/rates", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiTradeId(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/trade/{id}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/trade/{id}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiTrades(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiCcxtPairs(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/pairs", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/ccxt/pairs", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiCmcAssets(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/cmc/assets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/cmc/assets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiCmcOrderbookPair(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/cmc/orderbook/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/cmc/orderbook/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiCmcSummary(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/cmc/summary", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/cmc/summary", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiCmcTicker(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/cmc/ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/cmc/ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeApiCmcTradesPair(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/cmc/trades/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/cmc/trades/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeApiCcxtBalance(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/ccxt/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeApiCcxtOrderId(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/order/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/ccxt/order/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeApiCcxtOrdersOfUser(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/ordersOfUser", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/ccxt/ordersOfUser", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeApiCcxtTradesOfUser(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/tradesOfUser", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/ccxt/tradesOfUser", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeApiTransactionsOfUser(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/transactionsOfUser", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/transactionsOfUser", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeApiCcxtCancelAllOrder(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/cancel-all-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/ccxt/cancel-all-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeApiCcxtCancelorder(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/cancelorder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/ccxt/cancelorder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeApiCcxtOrdercreate(self::Bitteam, params=Dict(), context=Dict())
-    return request(self, "trade/api/ccxt/ordercreate", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/api/ccxt/ordercreate", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Bitteam(; kwargs...)
     inst = Bitteam(Exchange(), describe, fetchMarkets, parseMarket, fetchCurrencies, parseCurrency, fetchOHLCV, parseOHLCV, fetchOrderBook, fetchOrders, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, createOrder, cancelOrder, cancelAllOrders, parseOrder, parseOrderStatus, parseOrderType, parseValueToPricision, fetchTickers, fetchTicker, parseTicker, fetchTrades, fetchMyTrades, parseTrade, fetchBalance, parseBalance, fetchDepositsWithdrawals, parseTransaction, parseTransactionType, parseTransactionStatus, sign, handleErrors, historyGetApiTwHistoryPairNameResolution, publicGetTradeApiAsset, publicGetTradeApiCurrencies, publicGetTradeApiOrderbooksSymbol, publicGetTradeApiOrders, publicGetTradeApiPairName, publicGetTradeApiPairs, publicGetTradeApiPairsPrecisions, publicGetTradeApiRates, publicGetTradeApiTradeId, publicGetTradeApiTrades, publicGetTradeApiCcxtPairs, publicGetTradeApiCmcAssets, publicGetTradeApiCmcOrderbookPair, publicGetTradeApiCmcSummary, publicGetTradeApiCmcTicker, publicGetTradeApiCmcTradesPair, privateGetTradeApiCcxtBalance, privateGetTradeApiCcxtOrderId, privateGetTradeApiCcxtOrdersOfUser, privateGetTradeApiCcxtTradesOfUser, privateGetTradeApiTransactionsOfUser, privatePostTradeApiCcxtCancelAllOrder, privatePostTradeApiCcxtCancelorder, privatePostTradeApiCcxtOrdercreate)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

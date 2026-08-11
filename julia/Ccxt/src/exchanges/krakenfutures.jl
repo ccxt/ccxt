@@ -112,6 +112,7 @@ function describe(self::Krakenfutures, )
         Symbol("cancelOrders") => true,
         Symbol("createMarketOrder") => true,
         Symbol("createOrder") => true,
+        Symbol("createOrders") => true,
         Symbol("createPostOnlyOrder") => true,
         Symbol("createReduceOnlyOrder") => true,
         Symbol("createStopLimitOrder") => true,
@@ -182,18 +183,141 @@ function describe(self::Krakenfutures, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["feeschedules", "instruments", "orderbook", "tickers", "history", "historicalfundingrates"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("feeschedules") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("historicalfundingrates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("get") => ["feeschedules/volumes", "openpositions", "notifications", "accounts", "openorders", "recentorders", "fills", "transfers", "leveragepreferences", "pnlpreferences", "assignmentprogram/current", "assignmentprogram/history", "orders/status"],
-            Symbol("post") => ["sendorder", "editorder", "cancelorder", "transfer", "batchorder", "cancelallorders", "cancelallordersafter", "withdrawal", "assignmentprogram/add", "assignmentprogram/delete"],
-            Symbol("put") => ["leveragepreferences", "pnlpreferences"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("feeschedules/volumes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openpositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("notifications") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("recentorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("leveragepreferences") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pnlpreferences") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assignmentprogram/current") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assignmentprogram/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("sendorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("editorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("batchorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelallorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelallordersafter") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assignmentprogram/add") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assignmentprogram/delete") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("put") => Dict{Symbol, Any}(
+                Symbol("leveragepreferences") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pnlpreferences") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("charts") => Dict{Symbol, Any}(
-            Symbol("get") => ["{price_type}/{symbol}/{interval}"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("{price_type}/{symbol}/{interval}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("history") => Dict{Symbol, Any}(
-            Symbol("get") => ["orders", "executions", "triggers", "accountlogcsv", "account-log", "market/{symbol}/orders", "market/{symbol}/executions"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("executions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("triggers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accountlogcsv") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account-log") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/{symbol}/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/{symbol}/executions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(
@@ -219,6 +343,7 @@ function describe(self::Krakenfutures, )
             Symbol("invalidAccount") => BadRequest,
             Symbol("invalidAmount") => BadRequest,
             Symbol("insufficientFunds") => InsufficientFunds,
+            Symbol("INSUFFICIENT_MARGIN") => InsufficientFunds,
             Symbol("Bad Request") => BadRequest,
             Symbol("Unavailable") => ExchangeNotAvailable,
             Symbol("invalidUnit") => BadRequest,
@@ -401,7 +526,7 @@ function fetchMarkets(self::Krakenfutures, params=Dict())
         symbol = id;
         split_var = split(id, "_");
         splitMarket = safeString(split_var, 1);
-        baseId = splitMarket[0 + 1:length(splitMarket) - 3];
+        baseId = functions.ccxt_slice(splitMarket, 0, length(splitMarket) - 3);
         quoteId = "usd";
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
@@ -508,8 +633,9 @@ function fetchOrderBook(self::Krakenfutures, symbol, limit=nothing, params=Dict(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetOrderbook(extend(request, params)));
-    timestamp = self.parse8601(get(response, Symbol("serverTime"), nothing));
-    return self.parseOrderBook(get(response, Symbol("orderBook"), nothing), symbol, timestamp)
+    timestamp = self.parse8601(safeString(response, "serverTime"));
+    orderBook = self.safeDict(response, "orderBook", Dict{Symbol, Any}());
+    return self.parseOrderBook(orderBook, symbol, timestamp)
 
 end
 function fetchTickers(self::Krakenfutures, symbols=nothing, params=Dict())
@@ -743,6 +869,12 @@ function parseTrade(self::Krakenfutures, trade, market=nothing)
 
 end
 function createOrderRequest(self::Krakenfutures, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     symbol = get(market, Symbol("symbol"), nothing);
     type_var = safeString(params, "orderType", type_var);
@@ -864,9 +996,10 @@ function editOrder(self::Krakenfutures, id, symbol, type_var, side, amount=nothi
         request[Symbol("limitPrice")] = price;
     end
     response = Base.fetch(self.privatePostEditorder(extend(request, params)));
-    status = safeString(get(response, Symbol("editStatus"), nothing), "status");
+    editStatus = self.safeDict(response, "editStatus", Dict{Symbol, Any}());
+    status = safeString(editStatus, "status");
     self.verifyOrderActionSuccess(status, "editOrder", ["filled"]);
-    order = self.parseOrder(get(response, Symbol("editStatus"), nothing));
+    order = self.parseOrder(editStatus);
     order[Symbol("info")] = response;
     return order
 
@@ -1186,7 +1319,7 @@ function parseOrder(self::Krakenfutures, order, market=nothing)
             return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => order,
     Symbol("id") => safeString(orderDictFromFetchOrder, "orderId"),
-    Symbol("clientOrderId") => safeStringN(orderDictFromFetchOrder, ["cliOrdId"]),
+    Symbol("clientOrderId") => safeString(orderDictFromFetchOrder, "cliOrdId"),
     Symbol("timestamp") => self.parse8601(datetime),
     Symbol("datetime") => datetime,
     Symbol("lastTradeTimestamp") => nothing,
@@ -1378,7 +1511,8 @@ function fetchMyTrades(self::Krakenfutures, symbol=nothing, since=nothing, limit
         market = self.market(symbol);
     end
     response = Base.fetch(self.privateGetFills(params));
-    return self.parseTrades(get(response, Symbol("fills"), nothing), market, since, limit)
+    fills = self.safeList(response, "fills", []);
+    return self.parseTrades(fills, market, since, limit)
 
 end
 function fetchBalance(self::Krakenfutures, params=Dict())
@@ -1426,6 +1560,9 @@ function parseBalance(self::Krakenfutures, response)
         currencyId = get(currencyIds, i + 1, nothing);
         balance = get(balances, Symbol(currencyId), nothing);
         code = self.safeCurrencyCode(currencyId);
+        if functions.ccxtruthy(code == nothing)
+            i += 1; continue
+        end
         splitCode = split(code, "_");
         codeLength = length(splitCode);
         if functions.ccxtruthy(functions.ccxt_gt(codeLength, 1))
@@ -1443,7 +1580,9 @@ function parseBalance(self::Krakenfutures, response)
             account[Symbol("free")] = safeString(auxiliary, "af");
             account[Symbol("total")] = safeString(auxiliary, "pv");
         end
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1561,7 +1700,7 @@ function fetchPositions(self::Krakenfutures, symbols=nothing, params=Dict())
 end
 function parsePositions(self::Krakenfutures, response, symbols=nothing, params=Dict())
     result = [];
-    positions = safeValue(response, "openPositions");
+    positions = self.safeList(response, "openPositions", []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
         position = self.parsePosition(get(positions, i + 1, nothing));
@@ -1675,7 +1814,7 @@ function parseAccount(self::Krakenfutures, account)
     );
     if functions.ccxtruthy(ccxt_in(account, accountByType))
             return get(accountByType, Symbol(account), nothing)
-    elseif functions.ccxtruthy(ccxt_in(account, self.markets))
+    elseif functions.ccxtruthy(@functions.ccxt_and((self.markets != nothing), (ccxt_in(account, self.markets))))
         market = self.market(account);
         marketId = get(market, Symbol("id"), nothing);
         splitId = split(marketId, "_");
@@ -1731,9 +1870,13 @@ function setLeverage(self::Krakenfutures, leverage, symbol=nothing, params=Dict(
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
+    marketIdUpper = self.marketId(symbol);
+    if functions.ccxtruthy(marketIdUpper == nothing)
+        throw(ArgumentsRequired(string(self.id, " marketId is required")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("maxLeverage") => leverage,
-        Symbol("symbol") => uppercase(self.marketId(symbol))
+        Symbol("symbol") => uppercase(marketIdUpper)
     );
     return Base.fetch(self.privatePutLeveragepreferences(extend(request, params)))
 
@@ -1755,8 +1898,12 @@ function fetchLeverage(self::Krakenfutures, symbol, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
+    marketIdUpper = self.marketId(symbol);
+    if functions.ccxtruthy(marketIdUpper == nothing)
+        throw(ArgumentsRequired(string(self.id, " marketId is required")));
+    end
     request = Dict{Symbol, Any}(
-        Symbol("symbol") => uppercase(self.marketId(symbol))
+        Symbol("symbol") => uppercase(marketIdUpper)
     );
     response = Base.fetch(self.privateGetLeveragepreferences(extend(request, params)));
     leveragePreferences = self.safeList(response, "leveragePreferences", []);
@@ -1850,7 +1997,7 @@ function sign(self::Krakenfutures, path, api="public", method="GET", params=Dict
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Krakenfutures, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -2013,9 +2160,62 @@ end
 
 function Krakenfutures(; kwargs...)
     inst = Krakenfutures(Exchange(), describe, fetchMarkets, fetchOrderBook, fetchTickers, parseTicker, fetchOHLCV, parseOHLCV, fetchTrades, parseTrade, createOrderRequest, createOrder, createOrders, editOrder, cancelOrder, cancelOrders, cancelAllOrders, cancelAllOrdersAfter, fetchOpenOrders, fetchOrders, fetchOrder, fetchClosedOrders, fetchCanceledOrders, parseOrderType, verifyOrderActionSuccess, parseOrderStatus, parseOrder, fetchMyTrades, fetchBalance, parseBalance, fetchFundingRates, parseFundingRate, fetchFundingRateHistory, fetchPositions, parsePositions, parsePosition, fetchLeverageTiers, parseMarketLeverageTiers, parseTransfer, parseAccount, transferOut, transfer, setLeverage, fetchLeverages, fetchLeverage, parseLeverage, handleErrors, sign, publicGetFeeschedules, publicGetInstruments, publicGetOrderbook, publicGetTickers, publicGetHistory, publicGetHistoricalfundingrates, privateGetFeeschedulesVolumes, privateGetOpenpositions, privateGetNotifications, privateGetAccounts, privateGetOpenorders, privateGetRecentorders, privateGetFills, privateGetTransfers, privateGetLeveragepreferences, privateGetPnlpreferences, privateGetAssignmentprogramCurrent, privateGetAssignmentprogramHistory, privateGetOrdersStatus, privatePostSendorder, privatePostEditorder, privatePostCancelorder, privatePostTransfer, privatePostBatchorder, privatePostCancelallorders, privatePostCancelallordersafter, privatePostWithdrawal, privatePostAssignmentprogramAdd, privatePostAssignmentprogramDelete, privatePutLeveragepreferences, privatePutPnlpreferences, chartsGetPriceTypeSymbolInterval, historyGetOrders, historyGetExecutions, historyGetTriggers, historyGetAccountlogcsv, historyGetAccountLog, historyGetMarketSymbolOrders, historyGetMarketSymbolExecutions)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

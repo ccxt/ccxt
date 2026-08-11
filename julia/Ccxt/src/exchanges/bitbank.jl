@@ -118,6 +118,7 @@ function describe(self::Bitbank, )
         Symbol("fetchMarginMode") => false,
         Symbol("fetchMarginModes") => false,
         Symbol("fetchMarketLeverageTiers") => false,
+        Symbol("fetchMarkets") => true,
         Symbol("fetchMarkOHLCV") => false,
         Symbol("fetchMarkPrices") => false,
         Symbol("fetchMyLiquidations") => false,
@@ -185,44 +186,100 @@ function describe(self::Bitbank, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("{pair}/ticker") => 1,
-                Symbol("tickers") => 1,
-                Symbol("tickers_jpy") => 1,
-                Symbol("{pair}/depth") => 1,
-                Symbol("{pair}/transactions") => 1,
-                Symbol("{pair}/transactions/{yyyymmdd}") => 1,
-                Symbol("{pair}/candlestick/{candletype}/{yyyymmdd}") => 1,
-                Symbol("{pair}/circuit_break_info") => 1
+                Symbol("{pair}/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers_jpy") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{pair}/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{pair}/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{pair}/transactions/{yyyymmdd}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{pair}/candlestick/{candletype}/{yyyymmdd}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{pair}/circuit_break_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("user/assets") => 1,
-                Symbol("user/spot/order") => 1,
-                Symbol("user/spot/active_orders") => 1,
-                Symbol("user/margin/positions") => 1,
-                Symbol("user/spot/trade_history") => 1,
-                Symbol("user/deposit_history") => 1,
-                Symbol("user/unconfirmed_deposits") => 1,
-                Symbol("user/deposit_originators") => 1,
-                Symbol("user/withdrawal_account") => 1,
-                Symbol("user/withdrawal_history") => 1,
-                Symbol("spot/status") => 1,
-                Symbol("spot/pairs") => 1
+                Symbol("user/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/spot/active_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/margin/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/spot/trade_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/deposit_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/unconfirmed_deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/deposit_originators") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/withdrawal_account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/withdrawal_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("user/spot/order") => 1.66,
-                Symbol("user/spot/cancel_order") => 1.66,
-                Symbol("user/spot/cancel_orders") => 1.66,
-                Symbol("user/spot/orders_info") => 1.66,
-                Symbol("user/confirm_deposits") => 1.66,
-                Symbol("user/confirm_deposits_all") => 1.66,
-                Symbol("user/request_withdrawal") => 1.66
+                Symbol("user/spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.66
+),
+                Symbol("user/spot/cancel_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.66
+),
+                Symbol("user/spot/cancel_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.66
+),
+                Symbol("user/spot/orders_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.66
+),
+                Symbol("user/confirm_deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.66
+),
+                Symbol("user/confirm_deposits_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.66
+),
+                Symbol("user/request_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.66
+)
             )
         ),
         Symbol("markets") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("spot/pairs") => 1
+                Symbol("spot/pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -323,7 +380,7 @@ function parseMarket(self::Bitbank, entry)
     quoteId = safeString(entry, "quote_asset");
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -373,7 +430,7 @@ function parseMarket(self::Bitbank, entry)
     ),
     Symbol("created") => nothing,
     Symbol("info") => entry
-)
+))
 
 end
 function parseTicker(self::Bitbank, ticker, market=nothing)
@@ -553,7 +610,9 @@ function parseBalance(self::Bitbank, response)
         account[Symbol("free")] = safeString(balance, "free_amount");
         account[Symbol("used")] = safeString(balance, "locked_amount");
         account[Symbol("total")] = safeString(balance, "onhand_amount");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -786,8 +845,17 @@ function sign(self::Bitbank, path, api="public", method="GET", params=Dict(), he
         end
     else
         self.checkRequiredCredentials();
+        authMethod = safeString(self.options, "authMethod", "timeWindow");
+        isTimeWindow = (authMethod == "timeWindow");
+        requestTime = string(milliseconds());
+        timeWindow = safeString(self.options, "timeWindow", "5000");
         nonce = string(self.nonce());
-        auth = nonce;
+        auth = nothing;
+        if functions.ccxtruthy(isTimeWindow)
+            auth = string(requestTime, timeWindow);
+        else
+            auth = nonce;
+        end
         url += string(self.version, "/", self.implodeParams(path, params));
         if functions.ccxtruthy(method == "POST")
             body = json(query);
@@ -803,9 +871,14 @@ function sign(self::Bitbank, path, api="public", method="GET", params=Dict(), he
         headers = Dict{Symbol, Any}(
             Symbol("Content-Type") => "application/json",
             Symbol("ACCESS-KEY") => self.apiKey,
-            Symbol("ACCESS-NONCE") => nonce,
             Symbol("ACCESS-SIGNATURE") => self.hmac(self.encode(auth), self.encode(self.secret), sha256)
         );
+        if functions.ccxtruthy(isTimeWindow)
+            headers[Symbol("ACCESS-REQUEST-TIME")] = requestTime;
+            headers[Symbol("ACCESS-TIME-WINDOW")] = timeWindow;
+        else
+            headers[Symbol("ACCESS-NONCE")] = nonce;
+        end
     end
     return Dict{Symbol, Any}(
     Symbol("url") => url,
@@ -893,128 +966,181 @@ function handleErrors(self::Bitbank, httpCode, reason, url, method, headers, bod
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitbank, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetPairTicker(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "{pair}/ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickers(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickersJpy(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "tickers_jpy", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tickers_jpy", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPairDepth(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/depth", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "{pair}/depth", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPairTransactions(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/transactions", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "{pair}/transactions", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPairTransactionsYyyymmdd(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/transactions/{yyyymmdd}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "{pair}/transactions/{yyyymmdd}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPairCandlestickCandletypeYyyymmdd(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/candlestick/{candletype}/{yyyymmdd}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "{pair}/candlestick/{candletype}/{yyyymmdd}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPairCircuitBreakInfo(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "{pair}/circuit_break_info", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "{pair}/circuit_break_info", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserAssets(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/assets", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/assets", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserSpotOrder(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/spot/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserSpotActiveOrders(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/active_orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/spot/active_orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserMarginPositions(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/margin/positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/margin/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserSpotTradeHistory(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/trade_history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/spot/trade_history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserDepositHistory(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/deposit_history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/deposit_history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserUnconfirmedDeposits(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/unconfirmed_deposits", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/unconfirmed_deposits", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserDepositOriginators(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/deposit_originators", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/deposit_originators", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserWithdrawalAccount(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/withdrawal_account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/withdrawal_account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserWithdrawalHistory(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/withdrawal_history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/withdrawal_history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotStatus(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "spot/status", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/status", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotPairs(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "spot/pairs", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/pairs", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostUserSpotOrder(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1.66))
+    return request(self, "user/spot/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserSpotCancelOrder(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/cancel_order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1.66))
+    return request(self, "user/spot/cancel_order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserSpotCancelOrders(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/cancel_orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1.66))
+    return request(self, "user/spot/cancel_orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserSpotOrdersInfo(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/spot/orders_info", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1.66))
+    return request(self, "user/spot/orders_info", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserConfirmDeposits(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/confirm_deposits", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1.66))
+    return request(self, "user/confirm_deposits", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserConfirmDepositsAll(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/confirm_deposits_all", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1.66))
+    return request(self, "user/confirm_deposits_all", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserRequestWithdrawal(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "user/request_withdrawal", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1.66))
+    return request(self, "user/request_withdrawal", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function marketsGetSpotPairs(self::Bitbank, params=Dict(), context=Dict())
-    return request(self, "spot/pairs", "markets", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/pairs", "markets", "GET", params, nothing, nothing, Dict())
 end
 
 function Bitbank(; kwargs...)
     inst = Bitbank(Exchange(), describe, fetchMarkets, parseMarket, parseTicker, fetchTicker, fetchOrderBook, parseTrade, fetchTrades, fetchTradingFees, parseOHLCV, fetchOHLCV, parseBalance, fetchBalance, parseOrderStatus, parseOrder, createOrder, cancelOrder, fetchOrder, fetchOpenOrders, fetchMyTrades, fetchDepositAddress, withdraw, parseTransaction, nonce, sign, handleErrors, publicGetPairTicker, publicGetTickers, publicGetTickersJpy, publicGetPairDepth, publicGetPairTransactions, publicGetPairTransactionsYyyymmdd, publicGetPairCandlestickCandletypeYyyymmdd, publicGetPairCircuitBreakInfo, privateGetUserAssets, privateGetUserSpotOrder, privateGetUserSpotActiveOrders, privateGetUserMarginPositions, privateGetUserSpotTradeHistory, privateGetUserDepositHistory, privateGetUserUnconfirmedDeposits, privateGetUserDepositOriginators, privateGetUserWithdrawalAccount, privateGetUserWithdrawalHistory, privateGetSpotStatus, privateGetSpotPairs, privatePostUserSpotOrder, privatePostUserSpotCancelOrder, privatePostUserSpotCancelOrders, privatePostUserSpotOrdersInfo, privatePostUserConfirmDeposits, privatePostUserConfirmDepositsAll, privatePostUserRequestWithdrawal, marketsGetSpotPairs)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

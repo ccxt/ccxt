@@ -299,109 +299,295 @@ function describe(self::Bitmex, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("announcement") => 5,
-                Symbol("announcement/urgent") => 5,
-                Symbol("chat") => 5,
-                Symbol("chat/channels") => 5,
-                Symbol("chat/connected") => 5,
-                Symbol("chat/pinned") => 5,
-                Symbol("funding") => 5,
-                Symbol("guild") => 5,
-                Symbol("instrument") => 5,
-                Symbol("instrument/active") => 5,
-                Symbol("instrument/activeAndIndices") => 5,
-                Symbol("instrument/activeIntervals") => 5,
-                Symbol("instrument/compositeIndex") => 5,
-                Symbol("instrument/indices") => 5,
-                Symbol("instrument/usdVolume") => 5,
-                Symbol("insurance") => 5,
-                Symbol("leaderboard") => 5,
-                Symbol("liquidation") => 5,
-                Symbol("orderBook/L2") => 5,
-                Symbol("porl/nonce") => 5,
-                Symbol("quote") => 5,
-                Symbol("quote/bucketed") => 5,
-                Symbol("schema") => 5,
-                Symbol("schema/websocketHelp") => 5,
-                Symbol("settlement") => 5,
-                Symbol("stats") => 5,
-                Symbol("stats/history") => 5,
-                Symbol("stats/historyUSD") => 5,
-                Symbol("trade") => 5,
-                Symbol("trade/bucketed") => 5,
-                Symbol("wallet/assets") => 5,
-                Symbol("wallet/networks") => 5
+                Symbol("announcement") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("announcement/urgent") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("chat") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("chat/channels") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("chat/connected") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("chat/pinned") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("funding") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("guild") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("instrument/active") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("instrument/activeAndIndices") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("instrument/activeIntervals") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("instrument/compositeIndex") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("instrument/indices") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("instrument/usdVolume") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("insurance") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("leaderboard") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("liquidation") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("orderBook/L2") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("porl/nonce") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("quote/bucketed") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("schema") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("schema/websocketHelp") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("settlement") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("stats") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("stats/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("stats/historyUSD") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("trade/bucketed") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("wallet/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("wallet/networks") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("address") => 5,
-                Symbol("apiKey") => 5,
-                Symbol("execution") => 5,
-                Symbol("execution/tradeHistory") => 5,
-                Symbol("globalNotification") => 5,
-                Symbol("leaderboard/name") => 5,
-                Symbol("order") => 5,
-                Symbol("porl/snapshots") => 5,
-                Symbol("position") => 5,
-                Symbol("user") => 5,
-                Symbol("user/affiliateStatus") => 5,
-                Symbol("user/checkReferralCode") => 5,
-                Symbol("user/commission") => 5,
-                Symbol("user/csa") => 5,
-                Symbol("user/depositAddress") => 5,
-                Symbol("user/executionHistory") => 5,
-                Symbol("user/getWalletTransferAccounts") => 5,
-                Symbol("user/margin") => 5,
-                Symbol("user/quoteFillRatio") => 5,
-                Symbol("user/quoteValueRatio") => 5,
-                Symbol("user/staking") => 5,
-                Symbol("user/staking/instruments") => 5,
-                Symbol("user/staking/tiers") => 5,
-                Symbol("user/tradingVolume") => 5,
-                Symbol("user/unstakingRequests") => 5,
-                Symbol("user/wallet") => 5,
-                Symbol("user/walletHistory") => 5,
-                Symbol("user/walletSummary") => 5,
-                Symbol("userAffiliates") => 5,
-                Symbol("userEvent") => 5
+                Symbol("address") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("apiKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("execution") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("execution/tradeHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("globalNotification") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("leaderboard/name") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("porl/snapshots") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("position") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/affiliateStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/checkReferralCode") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/commission") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/csa") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/depositAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/executionHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/getWalletTransferAccounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/quoteFillRatio") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/quoteValueRatio") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/staking") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/staking/instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/staking/tiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/tradingVolume") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/unstakingRequests") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/wallet") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/walletHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/walletSummary") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("userAffiliates") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("userEvent") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("address") => 5,
-                Symbol("chat") => 5,
-                Symbol("guild") => 5,
-                Symbol("guild/archive") => 5,
-                Symbol("guild/join") => 5,
-                Symbol("guild/kick") => 5,
-                Symbol("guild/leave") => 5,
-                Symbol("guild/sharesTrades") => 5,
-                Symbol("order") => 1,
-                Symbol("order/cancelAllAfter") => 5,
-                Symbol("order/closePosition") => 5,
-                Symbol("position/isolate") => 1,
-                Symbol("position/leverage") => 1,
-                Symbol("position/riskLimit") => 5,
-                Symbol("position/transferMargin") => 1,
-                Symbol("user/addSubaccount") => 5,
-                Symbol("user/cancelWithdrawal") => 5,
-                Symbol("user/communicationToken") => 5,
-                Symbol("user/confirmEmail") => 5,
-                Symbol("user/confirmWithdrawal") => 5,
-                Symbol("user/logout") => 5,
-                Symbol("user/preferences") => 5,
-                Symbol("user/requestWithdrawal") => 5,
-                Symbol("user/unstakingRequests") => 5,
-                Symbol("user/updateSubaccount") => 5,
-                Symbol("user/walletTransfer") => 5
+                Symbol("address") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("chat") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("guild") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("guild/archive") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("guild/join") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("guild/kick") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("guild/leave") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("guild/sharesTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/cancelAllAfter") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("order/closePosition") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("position/isolate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("position/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("position/riskLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("position/transferMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/addSubaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/cancelWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/communicationToken") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/confirmEmail") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/confirmWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/logout") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/preferences") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/requestWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/unstakingRequests") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/updateSubaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/walletTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("guild") => 5,
-                Symbol("order") => 1
+                Symbol("guild") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("order") => 1,
-                Symbol("order/all") => 1,
-                Symbol("user/unstakingRequests") => 5
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/unstakingRequests") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         )
     ),
@@ -593,26 +779,28 @@ function parseCurrency(self::Bitmex, currency)
         if functions.ccxtruthy(isWithdrawEnabled)
             withdrawEnabled = true;
         end
-        networks[Symbol(network)] = Dict{Symbol, Any}(
-            Symbol("info") => chain,
-            Symbol("id") => networkId,
-            Symbol("network") => network,
-            Symbol("active") => active,
-            Symbol("deposit") => isDepositEnabled,
-            Symbol("withdraw") => isWithdrawEnabled,
-            Symbol("fee") => withdrawalFee,
-            Symbol("precision") => nothing,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(network != nothing)
+            networks[Symbol(network)] = Dict{Symbol, Any}(
+                Symbol("info") => chain,
+                Symbol("id") => networkId,
+                Symbol("network") => network,
+                Symbol("active") => active,
+                Symbol("deposit") => isDepositEnabled,
+                Symbol("withdraw") => isWithdrawEnabled,
+                Symbol("fee") => withdrawalFee,
+                Symbol("precision") => nothing,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     currencyEnabled = safeValue(currency, "enabled");
@@ -693,7 +881,7 @@ function convertFromRawQuantity(self::Bitmex, symbol, rawQuantity, currencySide=
     end
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-            return self.parseNumber(self.convertToRealAmount(get(market, Symbol(currencySide), nothing), rawQuantity))
+            return self.parseNumber(self.convertToRealAmount(safeString(market, currencySide), rawQuantity))
     end
     return self.parseNumber(rawQuantity)
 
@@ -783,7 +971,10 @@ function parseMarket(self::Bitmex, market)
         isQuanto = nothing;
         linear = nothing;
     end
-    return Dict{Symbol, Any}(
+    if functions.ccxtruthy(symbol == nothing)
+        throw(ArgumentsRequired(string(self.id, " parseMarket() requires a symbol")));
+    end
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -834,7 +1025,7 @@ function parseMarket(self::Bitmex, market)
     ),
     Symbol("created") => nothing,
     Symbol("info") => market
-)
+))
 
 end
 function parseBalance(self::Bitmex, response)
@@ -851,7 +1042,9 @@ function parseBalance(self::Bitmex, response)
         total = safeString(balance, "marginBalance");
         account[Symbol("free")] = self.convertToRealAmount(code, free);
         account[Symbol("total")] = self.convertToRealAmount(code, total);
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -888,15 +1081,15 @@ function fetchOrderBook(self::Bitmex, symbol, limit=nothing, params=Dict())
         Symbol("datetime") => nothing,
         Symbol("nonce") => nothing
     );
+    orders = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        order = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
+        order = get(orders, i + 1, nothing);
         side = functions.ccxtruthy((get(order, Symbol("side"), nothing) == "Sell")) ? "asks" : "bids";
         amount = self.convertFromRawQuantity(symbol, safeString(order, "size"));
         price = self.safeNumber(order, "price");
         if functions.ccxtruthy(price != nothing)
-            resultSide = get(result, Symbol(side), nothing);
-                        push!(resultSide, [price, amount]);
+                        push!(get(result, Symbol(side), nothing), [price, amount]);
         end
         i += 1
     end
@@ -1195,9 +1388,10 @@ function fetchTickers(self::Bitmex, symbols=nothing, params=Dict())
     symbols = self.marketSymbols(symbols);
     response = Base.fetch(self.publicGetInstrumentActiveAndIndices(params));
     result = Dict{Symbol, Any}();
+    rawTickers = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        ticker = self.parseTicker(get(response, i + 1, nothing));
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawTickers)))
+        ticker = self.parseTicker(get(rawTickers, i + 1, nothing));
         symbol = safeString(ticker, "symbol");
         if functions.ccxtruthy(symbol != nothing)
             result[Symbol(symbol)] = ticker;
@@ -1282,7 +1476,7 @@ function fetchOHLCV(self::Bitmex, symbol, timeframe="1m", since=nothing, limit=n
         request[Symbol("reverse")] = true;
     end
     response = Base.fetch(self.publicGetTradeBucketed(extend(request, params)));
-    result = self.parseOHLCVs(response, market, timeframe, since, limit);
+    result = self.parseOHLCVs(toArray(response), market, timeframe, since, limit);
     if functions.ccxtruthy(useOpenTimestamp)
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
@@ -1556,7 +1750,7 @@ function editOrder(self::Bitmex, id, symbol, type_var, side, amount=nothing, pri
         triggerDirection = safeString(params, "triggerDirection");
         triggerAbove = (@functions.ccxt_or((triggerDirection == "ascending"), (triggerDirection == "above")));
         if functions.ccxtruthy(@functions.ccxt_or((type_var == "limit"), (type_var == "market")))
-            self.checkRequiredArgument("createOrder", triggerDirection, "triggerDirection", ["above", "below"]);
+            self.checkRequiredArgument("editOrder", triggerDirection, "triggerDirection", ["above", "below"]);
         end
         orderType = nothing;
         if functions.ccxtruthy(type_var == "limit")
@@ -1660,6 +1854,9 @@ end
 function cancelAllOrdersAfter(self::Bitmex, timeout, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
+    end
+    if functions.ccxtruthy(timeout == nothing)
+        throw(ExchangeError(string(self.id, " cancelAllOrdersAfter() missing timeout")));
     end
     request = Dict{Symbol, Any}(
         Symbol("timeout") => functions.ccxtruthy((functions.ccxt_gt(timeout, 0))) ? self.parseToInt(timeout / 1000) : 0
@@ -1777,9 +1974,10 @@ function fetchFundingRates(self::Bitmex, symbols=nothing, params=Dict())
     end
     response = Base.fetch(self.publicGetInstrumentActiveAndIndices(params));
     filteredResponse = [];
+    rawItems = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        item = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawItems)))
+        item = get(rawItems, i + 1, nothing);
         marketId = safeString(item, "symbol");
         market = self.safeMarket(marketId);
         swap = self.safeBool(market, "swap", false);
@@ -1825,6 +2023,9 @@ function fetchFundingRateHistory(self::Bitmex, symbol=nothing, since=nothing, li
     end
     request = Dict{Symbol, Any}();
     market = nothing;
+    if functions.ccxtruthy(symbol == nothing)
+        throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
+    end
     if functions.ccxtruthy(ccxt_in(symbol, self.currencies))
         code = self.currency(symbol);
         request[Symbol("symbol")] = get(code, Symbol("id"), nothing);
@@ -1967,16 +2168,18 @@ function parseDepositWithdrawFee(self::Bitmex, fee, currency=nothing)
             networkCode = self.networkIdToCode(networkId, currencyCode);
             withdrawalFeeId = safeString(network, "withdrawalFee");
             withdrawalFee = self.parseNumber(stringMul(withdrawalFeeId, precision));
-            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("fee") => nothing,
-                    Symbol("percentage") => nothing
-                ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("fee") => withdrawalFee,
-                    Symbol("percentage") => false
-                )
-            );
+            if functions.ccxtruthy(networkCode != nothing)
+                result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("fee") => nothing,
+                        Symbol("percentage") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("fee") => withdrawalFee,
+                        Symbol("percentage") => false
+                    )
+                );
+            end
             if functions.ccxtruthy(networksLength == 1)
                 result[Symbol("withdraw")][Symbol("fee")] = withdrawalFee;
                 result[Symbol("withdraw")][Symbol("percentage")] = false;
@@ -2064,7 +2267,7 @@ function fetchLiquidations(self::Bitmex, symbol, since=nothing, limit=nothing, p
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
     response = Base.fetch(self.publicGetLiquidation(extend(request, params)));
-    return self.parseLiquidations(response, market, since, limit)
+    return self.parseLiquidations(toArray(response), market, since, limit)
 
 end
 function parseLiquidation(self::Bitmex, liquidation, market=nothing)
@@ -2221,6 +2424,9 @@ function sign(self::Bitmex, path, api="public", method="GET", params=Dict(), hea
             Symbol("api-key") => self.apiKey
         );
         expires = self.sum(seconds(), expires);
+        if functions.ccxtruthy(expires == nothing)
+            throw(ExchangeError(string(self.id, " sign() missing expires")));
+        end
         stringExpires = string(expires);
         auth += stringExpires;
         headers[Symbol("api-expires")] = stringExpires;
@@ -2241,388 +2447,441 @@ function sign(self::Bitmex, path, api="public", method="GET", params=Dict(), hea
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitmex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetAnnouncement(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "announcement", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "announcement", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAnnouncementUrgent(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "announcement/urgent", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "announcement/urgent", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetChat(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "chat", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "chat", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetChatChannels(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "chat/channels", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "chat/channels", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetChatConnected(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "chat/connected", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "chat/connected", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetChatPinned(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "chat/pinned", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "chat/pinned", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetFunding(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "funding", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "funding", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGuild(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "guild", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetInstrument(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "instrument", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetInstrumentActive(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/active", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "instrument/active", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetInstrumentActiveAndIndices(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/activeAndIndices", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "instrument/activeAndIndices", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetInstrumentActiveIntervals(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/activeIntervals", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "instrument/activeIntervals", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetInstrumentCompositeIndex(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/compositeIndex", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "instrument/compositeIndex", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetInstrumentIndices(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/indices", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "instrument/indices", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetInstrumentUsdVolume(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "instrument/usdVolume", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "instrument/usdVolume", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetInsurance(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "insurance", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "insurance", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetLeaderboard(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "leaderboard", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "leaderboard", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetLiquidation(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "liquidation", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "liquidation", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderBookL2(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "orderBook/L2", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "orderBook/L2", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPorlNonce(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "porl/nonce", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "porl/nonce", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuote(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "quote", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "quote", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuoteBucketed(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "quote/bucketed", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "quote/bucketed", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSchema(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "schema", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "schema", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSchemaWebsocketHelp(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "schema/websocketHelp", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "schema/websocketHelp", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSettlement(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "settlement", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "settlement", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStats(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "stats", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "stats", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStatsHistory(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "stats/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "stats/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStatsHistoryUSD(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "stats/historyUSD", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "stats/historyUSD", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTrade(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "trade", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "trade", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeBucketed(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "trade/bucketed", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "trade/bucketed", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetWalletAssets(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "wallet/assets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "wallet/assets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetWalletNetworks(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "wallet/networks", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "wallet/networks", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAddress(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiKey(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "apiKey", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "apiKey", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExecution(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "execution", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "execution", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExecutionTradeHistory(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "execution/tradeHistory", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "execution/tradeHistory", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGlobalNotification(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "globalNotification", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "globalNotification", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetLeaderboardName(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "leaderboard/name", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "leaderboard/name", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrder(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPorlSnapshots(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "porl/snapshots", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "porl/snapshots", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPosition(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "position", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "position", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUser(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserAffiliateStatus(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/affiliateStatus", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/affiliateStatus", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserCheckReferralCode(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/checkReferralCode", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/checkReferralCode", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserCommission(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/commission", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/commission", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserCsa(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/csa", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/csa", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserDepositAddress(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/depositAddress", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/depositAddress", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserExecutionHistory(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/executionHistory", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/executionHistory", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserGetWalletTransferAccounts(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/getWalletTransferAccounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/getWalletTransferAccounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserMargin(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/margin", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/margin", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserQuoteFillRatio(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/quoteFillRatio", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/quoteFillRatio", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserQuoteValueRatio(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/quoteValueRatio", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/quoteValueRatio", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserStaking(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/staking", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/staking", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserStakingInstruments(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/staking/instruments", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/staking/instruments", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserStakingTiers(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/staking/tiers", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/staking/tiers", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserTradingVolume(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/tradingVolume", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/tradingVolume", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserUnstakingRequests(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/unstakingRequests", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/unstakingRequests", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserWallet(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/wallet", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/wallet", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserWalletHistory(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/walletHistory", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/walletHistory", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserWalletSummary(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/walletSummary", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/walletSummary", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserAffiliates(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "userAffiliates", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "userAffiliates", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserEvent(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "userEvent", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "userEvent", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAddress(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "address", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "address", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostChat(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "chat", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "chat", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGuild(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "guild", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGuildArchive(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild/archive", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "guild/archive", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGuildJoin(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild/join", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "guild/join", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGuildKick(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild/kick", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "guild/kick", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGuildLeave(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild/leave", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "guild/leave", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGuildSharesTrades(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild/sharesTrades", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "guild/sharesTrades", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrder(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderCancelAllAfter(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order/cancelAllAfter", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "order/cancelAllAfter", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderClosePosition(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order/closePosition", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "order/closePosition", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPositionIsolate(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "position/isolate", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "position/isolate", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPositionLeverage(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "position/leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "position/leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPositionRiskLimit(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "position/riskLimit", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "position/riskLimit", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPositionTransferMargin(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "position/transferMargin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "position/transferMargin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserAddSubaccount(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/addSubaccount", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/addSubaccount", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserCancelWithdrawal(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/cancelWithdrawal", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/cancelWithdrawal", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserCommunicationToken(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/communicationToken", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/communicationToken", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserConfirmEmail(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/confirmEmail", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/confirmEmail", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserConfirmWithdrawal(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/confirmWithdrawal", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/confirmWithdrawal", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserLogout(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/logout", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/logout", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserPreferences(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/preferences", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/preferences", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserRequestWithdrawal(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/requestWithdrawal", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/requestWithdrawal", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserUnstakingRequests(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/unstakingRequests", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/unstakingRequests", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserUpdateSubaccount(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/updateSubaccount", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/updateSubaccount", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserWalletTransfer(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/walletTransfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/walletTransfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePutGuild(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "guild", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "guild", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutOrder(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrder(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrderAll(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "order/all", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/all", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteUserUnstakingRequests(self::Bitmex, params=Dict(), context=Dict())
-    return request(self, "user/unstakingRequests", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/unstakingRequests", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Bitmex(; kwargs...)
     inst = Bitmex(Exchange(), describe, fetchCurrencies, parseCurrency, convertFromRealAmount, convertToRealAmount, amountToPrecision, convertFromRawQuantity, convertFromRawCost, fetchMarkets, parseMarket, parseBalance, fetchBalance, fetchOrderBook, fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchMyTrades, parseLedgerEntryType, parseLedgerEntry, fetchLedger, fetchDepositsWithdrawals, parseTransactionStatus, parseTransaction, fetchTicker, fetchTickers, parseTicker, parseOHLCV, fetchOHLCV, parseTrade, parseOrderStatus, parseTimeInForce, parseOrder, fetchTrades, createOrder, editOrder, cancelOrder, cancelOrders, cancelAllOrders, cancelAllOrdersAfter, fetchLeverages, parseLeverage, fetchPositions, parsePosition, withdraw, fetchFundingRates, parseFundingRate, fetchFundingRateHistory, parseFundingRateHistory, setLeverage, setMarginMode, fetchDepositAddress, parseDepositWithdrawFee, fetchDepositWithdrawFees, fetchOpenInterests, parseOpenInterest, calculateRateLimiterCost, fetchLiquidations, parseLiquidation, fetchPositionsADLRank, parseADLRank, fetchSettlementHistory, parseSettlements, parseSettlement, closePosition, handleErrors, nonce, sign, publicGetAnnouncement, publicGetAnnouncementUrgent, publicGetChat, publicGetChatChannels, publicGetChatConnected, publicGetChatPinned, publicGetFunding, publicGetGuild, publicGetInstrument, publicGetInstrumentActive, publicGetInstrumentActiveAndIndices, publicGetInstrumentActiveIntervals, publicGetInstrumentCompositeIndex, publicGetInstrumentIndices, publicGetInstrumentUsdVolume, publicGetInsurance, publicGetLeaderboard, publicGetLiquidation, publicGetOrderBookL2, publicGetPorlNonce, publicGetQuote, publicGetQuoteBucketed, publicGetSchema, publicGetSchemaWebsocketHelp, publicGetSettlement, publicGetStats, publicGetStatsHistory, publicGetStatsHistoryUSD, publicGetTrade, publicGetTradeBucketed, publicGetWalletAssets, publicGetWalletNetworks, privateGetAddress, privateGetApiKey, privateGetExecution, privateGetExecutionTradeHistory, privateGetGlobalNotification, privateGetLeaderboardName, privateGetOrder, privateGetPorlSnapshots, privateGetPosition, privateGetUser, privateGetUserAffiliateStatus, privateGetUserCheckReferralCode, privateGetUserCommission, privateGetUserCsa, privateGetUserDepositAddress, privateGetUserExecutionHistory, privateGetUserGetWalletTransferAccounts, privateGetUserMargin, privateGetUserQuoteFillRatio, privateGetUserQuoteValueRatio, privateGetUserStaking, privateGetUserStakingInstruments, privateGetUserStakingTiers, privateGetUserTradingVolume, privateGetUserUnstakingRequests, privateGetUserWallet, privateGetUserWalletHistory, privateGetUserWalletSummary, privateGetUserAffiliates, privateGetUserEvent, privatePostAddress, privatePostChat, privatePostGuild, privatePostGuildArchive, privatePostGuildJoin, privatePostGuildKick, privatePostGuildLeave, privatePostGuildSharesTrades, privatePostOrder, privatePostOrderCancelAllAfter, privatePostOrderClosePosition, privatePostPositionIsolate, privatePostPositionLeverage, privatePostPositionRiskLimit, privatePostPositionTransferMargin, privatePostUserAddSubaccount, privatePostUserCancelWithdrawal, privatePostUserCommunicationToken, privatePostUserConfirmEmail, privatePostUserConfirmWithdrawal, privatePostUserLogout, privatePostUserPreferences, privatePostUserRequestWithdrawal, privatePostUserUnstakingRequests, privatePostUserUpdateSubaccount, privatePostUserWalletTransfer, privatePutGuild, privatePutOrder, privateDeleteOrder, privateDeleteOrderAll, privateDeleteUserUnstakingRequests)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

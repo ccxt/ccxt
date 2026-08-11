@@ -304,7 +304,7 @@ function describe(self::Aster, )
         Symbol("createMarketSellOrder") => false,
         Symbol("createMarketSellOrderWithCost") => false,
         Symbol("createOrder") => true,
-        Symbol("createOrders") => false,
+        Symbol("createOrders") => true,
         Symbol("createOrderWithTakeProfitAndStopLoss") => false,
         Symbol("createPostOnlyOrder") => false,
         Symbol("createReduceOnlyOrder") => false,
@@ -319,7 +319,7 @@ function describe(self::Aster, )
         Symbol("editOrders") => false,
         Symbol("fetchAccounts") => nothing,
         Symbol("fetchBalance") => true,
-        Symbol("fetchBidsAsks") => false,
+        Symbol("fetchBidsAsks") => true,
         Symbol("fetchBorrowInterest") => false,
         Symbol("fetchBorrowRateHistories") => false,
         Symbol("fetchBorrowRateHistory") => false,
@@ -353,7 +353,7 @@ function describe(self::Aster, )
         Symbol("fetchIsolatedBorrowRate") => "emulated",
         Symbol("fetchIsolatedBorrowRates") => false,
         Symbol("fetchL3OrderBook") => false,
-        Symbol("fetchLastPrices") => false,
+        Symbol("fetchLastPrices") => true,
         Symbol("fetchLedger") => true,
         Symbol("fetchLedgerEntry") => false,
         Symbol("fetchLeverage") => "emulated",
@@ -427,210 +427,531 @@ function describe(self::Aster, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("fapiPublic") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v1/ping") => 1,
-                Symbol("v3/ping") => 1,
-                Symbol("v1/time") => 1,
-                Symbol("v3/time") => 1,
-                Symbol("v1/exchangeInfo") => 1,
-                Symbol("v3/exchangeInfo") => 1,
-                Symbol("v1/depth") => 1,
-                Symbol("v3/depth") => 2,
-                Symbol("v1/trades") => 1,
-                Symbol("v3/trades") => 1,
-                Symbol("v1/historicalTrades") => 1,
-                Symbol("v3/historicalTrades") => 20,
-                Symbol("v1/aggTrades") => 1,
-                Symbol("v3/aggTrades") => 20,
-                Symbol("v1/klines") => 1,
-                Symbol("v3/klines") => 1,
-                Symbol("v1/indexPriceKlines") => 1,
-                Symbol("v3/indexPriceKlines") => 1,
-                Symbol("v1/markPriceKlines") => 1,
-                Symbol("v3/markPriceKlines") => 1,
-                Symbol("v1/premiumIndex") => 1,
-                Symbol("v3/premiumIndex") => 1,
-                Symbol("v1/fundingRate") => 1,
-                Symbol("v3/fundingRate") => 1,
-                Symbol("v1/fundingInfo") => 1,
-                Symbol("v3/fundingInfo") => 1,
-                Symbol("v1/ticker/24hr") => 1,
-                Symbol("v3/ticker/24hr") => 1,
-                Symbol("v1/ticker/price") => 1,
-                Symbol("v3/ticker/price") => 1,
-                Symbol("v1/ticker/bookTicker") => 1,
-                Symbol("v3/ticker/bookTicker") => 1,
-                Symbol("v1/adlQuantile") => 1,
-                Symbol("v1/forceOrders") => 1,
-                Symbol("v3/indexreferences") => 1
+                Symbol("v1/ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("v1/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/historicalTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/historicalTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v1/aggTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/aggTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v1/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/indexPriceKlines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/indexPriceKlines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/markPriceKlines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/markPriceKlines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/premiumIndex") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/premiumIndex") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fundingRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/fundingRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fundingInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/fundingInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/adlQuantile") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/forceOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/indexreferences") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("fapiPrivate") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v1/positionSide/dual") => 1,
-                Symbol("v3/positionSide/dual") => 30,
-                Symbol("v1/multiAssetsMargin") => 1,
-                Symbol("v3/multiAssetsMargin") => 1,
-                Symbol("v1/order") => 1,
-                Symbol("v3/order") => 1,
-                Symbol("v1/openOrder") => 1,
-                Symbol("v3/openOrder") => 1,
-                Symbol("v1/openOrders") => 1,
-                Symbol("v3/openOrders") => 1,
-                Symbol("v1/allOrders") => 1,
-                Symbol("v3/allOrders") => 1,
-                Symbol("v2/balance") => 1,
-                Symbol("v3/balance") => 1,
-                Symbol("v3/account") => 1,
-                Symbol("v1/positionMargin/history") => 1,
-                Symbol("v3/positionMargin/history") => 1,
-                Symbol("v2/positionRisk") => 1,
-                Symbol("v3/positionRisk") => 1,
-                Symbol("v1/userTrades") => 1,
-                Symbol("v3/userTrades") => 5,
-                Symbol("v1/income") => 1,
-                Symbol("v3/income") => 1,
-                Symbol("v1/leverageBracket") => 1,
-                Symbol("v3/leverageBracket") => 1,
-                Symbol("v1/commissionRate") => 1,
-                Symbol("v3/commissionRate") => 1,
-                Symbol("v3/adlQuantile") => 1,
-                Symbol("v3/forceOrders") => 1,
-                Symbol("v3/mmp") => 1,
-                Symbol("v3/accountWithJoinMargin") => 1,
-                Symbol("v4/account") => 1,
-                Symbol("v3/agent") => 1,
-                Symbol("v3/builder") => 1
+                Symbol("v1/positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("v1/multiAssetsMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/multiAssetsMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/openOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/openOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/positionMargin/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/positionMargin/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/positionRisk") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/positionRisk") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/income") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/income") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/leverageBracket") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/leverageBracket") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/adlQuantile") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/forceOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/mmp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/accountWithJoinMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v4/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/agent") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/builder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("v1/positionSide/dual") => 1,
-                Symbol("v3/positionSide/dual") => 1,
-                Symbol("v1/multiAssetsMargin") => 1,
-                Symbol("v3/multiAssetsMargin") => 1,
-                Symbol("v1/order") => 1,
-                Symbol("v3/order") => 1,
-                Symbol("v1/order/test") => 1,
-                Symbol("v3/order/test") => 1,
-                Symbol("v1/batchOrders") => 1,
-                Symbol("v3/batchOrders") => 1,
-                Symbol("v1/asset/wallet/transfer") => 1,
-                Symbol("v3/asset/wallet/transfer") => 1,
-                Symbol("v1/countdownCancelAll") => 1,
-                Symbol("v3/countdownCancelAll") => 1,
-                Symbol("v1/leverage") => 1,
-                Symbol("v3/leverage") => 1,
-                Symbol("v1/marginType") => 1,
-                Symbol("v3/marginType") => 1,
-                Symbol("v1/positionMargin") => 1,
-                Symbol("v3/positionMargin") => 1,
-                Symbol("v1/listenKey") => 1,
-                Symbol("v3/listenKey") => 1,
-                Symbol("v3/mmp") => 1,
-                Symbol("v3/mmpReset") => 1,
-                Symbol("v3/noop") => 1,
-                Symbol("v3/approveAgent") => 1,
-                Symbol("v3/updateAgent") => 1,
-                Symbol("v3/approveBuilder") => 1,
-                Symbol("v3/updateBuilder") => 1
+                Symbol("v1/positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/positionSide/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/multiAssetsMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/multiAssetsMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/order/test") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/order/test") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/asset/wallet/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/asset/wallet/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/countdownCancelAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/countdownCancelAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/marginType") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/marginType") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/positionMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/positionMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/mmp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/mmpReset") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/noop") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/approveAgent") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/updateAgent") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/approveBuilder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/updateBuilder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("v1/listenKey") => 1,
-                Symbol("v3/listenKey") => 1
+                Symbol("v1/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("v1/order") => 1,
-                Symbol("v3/order") => 1,
-                Symbol("v1/allOpenOrders") => 1,
-                Symbol("v3/allOpenOrders") => 1,
-                Symbol("v1/batchOrders") => 1,
-                Symbol("v3/batchOrders") => 1,
-                Symbol("v3/mmp") => 1,
-                Symbol("v1/listenKey") => 1,
-                Symbol("v3/listenKey") => 1,
-                Symbol("v3/agent") => 1,
-                Symbol("v3/builder") => 1
+                Symbol("v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/mmp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/agent") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/builder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("sapiPublic") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v1/ping") => 1,
-                Symbol("v1/time") => 1,
-                Symbol("v1/exchangeInfo") => 1,
-                Symbol("v1/depth") => 1,
-                Symbol("v1/trades") => 1,
-                Symbol("v1/historicalTrades") => 1,
-                Symbol("v1/aggTrades") => 1,
-                Symbol("v1/klines") => 1,
-                Symbol("v1/ticker/24hr") => 1,
-                Symbol("v1/ticker/price") => 1,
-                Symbol("v1/ticker/bookTicker") => 1,
-                Symbol("v1/aster/withdraw/estimateFee") => 1,
-                Symbol("v3/ping") => 1,
-                Symbol("v3/time") => 1,
-                Symbol("v3/exchangeInfo") => 1,
+                Symbol("v1/ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/historicalTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/aggTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/aster/withdraw/estimateFee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("v3/depth") => Dict{Symbol, Any}(
-                    Symbol("cost") => 2,
-                    Symbol("byLimit") => [[50, 2], [100, 5], [500, 10], [1000, 20]]
-                ),
-                Symbol("v3/trades") => 1,
-                Symbol("v3/historicalTrades") => 20,
-                Symbol("v3/aggTrades") => 20,
+    Symbol("cost") => 2,
+    Symbol("byLimit") => [[50, 2], [100, 5], [500, 10], [1000, 20]]
+),
+                Symbol("v3/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/historicalTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/aggTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
                 Symbol("v3/klines") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
-                ),
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[99, 1], [499, 2], [1000, 5], [10000, 10]]
+),
                 Symbol("v3/ticker/24hr") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 40
-                ),
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 40
+),
                 Symbol("v3/ticker/price") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 2
-                ),
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 2
+),
                 Symbol("v3/ticker/bookTicker") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 2
-                ),
-                Symbol("v3/aster/withdraw/estimateFee") => 1
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 2
+),
+                Symbol("v3/aster/withdraw/estimateFee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("sapiPrivate") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v1/commissionRate") => 1,
-                Symbol("v1/order") => 1,
-                Symbol("v1/openOrders") => 1,
-                Symbol("v1/allOrders") => 1,
-                Symbol("v1/transactionHistory") => 1,
-                Symbol("v1/account") => 1,
-                Symbol("v1/userTrades") => 1,
+                Symbol("v1/commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/transactionHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("v3/commissionRate") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 2
-                ),
-                Symbol("v3/order") => 1,
-                Symbol("v3/openOrders") => 1,
-                Symbol("v3/allOrders") => 5,
-                Symbol("v3/account") => 5,
-                Symbol("v3/userTrades") => 5,
-                Symbol("v3/openOrder") => 1
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 2
+),
+                Symbol("v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v3/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v3/userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v3/openOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("v1/order") => 1,
-                Symbol("v1/asset/wallet/transfer") => 5,
-                Symbol("v1/asset/sendToAddress") => 1,
-                Symbol("v1/listenKey") => 1,
-                Symbol("v3/order") => 1,
-                Symbol("v3/asset/wallet/transfer") => 5,
-                Symbol("v3/aster/user-withdraw") => 1,
-                Symbol("v3/listenKey") => 1
+                Symbol("v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/asset/wallet/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/asset/sendToAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/asset/wallet/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v3/aster/user-withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
-            Symbol("put") => ["v1/listenKey", "v3/listenKey"],
+            Symbol("put") => Dict{Symbol, Any}(
+                Symbol("v1/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("v1/order") => 1,
-                Symbol("v1/allOpenOrders") => 1,
-                Symbol("v1/listenKey") => 1,
-                Symbol("v3/allOpenOrders") => 1,
-                Symbol("v3/order") => 1,
-                Symbol("v3/listenKey") => 1
+                Symbol("v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -665,6 +986,136 @@ function describe(self::Aster, )
             Symbol("taker") => self.parseNumber("0.00035")
         )
     ),
+    Symbol("features") => Dict{Symbol, Any}(
+        Symbol("spot") => Dict{Symbol, Any}(
+            Symbol("sandbox") => false,
+            Symbol("createOrder") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("triggerPrice") => true,
+                Symbol("triggerPriceType") => nothing,
+                Symbol("triggerDirection") => nothing,
+                Symbol("stopLossPrice") => true,
+                Symbol("takeProfitPrice") => true,
+                Symbol("attachedStopLossTakeProfit") => nothing,
+                Symbol("timeInForce") => Dict{Symbol, Any}(
+                    Symbol("IOC") => true,
+                    Symbol("FOK") => true,
+                    Symbol("PO") => true,
+                    Symbol("GTD") => false
+                ),
+                Symbol("hedged") => false,
+                Symbol("trailing") => false,
+                Symbol("leverage") => false,
+                Symbol("marketBuyByCost") => true,
+                Symbol("marketBuyRequiresPrice") => false,
+                Symbol("selfTradePrevention") => false,
+                Symbol("iceberg") => false
+            ),
+            Symbol("createOrders") => nothing,
+            Symbol("fetchMyTrades") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => 1000,
+                Symbol("daysBack") => nothing,
+                Symbol("untilDays") => nothing,
+                Symbol("symbolRequired") => true
+            ),
+            Symbol("fetchOrder") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => true
+            ),
+            Symbol("fetchOpenOrders") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => nothing,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => false
+            ),
+            Symbol("fetchOrders") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => 1000,
+                Symbol("daysBack") => nothing,
+                Symbol("untilDays") => nothing,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => true
+            ),
+            Symbol("fetchClosedOrders") => nothing,
+            Symbol("fetchOHLCV") => Dict{Symbol, Any}(
+                Symbol("limit") => 1500
+            )
+        ),
+        Symbol("forDerivs") => Dict{Symbol, Any}(
+            Symbol("sandbox") => false,
+            Symbol("createOrder") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("triggerPrice") => true,
+                Symbol("triggerPriceType") => Dict{Symbol, Any}(
+                    Symbol("last") => true,
+                    Symbol("mark") => true,
+                    Symbol("index") => false
+                ),
+                Symbol("triggerDirection") => false,
+                Symbol("stopLossPrice") => true,
+                Symbol("takeProfitPrice") => true,
+                Symbol("attachedStopLossTakeProfit") => nothing,
+                Symbol("timeInForce") => Dict{Symbol, Any}(
+                    Symbol("IOC") => true,
+                    Symbol("FOK") => true,
+                    Symbol("PO") => true,
+                    Symbol("GTD") => false
+                ),
+                Symbol("hedged") => true,
+                Symbol("trailing") => true,
+                Symbol("leverage") => false,
+                Symbol("marketBuyByCost") => false,
+                Symbol("marketBuyRequiresPrice") => false,
+                Symbol("selfTradePrevention") => false,
+                Symbol("iceberg") => false
+            ),
+            Symbol("createOrders") => nothing,
+            Symbol("fetchMyTrades") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => 1000,
+                Symbol("daysBack") => nothing,
+                Symbol("untilDays") => nothing,
+                Symbol("symbolRequired") => true
+            ),
+            Symbol("fetchOrder") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => true
+            ),
+            Symbol("fetchOpenOrders") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => nothing,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => false
+            ),
+            Symbol("fetchOrders") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
+                Symbol("limit") => 1000,
+                Symbol("daysBack") => nothing,
+                Symbol("untilDays") => nothing,
+                Symbol("trigger") => false,
+                Symbol("trailing") => false,
+                Symbol("symbolRequired") => true
+            ),
+            Symbol("fetchClosedOrders") => nothing,
+            Symbol("fetchOHLCV") => Dict{Symbol, Any}(
+                Symbol("limit") => 1500
+            )
+        ),
+        Symbol("swap") => Dict{Symbol, Any}(
+            Symbol("linear") => Dict{Symbol, Any}(
+                Symbol("extends") => "forDerivs"
+            ),
+            Symbol("inverse") => nothing
+        )
+    ),
     Symbol("options") => Dict{Symbol, Any}(
         Symbol("defaultType") => "spot",
         Symbol("recvWindow") => 10 * 1000,
@@ -683,7 +1134,7 @@ function describe(self::Aster, )
         Symbol("networks") => Dict{Symbol, Any}(
             Symbol("ERC20") => "ETH",
             Symbol("BEP20") => "BSC",
-            Symbol("ARBONE") => "Arbitrum"
+            Symbol("ARBITRUM") => "Arbitrum"
         ),
         Symbol("networksToChainId") => Dict{Symbol, Any}(
             Symbol("ETH") => 1,
@@ -1090,7 +1541,7 @@ function fetchOHLCV(self::Aster, symbol, timeframe="1m", since=nothing, limit=no
             response = Base.fetch(self.sapiPublicGetV3Klines(extend(request, params)));
         end
     end
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
 
 end
 function parseTrade(self::Aster, trade, market=nothing)
@@ -1184,7 +1635,7 @@ function fetchMyTrades(self::Aster, symbol=nothing, since=nothing, limit=nothing
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchMyTrades", market, params);
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startTime")] = since;
     end
@@ -1311,12 +1762,16 @@ function fetchLastPrices(self::Aster, symbols=nothing, params=Dict())
     elseif functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.sapiPublicGetV3TickerPrice(params));
     end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " fetchLastPrices() returned empty response")));
+    end
+    rows = toArray(response);
     results = [];
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        marketId = safeString(get(response, i + 1, nothing), "symbol");
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
+        marketId = safeString(get(rows, i + 1, nothing), "symbol");
         safeMarket = self.safeMarket(marketId, nothing, nothing, marketType);
-        priceData = extend(self.parseLastPrice(get(response, i + 1, nothing), safeMarket), params);
+        priceData = extend(self.parseLastPrice(get(rows, i + 1, nothing), safeMarket), params);
         push!(results, priceData);
         i += 1
     end
@@ -1479,7 +1934,9 @@ function parseBalance(self::Aster, response)
         account[Symbol("free")] = safeString2(balance, "free", "availableBalance");
         account[Symbol("used")] = safeString(balance, "locked");
         account[Symbol("total")] = safeString(balance, "balance");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1762,6 +2219,12 @@ function createOrders(self::Aster, orders, params=Dict())
 
 end
 function createOrderRequest(self::Aster, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     initialUppercaseType = uppercase(type_var);
     isMarketOrder = initialUppercaseType == "MARKET";
@@ -1938,7 +2401,7 @@ function cancelOrder(self::Aster, id, symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
-    clientOrderId = safeStringN(params, ["origClientOrderId", "clientOrderId"]);
+    clientOrderId = safeString2(params, "origClientOrderId", "clientOrderId");
     if functions.ccxtruthy(clientOrderId != nothing)
         request[Symbol("origClientOrderId")] = clientOrderId;
     else
@@ -1996,7 +2459,7 @@ end
 function fetchLeverages(self::Aster, symbols=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     response = Base.fetch(self.fapiPrivateGetV3PositionRisk(params));
-    return self.parseLeverages(response, symbols, "symbol")
+    return self.parseLeverages(toArray(response), symbols, "symbol")
 
 end
 function parseLeverage(self::Aster, leverage, market=nothing)
@@ -2029,7 +2492,7 @@ end
 function fetchMarginModes(self::Aster, symbols=nothing, params=Dict())
     Base.fetch(self.loadMarketsAndSignIn());
     response = Base.fetch(self.fapiPrivateGetV3PositionRisk(params));
-    return self.parseMarginModes(response, symbols, "symbol", "swap")
+    return self.parseMarginModes(toArray(response), symbols, "symbol", "swap")
 
 end
 function parseMarginMode(self::Aster, marginMode, market=nothing)
@@ -2066,7 +2529,7 @@ function fetchMarginAdjustmentHistory(self::Aster, symbol=nothing, type_var=noth
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.fapiPrivateGetV3PositionMarginHistory(extend(request, params)));
-    modifications = self.parseMarginModifications(response);
+    modifications = self.parseMarginModifications(toArray(response));
     return self.filterBySymbolSinceLimit(modifications, symbol, since, limit)
 
 end
@@ -2380,13 +2843,14 @@ function fetchPositionsRisk(self::Aster, symbols=nothing, params=Dict())
     Base.fetch(self.loadLeverageBrackets(false, params));
     request = Dict{Symbol, Any}();
     response = Base.fetch(self.fapiPrivateGetV3PositionRisk(extend(request, params)));
+    rawPositions = toArray(response);
     result = [];
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        rawPosition = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawPositions)))
+        rawPosition = get(rawPositions, i + 1, nothing);
         entryPriceString = safeString(rawPosition, "entryPrice");
         if functions.ccxtruthy(stringGt(entryPriceString, "0"))
-                        push!(result, self.parsePositionRisk(get(response, i + 1, nothing)));
+                        push!(result, self.parsePositionRisk(rawPosition));
         end
         i += 1
     end
@@ -2425,10 +2889,12 @@ function parseAccountPositions(self::Aster, account, filterClosed=false)
         code = self.safeCurrencyCode(currencyId);
         crossWalletBalance = safeString(entry, "crossWalletBalance");
         crossUnPnl = safeString(entry, "crossUnPnl");
-        balances[Symbol(code)] = Dict{Symbol, Any}(
-            Symbol("crossMargin") => stringAdd(crossWalletBalance, crossUnPnl),
-            Symbol("crossWalletBalance") => crossWalletBalance
-        );
+        if functions.ccxtruthy(code != nothing)
+            balances[Symbol(code)] = Dict{Symbol, Any}(
+                Symbol("crossMargin") => stringAdd(crossWalletBalance, crossUnPnl),
+                Symbol("crossWalletBalance") => crossWalletBalance
+            );
+        end
         i += 1
     end
     result = [];
@@ -2465,6 +2931,9 @@ function parseAccountPosition(self::Aster, position, market=nothing)
     initialMarginPercentageString = nothing;
     if functions.ccxtruthy(leverageString != nothing)
         initialMarginPercentageString = stringDiv("1", leverageString, 8);
+        if functions.ccxtruthy(leverage == nothing)
+            throw(ExchangeError(string(self.id, " parseAccountPosition() missing leverage")));
+        end
         rational = self.isRoundNumber(1000 % leverage);
         if functions.ccxtruthy(!functions.ccxtruthy(rational))
             initialMarginPercentageString = stringDiv(stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
@@ -2570,6 +3039,9 @@ function parseAccountPosition(self::Aster, position, market=nothing)
         rounderString = string(rounder);
         liquidationPriceRoundedString = stringAdd(rounderString, liquidationPriceStringRaw);
         truncatedLiquidationPrice = stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
+        if functions.ccxtruthy(truncatedLiquidationPrice == nothing)
+            throw(ExchangeError(string(self.id, " method() missing truncatedLiquidationPrice")));
+        end
         if functions.ccxtruthy(get(truncatedLiquidationPrice, 1, nothing) == "-")
             truncatedLiquidationPrice = nothing;
         end
@@ -2626,9 +3098,10 @@ function loadLeverageBrackets(self::Aster, reload=false, params=Dict())
     if functions.ccxtruthy(@functions.ccxt_or((leverageBrackets == nothing), (reload)))
         response = Base.fetch(self.fapiPrivateGetV3LeverageBracket(params));
         self.options[Symbol("leverageBrackets")] = self.createSafeDictionary();
+        entries = toArray(response);
         i = 0
-        while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-            entry = get(response, i + 1, nothing);
+        while functions.ccxtruthy(functions.ccxt_lt(i, length(entries)))
+            entry = get(entries, i + 1, nothing);
             marketId = safeString(entry, "symbol");
             symbol = self.safeSymbol(marketId, nothing, nothing, "contract");
             brackets = self.safeList(entry, "brackets", []);
@@ -2654,7 +3127,7 @@ function keccakMessage(self::Aster, message)
 
 end
 function signMessage(self::Aster, message, privateKey)
-    return self.signHash(self.keccakMessage(message), privateKey[-64 + 1:end])
+    return self.signHash(self.keccakMessage(message), functions.ccxt_slice(privateKey, -64))
 
 end
 function signWithdrawPayload(self::Aster, withdrawPayload, network)
@@ -2831,7 +3304,7 @@ function hashMessage(self::Aster, binaryMessage)
 end
 function signHash(self::Aster, hash, privateKey)
     self.checkRequiredCredentials();
-    signature = ecdsa(hash[-64 + 1:end], privateKey[-64 + 1:end], secp256k1, nothing);
+    signature = ecdsa(functions.ccxt_slice(hash, -64), functions.ccxt_slice(privateKey, -64), secp256k1, nothing);
     r = get(signature, Symbol("r"), nothing);
     s = get(signature, Symbol("s"), nothing);
     v = self.intToBase16(self.sum(27, get(signature, Symbol("v"), nothing)));
@@ -2849,7 +3322,14 @@ function sign(self::Aster, path, api="public", method="GET", params=Dict(), head
         nonce = milliseconds() * 1000;
         zeroAddress = safeString(self.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
         v3ChainId = safeInteger(self.options, "v3ChainId", 1666);
-        walletAddress = self.ethGetAddressFromPrivateKey(self.privateKey);
+        walletAddress = safeString(self.options, "cachedWalletAddress");
+        privateKeyHash = hash(self.encode(self.privateKey), keccak, "hex");
+        cachedPrivateKeyHash = safeString(self.options, "privateKeyHashForCachedWalletAddress");
+        if functions.ccxtruthy(@functions.ccxt_or((walletAddress == nothing), (cachedPrivateKeyHash != privateKeyHash)))
+            walletAddress = self.ethGetAddressFromPrivateKey(self.privateKey);
+            self.options[Symbol("cachedWalletAddress")] = walletAddress;
+            self.options[Symbol("privateKeyHashForCachedWalletAddress")] = privateKeyHash;
+        end
         signerAddress = safeString(self.options, "signerAddress", walletAddress);
         if functions.ccxtruthy(signerAddress == nothing)
             throw(ArgumentsRequired(string(self.id, " requires signerAddress in options when use v3 api")));
@@ -2895,7 +3375,7 @@ function sign(self::Aster, path, api="public", method="GET", params=Dict(), head
     Symbol("type") => "uint256"
 )]
             );
-
+                        delete!(finalParams, :signer);
             paramString = self.encodeValuesWithJson(finalParams);
             paramsToEncode = self.capitalizeKeys(finalParams);
         else
@@ -2936,7 +3416,7 @@ function encodeValuesWithJson(self::Aster, values)
         encodedString += string(key, "=", encoded, "&");
         i += 1
     end
-    return encodedString[0 + 1:-1]
+    return functions.ccxt_slice(encodedString, 0, -1)
 
 end
 function capitalizeKeys(self::Aster, dict)
@@ -3035,637 +3515,637 @@ function handleErrors(self::Aster, httpCode, reason, url, method, headers, body,
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Aster, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function fapiPublicGetV1Ping(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ping", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/ping", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3Ping(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ping", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/ping", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1Time(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/time", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/time", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3Time(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/time", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/time", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1ExchangeInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3ExchangeInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/exchangeInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1Depth(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/depth", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/depth", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3Depth(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/depth", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/depth", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1Trades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/trades", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/trades", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3Trades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/trades", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/trades", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1HistoricalTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/historicalTrades", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/historicalTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3HistoricalTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/historicalTrades", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/historicalTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1AggTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/aggTrades", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/aggTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3AggTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/aggTrades", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/aggTrades", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1Klines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/klines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/klines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3Klines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/klines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/klines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1IndexPriceKlines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/indexPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/indexPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3IndexPriceKlines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/indexPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/indexPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1MarkPriceKlines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/markPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/markPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3MarkPriceKlines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/markPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/markPriceKlines", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1PremiumIndex(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/premiumIndex", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/premiumIndex", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3PremiumIndex(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/premiumIndex", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/premiumIndex", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1FundingRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/fundingRate", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fundingRate", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3FundingRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/fundingRate", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/fundingRate", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1FundingInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/fundingInfo", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fundingInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3FundingInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/fundingInfo", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/fundingInfo", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1Ticker24hr(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/24hr", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/ticker/24hr", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3Ticker24hr(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/24hr", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/ticker/24hr", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1TickerPrice(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/price", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/ticker/price", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3TickerPrice(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/price", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/ticker/price", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1TickerBookTicker(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/bookTicker", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/ticker/bookTicker", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3TickerBookTicker(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/bookTicker", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/ticker/bookTicker", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1AdlQuantile(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/adlQuantile", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/adlQuantile", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV1ForceOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/forceOrders", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/forceOrders", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPublicGetV3Indexreferences(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/indexreferences", "fapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/indexreferences", "fapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV1PositionSideDual(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/positionSide/dual", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/positionSide/dual", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3PositionSideDual(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/positionSide/dual", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "v3/positionSide/dual", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV1MultiAssetsMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/multiAssetsMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/multiAssetsMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3MultiAssetsMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/multiAssetsMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/multiAssetsMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/order", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV1OpenOrder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/openOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/openOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3OpenOrder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/openOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/openOrder", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV1OpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/openOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/openOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3OpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/openOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/openOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV1AllOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/allOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/allOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3AllOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/allOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/allOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV2Balance(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v2/balance", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/balance", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3Balance(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/balance", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/balance", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3Account(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/account", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/account", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV1PositionMarginHistory(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/positionMargin/history", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/positionMargin/history", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3PositionMarginHistory(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/positionMargin/history", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/positionMargin/history", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV2PositionRisk(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v2/positionRisk", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/positionRisk", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3PositionRisk(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/positionRisk", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/positionRisk", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV1UserTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/userTrades", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/userTrades", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3UserTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/userTrades", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v3/userTrades", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV1Income(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/income", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/income", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3Income(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/income", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/income", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV1LeverageBracket(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/leverageBracket", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/leverageBracket", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3LeverageBracket(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/leverageBracket", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/leverageBracket", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV1CommissionRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/commissionRate", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/commissionRate", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3CommissionRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/commissionRate", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/commissionRate", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3AdlQuantile(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/adlQuantile", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/adlQuantile", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3ForceOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/forceOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/forceOrders", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3Mmp(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/mmp", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/mmp", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3AccountWithJoinMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/accountWithJoinMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/accountWithJoinMargin", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV4Account(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v4/account", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v4/account", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3Agent(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/agent", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/agent", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateGetV3Builder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/builder", "fapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/builder", "fapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV1PositionSideDual(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/positionSide/dual", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/positionSide/dual", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3PositionSideDual(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/positionSide/dual", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/positionSide/dual", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV1MultiAssetsMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/multiAssetsMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/multiAssetsMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3MultiAssetsMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/multiAssetsMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/multiAssetsMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/order", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV1OrderTest(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order/test", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order/test", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3OrderTest(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order/test", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/order/test", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV1BatchOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/batchOrders", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/batchOrders", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3BatchOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/batchOrders", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/batchOrders", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV1AssetWalletTransfer(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/asset/wallet/transfer", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/asset/wallet/transfer", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3AssetWalletTransfer(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/asset/wallet/transfer", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/asset/wallet/transfer", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV1CountdownCancelAll(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/countdownCancelAll", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/countdownCancelAll", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3CountdownCancelAll(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/countdownCancelAll", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/countdownCancelAll", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV1Leverage(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/leverage", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/leverage", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3Leverage(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/leverage", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/leverage", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV1MarginType(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/marginType", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/marginType", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3MarginType(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/marginType", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/marginType", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV1PositionMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/positionMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/positionMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3PositionMargin(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/positionMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/positionMargin", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV1ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/listenKey", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/listenKey", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/listenKey", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/listenKey", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3Mmp(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/mmp", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/mmp", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3MmpReset(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/mmpReset", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/mmpReset", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3Noop(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/noop", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/noop", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3ApproveAgent(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/approveAgent", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/approveAgent", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3UpdateAgent(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/updateAgent", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/updateAgent", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3ApproveBuilder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/approveBuilder", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/approveBuilder", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePostV3UpdateBuilder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/updateBuilder", "fapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/updateBuilder", "fapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePutV1ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/listenKey", "fapiPrivate", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/listenKey", "fapiPrivate", "PUT", params, nothing, nothing, Dict())
 end
 
 function fapiPrivatePutV3ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/listenKey", "fapiPrivate", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/listenKey", "fapiPrivate", "PUT", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/order", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteV1AllOpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/allOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/allOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteV3AllOpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/allOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/allOpenOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteV1BatchOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/batchOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/batchOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteV3BatchOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/batchOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/batchOrders", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteV3Mmp(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/mmp", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/mmp", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteV1ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/listenKey", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/listenKey", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteV3ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/listenKey", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/listenKey", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteV3Agent(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/agent", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/agent", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function fapiPrivateDeleteV3Builder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/builder", "fapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/builder", "fapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1Ping(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ping", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/ping", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1Time(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/time", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/time", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1ExchangeInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/exchangeInfo", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/exchangeInfo", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1Depth(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/depth", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/depth", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1Trades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/trades", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/trades", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1HistoricalTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/historicalTrades", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/historicalTrades", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1AggTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/aggTrades", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/aggTrades", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1Klines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/klines", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/klines", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1Ticker24hr(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/24hr", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/ticker/24hr", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1TickerPrice(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/price", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/ticker/price", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1TickerBookTicker(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/ticker/bookTicker", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/ticker/bookTicker", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV1AsterWithdrawEstimateFee(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/aster/withdraw/estimateFee", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/aster/withdraw/estimateFee", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3Ping(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ping", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/ping", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3Time(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/time", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/time", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3ExchangeInfo(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/exchangeInfo", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/exchangeInfo", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3Depth(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/depth", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/depth", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3Trades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/trades", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/trades", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3HistoricalTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/historicalTrades", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/historicalTrades", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3AggTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/aggTrades", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/aggTrades", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3Klines(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/klines", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/klines", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3Ticker24hr(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/24hr", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 40))
+    return request(self, "v3/ticker/24hr", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3TickerPrice(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/price", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 2))
+    return request(self, "v3/ticker/price", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3TickerBookTicker(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/ticker/bookTicker", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 2))
+    return request(self, "v3/ticker/bookTicker", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPublicGetV3AsterWithdrawEstimateFee(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/aster/withdraw/estimateFee", "sapiPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/aster/withdraw/estimateFee", "sapiPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV1CommissionRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/commissionRate", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/commissionRate", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV1OpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/openOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/openOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV1AllOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/allOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/allOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV1TransactionHistory(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/transactionHistory", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/transactionHistory", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV1Account(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/account", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/account", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV1UserTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/userTrades", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/userTrades", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV3CommissionRate(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/commissionRate", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 2))
+    return request(self, "v3/commissionRate", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/order", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV3OpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/openOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/openOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV3AllOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/allOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v3/allOrders", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV3Account(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/account", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v3/account", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV3UserTrades(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/userTrades", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v3/userTrades", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateGetV3OpenOrder(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/openOrder", "sapiPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/openOrder", "sapiPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function sapiPrivatePostV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "sapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order", "sapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPrivatePostV1AssetWalletTransfer(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/asset/wallet/transfer", "sapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/asset/wallet/transfer", "sapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPrivatePostV1AssetSendToAddress(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/asset/sendToAddress", "sapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/asset/sendToAddress", "sapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPrivatePostV1ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/listenKey", "sapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/listenKey", "sapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPrivatePostV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "sapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/order", "sapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPrivatePostV3AssetWalletTransfer(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/asset/wallet/transfer", "sapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v3/asset/wallet/transfer", "sapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPrivatePostV3AsterUserWithdraw(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/aster/user-withdraw", "sapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/aster/user-withdraw", "sapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPrivatePostV3ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/listenKey", "sapiPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/listenKey", "sapiPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function sapiPrivatePutV1ListenKey(self::Aster, params=Dict(), context=Dict())
@@ -3677,34 +4157,87 @@ function sapiPrivatePutV3ListenKey(self::Aster, params=Dict(), context=Dict())
 end
 
 function sapiPrivateDeleteV1Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/order", "sapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateDeleteV1AllOpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/allOpenOrders", "sapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/allOpenOrders", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateDeleteV1ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v1/listenKey", "sapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/listenKey", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateDeleteV3AllOpenOrders(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/allOpenOrders", "sapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/allOpenOrders", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateDeleteV3Order(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/order", "sapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/order", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function sapiPrivateDeleteV3ListenKey(self::Aster, params=Dict(), context=Dict())
-    return request(self, "v3/listenKey", "sapiPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/listenKey", "sapiPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Aster(; kwargs...)
     inst = Aster(Exchange(), describe, isInverse, isLinear, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, fetchTime, parseOHLCV, fetchOHLCV, parseTrade, fetchTrades, fetchMyTrades, fetchOrderBook, parseTicker, fetchTicker, fetchTickers, fetchLastPrices, parseLastPrice, fetchBidsAsks, parseFundingRate, fetchFundingRate, fetchFundingRates, fetchFundingIntervals, fetchFundingRateHistory, parseFundingRateHistory, fetchBalance, parseBalance, setMarginMode, fetchPositionMode, setPositionMode, parseTradingFee, fetchTradingFee, parseOrderStatus, parseOrderType, parseOrder, fetchOrder, fetchOpenOrder, fetchOrders, fetchOpenOrders, createOrder, createOrders, createOrderRequest, cancelAllOrders, cancelOrder, cancelOrders, setLeverage, fetchLeverages, parseLeverage, fetchMarginModes, parseMarginMode, fetchMarginAdjustmentHistory, parseMarginModification, modifyMarginHelper, reduceMargin, addMargin, parseIncome, fetchFundingHistory, parseLedgerEntry, parseLedgerEntryType, fetchLedger, parsePositionRisk, fetchPositionsRisk, fetchPositions, parseAccountPositions, parseAccountPosition, fetchAccountPositions, loadLeverageBrackets, keccakMessage, signMessage, signWithdrawPayload, withdraw, parseTransaction, transfer, parseTransfer, parseTransferStatus, hashMessage, signHash, sign, encodeValuesWithJson, capitalizeKeys, loadMarketsAndSignIn, signIn, initializeClient, handleErrors, fapiPublicGetV1Ping, fapiPublicGetV3Ping, fapiPublicGetV1Time, fapiPublicGetV3Time, fapiPublicGetV1ExchangeInfo, fapiPublicGetV3ExchangeInfo, fapiPublicGetV1Depth, fapiPublicGetV3Depth, fapiPublicGetV1Trades, fapiPublicGetV3Trades, fapiPublicGetV1HistoricalTrades, fapiPublicGetV3HistoricalTrades, fapiPublicGetV1AggTrades, fapiPublicGetV3AggTrades, fapiPublicGetV1Klines, fapiPublicGetV3Klines, fapiPublicGetV1IndexPriceKlines, fapiPublicGetV3IndexPriceKlines, fapiPublicGetV1MarkPriceKlines, fapiPublicGetV3MarkPriceKlines, fapiPublicGetV1PremiumIndex, fapiPublicGetV3PremiumIndex, fapiPublicGetV1FundingRate, fapiPublicGetV3FundingRate, fapiPublicGetV1FundingInfo, fapiPublicGetV3FundingInfo, fapiPublicGetV1Ticker24hr, fapiPublicGetV3Ticker24hr, fapiPublicGetV1TickerPrice, fapiPublicGetV3TickerPrice, fapiPublicGetV1TickerBookTicker, fapiPublicGetV3TickerBookTicker, fapiPublicGetV1AdlQuantile, fapiPublicGetV1ForceOrders, fapiPublicGetV3Indexreferences, fapiPrivateGetV1PositionSideDual, fapiPrivateGetV3PositionSideDual, fapiPrivateGetV1MultiAssetsMargin, fapiPrivateGetV3MultiAssetsMargin, fapiPrivateGetV1Order, fapiPrivateGetV3Order, fapiPrivateGetV1OpenOrder, fapiPrivateGetV3OpenOrder, fapiPrivateGetV1OpenOrders, fapiPrivateGetV3OpenOrders, fapiPrivateGetV1AllOrders, fapiPrivateGetV3AllOrders, fapiPrivateGetV2Balance, fapiPrivateGetV3Balance, fapiPrivateGetV3Account, fapiPrivateGetV1PositionMarginHistory, fapiPrivateGetV3PositionMarginHistory, fapiPrivateGetV2PositionRisk, fapiPrivateGetV3PositionRisk, fapiPrivateGetV1UserTrades, fapiPrivateGetV3UserTrades, fapiPrivateGetV1Income, fapiPrivateGetV3Income, fapiPrivateGetV1LeverageBracket, fapiPrivateGetV3LeverageBracket, fapiPrivateGetV1CommissionRate, fapiPrivateGetV3CommissionRate, fapiPrivateGetV3AdlQuantile, fapiPrivateGetV3ForceOrders, fapiPrivateGetV3Mmp, fapiPrivateGetV3AccountWithJoinMargin, fapiPrivateGetV4Account, fapiPrivateGetV3Agent, fapiPrivateGetV3Builder, fapiPrivatePostV1PositionSideDual, fapiPrivatePostV3PositionSideDual, fapiPrivatePostV1MultiAssetsMargin, fapiPrivatePostV3MultiAssetsMargin, fapiPrivatePostV1Order, fapiPrivatePostV3Order, fapiPrivatePostV1OrderTest, fapiPrivatePostV3OrderTest, fapiPrivatePostV1BatchOrders, fapiPrivatePostV3BatchOrders, fapiPrivatePostV1AssetWalletTransfer, fapiPrivatePostV3AssetWalletTransfer, fapiPrivatePostV1CountdownCancelAll, fapiPrivatePostV3CountdownCancelAll, fapiPrivatePostV1Leverage, fapiPrivatePostV3Leverage, fapiPrivatePostV1MarginType, fapiPrivatePostV3MarginType, fapiPrivatePostV1PositionMargin, fapiPrivatePostV3PositionMargin, fapiPrivatePostV1ListenKey, fapiPrivatePostV3ListenKey, fapiPrivatePostV3Mmp, fapiPrivatePostV3MmpReset, fapiPrivatePostV3Noop, fapiPrivatePostV3ApproveAgent, fapiPrivatePostV3UpdateAgent, fapiPrivatePostV3ApproveBuilder, fapiPrivatePostV3UpdateBuilder, fapiPrivatePutV1ListenKey, fapiPrivatePutV3ListenKey, fapiPrivateDeleteV1Order, fapiPrivateDeleteV3Order, fapiPrivateDeleteV1AllOpenOrders, fapiPrivateDeleteV3AllOpenOrders, fapiPrivateDeleteV1BatchOrders, fapiPrivateDeleteV3BatchOrders, fapiPrivateDeleteV3Mmp, fapiPrivateDeleteV1ListenKey, fapiPrivateDeleteV3ListenKey, fapiPrivateDeleteV3Agent, fapiPrivateDeleteV3Builder, sapiPublicGetV1Ping, sapiPublicGetV1Time, sapiPublicGetV1ExchangeInfo, sapiPublicGetV1Depth, sapiPublicGetV1Trades, sapiPublicGetV1HistoricalTrades, sapiPublicGetV1AggTrades, sapiPublicGetV1Klines, sapiPublicGetV1Ticker24hr, sapiPublicGetV1TickerPrice, sapiPublicGetV1TickerBookTicker, sapiPublicGetV1AsterWithdrawEstimateFee, sapiPublicGetV3Ping, sapiPublicGetV3Time, sapiPublicGetV3ExchangeInfo, sapiPublicGetV3Depth, sapiPublicGetV3Trades, sapiPublicGetV3HistoricalTrades, sapiPublicGetV3AggTrades, sapiPublicGetV3Klines, sapiPublicGetV3Ticker24hr, sapiPublicGetV3TickerPrice, sapiPublicGetV3TickerBookTicker, sapiPublicGetV3AsterWithdrawEstimateFee, sapiPrivateGetV1CommissionRate, sapiPrivateGetV1Order, sapiPrivateGetV1OpenOrders, sapiPrivateGetV1AllOrders, sapiPrivateGetV1TransactionHistory, sapiPrivateGetV1Account, sapiPrivateGetV1UserTrades, sapiPrivateGetV3CommissionRate, sapiPrivateGetV3Order, sapiPrivateGetV3OpenOrders, sapiPrivateGetV3AllOrders, sapiPrivateGetV3Account, sapiPrivateGetV3UserTrades, sapiPrivateGetV3OpenOrder, sapiPrivatePostV1Order, sapiPrivatePostV1AssetWalletTransfer, sapiPrivatePostV1AssetSendToAddress, sapiPrivatePostV1ListenKey, sapiPrivatePostV3Order, sapiPrivatePostV3AssetWalletTransfer, sapiPrivatePostV3AsterUserWithdraw, sapiPrivatePostV3ListenKey, sapiPrivatePutV1ListenKey, sapiPrivatePutV3ListenKey, sapiPrivateDeleteV1Order, sapiPrivateDeleteV1AllOpenOrders, sapiPrivateDeleteV1ListenKey, sapiPrivateDeleteV3AllOpenOrders, sapiPrivateDeleteV3Order, sapiPrivateDeleteV3ListenKey)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -68,6 +68,7 @@
     fetchWithdrawals::Function = fetchWithdrawals
     parseTransaction::Function = parseTransaction
     parseTransactionStatusByType::Function = parseTransactionStatusByType
+    closeAllPositions::Function = closeAllPositions
     fetchPosition::Function = fetchPosition
     fetchPositions::Function = fetchPositions
     parsePosition::Function = parsePosition
@@ -116,8 +117,8 @@ function describe(self::Mexc, )
         Symbol("borrowMargin") => false,
         Symbol("cancelAllOrders") => true,
         Symbol("cancelOrder") => true,
-        Symbol("cancelOrders") => nothing,
-        Symbol("closeAllPositions") => false,
+        Symbol("cancelOrders") => true,
+        Symbol("closeAllPositions") => true,
         Symbol("closePosition") => false,
         Symbol("createDepositAddress") => true,
         Symbol("createMarketBuyOrderWithCost") => true,
@@ -216,7 +217,7 @@ function describe(self::Mexc, )
         Symbol("setMarginMode") => true,
         Symbol("setPositionMode") => true,
         Symbol("signIn") => nothing,
-        Symbol("transfer") => nothing,
+        Symbol("transfer") => true,
         Symbol("withdraw") => true
     ),
     Symbol("urls") => Dict{Symbol, Any}(
@@ -239,7 +240,7 @@ function describe(self::Mexc, )
             )
         ),
         Symbol("www") => "https://www.mexc.com/",
-        Symbol("doc") => ["https://mexcdevelop.github.io/apidocs/"],
+        Symbol("doc") => ["https://www.mexc.com/api-docs/spot-v3/introduction", "https://www.mexc.com/api-docs/futures/integration-guide"],
         Symbol("fees") => ["https://www.mexc.com/fee"],
         Symbol("referral") => "https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1"
     ),
@@ -247,286 +248,766 @@ function describe(self::Mexc, )
         Symbol("spot") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("ping") => 1,
-                    Symbol("time") => 1,
-                    Symbol("defaultSymbols") => 1,
-                    Symbol("symbol/offline") => 10,
-                    Symbol("exchangeInfo") => 10,
-                    Symbol("depth") => 1,
-                    Symbol("trades") => 5,
-                    Symbol("historicalTrades") => 1,
-                    Symbol("aggTrades") => 1,
-                    Symbol("klines") => 1,
-                    Symbol("avgPrice") => 1,
-                    Symbol("ticker/24hr") => 1,
-                    Symbol("ticker/price") => 1,
-                    Symbol("ticker/bookTicker") => 1,
-                    Symbol("etf/info") => 1
+                    Symbol("announcements") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("defaultSymbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("symbol/offline") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                    Symbol("depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                    Symbol("historicalTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("aggTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("avgPrice") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                    Symbol("ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("etf/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("kyc/status") => 1,
-                    Symbol("uid") => 1,
-                    Symbol("order") => 2,
-                    Symbol("openOrders") => 3,
-                    Symbol("allOrders") => 10,
-                    Symbol("account") => 10,
-                    Symbol("myTrades") => 10,
-                    Symbol("strategy/group") => 20,
-                    Symbol("strategy/group/uid") => 20,
-                    Symbol("tradeFee") => 10,
-                    Symbol("sub-account/list") => 1,
-                    Symbol("sub-account/apiKey") => 1,
-                    Symbol("sub-account/asset") => 1,
-                    Symbol("capital/config/getall") => 10,
-                    Symbol("capital/deposit/hisrec") => 1,
-                    Symbol("capital/withdraw/history") => 1,
-                    Symbol("capital/withdraw/address") => 10,
-                    Symbol("capital/deposit/address") => 10,
-                    Symbol("capital/transfer") => 1,
-                    Symbol("capital/transfer/tranId") => 1,
-                    Symbol("capital/transfer/internal") => 1,
-                    Symbol("capital/sub-account/universalTransfer") => 1,
-                    Symbol("capital/convert") => 1,
-                    Symbol("capital/convert/list") => 1,
-                    Symbol("margin/loan") => 1,
-                    Symbol("margin/allOrders") => 1,
-                    Symbol("margin/myTrades") => 1,
-                    Symbol("margin/openOrders") => 1,
-                    Symbol("margin/maxTransferable") => 1,
-                    Symbol("margin/priceIndex") => 1,
-                    Symbol("margin/order") => 1,
-                    Symbol("margin/isolated/account") => 1,
-                    Symbol("margin/maxBorrowable") => 1,
-                    Symbol("margin/repay") => 1,
-                    Symbol("margin/isolated/pair") => 1,
-                    Symbol("margin/forceLiquidationRec") => 1,
-                    Symbol("margin/isolatedMarginData") => 1,
-                    Symbol("margin/isolatedMarginTier") => 1,
-                    Symbol("rebate/taxQuery") => 1,
-                    Symbol("rebate/detail") => 1,
-                    Symbol("rebate/detail/kickback") => 1,
-                    Symbol("rebate/referCode") => 1,
-                    Symbol("rebate/affiliate/commission") => 1,
-                    Symbol("rebate/affiliate/withdraw") => 1,
-                    Symbol("rebate/affiliate/commission/detail") => 1,
-                    Symbol("rebate/affiliate/campaign") => 1,
-                    Symbol("rebate/affiliate/referral") => 1,
-                    Symbol("rebate/affiliate/subaffiliates") => 1,
-                    Symbol("mxDeduct/enable") => 1,
-                    Symbol("userDataStream") => 1,
-                    Symbol("selfSymbols") => 1,
-                    Symbol("asset/internal/transfer/record") => 10
+                    Symbol("kyc/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("uid") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("myTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("strategy/group") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("strategy/group/uid") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("tradeFee") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("sub-account/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/apiKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/asset") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/config/getall") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("capital/deposit/hisrec") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("capital/withdraw/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/withdraw/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("capital/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("capital/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/transfer/tranId") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/transfer/internal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/sub-account/universalTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/convert/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/loan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/myTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/maxTransferable") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/priceIndex") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/isolated/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/maxBorrowable") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/isolated/pair") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/forceLiquidationRec") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/isolatedMarginData") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/isolatedMarginTier") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/taxQuery") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/detail/kickback") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/referCode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/affiliate/commission") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/affiliate/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/affiliate/commission/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/affiliate/campaign") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/affiliate/referral") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/affiliate/subaffiliates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/affiliate/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mxDeduct/enable") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("selfSymbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("asset/internal/transfer/record") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("order") => 1,
-                    Symbol("order/test") => 1,
-                    Symbol("sub-account/virtualSubAccount") => 1,
-                    Symbol("sub-account/apiKey") => 1,
-                    Symbol("sub-account/futures") => 1,
-                    Symbol("sub-account/margin") => 1,
-                    Symbol("batchOrders") => 10,
-                    Symbol("strategy/group") => 20,
-                    Symbol("capital/withdraw/apply") => 1,
-                    Symbol("capital/withdraw") => 1,
-                    Symbol("capital/transfer") => 1,
-                    Symbol("capital/transfer/internal") => 1,
-                    Symbol("capital/deposit/address") => 1,
-                    Symbol("capital/sub-account/universalTransfer") => 1,
-                    Symbol("capital/convert") => 10,
-                    Symbol("mxDeduct/enable") => 1,
-                    Symbol("userDataStream") => 1
+                    Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/test") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("apiKeyInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/virtualSubAccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/apiKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("strategy/group") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("capital/withdraw/apply") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                    Symbol("capital/transfer/internal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/sub-account/universalTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("mxDeduct/enable") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("userDataStream") => 1
+                    Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("order") => 1,
-                    Symbol("openOrders") => 1,
-                    Symbol("sub-account/apiKey") => 1,
-                    Symbol("strategy/group") => 1,
-                    Symbol("strategy/group/uid") => 1,
-                    Symbol("margin/order") => 1,
-                    Symbol("margin/openOrders") => 1,
-                    Symbol("userDataStream") => 1,
-                    Symbol("capital/withdraw") => 1
+                    Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/apiKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("strategy/group") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("strategy/group/uid") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             )
         ),
         Symbol("contract") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("ping") => 2,
-                    Symbol("detail") => 100,
-                    Symbol("support_currencies") => 2,
-                    Symbol("depth/{symbol}") => 2,
-                    Symbol("depth_commits/{symbol}/{limit}") => 2,
-                    Symbol("index_price/{symbol}") => 2,
-                    Symbol("fair_price/{symbol}") => 2,
-                    Symbol("funding_rate/{symbol}") => 2,
-                    Symbol("kline/{symbol}") => 2,
-                    Symbol("kline/index_price/{symbol}") => 2,
-                    Symbol("kline/fair_price/{symbol}") => 2,
-                    Symbol("deals/{symbol}") => 2,
-                    Symbol("ticker") => 2,
-                    Symbol("risk_reverse") => 2,
-                    Symbol("risk_reverse/history") => 2,
-                    Symbol("funding_rate/history") => 2
+                    Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                    Symbol("support_currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("depth/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("depth_commits/{symbol}/{limit}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("index_price/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("fair_price/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("funding_rate/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("kline/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("kline/index_price/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("kline/fair_price/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("deals/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("risk_reverse") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("risk_reverse/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("funding_rate/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("account/assets") => 2,
-                    Symbol("account/asset/{currency}") => 2,
-                    Symbol("account/transfer_record") => 2,
-                    Symbol("account/profit_rate/{type}") => 2,
-                    Symbol("account/asset/analysis/{type}") => 2,
-                    Symbol("account/feeDeductConfigs") => 2,
-                    Symbol("account/asset/analysis/yesterday_pnl") => 2,
-                    Symbol("account/asset/analysis/today_pnl") => 2,
-                    Symbol("account/config/contractFeeDiscountConfig") => 2,
-                    Symbol("order/fee_details") => 2,
-                    Symbol("account/discountType") => 2,
-                    Symbol("account/asset/analysis/export") => 2,
-                    Symbol("account/asset_book/order_deal_fee/total") => 2,
-                    Symbol("account/contract/fee_rate") => 2,
-                    Symbol("account/contract/zero_fee_rate") => 2,
-                    Symbol("position/list/history_positions") => 2,
-                    Symbol("position/open_positions") => 2,
-                    Symbol("position/funding_records") => 2,
-                    Symbol("position/position_mode") => 2,
-                    Symbol("order/list/open_orders/{symbol}") => 2,
-                    Symbol("order/list/open_orders") => 2,
-                    Symbol("order/list/history_orders") => 2,
-                    Symbol("order/list/order_deals/v3") => 2,
-                    Symbol("order/external/{symbol}/{external_oid}") => 2,
-                    Symbol("order/get/{order_id}") => 2,
-                    Symbol("order/batch_query") => 8,
-                    Symbol("order/deal_details/{order_id}") => 2,
-                    Symbol("order/list/order_deals") => 2,
-                    Symbol("order/list/close_orders") => 2,
-                    Symbol("planorder/list/orders") => 2,
-                    Symbol("stoporder/list/orders") => 2,
-                    Symbol("stoporder/open_orders") => 2,
-                    Symbol("stoporder/order_details/{stop_order_id}") => 2,
-                    Symbol("account/risk_limit") => 2,
-                    Symbol("account/tiered_fee_rate") => 2,
-                    Symbol("position/leverage") => 2,
-                    Symbol("account/tiered_fee_rate/v2") => 2,
-                    Symbol("trackorder/list/orders") => 2,
-                    Symbol("market_maker/self_trade/blacklist") => 2,
-                    Symbol("market_maker/self_trade/blacklist/search") => 2
+                    Symbol("account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/asset/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/transfer_record") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/profit_rate/{type}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/asset/analysis/{type}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/feeDeductConfigs") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/asset/analysis/yesterday_pnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/asset/analysis/today_pnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/config/contractFeeDiscountConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/fee_details") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/discountType") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/asset/analysis/export") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/asset_book/order_deal_fee/total") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/contract/fee_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/contract/zero_fee_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("position/list/history_positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("position/open_positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("position/funding_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("position/position_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/list/open_orders/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/list/open_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/list/history_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/list/order_deals/v3") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/external/{symbol}/{external_oid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/get/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/batch_query") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("order/deal_details/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/list/order_deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/list/close_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("planorder/list/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("stoporder/list/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("stoporder/open_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("stoporder/order_details/{stop_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/risk_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/tiered_fee_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("position/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/tiered_fee_rate/v2") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("trackorder/list/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("market_maker/self_trade/blacklist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("market_maker/self_trade/blacklist/search") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("account/asset/analysis/v3") => 2,
-                    Symbol("account/asset/analysis/calendar/daily/v3") => 2,
-                    Symbol("account/asset/analysis/calendar/monthly/v3") => 2,
-                    Symbol("account/asset/analysis/recent/v3") => 2,
-                    Symbol("position/change_margin") => 2,
-                    Symbol("position/change_auto_add_im") => 2,
-                    Symbol("position/change_leverage") => 2,
-                    Symbol("position/change_position_mode") => 2,
-                    Symbol("position/reverse") => 2,
-                    Symbol("position/close_all") => 2,
-                    Symbol("order/create") => 2,
-                    Symbol("order/submit") => 2,
-                    Symbol("order/submit_batch") => 40,
-                    Symbol("order/chase_limit_order") => 40,
-                    Symbol("order/change_limit_order") => 40,
-                    Symbol("order/cancel") => 2,
-                    Symbol("order/batch_cancel_with_external") => 2,
-                    Symbol("order/cancel_with_external") => 2,
-                    Symbol("order/cancel_all") => 2,
-                    Symbol("order/open_order_total_count") => 2,
-                    Symbol("order/batch_query_with_external") => 2,
-                    Symbol("account/change_risk_level") => 2,
-                    Symbol("planorder/place") => 2,
-                    Symbol("planorder/place/v2") => 2,
-                    Symbol("planorder/cancel") => 2,
-                    Symbol("planorder/cancel_all") => 2,
-                    Symbol("planorder/change_stop_order") => 2,
-                    Symbol("stoporder/place") => 2,
-                    Symbol("stoporder/cancel") => 2,
-                    Symbol("stoporder/cancel_all") => 2,
-                    Symbol("stoporder/change_price") => 2,
-                    Symbol("stoporder/change_plan_price") => 2,
-                    Symbol("trackorder/place") => 2,
-                    Symbol("trackorder/cancel") => 2,
-                    Symbol("trackorder/change_order") => 2,
-                    Symbol("market_maker/self_trade/blacklist/create") => 2,
-                    Symbol("market_maker/self_trade/blacklist/update") => 2,
-                    Symbol("market_maker/self_trade/blacklist/delete") => 2
+                    Symbol("account/asset/analysis/v3") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/asset/analysis/calendar/daily/v3") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/asset/analysis/calendar/monthly/v3") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/asset/analysis/recent/v3") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("position/change_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("position/change_auto_add_im") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("position/change_leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("position/change_position_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("position/reverse") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("position/close_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/submit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/submit_batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/chase_limit_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/change_limit_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/batch_cancel_with_external") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/cancel_with_external") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/cancel_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/open_order_total_count") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("order/batch_query_with_external") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("account/change_risk_level") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("planorder/place") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("planorder/place/v2") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("planorder/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("planorder/cancel_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("planorder/change_stop_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("stoporder/place") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("stoporder/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("stoporder/cancel_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("stoporder/change_price") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("stoporder/change_plan_price") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("trackorder/place") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("trackorder/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("trackorder/change_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("market_maker/self_trade/blacklist/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("market_maker/self_trade/blacklist/update") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("market_maker/self_trade/blacklist/delete") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             )
         ),
         Symbol("spot2") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("market/symbols") => 1,
-                    Symbol("market/coin/list") => 2,
-                    Symbol("common/timestamp") => 1,
-                    Symbol("common/ping") => 2,
-                    Symbol("market/ticker") => 1,
-                    Symbol("market/depth") => 1,
-                    Symbol("market/deals") => 1,
-                    Symbol("market/kline") => 1,
-                    Symbol("market/api_default_symbols") => 2
+                    Symbol("market/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/coin/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("common/timestamp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("common/ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("market/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/api_default_symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("account/info") => 1,
-                    Symbol("order/open_orders") => 1,
-                    Symbol("order/list") => 1,
-                    Symbol("order/query") => 1,
-                    Symbol("order/deals") => 1,
-                    Symbol("order/deal_detail") => 1,
-                    Symbol("asset/deposit/address/list") => 2,
-                    Symbol("asset/deposit/list") => 2,
-                    Symbol("asset/address/list") => 2,
-                    Symbol("asset/withdraw/list") => 2,
-                    Symbol("asset/internal/transfer/record") => 10,
-                    Symbol("account/balance") => 10,
-                    Symbol("asset/internal/transfer/info") => 10,
-                    Symbol("market/api_symbols") => 2
+                    Symbol("account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/open_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/deal_detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("asset/deposit/address/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("asset/deposit/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("asset/address/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("asset/withdraw/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("asset/internal/transfer/record") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("asset/internal/transfer/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("market/api_symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("order/place") => 1,
-                    Symbol("order/place_batch") => 1,
-                    Symbol("order/advanced/place_batch") => 1,
-                    Symbol("asset/withdraw") => 2,
-                    Symbol("asset/internal/transfer") => 10
+                    Symbol("order/place") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/place_batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/advanced/place_batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("asset/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("asset/internal/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("order/cancel") => 1,
-                    Symbol("order/cancel_by_symbol") => 1,
-                    Symbol("asset/withdraw") => 2
+                    Symbol("order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/cancel_by_symbol") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("asset/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             )
         ),
         Symbol("broker") => Dict{Symbol, Any}(
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("sub-account/universalTransfer") => 1,
-                    Symbol("sub-account/list") => 1,
-                    Symbol("sub-account/status") => 1,
-                    Symbol("sub-account/apiKey") => 1,
-                    Symbol("capital/deposit/subAddress") => 1,
-                    Symbol("capital/deposit/subHisrec") => 1,
-                    Symbol("capital/deposit/subHisrec/getall") => 1,
-                    Symbol("rebate/taxQuery") => 1
+                    Symbol("sub-account/universalTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/apiKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/deposit/subAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/deposit/subHisrec") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/deposit/subHisrec/getall") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("rebate/taxQuery") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("sub-account/virtualSubAccount") => 1,
-                    Symbol("sub-account/apiKey") => 1,
-                    Symbol("capital/deposit/subAddress") => 1,
-                    Symbol("capital/withdraw/apply") => 1,
-                    Symbol("sub-account/universalTransfer") => 1,
-                    Symbol("sub-account/futures") => 1
+                    Symbol("sub-account/virtualSubAccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/apiKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/deposit/subAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("capital/withdraw/apply") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/universalTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("sub-account/apiKey") => 1
+                    Symbol("sub-account/apiKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             )
         )
@@ -809,6 +1290,28 @@ function describe(self::Mexc, )
             Symbol("-1128") => BadRequest,
             Symbol("-2011") => BadRequest,
             Symbol("-1121") => BadSymbol,
+            Symbol("401") => AuthenticationError,
+            Symbol("402") => AuthenticationError,
+            Symbol("403") => PermissionDenied,
+            Symbol("406") => PermissionDenied,
+            Symbol("429") => RateLimitExceeded,
+            Symbol("500") => ExchangeError,
+            Symbol("501") => ExchangeNotAvailable,
+            Symbol("503") => ExchangeNotAvailable,
+            Symbol("504") => RequestTimeout,
+            Symbol("510") => RateLimitExceeded,
+            Symbol("511") => PermissionDenied,
+            Symbol("513") => BadRequest,
+            Symbol("601") => BadRequest,
+            Symbol("603") => BadRequest,
+            Symbol("604") => OnMaintenance,
+            Symbol("701") => PermissionDenied,
+            Symbol("702") => PermissionDenied,
+            Symbol("703") => PermissionDenied,
+            Symbol("704") => PermissionDenied,
+            Symbol("801") => OnMaintenance,
+            Symbol("1000") => AuthenticationError,
+            Symbol("1001") => BadSymbol,
             Symbol("10101") => InsufficientFunds,
             Symbol("2009") => InvalidOrder,
             Symbol("2011") => BadRequest,
@@ -856,6 +1359,7 @@ function describe(self::Mexc, )
             Symbol("10259") => ExchangeError,
             Symbol("10265") => ExchangeError,
             Symbol("10268") => BadRequest,
+            Symbol("11444") => OnMaintenance,
             Symbol("20001") => ExchangeError,
             Symbol("20002") => ExchangeError,
             Symbol("22222") => BadRequest,
@@ -977,23 +1481,25 @@ function parseCurrency(self::Mexc, rawCurrency)
         chain = get(chains, j + 1, nothing);
         networkId = safeString2(chain, "netWork", "network");
         network = self.networkIdToCode(networkId, code);
-        networks[Symbol(network)] = Dict{Symbol, Any}(
-            Symbol("info") => chain,
-            Symbol("id") => networkId,
-            Symbol("network") => network,
-            Symbol("active") => nothing,
-            Symbol("deposit") => self.safeBool(chain, "depositEnable", false),
-            Symbol("withdraw") => self.safeBool(chain, "withdrawEnable", false),
-            Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
-            Symbol("precision") => nothing,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => safeString(chain, "withdrawMin"),
-                    Symbol("max") => safeString(chain, "withdrawMax")
-                )
-            ),
-            Symbol("contract") => safeString(chain, "contract")
-        );
+        if functions.ccxtruthy(network != nothing)
+            networks[Symbol(network)] = Dict{Symbol, Any}(
+                Symbol("info") => chain,
+                Symbol("id") => networkId,
+                Symbol("network") => network,
+                Symbol("active") => nothing,
+                Symbol("deposit") => self.safeBool(chain, "depositEnable", false),
+                Symbol("withdraw") => self.safeBool(chain, "withdrawEnable", false),
+                Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
+                Symbol("precision") => nothing,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => safeString(chain, "withdrawMin"),
+                        Symbol("max") => safeString(chain, "withdrawMax")
+                    )
+                ),
+                Symbol("contract") => safeString(chain, "contract")
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -1231,7 +1737,7 @@ function fetchTrades(self::Mexc, symbol, since=nothing, limit=nothing, params=Di
     end
     trades = [];
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
-        until = safeIntegerN(params, ["endTime", "until"]);
+        until = safeInteger2(params, "endTime", "until");
         if functions.ccxtruthy(since != nothing)
             request[Symbol("startTime")] = since;
             if functions.ccxtruthy(until == nothing)
@@ -1261,7 +1767,7 @@ function fetchTrades(self::Mexc, symbol, since=nothing, limit=nothing, params=Di
         end
     elseif functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         response = Base.fetch(self.contractPublicGetDealsSymbol(extend(request, params)));
-        trades = safeValue(response, "data");
+        trades = self.safeList(response, "data", []);
     end
     return self.parseTrades(trades, market, since, limit)
 
@@ -1368,7 +1874,7 @@ function fetchOHLCV(self::Mexc, symbol, timeframe="1m", since=nothing, limit=not
         Symbol("interval") => timeframeValue
     );
     candles = [];
-    until = safeIntegerN(params, ["until", "endTime"]);
+    until = safeInteger2(params, "until", "endTime");
     start = since;
     if functions.ccxtruthy(@functions.ccxt_and((until != nothing), (since == nothing)))
         params = omit(params, ["until"]);
@@ -1391,7 +1897,7 @@ function fetchOHLCV(self::Mexc, symbol, timeframe="1m", since=nothing, limit=not
             request[Symbol("endTime")] = until + 1;
         end
         response = Base.fetch(self.spotPublicGetKlines(extend(request, params)));
-        candles = response;
+        candles = toArray(response);
     elseif functions.ccxtruthy(get(market, Symbol("swap"), nothing))
         if functions.ccxtruthy(since != nothing)
             request[Symbol("start")] = self.parseToInt(since / 1000);
@@ -1727,14 +2233,22 @@ function createSwapOrder(self::Mexc, market, type_var, side, amount, price=nothi
         end
 
     end
+    volString = self.amountToPrecision(symbol, amount);
+    if functions.ccxtruthy(volString == nothing)
+        volString = "0";
+    end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
-        Symbol("vol") => ccxt_toNumber(self.amountToPrecision(symbol, amount)),
+        Symbol("vol") => ccxt_toNumber(volString),
         Symbol("type") => type_var,
         Symbol("openType") => openType
     );
     if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and((type_var != 5), (type_var != 6)), (type_var != "market")))
-        request[Symbol("price")] = ccxt_toNumber(self.priceToPrecision(symbol, price));
+        priceString = self.priceToPrecision(symbol, price);
+        if functions.ccxtruthy(priceString == nothing)
+            priceString = "0";
+        end
+        request[Symbol("price")] = ccxt_toNumber(priceString);
     end
     if functions.ccxtruthy(openType == 1)
         leverage = safeInteger(params, "leverage");
@@ -2091,37 +2605,32 @@ function cancelAllOrders(self::Mexc, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
-    market = functions.ccxtruthy((symbol != nothing)) ? self.market(symbol) : nothing;
+    market = nothing;
+    if functions.ccxtruthy(symbol != nothing)
+        market = self.market(symbol);
+    end
     request = Dict{Symbol, Any}();
     marketType = nothing;
     (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", market, params);
-    (marginMode, query) = self.handleMarginModeAndParams("cancelAllOrders", params);
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(symbol == nothing)
-            throw(ArgumentsRequired(string(self.id, " cancelAllOrders() requires a symbol argument on spot")));
+            Base.fetch(self.spotPrivateDeleteOrderAll(params));
+                return []
         end
         request[Symbol("symbol")] = safeString(market, "id");
-
-        if functions.ccxtruthy(marginMode != nothing)
-            if functions.ccxtruthy(marginMode != "isolated")
-                throw(BadRequest(string(self.id, " cancelAllOrders() does not support marginMode ", marginMode, " for spot-margin trading")));
-            end
-            response = Base.fetch(self.spotPrivateDeleteMarginOpenOrders(extend(request, query)));
-        else
-            response = Base.fetch(self.spotPrivateDeleteOpenOrders(extend(request, query)));
-        end
+        response = Base.fetch(self.spotPrivateDeleteOpenOrders(extend(request, params)));
             return self.parseOrders(response, market)
     else
         if functions.ccxtruthy(symbol != nothing)
             request[Symbol("symbol")] = safeString(market, "id");
         end
         method = safeString(self.options, "cancelAllOrders", "contractPrivatePostOrderCancelAll");
-        method = safeString(query, "method", method);
+        method = safeString(params, "method", method);
         response = Dict{Symbol, Any}();
         if functions.ccxtruthy(method == "contractPrivatePostOrderCancelAll")
-            response = Base.fetch(self.contractPrivatePostOrderCancelAll(extend(request, query)));
+            response = Base.fetch(self.contractPrivatePostOrderCancelAll(extend(request, params)));
         elseif functions.ccxtruthy(method == "contractPrivatePostPlanorderCancelAll")
-            response = Base.fetch(self.contractPrivatePostPlanorderCancelAll(extend(request, query)));
+            response = Base.fetch(self.contractPrivatePostPlanorderCancelAll(extend(request, params)));
         end
         data = self.safeList(response, "data", []);
         return self.parseOrders(data, market)
@@ -2300,7 +2809,6 @@ function fetchTradingFee(self::Mexc, symbol, params=Dict())
 
 end
 function customParseBalance(self::Mexc, response, marketType)
-    wallet = nothing;
     if functions.ccxtruthy(marketType == "margin")
         wallet = safeValue(response, "assets", []);
     elseif functions.ccxtruthy(marketType == "swap")
@@ -2322,8 +2830,12 @@ function customParseBalance(self::Mexc, response, marketType)
             baseCode = self.safeCurrencyCode(safeString(base, "asset"));
             quoteCode = self.safeCurrencyCode(safeString(quote_var, "asset"));
             subResult = Dict{Symbol, Any}();
-            subResult[Symbol(baseCode)] = self.parseBalanceHelper(base);
-            subResult[Symbol(quoteCode)] = self.parseBalanceHelper(quote_var);
+            if functions.ccxtruthy(baseCode != nothing)
+                subResult[Symbol(baseCode)] = self.parseBalanceHelper(base);
+            end
+            if functions.ccxtruthy(quoteCode != nothing)
+                subResult[Symbol(quoteCode)] = self.parseBalanceHelper(quote_var);
+            end
             result[Symbol(symbol)] = self.safeBalance(subResult);
             i += 1
         end
@@ -2338,7 +2850,9 @@ function customParseBalance(self::Mexc, response, marketType)
             account = self.account();
             account[Symbol("free")] = safeString(entry, "availableBalance");
             account[Symbol("used")] = safeString(entry, "frozenBalance");
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
             i += 1
         end
         return self.safeBalance(result)
@@ -2351,7 +2865,9 @@ function customParseBalance(self::Mexc, response, marketType)
             account = self.account();
             account[Symbol("free")] = safeString(entry, "free");
             account[Symbol("used")] = safeString(entry, "locked");
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
             i += 1
         end
         return self.safeBalance(result)
@@ -2425,6 +2941,7 @@ function fetchMyTrades(self::Mexc, symbol=nothing, since=nothing, limit=nothing,
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
+    trades = [];
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(since != nothing)
             request[Symbol("startTime")] = since;
@@ -2450,7 +2967,7 @@ function fetchMyTrades(self::Mexc, symbol=nothing, since=nothing, limit=nothing,
             request[Symbol("page_size")] = limit;
         end
         response = Base.fetch(self.contractPrivateGetOrderListOrderDeals(extend(request, params)));
-        trades = safeValue(response, "data");
+        trades = self.safeList(response, "data", []);
     end
     return self.parseTrades(trades, market, since, limit)
 
@@ -2465,6 +2982,7 @@ function fetchOrderTrades(self::Mexc, id, symbol=nothing, since=nothing, limit=n
         market = self.market(symbol);
     end
     (marketType, query) = self.handleMarketTypeAndParams("fetchOrderTrades", market, params);
+    trades = [];
     if functions.ccxtruthy(marketType == "spot")
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchOrderTrades() requires a symbol argument")));
@@ -2475,7 +2993,7 @@ function fetchOrderTrades(self::Mexc, id, symbol=nothing, since=nothing, limit=n
     else
         request[Symbol("order_id")] = id;
         response = Base.fetch(self.contractPrivateGetOrderDealDetailsOrderId(extend(request, query)));
-        trades = safeValue(response, "data");
+        trades = self.safeList(response, "data", []);
     end
     return self.parseTrades(trades, market, since, limit, query)
 
@@ -2734,8 +3252,8 @@ function fetchDepositAddressesByNetwork(self::Mexc, code, params=Dict())
     if functions.ccxtruthy(networkCode != nothing)
         networkUnified = self.networkIdToCode(networkCode, code);
         networks = self.safeDict(currency, "networks", Dict{Symbol, Any}());
-        if functions.ccxtruthy(ccxt_in(networkUnified, networks))
-            network = self.safeDict(networks, networkUnified, Dict{Symbol, Any}());
+        if functions.ccxtruthy(@functions.ccxt_and((networkUnified != nothing), (ccxt_in(networkUnified, networks))))
+            network = functions.ccxtruthy((networkUnified == nothing)) ? Dict{Symbol, Any}() : self.safeDict(networks, networkUnified, Dict{Symbol, Any}());
             networkInfo = safeValue(network, "info", Dict{Symbol, Any}());
             networkId = safeString(networkInfo, "network");
         else
@@ -2766,8 +3284,8 @@ function createDepositAddress(self::Mexc, code, params=Dict())
     networkId = nothing;
     networkUnified = self.networkIdToCode(networkCode, code);
     networks = self.safeDict(currency, "networks", Dict{Symbol, Any}());
-    if functions.ccxtruthy(ccxt_in(networkUnified, networks))
-        network = self.safeDict(networks, networkUnified, Dict{Symbol, Any}());
+    if functions.ccxtruthy(@functions.ccxt_and((networkUnified != nothing), (ccxt_in(networkUnified, networks))))
+        network = functions.ccxtruthy((networkUnified == nothing)) ? Dict{Symbol, Any}() : self.safeDict(networks, networkUnified, Dict{Symbol, Any}());
         networkInfo = safeValue(network, "info", Dict{Symbol, Any}());
         networkId = safeString(networkInfo, "network");
     else
@@ -2785,7 +3303,8 @@ function fetchDepositAddress(self::Mexc, code, params=Dict())
     network = safeString(params, "network");
     addressStructures = Base.fetch(self.fetchDepositAddressesByNetwork(code, params));
     if functions.ccxtruthy(network != nothing)
-        result = self.safeDict(addressStructures, self.networkIdToCode(network, code));
+        netCode = self.networkIdToCode(network, code);
+        result = functions.ccxtruthy((netCode == nothing)) ? nothing : self.safeDict(addressStructures, netCode);
     else
         options = self.safeDict(self.options, "defaultNetworks");
         defaultNetworkForCurrency = safeString(options, code);
@@ -2937,6 +3456,15 @@ function parseTransactionStatusByType(self::Mexc, status, type_var=nothing)
     return safeString(statuses, status, status)
 
 end
+function closeAllPositions(self::Mexc, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    response = Base.fetch(self.contractPrivatePostPositionCloseAll(params));
+    data = self.safeList(response, "data", []);
+    return self.parsePositions(data)
+
+end
 function fetchPosition(self::Mexc, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -3017,7 +3545,7 @@ function fetchTransfer(self::Mexc, id, code=nothing, params=Dict())
     elseif functions.ccxtruthy(marketType == "swap")
         throw(BadRequest(string(self.id, " fetchTransfer() is not supported for ", marketType)));
     end
-    return nothing
+    throw(BadRequest(string(self.id, " fetchTransfer() is not supported for ", marketType)));
 
 end
 function fetchTransfers(self::Mexc, code=nothing, since=nothing, limit=nothing, params=Dict())
@@ -3290,16 +3818,18 @@ function parseDepositWithdrawFee(self::Mexc, fee, currency=nothing)
         networkEntry = get(networkList, j + 1, nothing);
         networkId = safeString(networkEntry, "network");
         networkCode = self.networkIdToCode(networkId, safeString(currency, "code"));
-        result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("withdraw") => Dict{Symbol, Any}(
-                Symbol("fee") => self.safeNumber(networkEntry, "withdrawFee"),
-                Symbol("percentage") => nothing
-            ),
-            Symbol("deposit") => Dict{Symbol, Any}(
-                Symbol("fee") => nothing,
-                Symbol("percentage") => nothing
-            )
-        );
+        if functions.ccxtruthy(networkCode != nothing)
+            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("withdraw") => Dict{Symbol, Any}(
+                    Symbol("fee") => self.safeNumber(networkEntry, "withdrawFee"),
+                    Symbol("percentage") => nothing
+                ),
+                Symbol("deposit") => Dict{Symbol, Any}(
+                    Symbol("fee") => nothing,
+                    Symbol("percentage") => nothing
+                )
+            );
+        end
         j += 1
     end
     return self.assignDefaultDepositWithdrawFees(result)
@@ -3371,7 +3901,7 @@ function fetchPositionsHistory(self::Mexc, symbols=nothing, since=nothing, limit
         request[Symbol("page_size")] = limit;
     end
     response = Base.fetch(self.contractPrivateGetPositionListHistoryPositions(extend(request, params)));
-    data = self.safeList(response, "data");
+    data = self.safeList(response, "data", []);
     positions = self.parsePositions(data, symbols, params);
     return self.filterBySinceLimit(positions, since, limit)
 
@@ -3513,15 +4043,68 @@ function handleErrors(self::Mexc, code, reason, url, method, headers, body, resp
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Mexc, name::Symbol) = ccxt_getproperty(self, name)
 
 function Mexc(; kwargs...)
-    inst = Mexc(Exchange(), describe, fetchStatus, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, fetchSpotMarkets, fetchSwapMarkets, fetchOrderBook, parseOrderBookBidAsk, fetchTrades, parseTrade, fetchOHLCV, parseOHLCV, fetchTickers, fetchTicker, parseTicker, fetchBidsAsks, createMarketBuyOrderWithCost, createMarketSellOrderWithCost, createOrder, createSpotOrderRequest, createSpotOrder, createSwapOrder, createOrders, fetchOrder, fetchOrders, fetchOrdersByIds, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrdersByState, cancelOrder, cancelOrders, cancelAllOrders, parseOrder, parseOrderSide, parseOrderType, parseOrderStatus, parseOrderTimeInForce, getTifFromRawOrderType, fetchAccountHelper, fetchAccounts, fetchTradingFee, customParseBalance, parseBalanceHelper, fetchBalance, fetchMyTrades, fetchOrderTrades, modifyMarginHelper, reduceMargin, addMargin, setLeverage, fetchFundingHistory, parseFundingRate, fetchFundingInterval, fetchFundingRate, fetchFundingRateHistory, fetchLeverageTiers, parseMarketLeverageTiers, parseDepositAddress, fetchDepositAddressesByNetwork, createDepositAddress, fetchDepositAddress, fetchDeposits, fetchWithdrawals, parseTransaction, parseTransactionStatusByType, fetchPosition, fetchPositions, parsePosition, fetchTransfer, fetchTransfers, transfer, parseTransfer, parseAccountId, parseTransferStatus, withdraw, setPositionMode, fetchPositionMode, fetchTransactionFees, parseTransactionFees, parseTransactionFee, fetchDepositWithdrawFees, parseDepositWithdrawFee, fetchLeverage, parseLeverage, handleMarginModeAndParams, fetchPositionsHistory, setMarginMode, nonce, sign, handleErrors)
+    inst = Mexc(Exchange(), describe, fetchStatus, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, fetchSpotMarkets, fetchSwapMarkets, fetchOrderBook, parseOrderBookBidAsk, fetchTrades, parseTrade, fetchOHLCV, parseOHLCV, fetchTickers, fetchTicker, parseTicker, fetchBidsAsks, createMarketBuyOrderWithCost, createMarketSellOrderWithCost, createOrder, createSpotOrderRequest, createSpotOrder, createSwapOrder, createOrders, fetchOrder, fetchOrders, fetchOrdersByIds, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrdersByState, cancelOrder, cancelOrders, cancelAllOrders, parseOrder, parseOrderSide, parseOrderType, parseOrderStatus, parseOrderTimeInForce, getTifFromRawOrderType, fetchAccountHelper, fetchAccounts, fetchTradingFee, customParseBalance, parseBalanceHelper, fetchBalance, fetchMyTrades, fetchOrderTrades, modifyMarginHelper, reduceMargin, addMargin, setLeverage, fetchFundingHistory, parseFundingRate, fetchFundingInterval, fetchFundingRate, fetchFundingRateHistory, fetchLeverageTiers, parseMarketLeverageTiers, parseDepositAddress, fetchDepositAddressesByNetwork, createDepositAddress, fetchDepositAddress, fetchDeposits, fetchWithdrawals, parseTransaction, parseTransactionStatusByType, closeAllPositions, fetchPosition, fetchPositions, parsePosition, fetchTransfer, fetchTransfers, transfer, parseTransfer, parseAccountId, parseTransferStatus, withdraw, setPositionMode, fetchPositionMode, fetchTransactionFees, parseTransactionFees, parseTransactionFee, fetchDepositWithdrawFees, parseDepositWithdrawFee, fetchLeverage, parseLeverage, handleMarginModeAndParams, fetchPositionsHistory, setMarginMode, nonce, sign, handleErrors)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

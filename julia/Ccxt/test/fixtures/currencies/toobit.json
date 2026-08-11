@@ -214,9 +214,9 @@
      "allowWithdraw": true
     }
    },
-   "ARBONE": {
+   "ARBITRUM": {
     "id": "ARBITRUM",
-    "network": "ARBONE",
+    "network": "ARBITRUM",
     "deposit": true,
     "withdraw": true,
     "fee": 0.0012,

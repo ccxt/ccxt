@@ -234,13 +234,174 @@ function describe(self::Delta, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["assets", "indices", "products", "products/{symbol}", "tickers", "tickers/{symbol}", "l2orderbook/{symbol}", "trades/{symbol}", "stats", "history/candles", "history/sparklines", "settings"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("indices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("products") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("products/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("l2orderbook/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("stats") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("history/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("history/sparklines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("get") => ["orders", "orders/{order_id}", "orders/client_order_id/{client_oid}", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "rate_limits/quota", "heartbeat", "deposits/address"],
-            Symbol("post") => ["orders", "orders/bracket", "orders/batch", "products/{product_id}/orders/leverage", "positions/change_margin", "positions/close_all", "wallets/sub_account_balance_transfer", "heartbeat/create", "heartbeat", "orders/cancel_after", "orders/leverage"],
-            Symbol("put") => ["orders", "orders/bracket", "orders/batch", "positions/auto_topup", "users/update_mmp", "users/reset_mmp", "users/margin_mode"],
-            Symbol("delete") => ["orders", "orders/all", "orders/batch"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/client_order_id/{client_oid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("products/{product_id}/orders/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positions/margined") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fills/history/download/csv") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet/transactions/download") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallets/sub_accounts_transfer_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("users/trading_preferences") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub_accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("profile") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rate_limits/quota") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("heartbeat") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposits/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/bracket") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("products/{product_id}/orders/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positions/change_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positions/close_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallets/sub_account_balance_transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("heartbeat/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("heartbeat") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/cancel_after") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("put") => Dict{Symbol, Any}(
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/bracket") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positions/auto_topup") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("users/update_mmp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("users/reset_mmp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("users/margin_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("delete") => Dict{Symbol, Any}(
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(
@@ -388,14 +549,14 @@ function createExpiredOptionMarket(self::Delta, symbol)
         optionType = safeString(optionParts, 0);
     end
     if functions.ccxtruthy(expiry != nothing)
-        expiry = string(expiry[4 + 1:end], expiry[2 + 1:4], expiry[0 + 1:2]);
+        expiry = string(functions.ccxt_slice(expiry, 4), functions.ccxt_slice(expiry, 2, 4), functions.ccxt_slice(expiry, 0, 2));
     end
     settle = quote_var;
     strike = safeString(optionParts, 2);
     datetime = self.convertExpireDate(expiry);
     timestamp = self.parse8601(datetime);
     optionTypeUnified = functions.ccxtruthy((optionType == "C")) ? "call" : "put";
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => string(optionType, "-", base, "-", strike, "-", expiry),
     Symbol("symbol") => string(base, "/", quote_var, ":", settle, "-", expiry, "-", strike, "-", optionType),
     Symbol("base") => base,
@@ -438,12 +599,12 @@ function createExpiredOptionMarket(self::Delta, symbol)
         )
     ),
     Symbol("info") => nothing
-)
+))
 
 end
 function safeMarket(self::Delta, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     isOption = @functions.ccxt_and((marketId != nothing), (@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((endswith(marketId, "-C")), (endswith(marketId, "-P"))), (startswith(marketId, "C-"))), (startswith(marketId, "P-")))));
-    if functions.ccxtruthy(@functions.ccxt_and(isOption, !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))
+    if functions.ccxtruthy(@functions.ccxt_and(isOption, (@functions.ccxt_or((self.markets_by_id == nothing), !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))))
             return self.createExpiredOptionMarket(marketId)
     end
     return safeMarket(self.parent, marketId, market, delimiter, marketType)
@@ -487,26 +648,28 @@ function parseCurrency(self::Delta, rawCurrency)
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "network");
         networkCode = self.networkIdToCode(networkId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("name") => safeString(chain, "name"),
-            Symbol("info") => chain,
-            Symbol("active") => safeString(chain, "status") == "enabled",
-            Symbol("deposit") => safeString(chain, "deposit_status") == "enabled",
-            Symbol("withdraw") => safeString(chain, "withdrawal_status") == "enabled",
-            Symbol("fee") => self.safeNumber(chain, "base_withdrawal_fee"),
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(chain, "min_deposit_amount"),
-                    Symbol("max") => nothing
-                ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(chain, "min_withdrawal_amount"),
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("name") => safeString(chain, "name"),
+                Symbol("info") => chain,
+                Symbol("active") => safeString(chain, "status") == "enabled",
+                Symbol("deposit") => safeString(chain, "deposit_status") == "enabled",
+                Symbol("withdraw") => safeString(chain, "withdrawal_status") == "enabled",
+                Symbol("fee") => self.safeNumber(chain, "base_withdrawal_fee"),
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(chain, "min_deposit_amount"),
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(chain, "min_withdrawal_amount"),
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -576,7 +739,7 @@ function fetchMarkets(self::Delta, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
         market = get(markets, i + 1, nothing);
         type_var = safeString(market, "contract_type");
-        if functions.ccxtruthy(type_var == "options_combos")
+        if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((type_var == "options_combos"), (type_var == "binary_call_options")), (type_var == "binary_put_options")))
             i += 1; continue
         end
         quotingAsset = self.safeDict(market, "quoting_asset", Dict{Symbol, Any}());
@@ -635,7 +798,7 @@ function fetchMarkets(self::Delta, params=Dict())
             end
         end
         state = safeString(market, "state");
-        push!(result, Dict{Symbol, Any}(
+        push!(result, self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("numericId") => numericId,
     Symbol("symbol") => symbol,
@@ -686,7 +849,7 @@ function fetchMarkets(self::Delta, params=Dict())
     ),
     Symbol("created") => self.parse8601(safeString(market, "launch_time")),
     Symbol("info") => market
-));
+)));
         i += 1
     end
     return result
@@ -743,9 +906,16 @@ function fetchTickers(self::Delta, symbols=nothing, params=Dict())
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tickers)))
-        ticker = self.parseTicker(get(tickers, i + 1, nothing));
+        rawTicker = get(tickers, i + 1, nothing);
+        contractType = safeString(rawTicker, "contract_type");
+        if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((contractType == "options_combos"), (contractType == "binary_call_options")), (contractType == "binary_put_options")))
+            i += 1; continue
+        end
+        ticker = self.parseTicker(rawTicker);
         symbol = get(ticker, Symbol("symbol"), nothing);
-        result[Symbol(symbol)] = ticker;
+        if functions.ccxtruthy(symbol != nothing)
+            result[Symbol(symbol)] = ticker;
+        end
         i += 1
     end
     return self.filterByArrayTickers(result, "symbol", symbols)
@@ -849,6 +1019,9 @@ function fetchOHLCV(self::Delta, symbol, timeframe="1m", since=nothing, limit=no
     if functions.ccxtruthy(since == nothing)
         end_var = functions.ccxtruthy(untilIsDefined) ? until : seconds();
         request[Symbol("end")] = end_var;
+        if functions.ccxtruthy(end_var == nothing)
+            throw(ExchangeError(string(self.id, " fetchOHLCV() missing end")));
+        end
         request[Symbol("start")] = end_var - limit * duration;
     else
         start = self.parseToInt(since / 1000);
@@ -1065,13 +1238,17 @@ function editOrder(self::Delta, id, symbol, type_var, side, amount=nothing, pric
         Symbol("product_id") => get(market, Symbol("numericId"), nothing)
     );
     if functions.ccxtruthy(amount != nothing)
-        request[Symbol("size")] = ccxt_parseInt(self.amountToPrecision(symbol, amount));
+        sizeString = self.amountToPrecision(symbol, amount);
+        if functions.ccxtruthy(sizeString == nothing)
+            sizeString = "0";
+        end
+        request[Symbol("size")] = ccxt_parseInt(sizeString);
     end
     if functions.ccxtruthy(price != nothing)
         request[Symbol("limit_price")] = self.priceToPrecision(symbol, price);
     end
     response = Base.fetch(self.privatePutOrders(extend(request, params)));
-    result = self.safeDict(response, "result");
+    result = self.safeDict(response, "result", Dict{Symbol, Any}());
     return self.parseOrder(result, market)
 
 end
@@ -1086,7 +1263,7 @@ function cancelOrder(self::Delta, id, symbol=nothing, params=Dict())
         Symbol("product_id") => get(market, Symbol("numericId"), nothing)
     );
     response = Base.fetch(self.privateDeleteOrders(extend(request, params)));
-    result = self.safeDict(response, "result");
+    result = self.safeDict(response, "result", Dict{Symbol, Any}());
     return self.parseOrder(result, market)
 
 end
@@ -1675,7 +1852,7 @@ function handleErrors(self::Delta, code, reason, url, method, headers, body, res
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Delta, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1890,9 +2067,62 @@ end
 
 function Delta(; kwargs...)
     inst = Delta(Exchange(), describe, createExpiredOptionMarket, safeMarket, fetchTime, fetchStatus, fetchCurrencies, parseCurrency, loadMarkets, indexByStringifiedNumericId, fetchMarkets, parseTicker, fetchTicker, fetchTickers, fetchOrderBook, parseTrade, fetchTrades, parseOHLCV, fetchOHLCV, parseBalance, fetchBalance, fetchPosition, fetchPositions, parsePosition, parseOrderStatus, parseOrder, createOrder, editOrder, cancelOrder, cancelAllOrders, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchOrdersWithMethod, fetchMyTrades, fetchLedger, parseLedgerEntryType, parseLedgerEntry, fetchDepositAddress, parseDepositAddress, fetchFundingRate, fetchFundingRates, parseFundingRate, addMargin, reduceMargin, modifyMarginHelper, parseMarginModification, fetchOpenInterest, parseOpenInterest, fetchLeverage, parseLeverage, setLeverage, fetchSettlementHistory, parseSettlement, parseSettlements, fetchGreeks, parseGreeks, closeAllPositions, fetchMarginMode, parseMarginMode, setMarginMode, fetchOption, parseOption, fetchPositionsADLRank, parseADLRank, sign, handleErrors, publicGetAssets, publicGetIndices, publicGetProducts, publicGetProductsSymbol, publicGetTickers, publicGetTickersSymbol, publicGetL2orderbookSymbol, publicGetTradesSymbol, publicGetStats, publicGetHistoryCandles, publicGetHistorySparklines, publicGetSettings, privateGetOrders, privateGetOrdersOrderId, privateGetOrdersClientOrderIdClientOid, privateGetProductsProductIdOrdersLeverage, privateGetPositionsMargined, privateGetPositions, privateGetOrdersHistory, privateGetFills, privateGetFillsHistoryDownloadCsv, privateGetWalletBalances, privateGetWalletTransactions, privateGetWalletTransactionsDownload, privateGetWalletsSubAccountsTransferHistory, privateGetUsersTradingPreferences, privateGetSubAccounts, privateGetProfile, privateGetRateLimitsQuota, privateGetHeartbeat, privateGetDepositsAddress, privatePostOrders, privatePostOrdersBracket, privatePostOrdersBatch, privatePostProductsProductIdOrdersLeverage, privatePostPositionsChangeMargin, privatePostPositionsCloseAll, privatePostWalletsSubAccountBalanceTransfer, privatePostHeartbeatCreate, privatePostHeartbeat, privatePostOrdersCancelAfter, privatePostOrdersLeverage, privatePutOrders, privatePutOrdersBracket, privatePutOrdersBatch, privatePutPositionsAutoTopup, privatePutUsersUpdateMmp, privatePutUsersResetMmp, privatePutUsersMarginMode, privateDeleteOrders, privateDeleteOrdersAll, privateDeleteOrdersBatch)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

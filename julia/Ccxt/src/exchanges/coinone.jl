@@ -209,19 +209,213 @@ function describe(self::Coinone, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["orderbook", "ticker", "ticker_utc", "trades"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker_utc") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("v2Public") => Dict{Symbol, Any}(
-            Symbol("get") => ["range_units", "markets/{quote_currency}", "markets/{quote_currency}/{target_currency}", "orderbook/{quote_currency}/{target_currency}", "trades/{quote_currency}/{target_currency}", "ticker_new/{quote_currency}", "ticker_new/{quote_currency}/{target_currency}", "ticker_utc_new/{quote_currency}", "ticker_utc_new/{quote_currency}/{target_currency}", "currencies", "currencies/{currency}", "chart/{quote_currency}/{target_currency}"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("range_units") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{quote_currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{quote_currency}/{target_currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook/{quote_currency}/{target_currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades/{quote_currency}/{target_currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker_new/{quote_currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker_new/{quote_currency}/{target_currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker_utc_new/{quote_currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker_utc_new/{quote_currency}/{target_currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currencies/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("chart/{quote_currency}/{target_currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("post") => ["account/deposit_address", "account/btc_deposit_address", "account/balance", "account/daily_balance", "account/user_info", "account/virtual_account", "order/cancel_all", "order/cancel", "order/limit_buy", "order/limit_sell", "order/complete_orders", "order/limit_orders", "order/order_info", "transaction/auth_number", "transaction/history", "transaction/krw/history", "transaction/btc", "transaction/coin"]
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("account/deposit_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/btc_deposit_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/daily_balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/user_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/virtual_account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/cancel_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/limit_buy") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/limit_sell") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/complete_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/limit_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/order_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/auth_number") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/krw/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/btc") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/coin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("v2Private") => Dict{Symbol, Any}(
-            Symbol("post") => ["account/balance", "account/deposit_address", "account/user_info", "account/virtual_account", "order/cancel", "order/limit_buy", "order/limit_sell", "order/limit_orders", "order/complete_orders", "order/query_order", "transaction/auth_number", "transaction/btc", "transaction/history", "transaction/krw/history"]
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/deposit_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/user_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/virtual_account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/limit_buy") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/limit_sell") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/limit_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/complete_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/query_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/auth_number") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/btc") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/krw/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("v2_1Private") => Dict{Symbol, Any}(
-            Symbol("post") => ["account/balance/all", "account/balance", "account/trade_fee", "account/trade_fee/{quote_currency}/{target_currency}", "order/limit", "order/cancel", "order/cancel/all", "order/open_orders", "order/open_orders/all", "order/complete_orders", "order/complete_orders/all", "order/info", "transaction/krw/history", "transaction/coin/history", "transaction/coin/withdrawal/limit"]
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("account/balance/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/trade_fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/trade_fee/{quote_currency}/{target_currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/cancel/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/open_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/open_orders/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/complete_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/complete_orders/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/krw/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/coin/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/coin/withdrawal/limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(
@@ -425,7 +619,9 @@ function parseBalance(self::Coinone, response)
         account = self.account();
         account[Symbol("free")] = safeString(balance, "avail");
         account[Symbol("total")] = safeString(balance, "balance");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -586,20 +782,27 @@ function fetchTrades(self::Coinone, symbol, since=nothing, limit=nothing, params
 
 end
 function createOrder(self::Coinone, symbol, type_var, side, amount, price=nothing, params=Dict())
-    if functions.ccxtruthy(type_var != "limit")
+    orderType = uppercase(type_var);
+    orderSide = uppercase(side);
+    if functions.ccxtruthy(orderType != "LIMIT")
         throw(ExchangeError(string(self.id, " createOrder() allows limit orders only")));
+    end
+    if functions.ccxtruthy(price == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrder() requires a price argument for the limit orders")));
     end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
-        Symbol("price") => price,
-        Symbol("currency") => get(market, Symbol("id"), nothing),
-        Symbol("qty") => amount
+        Symbol("quote_currency") => get(market, Symbol("quoteId"), nothing),
+        Symbol("target_currency") => get(market, Symbol("baseId"), nothing),
+        Symbol("type") => orderType,
+        Symbol("side") => orderSide,
+        Symbol("price") => self.priceToPrecision(symbol, price),
+        Symbol("qty") => self.amountToPrecision(symbol, amount)
     );
-    method = string("privatePostOrder", capitalize(type_var), capitalize(side));
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(self.v2_1PrivatePostOrderLimit(extend(request, params)));
     return self.parseOrder(response, market)
 
 end
@@ -631,9 +834,9 @@ function parseOrderStatus(self::Coinone, status)
 
 end
 function parseOrder(self::Coinone, order, market=nothing)
-    id = safeString(order, "orderId");
-    baseId = safeString(order, "baseCurrency");
-    quoteId = safeString(order, "targetCurrency");
+    id = safeString2(order, "orderId", "order_id");
+    baseId = safeString2(order, "baseCurrency", "target_currency");
+    quoteId = safeString2(order, "targetCurrency", "quote_currency");
     base = nothing;
     quote_var = nothing;
     if functions.ccxtruthy(baseId != nothing)
@@ -648,14 +851,20 @@ function parseOrder(self::Coinone, order, market=nothing)
         market = self.safeMarket(symbol, market, "/");
     end
     timestamp = safeTimestamp2(order, "timestamp", "updatedAt");
-    side = safeString2(order, "type", "side");
+    if functions.ccxtruthy(timestamp == nothing)
+        timestamp = safeInteger2(order, "ordered_at", "updated_at");
+    end
+    side = safeStringLower2(order, "type", "side");
+    if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or((side == "limit"), (side == "market")), (side == "stop_limit")))
+        side = safeStringLower(order, "side");
+    end
     if functions.ccxtruthy(side == "ask")
         side = "sell";
     elseif functions.ccxtruthy(side == "bid")
         side = "buy";
     end
-    remainingString = safeString(order, "remainQty");
-    amountString = safeString2(order, "originalQty", "qty");
+    remainingString = safeString2(order, "remainQty", "remain_qty");
+    amountString = safeStringN(order, ["originalQty", "qty", "original_qty"]);
     status = safeString(order, "status");
     if functions.ccxtruthy(status == "live")
         if functions.ccxtruthy(@functions.ccxt_and((remainingString != nothing), (amountString != nothing)))
@@ -672,7 +881,7 @@ function parseOrder(self::Coinone, order, market=nothing)
         feeCurrencyCode = functions.ccxtruthy((side == "sell")) ? quote_var : base;
         fee = Dict{Symbol, Any}(
             Symbol("cost") => feeCostString,
-            Symbol("rate") => safeString(order, "feeRate"),
+            Symbol("rate") => safeString2(order, "feeRate", "fee_rate"),
             Symbol("currency") => feeCurrencyCode
         );
     end
@@ -691,9 +900,9 @@ function parseOrder(self::Coinone, order, market=nothing)
     Symbol("price") => safeString(order, "price"),
     Symbol("triggerPrice") => nothing,
     Symbol("cost") => nothing,
-    Symbol("average") => safeString(order, "averageExecutedPrice"),
+    Symbol("average") => safeString2(order, "averageExecutedPrice", "average_executed_price"),
     Symbol("amount") => amountString,
-    Symbol("filled") => safeString(order, "executedQty"),
+    Symbol("filled") => safeString2(order, "executedQty", "executed_qty"),
     Symbol("remaining") => remainingString,
     Symbol("status") => status,
     Symbol("fee") => fee,
@@ -710,11 +919,12 @@ function fetchOpenOrders(self::Coinone, symbol=nothing, since=nothing, limit=not
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
-        Symbol("currency") => get(market, Symbol("id"), nothing)
+        Symbol("quote_currency") => get(market, Symbol("quoteId"), nothing),
+        Symbol("target_currency") => get(market, Symbol("baseId"), nothing)
     );
-    response = Base.fetch(self.privatePostOrderLimitOrders(extend(request, params)));
-    limitOrders = self.safeList(response, "limitOrders", []);
-    return self.parseOrders(limitOrders, market, since, limit)
+    response = Base.fetch(self.v2_1PrivatePostOrderOpenOrders(extend(request, params)));
+    openOrders = self.safeList2(response, "open_orders", "limitOrders", []);
+    return self.parseOrders(openOrders, market, since, limit)
 
 end
 function fetchMyTrades(self::Coinone, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -794,7 +1004,9 @@ function fetchDepositAddresses(self::Coinone, codes=nothing, params=Dict())
             depositAddress[Symbol("tag")] = value;
             depositAddress[Symbol("info")] = [address, value];
         end
-        result[Symbol(code)] = depositAddress;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = depositAddress;
+        end
         i += 1
     end
     return result
@@ -823,7 +1035,12 @@ function sign(self::Coinone, path, api="public", method="GET", params=Dict(), he
     else
         self.checkRequiredCredentials();
         url += request;
-        nonce = string(self.nonce());
+        nonce = nothing;
+        if functions.ccxtruthy(api == "v2_1Private")
+            nonce = uuid();
+        else
+            nonce = string(self.nonce());
+        end
         json = Ccxt.json(extend(Dict{Symbol, Any}(
             Symbol("access_token") => self.apiKey,
             Symbol("nonce") => nonce
@@ -860,7 +1077,7 @@ function handleErrors(self::Coinone, code, reason, url, method, headers, body, r
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Coinone, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1119,9 +1336,62 @@ end
 
 function Coinone(; kwargs...)
     inst = Coinone(Exchange(), describe, fetchCurrencies, parseCurrency, fetchMarkets, parseBalance, fetchBalance, fetchOrderBook, fetchTickers, fetchTicker, parseTicker, parseTrade, fetchTrades, createOrder, fetchOrder, parseOrderStatus, parseOrder, fetchOpenOrders, fetchMyTrades, cancelOrder, fetchDepositAddresses, sign, handleErrors, publicGetOrderbook, publicGetTicker, publicGetTickerUtc, publicGetTrades, v2PublicGetRangeUnits, v2PublicGetMarketsQuoteCurrency, v2PublicGetMarketsQuoteCurrencyTargetCurrency, v2PublicGetOrderbookQuoteCurrencyTargetCurrency, v2PublicGetTradesQuoteCurrencyTargetCurrency, v2PublicGetTickerNewQuoteCurrency, v2PublicGetTickerNewQuoteCurrencyTargetCurrency, v2PublicGetTickerUtcNewQuoteCurrency, v2PublicGetTickerUtcNewQuoteCurrencyTargetCurrency, v2PublicGetCurrencies, v2PublicGetCurrenciesCurrency, v2PublicGetChartQuoteCurrencyTargetCurrency, privatePostAccountDepositAddress, privatePostAccountBtcDepositAddress, privatePostAccountBalance, privatePostAccountDailyBalance, privatePostAccountUserInfo, privatePostAccountVirtualAccount, privatePostOrderCancelAll, privatePostOrderCancel, privatePostOrderLimitBuy, privatePostOrderLimitSell, privatePostOrderCompleteOrders, privatePostOrderLimitOrders, privatePostOrderOrderInfo, privatePostTransactionAuthNumber, privatePostTransactionHistory, privatePostTransactionKrwHistory, privatePostTransactionBtc, privatePostTransactionCoin, v2PrivatePostAccountBalance, v2PrivatePostAccountDepositAddress, v2PrivatePostAccountUserInfo, v2PrivatePostAccountVirtualAccount, v2PrivatePostOrderCancel, v2PrivatePostOrderLimitBuy, v2PrivatePostOrderLimitSell, v2PrivatePostOrderLimitOrders, v2PrivatePostOrderCompleteOrders, v2PrivatePostOrderQueryOrder, v2PrivatePostTransactionAuthNumber, v2PrivatePostTransactionBtc, v2PrivatePostTransactionHistory, v2PrivatePostTransactionKrwHistory, v2_1PrivatePostAccountBalanceAll, v2_1PrivatePostAccountBalance, v2_1PrivatePostAccountTradeFee, v2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency, v2_1PrivatePostOrderLimit, v2_1PrivatePostOrderCancel, v2_1PrivatePostOrderCancelAll, v2_1PrivatePostOrderOpenOrders, v2_1PrivatePostOrderOpenOrdersAll, v2_1PrivatePostOrderCompleteOrders, v2_1PrivatePostOrderCompleteOrdersAll, v2_1PrivatePostOrderInfo, v2_1PrivatePostTransactionKrwHistory, v2_1PrivatePostTransactionCoinHistory, v2_1PrivatePostTransactionCoinWithdrawalLimit)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

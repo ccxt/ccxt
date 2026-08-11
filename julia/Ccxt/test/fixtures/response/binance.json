@@ -1785,7 +1785,7 @@
                             "NEAR": 0.2,
                             "AVAXC": 0.04,
                             "APT": 0.1,
-                            "ARBONE": 0.1,
+                            "ARBITRUM": 0.1,
                             "STATEMINT": 0.1,
                             "CELO": 0.05,
                             "ERC20": 0.5,
@@ -1994,7 +1994,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "network": "ARBITRUM",
                                     "coin": "USDT",
@@ -2025,7 +2025,7 @@
                                     "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
                                 },
                                 "id": "ARBITRUM",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -3012,7 +3012,7 @@
                         "fees": {
                             "BEP20": 0.0000089,
                             "ETH": 0.0001,
-                            "ARBONE": 0.00002,
+                            "ARBITRUM": 0.00002,
                             "BASE": 0.00005,
                             "MANTA": 0.00001,
                             "OP": 0.000015,
@@ -3116,7 +3116,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "network": "ARBITRUM",
                                     "coin": "ETH",
@@ -3146,7 +3146,7 @@
                                     "contractAddressUrl": "https://arbiscan.io/token/"
                                 },
                                 "id": "ARBITRUM",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,

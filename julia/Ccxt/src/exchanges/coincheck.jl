@@ -163,12 +163,112 @@ function describe(self::Coincheck, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["exchange/orders/rate", "exchange_status", "order_books", "rate/{pair}", "ticker", "trades"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("exchange/orders/rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order_books") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rate/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("get") => ["accounts", "accounts/balance", "accounts/leverage_balance", "bank_accounts", "deposit_money", "exchange/orders/{id}", "exchange/orders/opens", "exchange/orders/cancel_status", "exchange/orders/transactions", "exchange/orders/transactions_pagination", "exchange/leverage/positions", "lending/borrows/matches", "send_money", "withdraws"],
-            Symbol("post") => ["bank_accounts", "deposit_money/{id}/fast", "exchange/orders", "exchange/transfers/to_leverage", "exchange/transfers/from_leverage", "lending/borrows", "lending/borrows/{id}/repay", "send_money", "withdraws"],
-            Symbol("delete") => ["bank_accounts/{id}", "exchange/orders/{id}", "withdraws/{id}"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts/leverage_balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bank_accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposit_money") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/opens") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/cancel_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/transactions_pagination") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/leverage/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lending/borrows/matches") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("send_money") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraws") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("bank_accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposit_money/{id}/fast") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/transfers/to_leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/transfers/from_leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lending/borrows") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lending/borrows/{id}/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("send_money") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraws") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("delete") => Dict{Symbol, Any}(
+                Symbol("bank_accounts/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraws/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("markets") => Dict{Symbol, Any}(
@@ -764,7 +864,7 @@ function handleErrors(self::Coincheck, httpCode, reason, url, method, headers, b
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Coincheck, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -899,9 +999,62 @@ end
 
 function Coincheck(; kwargs...)
     inst = Coincheck(Exchange(), describe, parseBalance, fetchStatus, fetchBalance, fetchOpenOrders, parseOrder, fetchOrderBook, parseTicker, fetchTicker, parseTrade, fetchMyTrades, fetchTrades, fetchTradingFees, createOrder, cancelOrder, fetchDeposits, fetchWithdrawals, parseTransactionStatus, parseTransaction, nonce, sign, handleErrors, publicGetExchangeOrdersRate, publicGetExchangeStatus, publicGetOrderBooks, publicGetRatePair, publicGetTicker, publicGetTrades, privateGetAccounts, privateGetAccountsBalance, privateGetAccountsLeverageBalance, privateGetBankAccounts, privateGetDepositMoney, privateGetExchangeOrdersId, privateGetExchangeOrdersOpens, privateGetExchangeOrdersCancelStatus, privateGetExchangeOrdersTransactions, privateGetExchangeOrdersTransactionsPagination, privateGetExchangeLeveragePositions, privateGetLendingBorrowsMatches, privateGetSendMoney, privateGetWithdraws, privatePostBankAccounts, privatePostDepositMoneyIdFast, privatePostExchangeOrders, privatePostExchangeTransfersToLeverage, privatePostExchangeTransfersFromLeverage, privatePostLendingBorrows, privatePostLendingBorrowsIdRepay, privatePostSendMoney, privatePostWithdraws, privateDeleteBankAccountsId, privateDeleteExchangeOrdersId, privateDeleteWithdrawsId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -234,12 +234,136 @@ function describe(self::Bitso, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["available_books", "catalogues", "ticker", "order_book", "trades", "ohlc"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("available_books") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("catalogues") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ohlc") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("get") => ["account_status", "balance", "fees", "fundings", "fundings/{fid}", "funding_destination", "kyc_documents", "ledger", "ledger/trades", "ledger/fees", "ledger/fundings", "ledger/withdrawals", "mx_bank_codes", "open_orders", "order_trades/{oid}", "orders/{oid}", "user_trades", "user_trades/{tid}", "withdrawals/", "withdrawals/{wid}"],
-            Symbol("post") => ["bitcoin_withdrawal", "debit_card_withdrawal", "ether_withdrawal", "orders", "phone_number", "phone_verification", "phone_withdrawal", "spei_withdrawal", "ripple_withdrawal", "bcash_withdrawal", "litecoin_withdrawal"],
-            Symbol("delete") => ["orders", "orders/{oid}", "orders/all"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("account_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fundings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fundings/{fid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("funding_destination") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("kyc_documents") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ledger") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ledger/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ledger/fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ledger/fundings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ledger/withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("mx_bank_codes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order_trades/{oid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{oid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user_trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user_trades/{tid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawals/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawals/{wid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("bitcoin_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("debit_card_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ether_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("phone_number") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("phone_verification") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("phone_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spei_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ripple_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bcash_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("litecoin_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("delete") => Dict{Symbol, Any}(
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{oid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("features") => Dict{Symbol, Any}(
@@ -434,7 +558,7 @@ function fetchMarkets(self::Bitso, params=Dict())
         );
         fee[Symbol("tiers")] = tiers;
         baseCurrency = self.safeDict(currencies, base);
-        push!(result, extend(Dict{Symbol, Any}(
+        push!(result, self.safeMarketStructure(extend(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -484,7 +608,7 @@ function fetchMarkets(self::Bitso, params=Dict())
     ),
     Symbol("created") => nothing,
     Symbol("info") => market
-), fee));
+), fee)));
         i += 1
     end
     return result
@@ -548,7 +672,9 @@ function parseBalance(self::Bitso, response)
         account[Symbol("free")] = safeString(balance, "available");
         account[Symbol("used")] = safeString(balance, "locked");
         account[Symbol("total")] = safeString(balance, "total");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -716,7 +842,8 @@ function fetchTrades(self::Bitso, symbol, since=nothing, limit=nothing, params=D
         Symbol("book") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTrades(extend(request, params)));
-    return self.parseTrades(get(response, Symbol("payload"), nothing), market, since, limit)
+    payload = self.safeList(response, "payload", []);
+    return self.parseTrades(payload, market, since, limit)
 
 end
 function fetchTradingFees(self::Bitso, params=Dict())
@@ -765,7 +892,8 @@ function fetchMyTrades(self::Bitso, symbol=nothing, since=nothing, limit=25, par
         Symbol("limit") => limit
     );
     response = Base.fetch(self.privateGetUserTrades(extend(request, params)));
-    return self.parseTrades(get(response, Symbol("payload"), nothing), market, since, limit)
+    payload = self.safeList(response, "payload", []);
+    return self.parseTrades(payload, market, since, limit)
 
 end
 function createOrder(self::Bitso, symbol, type_var, side, amount, price=nothing, params=Dict())
@@ -783,7 +911,8 @@ function createOrder(self::Bitso, symbol, type_var, side, amount, price=nothing,
         request[Symbol("price")] = self.priceToPrecision(get(market, Symbol("symbol"), nothing), price);
     end
     response = Base.fetch(self.privatePostOrders(extend(request, params)));
-    id = safeString(get(response, Symbol("payload"), nothing), "oid");
+    payload = self.safeDict(response, "payload", Dict{Symbol, Any}());
+    id = safeString(payload, "oid");
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("id") => id
@@ -918,7 +1047,8 @@ function fetchOpenOrders(self::Bitso, symbol=nothing, since=nothing, limit=25, p
         Symbol("limit") => limit
     );
     response = Base.fetch(self.privateGetOpenOrders(extend(request, params)));
-    orders = self.parseOrders(get(response, Symbol("payload"), nothing), market, since, limit);
+    payload = self.safeList(response, "payload", []);
+    orders = self.parseOrders(payload, market, since, limit);
     return orders
 
 end
@@ -931,7 +1061,7 @@ function fetchOrder(self::Bitso, id, symbol=nothing, params=Dict())
     )));
     payload = safeValue(response, "payload");
     if functions.ccxtruthy(functions.ccxt_isArray(payload))
-        numOrders = length(get(response, Symbol("payload"), nothing));
+        numOrders = length(payload);
         if functions.ccxtruthy(numOrders == 1)
                 return self.parseOrder(get(payload, 1, nothing))
         end
@@ -948,7 +1078,8 @@ function fetchOrderTrades(self::Bitso, id, symbol=nothing, since=nothing, limit=
         Symbol("oid") => id
     );
     response = Base.fetch(self.privateGetOrderTradesOid(extend(request, params)));
-    return self.parseTrades(get(response, Symbol("payload"), nothing), market)
+    payload = self.safeList(response, "payload", []);
+    return self.parseTrades(payload, market)
 
 end
 function fetchDeposit(self::Bitso, id, code=nothing, params=Dict())
@@ -986,7 +1117,8 @@ function fetchDepositAddress(self::Bitso, code, params=Dict())
         Symbol("fund_currency") => get(currency, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privateGetFundingDestination(extend(request, params)));
-    address = safeString(get(response, Symbol("payload"), nothing), "account_identifier");
+    payload = self.safeDict(response, "payload", Dict{Symbol, Any}());
+    address = safeString(payload, "account_identifier");
     tag = nothing;
     if functions.ccxtruthy(findfirst("?dt=", address) !== nothing)
         parts = split(address, "?dt=");
@@ -1019,14 +1151,16 @@ function fetchTransactionFees(self::Bitso, codes=nothing, params=Dict())
         if functions.ccxtruthy(@functions.ccxt_and((codes != nothing), !functions.ccxtruthy(inArray(code, codes))))
             i += 1; continue
         end
-        result[Symbol(code)] = Dict{Symbol, Any}(
-            Symbol("deposit") => self.safeNumber(depositFee, "fee"),
-            Symbol("withdraw") => nothing,
-            Symbol("info") => Dict{Symbol, Any}(
-                Symbol("deposit") => depositFee,
-                Symbol("withdraw") => nothing
-            )
-        );
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = Dict{Symbol, Any}(
+                Symbol("deposit") => self.safeNumber(depositFee, "fee"),
+                Symbol("withdraw") => nothing,
+                Symbol("info") => Dict{Symbol, Any}(
+                    Symbol("deposit") => depositFee,
+                    Symbol("withdraw") => nothing
+                )
+            );
+        end
         i += 1
     end
     withdrawalFees = safeValue(payload, "withdrawal_fees", []);
@@ -1038,14 +1172,16 @@ function fetchTransactionFees(self::Bitso, codes=nothing, params=Dict())
         if functions.ccxtruthy(@functions.ccxt_and((codes != nothing), !functions.ccxtruthy(inArray(code, codes))))
             i += 1; continue
         end
-        result[Symbol(code)] = Dict{Symbol, Any}(
-            Symbol("deposit") => safeValue(get(result, Symbol(code), nothing), "deposit"),
-            Symbol("withdraw") => self.safeNumber(withdrawalFees, currencyId),
-            Symbol("info") => Dict{Symbol, Any}(
-                Symbol("deposit") => safeValue(get(get(result, Symbol(code), nothing), Symbol("info"), nothing), "deposit"),
-                Symbol("withdraw") => self.safeNumber(withdrawalFees, currencyId)
-            )
-        );
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = Dict{Symbol, Any}(
+                Symbol("deposit") => safeValue(safeValue(result, code), "deposit"),
+                Symbol("withdraw") => self.safeNumber(withdrawalFees, currencyId),
+                Symbol("info") => Dict{Symbol, Any}(
+                    Symbol("deposit") => safeValue(safeValue(safeValue(result, code), "info"), "deposit"),
+                    Symbol("withdraw") => self.safeNumber(withdrawalFees, currencyId)
+                )
+            );
+        end
         i += 1
     end
     return result
@@ -1069,19 +1205,21 @@ function parseDepositWithdrawFees(self::Bitso, response, codes=nothing, currency
         entry = get(depositResponse, i + 1, nothing);
         currencyId = safeString(entry, "currency");
         code = self.safeCurrencyCode(currencyId);
-        if functions.ccxtruthy(@functions.ccxt_or((codes == nothing), (ccxt_in(code, codes))))
-            result[Symbol(code)] = Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("fee") => self.safeNumber(entry, "fee"),
-                    Symbol("percentage") => !functions.ccxtruthy(safeValue(entry, "is_fixed"))
-                ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("fee") => nothing,
-                    Symbol("percentage") => nothing
-                ),
-                Symbol("networks") => Dict{Symbol, Any}(),
-                Symbol("info") => entry
-            );
+        if functions.ccxtruthy(@functions.ccxt_or((codes == nothing), (@functions.ccxt_and((code != nothing), (ccxt_in(code, codes))))))
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("fee") => self.safeNumber(entry, "fee"),
+                        Symbol("percentage") => !functions.ccxtruthy(safeValue(entry, "is_fixed"))
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("fee") => nothing,
+                        Symbol("percentage") => nothing
+                    ),
+                    Symbol("networks") => Dict{Symbol, Any}(),
+                    Symbol("info") => entry
+                );
+            end
         end
         i += 1
     end
@@ -1090,7 +1228,7 @@ function parseDepositWithdrawFees(self::Bitso, response, codes=nothing, currency
     while functions.ccxtruthy(functions.ccxt_lt(i, length(withdrawalKeys)))
         currencyId = get(withdrawalKeys, i + 1, nothing);
         code = self.safeCurrencyCode(currencyId);
-        if functions.ccxtruthy(@functions.ccxt_or((codes == nothing), (ccxt_in(code, codes))))
+        if functions.ccxtruthy(@functions.ccxt_and((code != nothing), (@functions.ccxt_or((codes == nothing), (ccxt_in(code, codes))))))
             withdrawFee = self.parseNumber(get(withdrawalResponse, Symbol(currencyId), nothing));
             resultValue = safeValue(result, code);
             if functions.ccxtruthy(resultValue == nothing)
@@ -1128,7 +1266,7 @@ function withdraw(self::Bitso, code, amount, address, tag=nothing, params=Dict()
         Symbol("destination_tag") => tag
     );
     classMethod = string("privatePost", method, "Withdrawal");
-    response = Base.fetch(getproperty(self, Symbol(classMethod))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(classMethod))(extend(request, params)));
     payload = safeValue(response, "payload", []);
     first_var = self.safeDict(payload, 0);
     return self.parseTransaction(first_var, currency)
@@ -1247,7 +1385,7 @@ function handleErrors(self::Bitso, httpCode, reason, url, method, headers, body,
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitso, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1414,9 +1552,62 @@ end
 
 function Bitso(; kwargs...)
     inst = Bitso(Exchange(), describe, fetchLedger, parseLedgerEntryType, parseLedgerEntry, fetchMarkets, fetchCurrencies, parseCurrency, parseBalance, fetchBalance, fetchOrderBook, parseTicker, fetchTicker, fetchOHLCV, parseOHLCV, parseTrade, fetchTrades, fetchTradingFees, fetchMyTrades, createOrder, cancelOrder, cancelOrders, cancelAllOrders, parseOrderStatus, parseOrder, fetchOpenOrders, fetchOrder, fetchOrderTrades, fetchDeposit, fetchDeposits, fetchDepositAddress, fetchTransactionFees, fetchDepositWithdrawFees, parseDepositWithdrawFees, withdraw, parseTransaction, parseTransactionStatus, nonce, sign, handleErrors, publicGetAvailableBooks, publicGetCatalogues, publicGetTicker, publicGetOrderBook, publicGetTrades, publicGetOhlc, privateGetAccountStatus, privateGetBalance, privateGetFees, privateGetFundings, privateGetFundingsFid, privateGetFundingDestination, privateGetKycDocuments, privateGetLedger, privateGetLedgerTrades, privateGetLedgerFees, privateGetLedgerFundings, privateGetLedgerWithdrawals, privateGetMxBankCodes, privateGetOpenOrders, privateGetOrderTradesOid, privateGetOrdersOid, privateGetUserTrades, privateGetUserTradesTid, privateGetWithdrawals, privateGetWithdrawalsWid, privatePostBitcoinWithdrawal, privatePostDebitCardWithdrawal, privatePostEtherWithdrawal, privatePostOrders, privatePostPhoneNumber, privatePostPhoneVerification, privatePostPhoneWithdrawal, privatePostSpeiWithdrawal, privatePostRippleWithdrawal, privatePostBcashWithdrawal, privatePostLitecoinWithdrawal, privateDeleteOrders, privateDeleteOrdersOid, privateDeleteOrdersAll)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

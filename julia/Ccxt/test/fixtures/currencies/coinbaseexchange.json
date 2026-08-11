@@ -110,10 +110,10 @@
   "active": true,
   "fees": {},
   "networks": {
-   "ARBONE": {
+   "ARBITRUM": {
     "id": "arbitrum",
     "name": "Arbitrum",
-    "network": "ARBONE",
+    "network": "ARBITRUM",
     "active": true,
     "limits": {
      "withdraw": {
@@ -372,10 +372,10 @@
   "active": true,
   "fees": {},
   "networks": {
-   "ARBONE": {
+   "ARBITRUM": {
     "id": "arbitrum",
     "name": "Arbitrum",
-    "network": "ARBONE",
+    "network": "ARBITRUM",
     "active": true,
     "limits": {
      "withdraw": {
@@ -631,10 +631,10 @@
   "active": true,
   "fees": {},
   "networks": {
-   "ARBONE": {
+   "ARBITRUM": {
     "id": "arbitrum",
     "name": "Arbitrum",
-    "network": "ARBONE",
+    "network": "ARBITRUM",
     "active": true,
     "limits": {
      "withdraw": {

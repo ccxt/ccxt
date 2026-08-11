@@ -301,116 +301,324 @@ function describe(self::Ndax, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("Activate2FA") => 1,
-                Symbol("Authenticate2FA") => 1,
-                Symbol("AuthenticateUser") => 1,
-                Symbol("EnableXP2FA") => 1,
-                Symbol("GetL2Snapshot") => 1,
-                Symbol("GetLevel1") => 1,
-                Symbol("GetValidate2FARequiredEndpoints") => 1,
-                Symbol("LogOut") => 1,
-                Symbol("GetTickerHistory") => 1,
-                Symbol("GetProduct") => 1,
-                Symbol("GetProducts") => 1,
-                Symbol("GetInstrument") => 1,
-                Symbol("GetInstruments") => 1,
-                Symbol("GetEarliestTickTime") => 1,
-                Symbol("Ping") => 1,
-                Symbol("assets") => 1,
-                Symbol("orderbook") => 1,
-                Symbol("ticker") => 1,
-                Symbol("summary") => 1,
-                Symbol("trades") => 1,
-                Symbol("GetLastTrades") => 1,
-                Symbol("ConfirmWithdraw") => 1,
-                Symbol("SubscribeLevel1") => 1,
-                Symbol("SubscribeLevel2") => 1,
-                Symbol("SubscribeTicker") => 1,
-                Symbol("SubscribeTrades") => 1,
-                Symbol("SubscribeBlockTrades") => 1,
-                Symbol("UnsubscribeBlockTrades") => 1,
-                Symbol("UnsubscribeLevel1") => 1,
-                Symbol("UnsubscribeLevel2") => 1,
-                Symbol("UnsubscribeTicker") => 1,
-                Symbol("UnsubscribeTrades") => 1,
-                Symbol("Authenticate") => 1
+                Symbol("Activate2FA") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Authenticate2FA") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("AuthenticateUser") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("EnableXP2FA") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetL2Snapshot") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetLevel1") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetValidate2FARequiredEndpoints") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("LogOut") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetTickerHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetProduct") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetProducts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetInstrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetInstruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetEarliestTickTime") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetLastTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ConfirmWithdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("SubscribeLevel1") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("SubscribeLevel2") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("SubscribeTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("SubscribeTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("SubscribeBlockTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("UnsubscribeBlockTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("UnsubscribeLevel1") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("UnsubscribeLevel2") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("UnsubscribeTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("UnsubscribeTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Authenticate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("GetUserAccountInfos") => 1,
-                Symbol("GetUserAccounts") => 1,
-                Symbol("GetUserAffiliateCount") => 1,
-                Symbol("GetUserAffiliateTag") => 1,
-                Symbol("GetUserConfig") => 1,
-                Symbol("GetAllUnredactedUserConfigsForUser") => 1,
-                Symbol("GetUnredactedUserConfigByKey") => 1,
-                Symbol("GetUserDevices") => 1,
-                Symbol("GetUserReportTickets") => 1,
-                Symbol("GetUserReportWriterResultRecords") => 1,
-                Symbol("GetAccountInfo") => 1,
-                Symbol("GetAccountPositions") => 1,
-                Symbol("GetAllAccountConfigs") => 1,
-                Symbol("GetTreasuryProductsForAccount") => 1,
-                Symbol("GetAccountTrades") => 1,
-                Symbol("GetAccountTransactions") => 1,
-                Symbol("GetOpenTradeReports") => 1,
-                Symbol("GetAllOpenTradeReports") => 1,
-                Symbol("GetTradesHistory") => 1,
-                Symbol("GetOpenOrders") => 1,
-                Symbol("GetOpenQuotes") => 1,
-                Symbol("GetOrderFee") => 1,
-                Symbol("GetOrderHistory") => 1,
-                Symbol("GetOrdersHistory") => 1,
-                Symbol("GetOrderStatus") => 1,
-                Symbol("GetOmsFeeTiers") => 1,
-                Symbol("GetAccountDepositTransactions") => 1,
-                Symbol("GetAccountWithdrawTransactions") => 1,
-                Symbol("GetAllDepositRequestInfoTemplates") => 1,
-                Symbol("GetDepositInfo") => 1,
-                Symbol("GetDepositRequestInfoTemplate") => 1,
-                Symbol("GetDeposits") => 1,
-                Symbol("GetDepositTicket") => 1,
-                Symbol("GetDepositTickets") => 1,
-                Symbol("GetOMSWithdrawFees") => 1,
-                Symbol("GetWithdrawFee") => 1,
-                Symbol("GetWithdraws") => 1,
-                Symbol("GetWithdrawTemplate") => 1,
-                Symbol("GetWithdrawTemplateTypes") => 1,
-                Symbol("GetWithdrawTicket") => 1,
-                Symbol("GetWithdrawTicketAttachment") => 1,
-                Symbol("GetWithdrawTickets") => 1,
-                Symbol("GetDepositTicketAttachment") => 1
+                Symbol("GetUserAccountInfos") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetUserAccounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetUserAffiliateCount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetUserAffiliateTag") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetUserConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetAllUnredactedUserConfigsForUser") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetUnredactedUserConfigByKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetUserDevices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetUserReportTickets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetUserReportWriterResultRecords") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetAccountInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetAccountPositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetAllAccountConfigs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetTreasuryProductsForAccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetAccountTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetAccountTransactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetOpenTradeReports") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetAllOpenTradeReports") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetTradesHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetOpenQuotes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetOrderFee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetOrderHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetOrdersHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetOrderStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetOmsFeeTiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetAccountDepositTransactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetAccountWithdrawTransactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetAllDepositRequestInfoTemplates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetDepositInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetDepositRequestInfoTemplate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetDeposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetDepositTicket") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetDepositTickets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetOMSWithdrawFees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetWithdrawFee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetWithdraws") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetWithdrawTemplate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetWithdrawTemplateTypes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetWithdrawTicket") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetWithdrawTicketAttachment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetWithdrawTickets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetDepositTicketAttachment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("AddUserAffiliateTag") => 1,
-                Symbol("AddDepositTicketAttachment") => 1,
-                Symbol("AddWithdrawTicketAttachment") => 1,
-                Symbol("CancelUserReport") => 1,
-                Symbol("RegisterNewDevice") => 1,
-                Symbol("SubscribeAccountEvents") => 1,
-                Symbol("UpdateUserAffiliateTag") => 1,
-                Symbol("GenerateTradeActivityReport") => 1,
-                Symbol("GenerateTransactionActivityReport") => 1,
-                Symbol("GenerateTreasuryActivityReport") => 1,
-                Symbol("ScheduleTradeActivityReport") => 1,
-                Symbol("ScheduleTransactionActivityReport") => 1,
-                Symbol("ScheduleTreasuryActivityReport") => 1,
-                Symbol("CancelAllOrders") => 1,
-                Symbol("CancelOrder") => 1,
-                Symbol("CancelQuote") => 1,
-                Symbol("CancelReplaceOrder") => 1,
-                Symbol("CreateQuote") => 1,
-                Symbol("ModifyOrder") => 1,
-                Symbol("SendOrder") => 1,
-                Symbol("SubmitBlockTrade") => 1,
-                Symbol("UpdateQuote") => 1,
-                Symbol("CancelWithdraw") => 1,
-                Symbol("CreateDepositTicket") => 1,
-                Symbol("CreateWithdrawTicket") => 1,
-                Symbol("SubmitDepositTicketComment") => 1,
-                Symbol("SubmitWithdrawTicketComment") => 1,
-                Symbol("GetOrderHistoryByOrderId") => 1
+                Symbol("AddUserAffiliateTag") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("AddDepositTicketAttachment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("AddWithdrawTicketAttachment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("CancelUserReport") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("RegisterNewDevice") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("SubscribeAccountEvents") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("UpdateUserAffiliateTag") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GenerateTradeActivityReport") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GenerateTransactionActivityReport") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GenerateTreasuryActivityReport") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ScheduleTradeActivityReport") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ScheduleTransactionActivityReport") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ScheduleTreasuryActivityReport") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("CancelAllOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("CancelOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("CancelQuote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("CancelReplaceOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("CreateQuote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ModifyOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("SendOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("SubmitBlockTrade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("UpdateQuote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("CancelWithdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("CreateDepositTicket") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("CreateWithdrawTicket") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("SubmitDepositTicketComment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("SubmitWithdrawTicketComment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("GetOrderHistoryByOrderId") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -640,7 +848,7 @@ function parseMarket(self::Ndax, market)
     sessionStatus = safeString(market, "SessionStatus");
     isDisable = safeValue(market, "IsDisable");
     sessionRunning = (sessionStatus == "Running");
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -688,7 +896,7 @@ function parseMarket(self::Ndax, market)
     ),
     Symbol("created") => nothing,
     Symbol("info") => market
-)
+))
 
 end
 function parseOrderBook(self::Ndax, orderbook, symbol, timestamp=nothing, bidsKey="bids", asksKey="asks", priceKey=6, amountKey=8, countOrIdKey=2)
@@ -723,8 +931,7 @@ function parseOrderBook(self::Ndax, orderbook, symbol, timestamp=nothing, bidsKe
         bidask = self.parseOrderBookBidAsk(level, priceKey, amountKey);
         levelSide = safeInteger(level, 9);
         side = functions.ccxtruthy(levelSide) ? asksKey : bidsKey;
-        resultSide = get(result, Symbol(side), nothing);
-        push!(resultSide, bidask);
+        push!(get(result, Symbol(side), nothing), bidask);
         i += 1
     end
     result[Symbol("bids")] = sortBy(get(result, Symbol("bids"), nothing), 0, true);
@@ -844,7 +1051,11 @@ function fetchOHLCV(self::Ndax, symbol, timeframe="1m", since=nothing, limit=not
         end
     end
     response = Base.fetch(self.publicGetGetTickerHistory(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    candles = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        candles = response;
+    end
+    return self.parseOHLCVs(candles, market, timeframe, since, limit)
 
 end
 function parseTrade(self::Ndax, trade, market=nothing)
@@ -961,12 +1172,14 @@ function parseBalance(self::Ndax, response)
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         balance = get(response, i + 1, nothing);
         currencyId = safeString(balance, "ProductId");
-        if functions.ccxtruthy(@functions.ccxt_and((currencyId != nothing), (ccxt_in(currencyId, self.currencies_by_id))))
+        if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and((currencyId != nothing), (self.currencies_by_id != nothing)), (ccxt_in(currencyId, self.currencies_by_id))))
             code = self.safeCurrencyCode(currencyId);
             account = self.account();
             account[Symbol("total")] = safeString(balance, "Amount");
             account[Symbol("used")] = safeString(balance, "Hold");
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
         end
         i += 1
     end
@@ -1152,7 +1365,11 @@ function createOrder(self::Ndax, symbol, type_var, side, amount, price=nothing, 
         Symbol("OrderType") => orderType
     );
     if functions.ccxtruthy(price != nothing)
-        request[Symbol("LimitPrice")] = ccxt_toNumber(self.priceToPrecision(symbol, price));
+        limitPriceString = self.priceToPrecision(symbol, price);
+        if functions.ccxtruthy(limitPriceString == nothing)
+            limitPriceString = "0";
+        end
+        request[Symbol("LimitPrice")] = ccxt_toNumber(limitPriceString);
     end
     if functions.ccxtruthy(clientOrderId != nothing)
         request[Symbol("ClientOrderId")] = clientOrderId;
@@ -1188,7 +1405,11 @@ function editOrder(self::Ndax, id, symbol, type_var, side, amount=nothing, price
         Symbol("OrderType") => safeInteger(get(self.options, Symbol("orderTypes"), nothing), capitalize(type_var))
     );
     if functions.ccxtruthy(price != nothing)
-        request[Symbol("LimitPrice")] = ccxt_toNumber(self.priceToPrecision(symbol, price));
+        limitPriceString = self.priceToPrecision(symbol, price);
+        if functions.ccxtruthy(limitPriceString == nothing)
+            limitPriceString = "0";
+        end
+        request[Symbol("LimitPrice")] = ccxt_toNumber(limitPriceString);
     end
     if functions.ccxtruthy(clientOrderId != nothing)
         request[Symbol("ClientOrderId")] = clientOrderId;
@@ -1389,7 +1610,7 @@ function fetchDepositAddress(self::Ndax, code, params=Dict())
 end
 function parseDepositAddress(self::Ndax, depositAddress, currency=nothing)
     depositInfoString = safeString(depositAddress, "DepositInfo", "[]");
-    depositInfo = JSON3.parse(depositInfoString);
+    depositInfo = functions.ccxt_json_parse(depositInfoString);
     depositInfoLength = length(depositInfo);
     lastString = safeString(depositInfo, depositInfoLength - 1, "");
     parts = split(lastString, "?memo=");
@@ -1435,7 +1656,7 @@ function fetchDeposits(self::Ndax, code=nothing, since=nothing, limit=nothing, p
     );
     response = Base.fetch(self.privateGetGetDeposits(extend(request, params)));
     if functions.ccxtruthy(isa(response, AbstractString))
-            return self.parseTransactions(JSON3.parse(response), currency, since, limit)
+            return self.parseTransactions(functions.ccxt_json_parse(response), currency, since, limit)
     end
     return self.parseTransactions(response, currency, since, limit)
 
@@ -1608,7 +1829,7 @@ function withdraw(self::Ndax, code, amount, address, tag=nothing, params=Dict())
     if functions.ccxtruthy(template == nothing)
         throw(ExchangeError(string(self.id, " withdraw() could not find a withdraw template for ", get(currency, Symbol("code"), nothing))));
     end
-    withdrawTemplate = JSON3.parse(template);
+    withdrawTemplate = functions.ccxt_json_parse(template);
     withdrawTemplate[Symbol("ExternalAddress")] = address;
     if functions.ccxtruthy(tag != nothing)
         if functions.ccxtruthy(ccxt_in("Memo", withdrawTemplate))
@@ -1710,432 +1931,485 @@ function handleErrors(self::Ndax, code, reason, url, method, headers, body, resp
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Ndax, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetActivate2FA(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "Activate2FA", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "Activate2FA", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAuthenticate2FA(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "Authenticate2FA", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "Authenticate2FA", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAuthenticateUser(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "AuthenticateUser", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "AuthenticateUser", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetEnableXP2FA(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "EnableXP2FA", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "EnableXP2FA", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetL2Snapshot(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetL2Snapshot", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetL2Snapshot", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetLevel1(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetLevel1", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetLevel1", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetValidate2FARequiredEndpoints(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetValidate2FARequiredEndpoints", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetValidate2FARequiredEndpoints", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetLogOut(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "LogOut", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "LogOut", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetTickerHistory(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetTickerHistory", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetTickerHistory", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetProduct(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetProduct", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetProduct", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetProducts(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetProducts", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetProducts", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetInstrument(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetInstrument", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetInstrument", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetInstruments(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetInstruments", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetInstruments", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetEarliestTickTime(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetEarliestTickTime", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetEarliestTickTime", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPing(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "Ping", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "Ping", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAssets(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "assets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderbook(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSummary(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "summary", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "summary", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetLastTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetLastTrades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetLastTrades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfirmWithdraw(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ConfirmWithdraw", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ConfirmWithdraw", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSubscribeLevel1(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeLevel1", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "SubscribeLevel1", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSubscribeLevel2(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeLevel2", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "SubscribeLevel2", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSubscribeTicker(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeTicker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "SubscribeTicker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSubscribeTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeTrades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "SubscribeTrades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSubscribeBlockTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeBlockTrades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "SubscribeBlockTrades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetUnsubscribeBlockTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UnsubscribeBlockTrades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "UnsubscribeBlockTrades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetUnsubscribeLevel1(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UnsubscribeLevel1", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "UnsubscribeLevel1", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetUnsubscribeLevel2(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UnsubscribeLevel2", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "UnsubscribeLevel2", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetUnsubscribeTicker(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UnsubscribeTicker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "UnsubscribeTicker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetUnsubscribeTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UnsubscribeTrades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "UnsubscribeTrades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAuthenticate(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "Authenticate", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "Authenticate", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserAccountInfos(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserAccountInfos", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetUserAccountInfos", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserAccounts(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserAccounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetUserAccounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserAffiliateCount(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserAffiliateCount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetUserAffiliateCount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserAffiliateTag(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserAffiliateTag", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetUserAffiliateTag", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserConfig(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserConfig", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetUserConfig", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAllUnredactedUserConfigsForUser(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAllUnredactedUserConfigsForUser", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetAllUnredactedUserConfigsForUser", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUnredactedUserConfigByKey(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUnredactedUserConfigByKey", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetUnredactedUserConfigByKey", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserDevices(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserDevices", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetUserDevices", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserReportTickets(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserReportTickets", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetUserReportTickets", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserReportWriterResultRecords(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetUserReportWriterResultRecords", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetUserReportWriterResultRecords", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAccountInfo(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountInfo", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetAccountInfo", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAccountPositions(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountPositions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetAccountPositions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAllAccountConfigs(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAllAccountConfigs", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetAllAccountConfigs", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetTreasuryProductsForAccount(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetTreasuryProductsForAccount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetTreasuryProductsForAccount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAccountTrades(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountTrades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetAccountTrades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAccountTransactions(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountTransactions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetAccountTransactions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOpenTradeReports(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOpenTradeReports", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetOpenTradeReports", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAllOpenTradeReports(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAllOpenTradeReports", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetAllOpenTradeReports", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetTradesHistory(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetTradesHistory", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetTradesHistory", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOpenOrders(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOpenOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetOpenOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOpenQuotes(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOpenQuotes", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetOpenQuotes", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOrderFee(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOrderFee", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetOrderFee", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOrderHistory(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOrderHistory", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetOrderHistory", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOrdersHistory(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOrdersHistory", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetOrdersHistory", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOrderStatus(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOrderStatus", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetOrderStatus", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOmsFeeTiers(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOmsFeeTiers", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetOmsFeeTiers", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAccountDepositTransactions(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountDepositTransactions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetAccountDepositTransactions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAccountWithdrawTransactions(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAccountWithdrawTransactions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetAccountWithdrawTransactions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAllDepositRequestInfoTemplates(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetAllDepositRequestInfoTemplates", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetAllDepositRequestInfoTemplates", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetDepositInfo(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDepositInfo", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetDepositInfo", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetDepositRequestInfoTemplate(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDepositRequestInfoTemplate", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetDepositRequestInfoTemplate", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetDeposits(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDeposits", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetDeposits", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetDepositTicket(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDepositTicket", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetDepositTicket", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetDepositTickets(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDepositTickets", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetDepositTickets", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOMSWithdrawFees(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOMSWithdrawFees", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetOMSWithdrawFees", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetWithdrawFee(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawFee", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetWithdrawFee", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetWithdraws(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdraws", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetWithdraws", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetWithdrawTemplate(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawTemplate", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetWithdrawTemplate", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetWithdrawTemplateTypes(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawTemplateTypes", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetWithdrawTemplateTypes", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetWithdrawTicket(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawTicket", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetWithdrawTicket", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetWithdrawTicketAttachment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawTicketAttachment", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetWithdrawTicketAttachment", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetWithdrawTickets(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetWithdrawTickets", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetWithdrawTickets", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetDepositTicketAttachment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetDepositTicketAttachment", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetDepositTicketAttachment", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAddUserAffiliateTag(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "AddUserAffiliateTag", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "AddUserAffiliateTag", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAddDepositTicketAttachment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "AddDepositTicketAttachment", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "AddDepositTicketAttachment", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAddWithdrawTicketAttachment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "AddWithdrawTicketAttachment", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "AddWithdrawTicketAttachment", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelUserReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelUserReport", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "CancelUserReport", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRegisterNewDevice(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "RegisterNewDevice", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "RegisterNewDevice", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubscribeAccountEvents(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubscribeAccountEvents", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "SubscribeAccountEvents", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUpdateUserAffiliateTag(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UpdateUserAffiliateTag", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "UpdateUserAffiliateTag", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGenerateTradeActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GenerateTradeActivityReport", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GenerateTradeActivityReport", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGenerateTransactionActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GenerateTransactionActivityReport", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GenerateTransactionActivityReport", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGenerateTreasuryActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GenerateTreasuryActivityReport", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GenerateTreasuryActivityReport", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostScheduleTradeActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ScheduleTradeActivityReport", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ScheduleTradeActivityReport", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostScheduleTransactionActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ScheduleTransactionActivityReport", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ScheduleTransactionActivityReport", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostScheduleTreasuryActivityReport(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ScheduleTreasuryActivityReport", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ScheduleTreasuryActivityReport", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelAllOrders(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelAllOrders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "CancelAllOrders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelOrder(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "CancelOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelQuote(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelQuote", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "CancelQuote", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelReplaceOrder(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelReplaceOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "CancelReplaceOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCreateQuote(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CreateQuote", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "CreateQuote", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostModifyOrder(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "ModifyOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ModifyOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSendOrder(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SendOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "SendOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubmitBlockTrade(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubmitBlockTrade", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "SubmitBlockTrade", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUpdateQuote(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "UpdateQuote", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "UpdateQuote", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelWithdraw(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CancelWithdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "CancelWithdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCreateDepositTicket(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CreateDepositTicket", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "CreateDepositTicket", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCreateWithdrawTicket(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "CreateWithdrawTicket", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "CreateWithdrawTicket", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubmitDepositTicketComment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubmitDepositTicketComment", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "SubmitDepositTicketComment", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubmitWithdrawTicketComment(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "SubmitWithdrawTicketComment", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "SubmitWithdrawTicketComment", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetOrderHistoryByOrderId(self::Ndax, params=Dict(), context=Dict())
-    return request(self, "GetOrderHistoryByOrderId", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "GetOrderHistoryByOrderId", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Ndax(; kwargs...)
     inst = Ndax(Exchange(), describe, fetchStatus, signIn, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, parseOrderBook, fetchOrderBook, parseTicker, fetchTickers, fetchTicker, parseOHLCV, fetchOHLCV, parseTrade, fetchTrades, fetchAccounts, parseBalance, fetchBalance, parseLedgerEntryType, parseLedgerEntry, fetchLedger, parseOrderStatus, parseOrder, createOrder, editOrder, fetchMyTrades, cancelAllOrders, cancelOrder, fetchOpenOrders, fetchOrders, fetchOrder, fetchOrderTrades, fetchDepositAddress, parseDepositAddress, createDepositAddress, fetchDeposits, fetchWithdrawals, parseTransactionStatusByType, parseTransaction, withdraw, nonce, sign, handleErrors, publicGetActivate2FA, publicGetAuthenticate2FA, publicGetAuthenticateUser, publicGetEnableXP2FA, publicGetGetL2Snapshot, publicGetGetLevel1, publicGetGetValidate2FARequiredEndpoints, publicGetLogOut, publicGetGetTickerHistory, publicGetGetProduct, publicGetGetProducts, publicGetGetInstrument, publicGetGetInstruments, publicGetGetEarliestTickTime, publicGetPing, publicGetAssets, publicGetOrderbook, publicGetTicker, publicGetSummary, publicGetTrades, publicGetGetLastTrades, publicGetConfirmWithdraw, publicGetSubscribeLevel1, publicGetSubscribeLevel2, publicGetSubscribeTicker, publicGetSubscribeTrades, publicGetSubscribeBlockTrades, publicGetUnsubscribeBlockTrades, publicGetUnsubscribeLevel1, publicGetUnsubscribeLevel2, publicGetUnsubscribeTicker, publicGetUnsubscribeTrades, publicGetAuthenticate, privateGetGetUserAccountInfos, privateGetGetUserAccounts, privateGetGetUserAffiliateCount, privateGetGetUserAffiliateTag, privateGetGetUserConfig, privateGetGetAllUnredactedUserConfigsForUser, privateGetGetUnredactedUserConfigByKey, privateGetGetUserDevices, privateGetGetUserReportTickets, privateGetGetUserReportWriterResultRecords, privateGetGetAccountInfo, privateGetGetAccountPositions, privateGetGetAllAccountConfigs, privateGetGetTreasuryProductsForAccount, privateGetGetAccountTrades, privateGetGetAccountTransactions, privateGetGetOpenTradeReports, privateGetGetAllOpenTradeReports, privateGetGetTradesHistory, privateGetGetOpenOrders, privateGetGetOpenQuotes, privateGetGetOrderFee, privateGetGetOrderHistory, privateGetGetOrdersHistory, privateGetGetOrderStatus, privateGetGetOmsFeeTiers, privateGetGetAccountDepositTransactions, privateGetGetAccountWithdrawTransactions, privateGetGetAllDepositRequestInfoTemplates, privateGetGetDepositInfo, privateGetGetDepositRequestInfoTemplate, privateGetGetDeposits, privateGetGetDepositTicket, privateGetGetDepositTickets, privateGetGetOMSWithdrawFees, privateGetGetWithdrawFee, privateGetGetWithdraws, privateGetGetWithdrawTemplate, privateGetGetWithdrawTemplateTypes, privateGetGetWithdrawTicket, privateGetGetWithdrawTicketAttachment, privateGetGetWithdrawTickets, privateGetGetDepositTicketAttachment, privatePostAddUserAffiliateTag, privatePostAddDepositTicketAttachment, privatePostAddWithdrawTicketAttachment, privatePostCancelUserReport, privatePostRegisterNewDevice, privatePostSubscribeAccountEvents, privatePostUpdateUserAffiliateTag, privatePostGenerateTradeActivityReport, privatePostGenerateTransactionActivityReport, privatePostGenerateTreasuryActivityReport, privatePostScheduleTradeActivityReport, privatePostScheduleTransactionActivityReport, privatePostScheduleTreasuryActivityReport, privatePostCancelAllOrders, privatePostCancelOrder, privatePostCancelQuote, privatePostCancelReplaceOrder, privatePostCreateQuote, privatePostModifyOrder, privatePostSendOrder, privatePostSubmitBlockTrade, privatePostUpdateQuote, privatePostCancelWithdraw, privatePostCreateDepositTicket, privatePostCreateWithdrawTicket, privatePostSubmitDepositTicketComment, privatePostSubmitWithdrawTicketComment, privatePostGetOrderHistoryByOrderId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

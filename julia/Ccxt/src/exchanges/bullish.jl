@@ -138,8 +138,8 @@ function describe(self::Bullish, )
         Symbol("spot") => true,
         Symbol("margin") => false,
         Symbol("swap") => true,
-        Symbol("future") => false,
-        Symbol("option") => false,
+        Symbol("future") => true,
+        Symbol("option") => true,
         Symbol("addMargin") => false,
         Symbol("borrowMargin") => false,
         Symbol("cancelAllOrders") => true,
@@ -264,70 +264,186 @@ function describe(self::Bullish, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v1/nonce") => 1,
-                Symbol("v1/time") => 1,
-                Symbol("v1/assets") => 1,
-                Symbol("v1/assets/{symbol}") => 1,
-                Symbol("v1/markets") => 1,
-                Symbol("v1/markets/{symbol}") => 1,
-                Symbol("v1/history/markets/{symbol}") => 1,
-                Symbol("v1/markets/{symbol}/orderbook/hybrid") => 1,
-                Symbol("v1/markets/{symbol}/trades") => 1,
-                Symbol("v1/markets/{symbol}/tick") => 1,
-                Symbol("v1/markets/{symbol}/candle") => 1,
-                Symbol("v1/history/markets/{symbol}/trades") => 1,
-                Symbol("v1/history/markets/{symbol}/funding-rate") => 1,
-                Symbol("v1/index-prices") => 1,
-                Symbol("v1/index-prices/{assetSymbol}") => 1,
-                Symbol("v1/expiry-prices/{symbol}") => 1,
-                Symbol("v1/option-ladder") => 1,
-                Symbol("v1/option-ladder/{symbol}") => 1
+                Symbol("v1/nonce") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/assets/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/markets/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/history/markets/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/markets/{symbol}/orderbook/hybrid") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/markets/{symbol}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/markets/{symbol}/tick") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/markets/{symbol}/candle") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/history/markets/{symbol}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/history/markets/{symbol}/funding-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/index-prices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/index-prices/{assetSymbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/expiry-prices/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/option-ladder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/option-ladder/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v2/orders") => 1,
-                Symbol("v2/history/orders") => 1,
-                Symbol("v2/orders/{orderId}") => 1,
-                Symbol("v2/amm-instructions") => 1,
-                Symbol("v2/amm-instructions/{instructionId}") => 1,
-                Symbol("v1/wallets/transactions") => 1,
-                Symbol("v1/wallets/limits/{symbol}") => 1,
-                Symbol("v1/wallets/deposit-instructions/crypto/{symbol}") => 1,
-                Symbol("v1/wallets/withdrawal-instructions/crypto/{symbol}") => 1,
-                Symbol("v1/wallets/deposit-instructions/fiat/{symbol}") => 1,
-                Symbol("v1/wallets/withdrawal-instructions/fiat/{symbol}") => 1,
-                Symbol("v1/wallets/self-hosted/verification-attempts") => 1,
-                Symbol("v1/trades") => 5,
-                Symbol("v1/history/trades") => 5,
-                Symbol("v1/trades/{tradeId}") => 5,
-                Symbol("v1/trades/client-order-id/{clientOrderId}") => 1,
-                Symbol("v1/accounts/asset") => 1,
-                Symbol("v1/accounts/asset/{symbol}") => 1,
-                Symbol("v1/users/logout") => 1,
-                Symbol("v1/users/hmac/login") => 1,
-                Symbol("v1/accounts/trading-accounts") => 1,
-                Symbol("v1/accounts/trading-accounts/{tradingAccountId}") => 1,
-                Symbol("v1/derivatives-positions") => 1,
-                Symbol("v1/history/derivatives-settlement") => 1,
-                Symbol("v1/history/transfer") => 1,
-                Symbol("v1/history/borrow-interest") => 1,
-                Symbol("v2/mmp-configuration") => 1,
-                Symbol("v2/otc-trades") => 1,
-                Symbol("v2/otc-trades/{otcTradeId}") => 1,
-                Symbol("v2/otc-trades/unconfirmed-trade") => 1
+                Symbol("v2/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/history/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/orders/{orderId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/amm-instructions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/amm-instructions/{instructionId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/wallets/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/wallets/limits/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/wallets/deposit-instructions/crypto/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/wallets/withdrawal-instructions/crypto/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/wallets/deposit-instructions/fiat/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/wallets/withdrawal-instructions/fiat/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/wallets/self-hosted/verification-attempts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/history/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/trades/{tradeId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/trades/client-order-id/{clientOrderId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/accounts/asset") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/accounts/asset/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/users/logout") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/users/hmac/login") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/accounts/trading-accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/accounts/trading-accounts/{tradingAccountId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/derivatives-positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/history/derivatives-settlement") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/history/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/history/borrow-interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/mmp-configuration") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/otc-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/otc-trades/{otcTradeId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/otc-trades/unconfirmed-trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("v2/orders") => 5,
-                Symbol("v2/command") => 5,
-                Symbol("v2/amm-instructions") => 1,
-                Symbol("v1/wallets/withdrawal") => 1,
-                Symbol("v2/users/login") => 1,
-                Symbol("v1/simulate-portfolio-margin") => 1,
-                Symbol("v1/wallets/self-hosted/initiate") => 1,
-                Symbol("v2/mmp-configuration") => 1,
-                Symbol("v2/otc-trades") => 1,
-                Symbol("v2/otc-command") => 1
+                Symbol("v2/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v2/command") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v2/amm-instructions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/wallets/withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/users/login") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/simulate-portfolio-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/wallets/self-hosted/initiate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/mmp-configuration") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/otc-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/otc-command") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -645,7 +761,7 @@ function parseMarket(self::Bullish, market)
             expiryDatetime = safeString(market, "expiryDatetime");
             idParts = split(id, "-");
             datePart = safeString(idParts, 2);
-            dateYmd = datePart[2 + 1:end];
+            dateYmd = functions.ccxt_slice(datePart, 2);
             symbol += string("-", dateYmd);
             if functions.ccxtruthy(type_var == "future")
                 future = true;
@@ -742,7 +858,7 @@ function fetchTrades(self::Bullish, symbol, since=nothing, limit=nothing, params
     end
     maxLimit = 100;
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
+    (paginate, params) = self.handleOptionAndParams(params, "fetchTrades", "paginate");
     if functions.ccxtruthy(paginate)
         params = self.handlePaginationParams("fetchTrades", since, params);
             return Base.fetch(self.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params, maxLimit))
@@ -894,9 +1010,9 @@ function safeDeterministicCall(self::Bullish, method, symbol=nothing, since=noth
     while functions.ccxtruthy(functions.ccxt_le(errors, maxRetries))
         try
             if functions.ccxtruthy(@functions.ccxt_and(timeframe, method != "fetchFundingRateHistory"))
-                    return Base.fetch(getproperty(self, Symbol(method))(self, symbol, timeframe, since, limit, params))
+                    return Base.fetch(getproperty(self, Symbol(method))(symbol, timeframe, since, limit, params))
             else
-                return Base.fetch(getproperty(self, Symbol(method))(self, symbol, since, limit, params))
+                return Base.fetch(getproperty(self, Symbol(method))(symbol, since, limit, params))
             end
         catch e
             if functions.ccxtruthy(isa(e, RateLimitExceeded))
@@ -947,7 +1063,8 @@ function fetchOHLCV(self::Bullish, symbol, timeframe="1m", since=nothing, limit=
     request[Symbol("createdAtDatetime[gte]")] = self.iso8601(startTime);
     request[Symbol("createdAtDatetime[lte]")] = self.iso8601(until);
     response = Base.fetch(self.publicGetV1MarketsSymbolCandle(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    ohlcvs = toArray(response);
+    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
 
 end
 function parseOHLCV(self::Bullish, ohlcv, market=nothing)
@@ -1426,12 +1543,13 @@ function parseTransactionStatus(self::Bullish, status)
 end
 function loadAccount(self::Bullish, params=Dict())
     tradingAccountId = nothing;
-    (tradingAccountId, params) = self.handleOptionAndParams(params, "fetchMyTrades", "tradingAccountId");
+    (tradingAccountId, params) = self.handleOptionAndParams(params, "loadAccount", "tradingAccountId");
     if functions.ccxtruthy(tradingAccountId == nothing)
         response = Base.fetch(self.privateGetV1AccountsTradingAccounts(params));
+        accounts = toArray(response);
         i = 0
-        while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-            account = get(response, i + 1, nothing);
+        while functions.ccxtruthy(functions.ccxt_lt(i, length(accounts)))
+            account = get(accounts, i + 1, nothing);
             name = safeString(account, "tradingAccountName");
             if functions.ccxtruthy(name == "Primary Account")
                 tradingAccountId = safeString(account, "tradingAccountId");
@@ -1555,7 +1673,9 @@ function parseBalance(self::Bullish, response)
         account = self.account();
         account[Symbol("total")] = safeString(balance, "availableQuantity");
         account[Symbol("used")] = safeString(balance, "lockedQuantity");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1873,248 +1993,301 @@ function handleErrors(self::Bullish, httpCode, reason, url, method, headers, bod
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bullish, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetV1Nonce(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/nonce", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/nonce", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1Time(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1Assets(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/assets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/assets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1AssetsSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/assets/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/assets/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1Markets(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/markets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1MarketsSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/markets/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1HistoryMarketsSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/markets/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/history/markets/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1MarketsSymbolOrderbookHybrid(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets/{symbol}/orderbook/hybrid", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/markets/{symbol}/orderbook/hybrid", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1MarketsSymbolTrades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets/{symbol}/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/markets/{symbol}/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1MarketsSymbolTick(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets/{symbol}/tick", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/markets/{symbol}/tick", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1MarketsSymbolCandle(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/markets/{symbol}/candle", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/markets/{symbol}/candle", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1HistoryMarketsSymbolTrades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/markets/{symbol}/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/history/markets/{symbol}/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1HistoryMarketsSymbolFundingRate(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/markets/{symbol}/funding-rate", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/history/markets/{symbol}/funding-rate", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1IndexPrices(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/index-prices", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/index-prices", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1IndexPricesAssetSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/index-prices/{assetSymbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/index-prices/{assetSymbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1ExpiryPricesSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/expiry-prices/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/expiry-prices/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1OptionLadder(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/option-ladder", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/option-ladder", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1OptionLadderSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/option-ladder/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/option-ladder/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2Orders(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2HistoryOrders(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/history/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/history/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2OrdersOrderId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/orders/{orderId}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/orders/{orderId}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2AmmInstructions(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/amm-instructions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/amm-instructions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2AmmInstructionsInstructionId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/amm-instructions/{instructionId}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/amm-instructions/{instructionId}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1WalletsTransactions(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/transactions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/wallets/transactions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1WalletsLimitsSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/limits/{symbol}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/wallets/limits/{symbol}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1WalletsDepositInstructionsCryptoSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/deposit-instructions/crypto/{symbol}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/wallets/deposit-instructions/crypto/{symbol}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1WalletsWithdrawalInstructionsCryptoSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/withdrawal-instructions/crypto/{symbol}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/wallets/withdrawal-instructions/crypto/{symbol}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1WalletsDepositInstructionsFiatSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/deposit-instructions/fiat/{symbol}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/wallets/deposit-instructions/fiat/{symbol}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1WalletsWithdrawalInstructionsFiatSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/withdrawal-instructions/fiat/{symbol}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/wallets/withdrawal-instructions/fiat/{symbol}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1WalletsSelfHostedVerificationAttempts(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/self-hosted/verification-attempts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/wallets/self-hosted/verification-attempts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1Trades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1HistoryTrades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/history/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1TradesTradeId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/trades/{tradeId}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/trades/{tradeId}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1TradesClientOrderIdClientOrderId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/trades/client-order-id/{clientOrderId}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/trades/client-order-id/{clientOrderId}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AccountsAsset(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/accounts/asset", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/accounts/asset", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AccountsAssetSymbol(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/accounts/asset/{symbol}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/accounts/asset/{symbol}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1UsersLogout(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/users/logout", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/users/logout", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1UsersHmacLogin(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/users/hmac/login", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/users/hmac/login", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AccountsTradingAccounts(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/accounts/trading-accounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/accounts/trading-accounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AccountsTradingAccountsTradingAccountId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/accounts/trading-accounts/{tradingAccountId}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/accounts/trading-accounts/{tradingAccountId}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1DerivativesPositions(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/derivatives-positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/derivatives-positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1HistoryDerivativesSettlement(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/derivatives-settlement", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/history/derivatives-settlement", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1HistoryTransfer(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/transfer", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/history/transfer", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1HistoryBorrowInterest(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/history/borrow-interest", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/history/borrow-interest", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2MmpConfiguration(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/mmp-configuration", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mmp-configuration", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2OtcTrades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/otc-trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/otc-trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2OtcTradesOtcTradeId(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/otc-trades/{otcTradeId}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/otc-trades/{otcTradeId}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2OtcTradesUnconfirmedTrade(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/otc-trades/unconfirmed-trade", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/otc-trades/unconfirmed-trade", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostV2Orders(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV2Command(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/command", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/command", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV2AmmInstructions(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/amm-instructions", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/amm-instructions", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1WalletsWithdrawal(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/withdrawal", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/wallets/withdrawal", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV2UsersLogin(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/users/login", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/users/login", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1SimulatePortfolioMargin(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/simulate-portfolio-margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/simulate-portfolio-margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1WalletsSelfHostedInitiate(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v1/wallets/self-hosted/initiate", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/wallets/self-hosted/initiate", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV2MmpConfiguration(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/mmp-configuration", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mmp-configuration", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV2OtcTrades(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/otc-trades", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/otc-trades", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV2OtcCommand(self::Bullish, params=Dict(), context=Dict())
-    return request(self, "v2/otc-command", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/otc-command", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Bullish(; kwargs...)
     inst = Bullish(Exchange(), describe, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, parseMarketType, fetchOrderBook, fetchTrades, fetchMyTrades, fetchOrderTrades, parseTrade, fetchTicker, parseTicker, safeDeterministicCall, fetchOHLCV, parseOHLCV, fetchFundingRateHistory, fetchOrders, handlePaginationParams, handleSinceAndUntil, getClosestLimit, fetchOpenOrders, fetchCanceledOrders, fetchClosedOrders, fetchCanceledAndClosedOrders, fetchOrder, createOrder, editOrder, cancelOrder, cancelAllOrders, parseOrder, parseOrderStatus, parseOrderType, fetchDepositsWithdrawals, withdraw, parseTransaction, parseTransactionType, parseTransactionStatus, loadAccount, fetchAccounts, parseAccount, fetchDepositAddress, parseDepositAddress, fetchBalance, parseBalanceForSingleCurrency, parseBalance, fetchPositions, parsePosition, parsePositionSide, fetchTransfers, transfer, parseTransfer, parseTransferStatus, fetchBorrowRateHistory, parseBorrowRate, getTimestamp, fetchOpenInterest, parseOpenInterest, sign, signIn, handleToken, handleErrors, publicGetV1Nonce, publicGetV1Time, publicGetV1Assets, publicGetV1AssetsSymbol, publicGetV1Markets, publicGetV1MarketsSymbol, publicGetV1HistoryMarketsSymbol, publicGetV1MarketsSymbolOrderbookHybrid, publicGetV1MarketsSymbolTrades, publicGetV1MarketsSymbolTick, publicGetV1MarketsSymbolCandle, publicGetV1HistoryMarketsSymbolTrades, publicGetV1HistoryMarketsSymbolFundingRate, publicGetV1IndexPrices, publicGetV1IndexPricesAssetSymbol, publicGetV1ExpiryPricesSymbol, publicGetV1OptionLadder, publicGetV1OptionLadderSymbol, privateGetV2Orders, privateGetV2HistoryOrders, privateGetV2OrdersOrderId, privateGetV2AmmInstructions, privateGetV2AmmInstructionsInstructionId, privateGetV1WalletsTransactions, privateGetV1WalletsLimitsSymbol, privateGetV1WalletsDepositInstructionsCryptoSymbol, privateGetV1WalletsWithdrawalInstructionsCryptoSymbol, privateGetV1WalletsDepositInstructionsFiatSymbol, privateGetV1WalletsWithdrawalInstructionsFiatSymbol, privateGetV1WalletsSelfHostedVerificationAttempts, privateGetV1Trades, privateGetV1HistoryTrades, privateGetV1TradesTradeId, privateGetV1TradesClientOrderIdClientOrderId, privateGetV1AccountsAsset, privateGetV1AccountsAssetSymbol, privateGetV1UsersLogout, privateGetV1UsersHmacLogin, privateGetV1AccountsTradingAccounts, privateGetV1AccountsTradingAccountsTradingAccountId, privateGetV1DerivativesPositions, privateGetV1HistoryDerivativesSettlement, privateGetV1HistoryTransfer, privateGetV1HistoryBorrowInterest, privateGetV2MmpConfiguration, privateGetV2OtcTrades, privateGetV2OtcTradesOtcTradeId, privateGetV2OtcTradesUnconfirmedTrade, privatePostV2Orders, privatePostV2Command, privatePostV2AmmInstructions, privatePostV1WalletsWithdrawal, privatePostV2UsersLogin, privatePostV1SimulatePortfolioMargin, privatePostV1WalletsSelfHostedInitiate, privatePostV2MmpConfiguration, privatePostV2OtcTrades, privatePostV2OtcCommand)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

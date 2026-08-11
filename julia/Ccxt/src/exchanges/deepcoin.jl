@@ -261,65 +261,171 @@ function describe(self::Deepcoin, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("deepcoin/market/books") => 1,
-                Symbol("deepcoin/market/candles") => 1,
-                Symbol("deepcoin/market/instruments") => 1,
-                Symbol("deepcoin/market/tickers") => 1,
-                Symbol("deepcoin/market/index-candles") => 1,
-                Symbol("deepcoin/market/trades") => 1,
-                Symbol("deepcoin/market/mark-price-candles") => 1,
-                Symbol("deepcoin/market/step-margin") => 5,
-                Symbol("deepcoin/trade/funding-rate") => 5,
-                Symbol("deepcoin/trade/fund-rate/current-funding-rate") => 5,
-                Symbol("deepcoin/trade/fund-rate/history") => 5
+                Symbol("deepcoin/market/books") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deepcoin/market/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deepcoin/market/instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deepcoin/market/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deepcoin/market/index-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deepcoin/market/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deepcoin/market/mark-price-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deepcoin/market/step-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/funding-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/fund-rate/current-funding-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/fund-rate/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("deepcoin/account/balances") => 5,
-                Symbol("deepcoin/account/bills") => 5,
-                Symbol("deepcoin/account/positions") => 5,
-                Symbol("deepcoin/trade/fills") => 5,
-                Symbol("deepcoin/trade/orderByID") => 5,
-                Symbol("deepcoin/trade/finishOrderByID") => 5,
-                Symbol("deepcoin/trade/orders-history") => 5,
-                Symbol("deepcoin/trade/v2/orders-pending") => 5,
-                Symbol("deepcoin/trade/trigger-orders-pending") => 5,
-                Symbol("deepcoin/trade/trigger-orders-history") => 5,
-                Symbol("deepcoin/copytrading/support-contracts") => 5,
-                Symbol("deepcoin/copytrading/leader-position") => 5,
-                Symbol("deepcoin/copytrading/estimate-profit") => 5,
-                Symbol("deepcoin/copytrading/history-profit") => 5,
-                Symbol("deepcoin/copytrading/follower-rank") => 5,
-                Symbol("deepcoin/internal-transfer/support") => 5,
-                Symbol("deepcoin/internal-transfer/history-order") => 5,
-                Symbol("deepcoin/rebate/config") => 5,
-                Symbol("deepcoin/agents/users") => 5,
-                Symbol("deepcoin/agents/users/rebate-list") => 5,
-                Symbol("deepcoin/agents/users/rebates") => 5,
-                Symbol("deepcoin/asset/deposit-list") => 5,
-                Symbol("deepcoin/asset/withdraw-list") => 5,
-                Symbol("deepcoin/asset/recharge-chain-list") => 5,
-                Symbol("deepcoin/listenkey/acquire") => 5,
-                Symbol("deepcoin/listenkey/extend") => 5
+                Symbol("deepcoin/account/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/account/bills") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/account/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/orderByID") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/finishOrderByID") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/orders-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/v2/orders-pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/trigger-orders-pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/trigger-orders-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/copytrading/support-contracts") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/copytrading/leader-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/copytrading/estimate-profit") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/copytrading/history-profit") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/copytrading/follower-rank") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/internal-transfer/support") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/internal-transfer/history-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/rebate/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/agents/users") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/agents/users/rebate-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/agents/users/rebates") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/asset/deposit-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/asset/withdraw-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/asset/recharge-chain-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/listenkey/acquire") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/listenkey/extend") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("deepcoin/account/set-leverage") => 5,
-                Symbol("deepcoin/trade/order") => 5,
-                Symbol("deepcoin/trade/replace-order") => 5,
-                Symbol("deepcoin/trade/cancel-order") => 5,
-                Symbol("deepcoin/trade/batch-cancel-order") => 5,
-                Symbol("deepcoin/trade/cancel-trigger-order") => 1 / 6,
-                Symbol("deepcoin/trade/swap/cancel-all") => 5,
-                Symbol("deepcoin/trade/trigger-order") => 5,
-                Symbol("deepcoin/trade/batch-close-position") => 5,
-                Symbol("deepcoin/trade/replace-order-sltp") => 5,
-                Symbol("deepcoin/trade/close-position-by-ids") => 5,
-                Symbol("deepcoin/copytrading/leader-settings") => 5,
-                Symbol("deepcoin/copytrading/set-contracts") => 5,
-                Symbol("deepcoin/internal-transfer") => 5,
-                Symbol("deepcoin/rebate/config") => 5,
-                Symbol("deepcoin/asset/transfer") => 5
+                Symbol("deepcoin/account/set-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/replace-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/batch-cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/cancel-trigger-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 / 6
+),
+                Symbol("deepcoin/trade/swap/cancel-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/trigger-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/batch-close-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/replace-order-sltp") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/trade/close-position-by-ids") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/copytrading/leader-settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/copytrading/set-contracts") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/internal-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/rebate/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deepcoin/asset/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         )
     ),
@@ -417,7 +523,7 @@ function describe(self::Deepcoin, )
         Symbol("networks") => Dict{Symbol, Any}(
             Symbol("ERC20") => "ERC20",
             Symbol("TRC20") => "TRC20",
-            Symbol("ARB") => "ARBITRUM",
+            Symbol("ARBITRUM") => "ARBITRUM",
             Symbol("BSC") => "BSC(BEP20)",
             Symbol("SOL") => "SOL",
             Symbol("BTC") => "Bitcoin",
@@ -603,19 +709,21 @@ function parseMarket(self::Deepcoin, market)
 
 end
 function setMarkets(self::Deepcoin, markets, currencies=nothing)
-    markets = setMarkets(self.parent, markets, currencies);
-    symbols = objectKeys(markets);
+    result = setMarkets(self.parent, markets, currencies);
+    symbols = objectKeys(result);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
         symbol = get(symbols, i + 1, nothing);
-        market = get(markets, Symbol(symbol), nothing);
-        if functions.ccxtruthy(get(market, Symbol("swap"), nothing))
-            additionalId = get(market, Symbol("baseId"), nothing) + get(market, Symbol("quoteId"), nothing);
-            self.markets_by_id[Symbol(additionalId)] = [market];
+        market = get(result, Symbol(symbol), nothing);
+        if functions.ccxtruthy(@functions.ccxt_and((market != nothing), get(market, Symbol("swap"), nothing)))
+            additionalId = string(safeString(market, "baseId", ""), safeString(market, "quoteId", ""));
+            if functions.ccxtruthy(self.markets_by_id != nothing)
+                self.markets_by_id[Symbol(additionalId)] = [market];
+            end
         end
         i += 1
     end
-    return self.markets
+    return result
 
 end
 function fetchOrderBook(self::Deepcoin, symbol, limit=nothing, params=Dict())
@@ -894,9 +1002,9 @@ function fetchWithdrawals(self::Deepcoin, code=nothing, since=nothing, limit=not
         Base.fetch(self.loadMarkets());
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate", false);
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "code", nothing, 1, 50))
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "code", nothing, 1, 50))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -1109,7 +1217,7 @@ function transfer(self::Deepcoin, code, amount, fromAccount, toAccount, params=D
     (userId, params) = self.handleOptionAndParams(params, "transfer", "userId");
     userId = functions.ccxtruthy(userId) ? userId : safeString(params, "uid");
     if functions.ccxtruthy(userId == nothing)
-        throw(ArgumentsRequired(string(self.id, " transfer() requires a userId parameter")));
+        throw(ArgumentsRequired(string(self.id, " Ccxt.transfer() requires a userId parameter")));
     end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -1179,6 +1287,12 @@ function createOrder(self::Deepcoin, symbol, type_var, side, amount, price=nothi
 
 end
 function createOrderRequest(self::Deepcoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     triggerPrice = safeString(params, "triggerPrice");
     isTriggerOrder = (triggerPrice != nothing);
@@ -1196,6 +1310,12 @@ function createOrderRequest(self::Deepcoin, symbol, type_var, side, amount, pric
 
 end
 function createRegularOrderRequest(self::Deepcoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     orderType = type_var;
     (orderType, params) = self.handleTypePostOnlyAndTimeInForce(type_var, params);
@@ -1274,6 +1394,12 @@ function createRegularOrderRequest(self::Deepcoin, symbol, type_var, side, amoun
 
 end
 function createTriggerOrderRequest(self::Deepcoin, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("instId") => get(market, Symbol("id"), nothing),
@@ -1389,7 +1515,7 @@ function fetchOpenOrder(self::Deepcoin, id, symbol=nothing, params=Dict())
     data = self.safeList(response, "data", []);
     len = length(data);
     if functions.ccxtruthy(len == 0)
-            return nothing
+        throw(OrderNotFound(string(self.id, " fetchOpenOrder() could not find order id ", id)));
     end
     entry = self.safeDict(data, 0, Dict{Symbol, Any}());
     return self.parseOrder(entry, market)
@@ -2065,177 +2191,177 @@ function handleErrors(self::Deepcoin, code, reason, url, method, headers, body, 
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Deepcoin, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetDeepcoinMarketBooks(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/books", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deepcoin/market/books", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDeepcoinMarketCandles(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/candles", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deepcoin/market/candles", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDeepcoinMarketInstruments(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/instruments", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deepcoin/market/instruments", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDeepcoinMarketTickers(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deepcoin/market/tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDeepcoinMarketIndexCandles(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/index-candles", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deepcoin/market/index-candles", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDeepcoinMarketTrades(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deepcoin/market/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDeepcoinMarketMarkPriceCandles(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/mark-price-candles", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deepcoin/market/mark-price-candles", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDeepcoinMarketStepMargin(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/market/step-margin", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/market/step-margin", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDeepcoinTradeFundingRate(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/funding-rate", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/funding-rate", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDeepcoinTradeFundRateCurrentFundingRate(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/fund-rate/current-funding-rate", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/fund-rate/current-funding-rate", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDeepcoinTradeFundRateHistory(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/fund-rate/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/fund-rate/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinAccountBalances(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/account/balances", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/account/balances", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinAccountBills(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/account/bills", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/account/bills", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinAccountPositions(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/account/positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/account/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinTradeFills(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/fills", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/fills", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinTradeOrderByID(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/orderByID", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/orderByID", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinTradeFinishOrderByID(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/finishOrderByID", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/finishOrderByID", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinTradeOrdersHistory(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/orders-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/orders-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinTradeV2OrdersPending(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/v2/orders-pending", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/v2/orders-pending", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinTradeTriggerOrdersPending(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/trigger-orders-pending", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/trigger-orders-pending", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinTradeTriggerOrdersHistory(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/trigger-orders-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/trigger-orders-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinCopytradingSupportContracts(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/support-contracts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/copytrading/support-contracts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinCopytradingLeaderPosition(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/leader-position", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/copytrading/leader-position", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinCopytradingEstimateProfit(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/estimate-profit", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/copytrading/estimate-profit", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinCopytradingHistoryProfit(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/history-profit", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/copytrading/history-profit", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinCopytradingFollowerRank(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/follower-rank", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/copytrading/follower-rank", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinInternalTransferSupport(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/internal-transfer/support", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/internal-transfer/support", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinInternalTransferHistoryOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/internal-transfer/history-order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/internal-transfer/history-order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinRebateConfig(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/rebate/config", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/rebate/config", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinAgentsUsers(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/agents/users", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/agents/users", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinAgentsUsersRebateList(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/agents/users/rebate-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/agents/users/rebate-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinAgentsUsersRebates(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/agents/users/rebates", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/agents/users/rebates", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinAssetDepositList(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/asset/deposit-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/asset/deposit-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinAssetWithdrawList(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/asset/withdraw-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/asset/withdraw-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinAssetRechargeChainList(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/asset/recharge-chain-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/asset/recharge-chain-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinListenkeyAcquire(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/listenkey/acquire", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/listenkey/acquire", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeepcoinListenkeyExtend(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/listenkey/extend", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/listenkey/extend", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinAccountSetLeverage(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/account/set-leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/account/set-leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinTradeOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinTradeReplaceOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/replace-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/replace-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinTradeCancelOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/cancel-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/cancel-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinTradeBatchCancelOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/batch-cancel-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/batch-cancel-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinTradeCancelTriggerOrder(self::Deepcoin, params=Dict(), context=Dict())
@@ -2243,50 +2369,103 @@ function privatePostDeepcoinTradeCancelTriggerOrder(self::Deepcoin, params=Dict(
 end
 
 function privatePostDeepcoinTradeSwapCancelAll(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/swap/cancel-all", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/swap/cancel-all", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinTradeTriggerOrder(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/trigger-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/trigger-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinTradeBatchClosePosition(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/batch-close-position", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/batch-close-position", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinTradeReplaceOrderSltp(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/replace-order-sltp", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/replace-order-sltp", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinTradeClosePositionByIds(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/trade/close-position-by-ids", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/trade/close-position-by-ids", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinCopytradingLeaderSettings(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/leader-settings", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/copytrading/leader-settings", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinCopytradingSetContracts(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/copytrading/set-contracts", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/copytrading/set-contracts", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinInternalTransfer(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/internal-transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/internal-transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinRebateConfig(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/rebate/config", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/rebate/config", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDeepcoinAssetTransfer(self::Deepcoin, params=Dict(), context=Dict())
-    return request(self, "deepcoin/asset/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deepcoin/asset/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Deepcoin(; kwargs...)
     inst = Deepcoin(Exchange(), describe, handleMarketTypeAndParams, convertToInstrumentType, fetchMarkets, fetchMarketsByType, parseMarket, setMarkets, fetchOrderBook, fetchOHLCV, fetchTickers, parseTicker, fetchTrades, getProductGroupFromMarket, parseTrade, parseTakerOrMaker, fetchBalance, parseBalance, fetchDeposits, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchDepositAddresses, fetchDepositAddress, parseDepositAddress, fetchLedger, parseLedgerEntry, parseLedgerEntryType, transfer, parseTransfer, parseTransferStatus, createOrder, createOrderRequest, createRegularOrderRequest, createTriggerOrderRequest, handleTypePostOnlyAndTimeInForce, createMarketOrderWithCost, createMarketBuyOrderWithCost, createMarketSellOrderWithCost, fetchClosedOrder, fetchOpenOrder, fetchCanceledAndClosedOrders, fetchCanceledOrders, fetchClosedOrders, fetchOpenOrders, cancelOrder, cancelAllOrders, editOrder, cancelOrders, parseOrder, parseOrderStatus, parseOrderType, parseOrderTimeInForce, fetchPositionsForSymbol, fetchPositions, parsePosition, setLeverage, fetchFundingRates, fetchFundingRate, parseFundingRate, fetchFundingRateHistory, parseFundingRateHistory, fetchMyTrades, fetchOrderTrades, closePosition, sign, handleErrors, publicGetDeepcoinMarketBooks, publicGetDeepcoinMarketCandles, publicGetDeepcoinMarketInstruments, publicGetDeepcoinMarketTickers, publicGetDeepcoinMarketIndexCandles, publicGetDeepcoinMarketTrades, publicGetDeepcoinMarketMarkPriceCandles, publicGetDeepcoinMarketStepMargin, publicGetDeepcoinTradeFundingRate, publicGetDeepcoinTradeFundRateCurrentFundingRate, publicGetDeepcoinTradeFundRateHistory, privateGetDeepcoinAccountBalances, privateGetDeepcoinAccountBills, privateGetDeepcoinAccountPositions, privateGetDeepcoinTradeFills, privateGetDeepcoinTradeOrderByID, privateGetDeepcoinTradeFinishOrderByID, privateGetDeepcoinTradeOrdersHistory, privateGetDeepcoinTradeV2OrdersPending, privateGetDeepcoinTradeTriggerOrdersPending, privateGetDeepcoinTradeTriggerOrdersHistory, privateGetDeepcoinCopytradingSupportContracts, privateGetDeepcoinCopytradingLeaderPosition, privateGetDeepcoinCopytradingEstimateProfit, privateGetDeepcoinCopytradingHistoryProfit, privateGetDeepcoinCopytradingFollowerRank, privateGetDeepcoinInternalTransferSupport, privateGetDeepcoinInternalTransferHistoryOrder, privateGetDeepcoinRebateConfig, privateGetDeepcoinAgentsUsers, privateGetDeepcoinAgentsUsersRebateList, privateGetDeepcoinAgentsUsersRebates, privateGetDeepcoinAssetDepositList, privateGetDeepcoinAssetWithdrawList, privateGetDeepcoinAssetRechargeChainList, privateGetDeepcoinListenkeyAcquire, privateGetDeepcoinListenkeyExtend, privatePostDeepcoinAccountSetLeverage, privatePostDeepcoinTradeOrder, privatePostDeepcoinTradeReplaceOrder, privatePostDeepcoinTradeCancelOrder, privatePostDeepcoinTradeBatchCancelOrder, privatePostDeepcoinTradeCancelTriggerOrder, privatePostDeepcoinTradeSwapCancelAll, privatePostDeepcoinTradeTriggerOrder, privatePostDeepcoinTradeBatchClosePosition, privatePostDeepcoinTradeReplaceOrderSltp, privatePostDeepcoinTradeClosePositionByIds, privatePostDeepcoinCopytradingLeaderSettings, privatePostDeepcoinCopytradingSetContracts, privatePostDeepcoinInternalTransfer, privatePostDeepcoinRebateConfig, privatePostDeepcoinAssetTransfer)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

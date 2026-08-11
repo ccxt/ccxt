@@ -299,14 +299,173 @@ function describe(self::Extended, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("v1") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
-                Symbol("get") => ["info/markets", "info/assets", "info/assets/{asset}/price", "info/markets/{market}/stats", "info/markets/{market}/orderbook", "info/markets/{market}/trades", "info/candles/{market}/{candleType}", "info/{market}/funding", "info/{market}/open-interests", "info/builder/dashboard"]
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("info/markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("info/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("info/assets/{asset}/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("info/markets/{market}/stats") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("info/markets/{market}/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("info/markets/{market}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("info/candles/{market}/{candleType}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("info/{market}/funding") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("info/{market}/open-interests") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("info/builder/dashboard") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             ),
             Symbol("private") => Dict{Symbol, Any}(
-                Symbol("get") => ["user/accounts", "user/account/info", "user/balance", "user/spot/balances", "user/assetOperations", "user/positions", "user/positions/history", "user/orders", "user/orders/history", "user/orders/{id}", "user/orders/external/{externalId}", "user/trades", "user/funding/history", "user/rebates/stats", "user/leverage", "user/fees", "user/bridge/config", "user/bridge/quote", "user/affiliate", "user/referrals/status", "user/referrals/links", "user/referrals/dashboard", "user/rewards/earned", "user/rewards/leaderboard/stats", "portfolio/charts/equities", "portfolio/charts/pnl", "vault/public/performance", "vault/public/summary", "builder/trades"],
-                Symbol("post") => ["user/order", "user/order/massCancel", "user/deadmanswitch", "user/bridge/quote", "user/withdrawal", "user/transfer", "user/referrals/use", "user/referrals"],
-                Symbol("put") => ["user/referrals"],
-                Symbol("patch") => ["user/leverage"],
-                Symbol("delete") => ["user/order/{id}", "user/order"]
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("user/accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/spot/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/assetOperations") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/positions/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/orders/external/{externalId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/funding/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/rebates/stats") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/bridge/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/bridge/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/affiliate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/referrals/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/referrals/links") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/referrals/dashboard") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/rewards/earned") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/rewards/leaderboard/stats") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolio/charts/equities") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolio/charts/pnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("vault/public/performance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("vault/public/summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("builder/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                ),
+                Symbol("post") => Dict{Symbol, Any}(
+                    Symbol("user/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/order/massCancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/deadmanswitch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/bridge/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/referrals/use") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/referrals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                ),
+                Symbol("put") => Dict{Symbol, Any}(
+                    Symbol("user/referrals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                ),
+                Symbol("patch") => Dict{Symbol, Any}(
+                    Symbol("user/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                ),
+                Symbol("delete") => Dict{Symbol, Any}(
+                    Symbol("user/order/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             )
         )
     ),
@@ -954,7 +1113,9 @@ function parseBalance(self::Extended, response)
         account = self.account();
         account[Symbol("free")] = safeString(balance, "availableToWithdraw");
         account[Symbol("total")] = safeString(balance, "balance");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1402,7 +1563,7 @@ function fetchLeverage(self::Extended, symbol, params=Dict())
     );
     response = Base.fetch(self.v1PrivateGetUserLeverage(extend(request, params)));
     data = self.safeList(response, "data", []);
-    return self.parseLeverage(self.safeDict(data, 0), market)
+    return self.parseLeverage(self.safeDict(data, 0, Dict{Symbol, Any}()), market)
 
 end
 function setLeverage(self::Extended, leverage, symbol=nothing, params=Dict())
@@ -1581,7 +1742,7 @@ function createOrderSettlementData(self::Extended, isBuy, amountString, priceStr
         Symbol("salt") => nonce
     );
     msgHash = self.getExtendedOrderMsgHash(settlement);
-    sig = JSON3.parse(self.extendedStarknetSign(msgHash, self.privateKey));
+    sig = functions.ccxt_json_parse(self.extendedStarknetSign(msgHash, self.privateKey));
     r = self.getExtendedSignatureHex(get(sig, 1, nothing));
     s = self.getExtendedSignatureHex(get(sig, 2, nothing));
     settlement[Symbol("r")] = r;
@@ -1614,7 +1775,7 @@ function createWithdrawalSettlementData(self::Extended, address, amountString, c
         Symbol("salt") => nonce
     );
     msgHash = self.getExtendedWithdrawalMsgHash(settlement, starkKey);
-    sig = JSON3.parse(self.extendedStarknetSign(msgHash, self.privateKey));
+    sig = functions.ccxt_json_parse(self.extendedStarknetSign(msgHash, self.privateKey));
     settlement[Symbol("signature")] = Dict{Symbol, Any}(
         Symbol("r") => self.getExtendedSignatureHex(get(sig, 1, nothing)),
         Symbol("s") => self.getExtendedSignatureHex(get(sig, 2, nothing))
@@ -1646,7 +1807,7 @@ function createTransferSettlementData(self::Extended, amountString, currency, ac
         Symbol("senderPublicKey") => fromL2Key
     );
     msgHash = self.getExtendedTransferMsgHash(settlement);
-    sig = JSON3.parse(self.extendedStarknetSign(msgHash, self.privateKey));
+    sig = functions.ccxt_json_parse(self.extendedStarknetSign(msgHash, self.privateKey));
     settlement[Symbol("signature")] = Dict{Symbol, Any}(
         Symbol("r") => self.getExtendedSignatureHex(get(sig, 1, nothing)),
         Symbol("s") => self.getExtendedSignatureHex(get(sig, 2, nothing))
@@ -1655,6 +1816,12 @@ function createTransferSettlementData(self::Extended, amountString, currency, ac
 
 end
 function createExtendedOrderRequest(self::Extended, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     Base.fetch(self.loadMarkets());
     market = self.market(symbol);
     uppercaseType = uppercase(type_var);
@@ -2302,7 +2469,7 @@ function sign(self::Extended, path, api="public", method="GET", params=Dict(), h
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Extended, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -2513,9 +2680,62 @@ end
 
 function Extended(; kwargs...)
     inst = Extended(Exchange(), describe, loadMarkets, indexByStringifiedNumericId, fetchMarkets, parseMarket, fetchCurrencies, parseCurrency, fetchTicker, fetchTickers, parseTicker, fetchOrderBook, fetchTrades, fetchMyTrades, fetchFundingHistory, parseFundingHistory, parseFundingHistories, parseTrade, fetchOHLCV, parseOHLCV, fetchFundingRateHistory, parseFundingRateHistory, fetchOpenInterestHistory, parseOpenInterest, fetchBalance, parseBalance, fetchAccount, fetchAccounts, parseAccount, fetchLedger, parseLedgerEntry, fetchTransactions, fetchDeposits, fetchWithdrawals, withdraw, fetchTransfers, transfer, parseTransfer, getExtendedCurrencyCodeById, parseTransactionStatus, parseTransactionType, parseTransaction, fetchTradingFee, fetchTradingFees, parseTradingFee, fetchLeverage, setLeverage, parseLeverage, fetchPositions, fetchPosition, fetchPositionsHistory, parsePosition, getExtendedStarkAmount, fetchExtendedAccount, createOrderSettlementData, createWithdrawalSettlementData, createTransferSettlementData, createExtendedOrderRequest, createOrder, editOrder, cancelOrder, cancelOrders, cancelAllOrders, cancelAllOrdersAfter, fetchOrder, fetchOpenOrders, fetchOrders, fetchClosedOrders, fetchCanceledOrders, parseOrderStatus, parseOrder, getExtendedStringToFelt, getExtendedEncodeI64, getExtendedDecimalToBase16, getExtendedSignatureHex, getExtendedDomainHash, getExtendedOrderMsgHash, getExtendedWithdrawalMsgHash, getExtendedTransferMsgHash, handleErrors, sign, v1PublicGetInfoMarkets, v1PublicGetInfoAssets, v1PublicGetInfoAssetsAssetPrice, v1PublicGetInfoMarketsMarketStats, v1PublicGetInfoMarketsMarketOrderbook, v1PublicGetInfoMarketsMarketTrades, v1PublicGetInfoCandlesMarketCandleType, v1PublicGetInfoMarketFunding, v1PublicGetInfoMarketOpenInterests, v1PublicGetInfoBuilderDashboard, v1PrivateGetUserAccounts, v1PrivateGetUserAccountInfo, v1PrivateGetUserBalance, v1PrivateGetUserSpotBalances, v1PrivateGetUserAssetOperations, v1PrivateGetUserPositions, v1PrivateGetUserPositionsHistory, v1PrivateGetUserOrders, v1PrivateGetUserOrdersHistory, v1PrivateGetUserOrdersId, v1PrivateGetUserOrdersExternalExternalId, v1PrivateGetUserTrades, v1PrivateGetUserFundingHistory, v1PrivateGetUserRebatesStats, v1PrivateGetUserLeverage, v1PrivateGetUserFees, v1PrivateGetUserBridgeConfig, v1PrivateGetUserBridgeQuote, v1PrivateGetUserAffiliate, v1PrivateGetUserReferralsStatus, v1PrivateGetUserReferralsLinks, v1PrivateGetUserReferralsDashboard, v1PrivateGetUserRewardsEarned, v1PrivateGetUserRewardsLeaderboardStats, v1PrivateGetPortfolioChartsEquities, v1PrivateGetPortfolioChartsPnl, v1PrivateGetVaultPublicPerformance, v1PrivateGetVaultPublicSummary, v1PrivateGetBuilderTrades, v1PrivatePostUserOrder, v1PrivatePostUserOrderMassCancel, v1PrivatePostUserDeadmanswitch, v1PrivatePostUserBridgeQuote, v1PrivatePostUserWithdrawal, v1PrivatePostUserTransfer, v1PrivatePostUserReferralsUse, v1PrivatePostUserReferrals, v1PrivatePutUserReferrals, v1PrivatePatchUserLeverage, v1PrivateDeleteUserOrderId, v1PrivateDeleteUserOrder)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

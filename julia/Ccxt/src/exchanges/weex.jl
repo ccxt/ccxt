@@ -11,6 +11,10 @@
     fetchTickers::Function = fetchTickers
     fetchBidsAsks::Function = fetchBidsAsks
     parseTicker::Function = parseTicker
+    fetchLastPrices::Function = fetchLastPrices
+    parseLastPrice::Function = parseLastPrice
+    fetchMarkPrice::Function = fetchMarkPrice
+    fetchMarkPrices::Function = fetchMarkPrices
     fetchOrderBook::Function = fetchOrderBook
     fetchOHLCV::Function = fetchOHLCV
     fetchSpotOHLCV::Function = fetchSpotOHLCV
@@ -77,6 +81,9 @@
     parseMarginModification::Function = parseMarginModification
     reduceMargin::Function = reduceMargin
     addMargin::Function = addMargin
+    toSandboxMarketId::Function = toSandboxMarketId
+    fromSandboxMarketId::Function = fromSandboxMarketId
+    setSandboxMode::Function = setSandboxMode
     sign::Function = sign
     handleErrors::Function = handleErrors
 
@@ -141,6 +148,9 @@
     contractPrivateGetCapiV3UserTrades::Function = contractPrivateGetCapiV3UserTrades
     contractPrivateGetCapiV3OpenAlgoOrders::Function = contractPrivateGetCapiV3OpenAlgoOrders
     contractPrivateGetCapiV3AllAlgoOrders::Function = contractPrivateGetCapiV3AllAlgoOrders
+    contractPrivateGetCapiV3SimBalance::Function = contractPrivateGetCapiV3SimBalance
+    contractPrivateGetCapiV3SimPositionAllPosition::Function = contractPrivateGetCapiV3SimPositionAllPosition
+    contractPrivateGetCapiV3SimOrderHistory::Function = contractPrivateGetCapiV3SimOrderHistory
     contractPrivatePostCapiV3AccountIncome::Function = contractPrivatePostCapiV3AccountIncome
     contractPrivatePostCapiV3AccountMarginType::Function = contractPrivatePostCapiV3AccountMarginType
     contractPrivatePostCapiV3AccountLeverage::Function = contractPrivatePostCapiV3AccountLeverage
@@ -152,6 +162,7 @@
     contractPrivatePostCapiV3AlgoOrder::Function = contractPrivatePostCapiV3AlgoOrder
     contractPrivatePostCapiV3PlaceTpSlOrder::Function = contractPrivatePostCapiV3PlaceTpSlOrder
     contractPrivatePostCapiV3ModifyTpSlOrder::Function = contractPrivatePostCapiV3ModifyTpSlOrder
+    contractPrivatePostCapiV3SimOrder::Function = contractPrivatePostCapiV3SimOrder
     contractPrivateDeleteCapiV3Order::Function = contractPrivateDeleteCapiV3Order
     contractPrivateDeleteCapiV3BatchOrders::Function = contractPrivateDeleteCapiV3BatchOrders
     contractPrivateDeleteCapiV3AllOpenOrders::Function = contractPrivateDeleteCapiV3AllOpenOrders
@@ -253,7 +264,7 @@ function describe(self::Weex, )
         Symbol("fetchIsolatedPositions") => false,
         Symbol("fetchL2OrderBook") => false,
         Symbol("fetchL3OrderBook") => false,
-        Symbol("fetchLastPrices") => false,
+        Symbol("fetchLastPrices") => true,
         Symbol("fetchLedger") => true,
         Symbol("fetchLedgerEntry") => false,
         Symbol("fetchLeverage") => true,
@@ -268,7 +279,8 @@ function describe(self::Weex, )
         Symbol("fetchMarketLeverageTiers") => false,
         Symbol("fetchMarkets") => true,
         Symbol("fetchMarkOHLCV") => true,
-        Symbol("fetchMarkPrices") => false,
+        Symbol("fetchMarkPrice") => true,
+        Symbol("fetchMarkPrices") => true,
         Symbol("fetchMyLiquidations") => false,
         Symbol("fetchMySettlementHistory") => false,
         Symbol("fetchMyTrades") => true,
@@ -322,7 +334,7 @@ function describe(self::Weex, )
         Symbol("reduceMargin") => true,
         Symbol("repayCrossMargin") => false,
         Symbol("repayIsolatedMargin") => false,
-        Symbol("sandbox") => false,
+        Symbol("sandbox") => true,
         Symbol("setLeverage") => true,
         Symbol("setMargin") => false,
         Symbol("setMarginMode") => true,
@@ -339,6 +351,12 @@ function describe(self::Weex, )
             Symbol("contract") => "https://api-contract.weex.com",
             Symbol("contractPrivate") => "https://api-contract.weex.com"
         ),
+        Symbol("test") => Dict{Symbol, Any}(
+            Symbol("public") => "https://api-spot.weex.com",
+            Symbol("private") => "https://api-spot.weex.com",
+            Symbol("contract") => "https://api-contract.weex.com",
+            Symbol("contractPrivate") => "https://api-contract.weex.com"
+        ),
         Symbol("www") => "https://www.weex.com",
         Symbol("doc") => ["https://www.weex.com/api-doc"],
         Symbol("referral") => "https://www.weex.com/register?vipCode=qfyh"
@@ -346,102 +364,266 @@ function describe(self::Weex, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("api/v3/time") => 5,
-                Symbol("api/v3/coins") => 25,
-                Symbol("api/v3/exchangeInfo") => 100,
-                Symbol("api/v3/ping") => 5,
-                Symbol("api/v3/apiTradingSymbols") => 25,
-                Symbol("api/v3/market/ticker/price") => 20,
-                Symbol("api/v3/market/ticker/24hr") => 10,
-                Symbol("api/v3/market/trades") => 125,
-                Symbol("api/v3/market/klines") => 10,
-                Symbol("api/v3/market/depth") => 25,
-                Symbol("api/v3/market/ticker/bookTicker") => 20
+                Symbol("api/v3/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v3/coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("api/v3/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("api/v3/ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v3/apiTradingSymbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("api/v3/market/ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("api/v3/market/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("api/v3/market/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 125
+),
+                Symbol("api/v3/market/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("api/v3/market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("api/v3/market/ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("api/v3/account/") => 5,
-                Symbol("api/v3/account/transferRecords") => 3,
-                Symbol("api/v3/order") => 2,
-                Symbol("api/v3/openOrders") => 3,
-                Symbol("api/v3/allOrders") => 10,
-                Symbol("api/v3/myTrades") => 5,
-                Symbol("api/v3/rebate/affiliate/getAffiliateUIDs") => 20,
-                Symbol("api/v3/rebate/affiliate/getChannelUserTradeAndAsset") => 20,
-                Symbol("api/v3/rebate/affiliate/getAffiliateCommission") => 20,
-                Symbol("api/v3/rebate/affiliate/getInternalWithdrawalStatus") => 100,
-                Symbol("api/v3/rebate/affiliate/querySubChannelTransactions") => 10,
-                Symbol("api/v3/agency/verifyReferrals") => 20,
-                Symbol("api/v3/agency/getAssert") => 20,
-                Symbol("api/v3/agency/getDealData") => 20
+                Symbol("api/v3/account/") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v3/account/transferRecords") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("api/v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("api/v3/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("api/v3/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("api/v3/myTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v3/rebate/affiliate/getAffiliateUIDs") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("api/v3/rebate/affiliate/getChannelUserTradeAndAsset") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("api/v3/rebate/affiliate/getAffiliateCommission") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("api/v3/rebate/affiliate/getInternalWithdrawalStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("api/v3/rebate/affiliate/querySubChannelTransactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("api/v3/agency/verifyReferrals") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("api/v3/agency/getAssert") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("api/v3/agency/getDealData") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("api/v3/account/bills") => 5,
-                Symbol("api/v3/account/fundingBills") => 5,
-                Symbol("api/v3/order") => 5,
-                Symbol("api/v3/order/batch") => 50,
-                Symbol("api/v3/rebate/affiliate/internalWithdrawal") => 100
+                Symbol("api/v3/account/bills") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v3/account/fundingBills") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v3/order/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("api/v3/rebate/affiliate/internalWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("api/v3/order") => 1,
-                Symbol("api/v3/openOrders") => 1,
-                Symbol("api/v3/order/batch") => 10
+                Symbol("api/v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v3/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v3/order/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
             )
         ),
         Symbol("contract") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("capi/v3/market/time") => 5,
-                Symbol("capi/v3/market/exchangeInfo") => 5,
-                Symbol("capi/v3/market/depth") => 5,
-                Symbol("capi/v3/market/ticker/24hr") => 200,
-                Symbol("capi/v3/market/ticker/bookTicker") => 5,
-                Symbol("capi/v3/market/trades") => 25,
-                Symbol("capi/v3/market/klines") => 5,
-                Symbol("capi/v3/market/indexPriceKlines") => 5,
-                Symbol("capi/v3/market/markPriceKlines") => 5,
-                Symbol("capi/v3/market/historyKlines") => 25,
-                Symbol("capi/v3/market/symbolPrice") => 5,
-                Symbol("capi/v3/market/openInterest") => 10,
-                Symbol("capi/v3/market/premiumIndex") => 5,
-                Symbol("capi/v3/market/fundingRate") => 25,
-                Symbol("capi/v3/market/apiTradingSymbols") => 25
+                Symbol("capi/v3/market/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/market/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/market/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 200
+),
+                Symbol("capi/v3/market/ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/market/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("capi/v3/market/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/market/indexPriceKlines") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/market/markPriceKlines") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/market/historyKlines") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("capi/v3/market/symbolPrice") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/market/openInterest") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capi/v3/market/premiumIndex") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/market/fundingRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("capi/v3/market/apiTradingSymbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+)
             )
         ),
         Symbol("contractPrivate") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("capi/v3/account/balance") => 10,
-                Symbol("capi/v3/account/commissionRate") => 10,
-                Symbol("capi/v3/account/accountConfig") => 10,
-                Symbol("capi/v3/account/symbolConfig") => 10,
-                Symbol("capi/v3/account/position/allPosition") => 15,
-                Symbol("capi/v3/account/position/singlePosition") => 3,
-                Symbol("capi/v3/order") => 3,
-                Symbol("capi/v3/openOrders") => 5,
-                Symbol("capi/v3/order/history") => 10,
-                Symbol("capi/v3/userTrades") => 5,
-                Symbol("capi/v3/openAlgoOrders") => 3,
-                Symbol("capi/v3/allAlgoOrders") => 10
+                Symbol("capi/v3/account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capi/v3/account/commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capi/v3/account/accountConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capi/v3/account/symbolConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capi/v3/account/position/allPosition") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("capi/v3/account/position/singlePosition") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("capi/v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("capi/v3/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capi/v3/userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/openAlgoOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("capi/v3/allAlgoOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capi/v3/sim/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capi/v3/sim/position/allPosition") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("capi/v3/sim/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("capi/v3/account/income") => 5,
-                Symbol("capi/v3/account/marginType") => 50,
-                Symbol("capi/v3/account/leverage") => 20,
-                Symbol("capi/v3/account/positionMargin") => 30,
-                Symbol("capi/v3/account/modifyAutoAppendMargin") => 30,
-                Symbol("capi/v3/order") => 5,
-                Symbol("capi/v3/batchOrders") => 10,
-                Symbol("capi/v3/closePositions") => 50,
-                Symbol("capi/v3/algoOrder") => 5,
-                Symbol("capi/v3/placeTpSlOrder") => 5,
-                Symbol("capi/v3/modifyTpSlOrder") => 5
+                Symbol("capi/v3/account/income") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/account/marginType") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("capi/v3/account/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("capi/v3/account/positionMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("capi/v3/account/modifyAutoAppendMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("capi/v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capi/v3/closePositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("capi/v3/algoOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/placeTpSlOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/modifyTpSlOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("capi/v3/sim/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("capi/v3/order") => 3,
-                Symbol("capi/v3/batchOrders") => 10,
-                Symbol("capi/v3/allOpenOrders") => 10,
-                Symbol("capi/v3/algoOrder") => 3,
-                Symbol("capi/v3/algoOpenOrders") => 10
+                Symbol("capi/v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("capi/v3/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capi/v3/allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("capi/v3/algoOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("capi/v3/algoOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
             )
         )
     ),
@@ -576,7 +758,7 @@ function describe(self::Weex, )
             Symbol("ETH") => "ERC20",
             Symbol("POLYGON") => "POLYGON(MATIC)",
             Symbol("MATIC") => "POLYGON(MATIC)",
-            Symbol("ARBONE") => "ARBITRUM(ARB)",
+            Symbol("ARBITRUM") => "ARBITRUM(ARB)",
             Symbol("SOL") => "SOLANA(SOL)",
             Symbol("OP") => "OPTIMISM(OP)",
             Symbol("OPTIMISM") => "OPTIMISM(OP)",
@@ -586,7 +768,7 @@ function describe(self::Weex, )
             Symbol("BEP20(BSC)") => "BEP20",
             Symbol("ERC20") => "ERC20",
             Symbol("POLYGON(MATIC)") => "MATIC",
-            Symbol("ARBITRUM(ARB)") => "ARBONE",
+            Symbol("ARBITRUM(ARB)") => "ARBITRUM",
             Symbol("SOLANA(SOL)") => "SOL",
             Symbol("OPTIMISM(OP)") => "OP",
             Symbol("AVALANCHE_C(AVAX_C)") => "AVAXC"
@@ -684,7 +866,7 @@ function describe(self::Weex, )
             )
         ),
         Symbol("forDerivs") => Dict{Symbol, Any}(
-            Symbol("sandbox") => false,
+            Symbol("sandbox") => true,
             Symbol("createOrder") => Dict{Symbol, Any}(
                 Symbol("marginMode") => true,
                 Symbol("triggerPrice") => false,
@@ -805,27 +987,29 @@ function parseCurrency(self::Weex, rawCurrency)
         chain = self.safeDict(chains, j);
         networkId = safeString(chain, "network");
         networkCode = self.networkIdToCode(networkId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => chain,
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("active") => nothing,
-            Symbol("deposit") => self.safeBool(chain, "depositEnable"),
-            Symbol("withdraw") => self.safeBool(chain, "withdrawEnable"),
-            Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
-            Symbol("precision") => self.safeNumber(chain, "withdrawIntegerMultiple"),
-            Symbol("isDefault") => self.safeBool(chain, "isDefault", false),
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(chain, "withdrawMin"),
-                    Symbol("max") => nothing
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(chain, "depositDust"),
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => chain,
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("active") => nothing,
+                Symbol("deposit") => self.safeBool(chain, "depositEnable"),
+                Symbol("withdraw") => self.safeBool(chain, "withdrawEnable"),
+                Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
+                Symbol("precision") => self.safeNumber(chain, "withdrawIntegerMultiple"),
+                Symbol("isDefault") => self.safeBool(chain, "isDefault", false),
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(chain, "withdrawMin"),
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(chain, "depositDust"),
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     networkKeys = objectKeys(networks);
@@ -897,7 +1081,7 @@ function parseMarket(self::Weex, market)
             isInverse = true;
         end
     else
-        active = self.safeBool(market, "enableTrade");
+        active = self.safeBool(market, "enableTrade", false);
     end
     amountPrecision = self.safeNumber(market, "stepSize");
     pricePrecision = self.safeNumber(market, "tickSize");
@@ -908,6 +1092,9 @@ function parseMarket(self::Weex, market)
         pricePrecision = self.parseNumber(pricePrecisionString);
     end
     fees = self.safeDict(self.fees, functions.ccxtruthy(isSpot) ? "spot" : "contract", Dict{Symbol, Any}());
+    if functions.ccxtruthy(id == nothing)
+        throw(ExchangeError(string(self.id, " method() missing id")));
+    end
     return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("lowercaseId") => lowercase(id),
@@ -996,10 +1183,13 @@ function fetchTickers(self::Weex, symbols=nothing, params=Dict())
 
 end
 function fetchBidsAsks(self::Weex, symbols=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
     symbols = self.marketSymbols(symbols, nothing, true, true);
     market = self.getMarketFromSymbols(symbols);
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchTickers", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchBidsAsks", market, params);
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.publicGetApiV3MarketTickerBookTicker(params));
@@ -1009,18 +1199,28 @@ function fetchBidsAsks(self::Weex, symbols=nothing, params=Dict())
     if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(response)))
         response = [response];
     end
-    return self.parseTickers(response, symbols)
+    results = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
+        rawTicker = get(response, i + 1, nothing);
+        marketId = safeString(rawTicker, "symbol");
+        tickerMarket = self.safeMarket(marketId, nothing, nothing, marketType);
+        push!(results, self.parseTicker(rawTicker, tickerMarket));
+        i += 1
+    end
+    return self.filterByArrayTickers(results, "symbol", symbols)
 
 end
 function parseTicker(self::Weex, ticker, market=nothing)
     marketId = safeString(ticker, "symbol");
     markPrice = safeString(ticker, "markPrice");
     marketType = "spot";
-    if functions.ccxtruthy(markPrice != nothing)
+    if functions.ccxtruthy(@functions.ccxt_or((markPrice != nothing), (@functions.ccxt_and((market != nothing), get(market, Symbol("contract"), nothing)))))
         marketType = "swap";
     end
     market = self.safeMarket(marketId, market, nothing, marketType);
     timestamp = safeInteger2(ticker, "closeTime", "time");
+    percentage = stringMul(safeString(ticker, "priceChangePercent"), "100");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
     Symbol("timestamp") => timestamp,
@@ -1037,7 +1237,7 @@ function parseTicker(self::Weex, ticker, market=nothing)
     Symbol("last") => safeString(ticker, "lastPrice"),
     Symbol("previousClose") => nothing,
     Symbol("change") => safeString(ticker, "priceChange"),
-    Symbol("percentage") => safeString(ticker, "priceChangePercent"),
+    Symbol("percentage") => percentage,
     Symbol("average") => nothing,
     Symbol("baseVolume") => safeString(ticker, "volume"),
     Symbol("quoteVolume") => safeString(ticker, "quoteVolume"),
@@ -1045,6 +1245,67 @@ function parseTicker(self::Weex, ticker, market=nothing)
     Symbol("indexPrice") => safeString(ticker, "indexPrice"),
     Symbol("info") => ticker
 ), market)
+
+end
+function fetchLastPrices(self::Weex, symbols=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    symbols = self.marketSymbols(symbols, nothing, true, true);
+    market = self.getMarketFromSymbols(symbols);
+    type_var = nothing;
+    (type_var, params) = self.handleMarketTypeAndParams("fetchLastPrices", market, params);
+    if functions.ccxtruthy(type_var != "spot")
+        throw(NotSupported(string(self.id, " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")));
+    end
+    response = Base.fetch(self.publicGetApiV3MarketTickerPrice(params));
+    return self.parseLastPrices(response, symbols)
+
+end
+function parseLastPrice(self::Weex, entry, market=nothing)
+    marketId = safeString(entry, "symbol");
+    market = self.safeMarket(marketId, market, nothing, "spot");
+    return Dict{Symbol, Any}(
+    Symbol("symbol") => get(market, Symbol("symbol"), nothing),
+    Symbol("timestamp") => nothing,
+    Symbol("datetime") => nothing,
+    Symbol("price") => self.safeNumberOmitZero(entry, "price"),
+    Symbol("side") => nothing,
+    Symbol("info") => entry
+)
+
+end
+function fetchMarkPrice(self::Weex, symbol, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    market = self.market(symbol);
+    if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("contract"), nothing)))
+        throw(NotSupported(string(self.id, " fetchMarkPrice() supports contract markets only")));
+    end
+    priceType = nothing;
+    (priceType, params) = self.handleOptionAndParams(params, "fetchMarkPrice", "priceType", "MARK");
+    request = Dict{Symbol, Any}(
+        Symbol("symbol") => get(market, Symbol("id"), nothing),
+        Symbol("priceType") => priceType
+    );
+    response = Base.fetch(self.contractGetCapiV3MarketSymbolPrice(extend(request, params)));
+    ticker = extend(Dict{Symbol, Any}(), response);
+    if functions.ccxtruthy(priceType == "INDEX")
+        ticker[Symbol("indexPrice")] = safeString(ticker, "price");
+    else
+        ticker[Symbol("markPrice")] = safeString(ticker, "price");
+    end
+    return self.parseTicker(ticker, market)
+
+end
+function fetchMarkPrices(self::Weex, symbols=nothing, params=Dict())
+    if functions.ccxtruthy(self.markets == nothing)
+        Base.fetch(self.loadMarkets());
+    end
+    symbols = self.marketSymbols(symbols, "swap");
+    response = Base.fetch(self.contractGetCapiV3MarketPremiumIndex(params));
+    return self.parseTickers(response, symbols)
 
 end
 function fetchOrderBook(self::Weex, symbol, limit=nothing, params=Dict())
@@ -1091,7 +1352,7 @@ function fetchSpotOHLCV(self::Weex, symbol, timeframe="1m", since=nothing, limit
         Symbol("interval") => safeString(self.timeframes, timeframe, timeframe)
     );
     response = Base.fetch(self.publicGetApiV3MarketKlines(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
 
 end
 function fetchContractOHLCV(self::Weex, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
@@ -1138,6 +1399,9 @@ function fetchContractOHLCV(self::Weex, symbol, timeframe="1m", since=nothing, l
                 endTime = now;
                 startTime = now - timeDelta;
             elseif functions.ccxtruthy(since == nothing)
+                if functions.ccxtruthy(until == nothing)
+                    throw(ArgumentsRequired(string(self.id, " fetchOHLCV() requires a since or until argument")));
+                end
                 startTime = until - timeDelta;
             else
                 endTime = since + timeDelta;
@@ -1158,7 +1422,7 @@ function fetchContractOHLCV(self::Weex, symbol, timeframe="1m", since=nothing, l
             response = Base.fetch(self.contractGetCapiV3MarketKlines(extend(request, params)));
         end
     end
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
 
 end
 function parseOHLCV(self::Weex, ohlcv, market=nothing)
@@ -1182,7 +1446,11 @@ function fetchTrades(self::Weex, symbol, since=nothing, limit=nothing, params=Di
     else
         response = Base.fetch(self.contractGetCapiV3MarketTrades(extend(request, params)));
     end
-    return self.parseTrades(response, market, since, limit)
+    responseList = [];
+    if functions.ccxtruthy(response != nothing)
+        responseList = toArray(response);
+    end
+    return self.parseTrades(responseList, market, since, limit)
 
 end
 function parseTrade(self::Weex, trade, market=nothing)
@@ -1359,13 +1627,25 @@ function parseFundingRateHistory(self::Weex, contract, market=nothing)
 
 end
 function fetchBalance(self::Weex, params=Dict())
+    requestedType = safeString(params, "type");
     type_var = nothing;
     (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    if functions.ccxtruthy(@functions.ccxt_and(sandboxMode, (requestedType == nothing)))
+        type_var = "swap";
+    end
     response = nothing;
     if functions.ccxtruthy(type_var == "spot")
+        if functions.ccxtruthy(sandboxMode)
+            throw(NotSupported(string(self.id, " fetchBalance() only supports the swap account in sandbox mode, use params[\"type\"] = \"swap\"")));
+        end
         response = Base.fetch(self.privateGetApiV3Account(params));
     else
-        response = Base.fetch(self.contractPrivateGetCapiV3AccountBalance(params));
+        if functions.ccxtruthy(sandboxMode)
+            response = Base.fetch(self.contractPrivateGetCapiV3SimBalance(params));
+        else
+            response = Base.fetch(self.contractPrivateGetCapiV3AccountBalance(params));
+        end
     end
     return self.parseBalance(response)
 
@@ -1374,17 +1654,23 @@ function parseBalance(self::Weex, response)
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
+    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
     balances = self.safeList(response, "balances", response);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
         entry = self.safeDict(balances, i);
-        id = safeString(entry, "asset");
-        code = self.safeCurrencyCode(id);
+        currencyId = safeString(entry, "asset");
+        if functions.ccxtruthy(@functions.ccxt_and(sandboxMode, (currencyId == "SUSDT")))
+            currencyId = "USDT";
+        end
+        code = self.safeCurrencyCode(currencyId);
         account = self.account();
         account[Symbol("free")] = safeString2(entry, "availableBalance", "free");
         account[Symbol("used")] = safeString2(entry, "frozen", "locked");
         account[Symbol("total")] = safeString(entry, "balance");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1449,6 +1735,10 @@ function createOrder(self::Weex, symbol, type_var, side, amount, price=nothing, 
     if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
             return Base.fetch(self.createContractOrder(symbol, type_var, side, amount, price, params))
     else
+        sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+        if functions.ccxtruthy(sandboxMode)
+            throw(NotSupported(string(self.id, " createOrder() only supports swap markets in sandbox mode")));
+        end
         return Base.fetch(self.createSpotOrder(symbol, type_var, side, amount, price, params))
     end
 
@@ -1460,11 +1750,23 @@ function createSpotOrder(self::Weex, symbol, type_var, side, amount, price=nothi
     market = self.market(symbol);
     request = self.createSpotOrderRequest(symbol, type_var, side, amount, price, params);
     response = Base.fetch(self.privatePostApiV3Order(request));
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
+    end
     return self.parseOrder(response, market)
 
 end
 function createSpotOrderRequest(self::Weex, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createSpotOrderRequest() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("side") => uppercase(side),
@@ -1491,19 +1793,37 @@ function createContractOrder(self::Weex, symbol, type_var, side, amount, price=n
     market = self.market(symbol);
     request = self.createContractOrderRequest(symbol, type_var, side, amount, price, params);
     triggerPrice = safeString(request, "triggerPrice");
+    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
     response = nothing;
     if functions.ccxtruthy(triggerPrice != nothing)
+        if functions.ccxtruthy(sandboxMode)
+            throw(NotSupported(string(self.id, " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode")));
+        end
         response = Base.fetch(self.contractPrivatePostCapiV3AlgoOrder(request));
+    elseif functions.ccxtruthy(sandboxMode)
+        response = Base.fetch(self.contractPrivatePostCapiV3SimOrder(request));
     else
         response = Base.fetch(self.contractPrivatePostCapiV3Order(request));
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " createOrder() returned empty response")));
     end
     return self.parseOrder(response, market)
 
 end
 function createContractOrderRequest(self::Weex, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createContractOrderRequest() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
-        Symbol("symbol") => get(market, Symbol("id"), nothing),
+        Symbol("symbol") => self.toSandboxMarketId(market),
         Symbol("side") => uppercase(side),
         Symbol("quantity") => self.amountToPrecision(symbol, amount),
         Symbol("type") => uppercase(type_var)
@@ -1648,6 +1968,9 @@ function cancelOrder(self::Weex, id, symbol=nothing, params=Dict())
     else
         response = Base.fetch(self.contractPrivateDeleteCapiV3Order(extend(request, params)));
     end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
+    end
     order = self.parseOrder(response, market);
     order[Symbol("status")] = "canceled";
     return order
@@ -1755,6 +2078,9 @@ function fetchOrder(self::Weex, id, symbol=nothing, params=Dict())
         response = Base.fetch(self.privateGetApiV3Order(extend(request, params)));
     else
         response = Base.fetch(self.contractPrivateGetCapiV3Order(extend(request, params)));
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
     return self.parseOrder(response, market)
 
@@ -1892,19 +2218,19 @@ function fetchCanceledAndClosedOrders(self::Weex, symbol=nothing, since=nothing,
         market = self.market(symbol);
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params);
     if functions.ccxtruthy(marketType == "spot")
         throw(NotSupported(string(self.id, " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")));
     end
     paginate = false;
-    (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate", false);
+    (paginate, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate", false);
     maxLimit = 1000;
     if functions.ccxtruthy(paginate)
-            return Base.fetch(self.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, maxLimit))
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, params, maxLimit))
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbol != nothing)
-        request[Symbol("symbol")] = safeString(market, "id");
+        request[Symbol("symbol")] = self.toSandboxMarketId(market);
     end
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startTime")] = since;
@@ -1913,7 +2239,13 @@ function fetchCanceledAndClosedOrders(self::Weex, symbol=nothing, since=nothing,
         request[Symbol("limit")] = limit;
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
-    response = Base.fetch(self.contractPrivateGetCapiV3OrderHistory(extend(request, params)));
+    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    response = nothing;
+    if functions.ccxtruthy(sandboxMode)
+        response = Base.fetch(self.contractPrivateGetCapiV3SimOrderHistory(extend(request, params)));
+    else
+        response = Base.fetch(self.contractPrivateGetCapiV3OrderHistory(extend(request, params)));
+    end
     return self.parseOrders(response, market, since, limit)
 
 end
@@ -1924,7 +2256,7 @@ function parseOrder(self::Weex, order, market=nothing)
         self.handleOrderOrPositionError(errorCode, errorMessage, order);
     end
     if functions.ccxtruthy(market == nothing)
-        marketId = safeString(order, "symbol");
+        marketId = self.fromSandboxMarketId(safeString(order, "symbol"));
         positionSide = safeString(order, "positionSide");
         marketType = functions.ccxtruthy((positionSide == nothing)) ? "spot" : "swap";
         market = self.safeMarket(marketId, nothing, nothing, marketType);
@@ -2061,7 +2393,11 @@ function fetchMyTrades(self::Weex, symbol=nothing, since=nothing, limit=nothing,
     else
         response = Base.fetch(self.contractPrivateGetCapiV3UserTrades(extend(request, params)));
     end
-    return self.parseTrades(response, market, since, limit)
+    responseList = [];
+    if functions.ccxtruthy(response != nothing)
+        responseList = toArray(response);
+    end
+    return self.parseTrades(responseList, market, since, limit)
 
 end
 function fetchLedger(self::Weex, code=nothing, since=nothing, limit=nothing, params=Dict())
@@ -2085,6 +2421,9 @@ function fetchLedger(self::Weex, code=nothing, since=nothing, limit=nothing, par
         currency = self.currency(code);
     end
     if functions.ccxtruthy(accountType == "contract")
+        if functions.ccxtruthy(currency == nothing)
+            throw(ExchangeError(string(self.id, " fetchLedger() could not resolve currency")));
+        end
         if functions.ccxtruthy(code != nothing)
             request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
         end
@@ -2115,7 +2454,8 @@ function fetchLedger(self::Weex, code=nothing, since=nothing, limit=nothing, par
             request[Symbol("limit")] = limit;
         end
         (request, params) = self.handleUntilOption("before", request, params);
-        items = Base.fetch(self.privatePostApiV3AccountBills(extend(request, params)));
+        billsResponse = Base.fetch(self.privatePostApiV3AccountBills(extend(request, params)));
+        items = toArray(billsResponse);
     end
     return self.parseLedger(items, currency, since, limit)
 
@@ -2130,6 +2470,9 @@ function parseLedgerEntry(self::Weex, item, currency=nothing)
     before = stringSub(after, amountRaw);
     amount = self.parseNumber(stringAbs(amountRaw));
     direction = "in";
+    if functions.ccxtruthy(amountRaw == nothing)
+        throw(ExchangeError(string(self.id, " parseLedgerEntry() missing amountRaw")));
+    end
     if functions.ccxtruthy(findfirst("-", amountRaw) !== nothing)
         direction = "out";
     end
@@ -2184,7 +2527,13 @@ function fetchPositions(self::Weex, symbols=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols);
-    response = Base.fetch(self.contractPrivateGetCapiV3AccountPositionAllPosition(params));
+    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    response = nothing;
+    if functions.ccxtruthy(sandboxMode)
+        response = Base.fetch(self.contractPrivateGetCapiV3SimPositionAllPosition(params));
+    else
+        response = Base.fetch(self.contractPrivateGetCapiV3AccountPositionAllPosition(params));
+    end
     return self.parsePositions(response, symbols)
 
 end
@@ -2198,6 +2547,10 @@ function fetchPositionsForSymbol(self::Weex, symbol, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
+    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    if functions.ccxtruthy(sandboxMode)
+            return Base.fetch(self.fetchPositions([get(market, Symbol("symbol"), nothing)], params))
+    end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
@@ -2211,7 +2564,7 @@ function parsePosition(self::Weex, position, market=nothing)
     if functions.ccxtruthy(errorMessage != nothing)
         self.handleOrderOrPositionError(errorCode, errorMessage, position);
     end
-    marketId = safeString2(position, "symbol", "coinId");
+    marketId = self.fromSandboxMarketId(safeString2(position, "symbol", "coinId"));
     market = self.safeMarket(marketId, market, nothing, "contract");
     timestamp = safeInteger(position, "createdTime");
     marginType = safeString2(position, "marginType", "marginMode");
@@ -2328,7 +2681,7 @@ function fetchMarginModes(self::Weex, symbols=nothing, params=Dict())
     end
     symbols = self.marketSymbols(symbols);
     response = Base.fetch(self.contractPrivateGetCapiV3AccountSymbolConfig(params));
-    return self.parseMarginModes(response, symbols, "symbol", "swap")
+    return self.parseMarginModes(toArray(response), symbols, "symbol", "swap")
 
 end
 function parseMarginMode(self::Weex, marginMode, market=nothing)
@@ -2395,7 +2748,7 @@ function fetchLeverages(self::Weex, symbols=nothing, params=Dict())
     end
     symbols = self.marketSymbols(symbols);
     response = Base.fetch(self.contractPrivateGetCapiV3AccountSymbolConfig(params));
-    return self.parseLeverages(response, symbols, "symbol", "swap")
+    return self.parseLeverages(toArray(response), symbols, "symbol", "swap")
 
 end
 function parseLeverage(self::Weex, leverage, market=nothing)
@@ -2536,6 +2889,35 @@ function addMargin(self::Weex, symbol, amount, params=Dict())
     return Base.fetch(self.modifyMarginHelper(symbol, amount, 1, params))
 
 end
+function toSandboxMarketId(self::Weex, market)
+    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    baseId = safeString(market, "baseId");
+    if functions.ccxtruthy(@functions.ccxt_and(sandboxMode, (baseId != nothing)))
+            return string(baseId, "SUSDT")
+    end
+    return safeString(market, "id")
+
+end
+function fromSandboxMarketId(self::Weex, marketId)
+    sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+    if functions.ccxtruthy(@functions.ccxt_or(!functions.ccxtruthy(sandboxMode), (marketId == nothing)))
+            return marketId
+    end
+    if functions.ccxtruthy(@functions.ccxt_and((self.markets_by_id != nothing), (ccxt_in(marketId, self.markets_by_id))))
+            return marketId
+    end
+    if functions.ccxtruthy(endswith(marketId, "SUSDT"))
+        baseLength = length(marketId) - 5;
+            return string(functions.ccxt_slice(marketId, 0, baseLength), "USDT")
+    end
+    return marketId
+
+end
+function setSandboxMode(self::Weex, enable)
+    setSandboxMode(self.parent, enable);
+    self.options[Symbol("sandboxMode")] = enable;
+
+end
 function sign(self::Weex, path, api="public", method="GET", params=Dict(), headers=nothing, body=nothing)
     endpoint = self.implodeParams(path, params);
     query = omit(params, self.extractParams(path));
@@ -2546,6 +2928,10 @@ function sign(self::Weex, path, api="public", method="GET", params=Dict(), heade
         end
     end
     if functions.ccxtruthy(@functions.ccxt_or((api == "private"), (api == "contractPrivate")))
+        sandboxMode = self.safeBool(self.options, "sandboxMode", false);
+        if functions.ccxtruthy(@functions.ccxt_and(sandboxMode, (findfirst("capi/v3/sim/", path) === nothing)))
+            throw(NotSupported(string(self.id, " ", path, " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")));
+        end
         self.checkRequiredCredentials();
         timestamp = numberToString(self.nonce());
         payload = string(timestamp, method, "/", endpoint);
@@ -2591,320 +2977,389 @@ function handleErrors(self::Weex, code, reason, url, method, headers, body, resp
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Weex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetApiV3Time(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v3/time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV3Coins(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/coins", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "api/v3/coins", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV3ExchangeInfo(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/exchangeInfo", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "api/v3/exchangeInfo", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV3Ping(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/ping", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v3/ping", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV3ApiTradingSymbols(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/apiTradingSymbols", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "api/v3/apiTradingSymbols", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV3MarketTickerPrice(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/ticker/price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "api/v3/market/ticker/price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV3MarketTicker24hr(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/ticker/24hr", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "api/v3/market/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV3MarketTrades(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 125))
+    return request(self, "api/v3/market/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV3MarketKlines(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/klines", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "api/v3/market/klines", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV3MarketDepth(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/depth", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "api/v3/market/depth", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV3MarketTickerBookTicker(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/market/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "api/v3/market/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3Account(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/account/", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v3/account/", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3AccountTransferRecords(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/account/transferRecords", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "api/v3/account/transferRecords", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "api/v3/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3OpenOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/openOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "api/v3/openOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3AllOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/allOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "api/v3/allOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3MyTrades(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/myTrades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v3/myTrades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3RebateAffiliateGetAffiliateUIDs(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/getAffiliateUIDs", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "api/v3/rebate/affiliate/getAffiliateUIDs", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/getChannelUserTradeAndAsset", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "api/v3/rebate/affiliate/getChannelUserTradeAndAsset", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3RebateAffiliateGetAffiliateCommission(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/getAffiliateCommission", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "api/v3/rebate/affiliate/getAffiliateCommission", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/getInternalWithdrawalStatus", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "api/v3/rebate/affiliate/getInternalWithdrawalStatus", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3RebateAffiliateQuerySubChannelTransactions(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/querySubChannelTransactions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "api/v3/rebate/affiliate/querySubChannelTransactions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3AgencyVerifyReferrals(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/agency/verifyReferrals", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "api/v3/agency/verifyReferrals", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3AgencyGetAssert(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/agency/getAssert", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "api/v3/agency/getAssert", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV3AgencyGetDealData(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/agency/getDealData", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "api/v3/agency/getDealData", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV3AccountBills(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/account/bills", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v3/account/bills", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV3AccountFundingBills(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/account/fundingBills", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v3/account/fundingBills", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v3/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV3OrderBatch(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/order/batch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "api/v3/order/batch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV3RebateAffiliateInternalWithdrawal(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/rebate/affiliate/internalWithdrawal", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "api/v3/rebate/affiliate/internalWithdrawal", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v3/order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV3OpenOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/openOrders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v3/openOrders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV3OrderBatch(self::Weex, params=Dict(), context=Dict())
-    return request(self, "api/v3/order/batch", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "api/v3/order/batch", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketTime(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/time", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/market/time", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketExchangeInfo(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/exchangeInfo", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/market/exchangeInfo", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketDepth(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/depth", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/market/depth", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketTicker24hr(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/ticker/24hr", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 200))
+    return request(self, "capi/v3/market/ticker/24hr", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketTickerBookTicker(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/ticker/bookTicker", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/market/ticker/bookTicker", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketTrades(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/trades", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "capi/v3/market/trades", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketKlines(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/klines", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/market/klines", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketIndexPriceKlines(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/indexPriceKlines", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/market/indexPriceKlines", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketMarkPriceKlines(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/markPriceKlines", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/market/markPriceKlines", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketHistoryKlines(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/historyKlines", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "capi/v3/market/historyKlines", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketSymbolPrice(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/symbolPrice", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/market/symbolPrice", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketOpenInterest(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/openInterest", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capi/v3/market/openInterest", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketPremiumIndex(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/premiumIndex", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/market/premiumIndex", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketFundingRate(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/fundingRate", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "capi/v3/market/fundingRate", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractGetCapiV3MarketApiTradingSymbols(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/market/apiTradingSymbols", "contract", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "capi/v3/market/apiTradingSymbols", "contract", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3AccountBalance(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/balance", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capi/v3/account/balance", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3AccountCommissionRate(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/commissionRate", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capi/v3/account/commissionRate", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3AccountAccountConfig(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/accountConfig", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capi/v3/account/accountConfig", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3AccountSymbolConfig(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/symbolConfig", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capi/v3/account/symbolConfig", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3AccountPositionAllPosition(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/position/allPosition", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "capi/v3/account/position/allPosition", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3AccountPositionSinglePosition(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/position/singlePosition", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "capi/v3/account/position/singlePosition", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/order", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "capi/v3/order", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3OpenOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/openOrders", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/openOrders", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3OrderHistory(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/order/history", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capi/v3/order/history", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3UserTrades(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/userTrades", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/userTrades", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3OpenAlgoOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/openAlgoOrders", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "capi/v3/openAlgoOrders", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetCapiV3AllAlgoOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/allAlgoOrders", "contractPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capi/v3/allAlgoOrders", "contractPrivate", "GET", params, nothing, nothing, Dict())
+end
+
+function contractPrivateGetCapiV3SimBalance(self::Weex, params=Dict(), context=Dict())
+    return request(self, "capi/v3/sim/balance", "contractPrivate", "GET", params, nothing, nothing, Dict())
+end
+
+function contractPrivateGetCapiV3SimPositionAllPosition(self::Weex, params=Dict(), context=Dict())
+    return request(self, "capi/v3/sim/position/allPosition", "contractPrivate", "GET", params, nothing, nothing, Dict())
+end
+
+function contractPrivateGetCapiV3SimOrderHistory(self::Weex, params=Dict(), context=Dict())
+    return request(self, "capi/v3/sim/order/history", "contractPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostCapiV3AccountIncome(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/income", "contractPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/account/income", "contractPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostCapiV3AccountMarginType(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/marginType", "contractPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "capi/v3/account/marginType", "contractPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostCapiV3AccountLeverage(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/leverage", "contractPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "capi/v3/account/leverage", "contractPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostCapiV3AccountPositionMargin(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/positionMargin", "contractPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "capi/v3/account/positionMargin", "contractPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostCapiV3AccountModifyAutoAppendMargin(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/account/modifyAutoAppendMargin", "contractPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "capi/v3/account/modifyAutoAppendMargin", "contractPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostCapiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/order", "contractPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/order", "contractPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostCapiV3BatchOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/batchOrders", "contractPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capi/v3/batchOrders", "contractPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostCapiV3ClosePositions(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/closePositions", "contractPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "capi/v3/closePositions", "contractPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostCapiV3AlgoOrder(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/algoOrder", "contractPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/algoOrder", "contractPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostCapiV3PlaceTpSlOrder(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/placeTpSlOrder", "contractPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/placeTpSlOrder", "contractPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostCapiV3ModifyTpSlOrder(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/modifyTpSlOrder", "contractPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "capi/v3/modifyTpSlOrder", "contractPrivate", "POST", params, nothing, nothing, Dict())
+end
+
+function contractPrivatePostCapiV3SimOrder(self::Weex, params=Dict(), context=Dict())
+    return request(self, "capi/v3/sim/order", "contractPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivateDeleteCapiV3Order(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/order", "contractPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "capi/v3/order", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function contractPrivateDeleteCapiV3BatchOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/batchOrders", "contractPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capi/v3/batchOrders", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function contractPrivateDeleteCapiV3AllOpenOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/allOpenOrders", "contractPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capi/v3/allOpenOrders", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function contractPrivateDeleteCapiV3AlgoOrder(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/algoOrder", "contractPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "capi/v3/algoOrder", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function contractPrivateDeleteCapiV3AlgoOpenOrders(self::Weex, params=Dict(), context=Dict())
-    return request(self, "capi/v3/algoOpenOrders", "contractPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "capi/v3/algoOpenOrders", "contractPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Weex(; kwargs...)
-    inst = Weex(Exchange(), describe, nonce, fetchStatus, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, fetchTickers, fetchBidsAsks, parseTicker, fetchOrderBook, fetchOHLCV, fetchSpotOHLCV, fetchContractOHLCV, parseOHLCV, fetchTrades, parseTrade, fetchOpenInterest, parseOpenInterest, fetchFundingRates, parseFundingRate, fetchFundingRateHistory, parseFundingRateHistory, fetchBalance, parseBalance, fetchTransfers, parseTransfer, parseTransferStatus, createOrder, createSpotOrder, createSpotOrderRequest, createContractOrder, createContractOrderRequest, encodeTriggerPriceType, cancelOrder, cancelAllOrders, cancelOrders, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrders, fetchCanceledAndClosedOrders, parseOrder, parseOrderStatus, parseOrderType, handleOrderOrPositionError, fetchOrderTrades, fetchMyTrades, fetchLedger, parseLedgerEntry, parseLedgerType, fetchPositions, fetchPosition, fetchPositionsForSymbol, parsePosition, closeAllPositions, closePosition, fetchTradingFee, parseTradingFee, fetchMarginMode, fetchMarginModes, parseMarginMode, parseMarginType, setMarginMode, encodeMarginMode, fetchLeverage, fetchLeverages, parseLeverage, setLeverage, fetchPositionMode, setPositionMode, modifyMarginHelper, parseMarginModification, reduceMargin, addMargin, sign, handleErrors, publicGetApiV3Time, publicGetApiV3Coins, publicGetApiV3ExchangeInfo, publicGetApiV3Ping, publicGetApiV3ApiTradingSymbols, publicGetApiV3MarketTickerPrice, publicGetApiV3MarketTicker24hr, publicGetApiV3MarketTrades, publicGetApiV3MarketKlines, publicGetApiV3MarketDepth, publicGetApiV3MarketTickerBookTicker, privateGetApiV3Account, privateGetApiV3AccountTransferRecords, privateGetApiV3Order, privateGetApiV3OpenOrders, privateGetApiV3AllOrders, privateGetApiV3MyTrades, privateGetApiV3RebateAffiliateGetAffiliateUIDs, privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset, privateGetApiV3RebateAffiliateGetAffiliateCommission, privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus, privateGetApiV3RebateAffiliateQuerySubChannelTransactions, privateGetApiV3AgencyVerifyReferrals, privateGetApiV3AgencyGetAssert, privateGetApiV3AgencyGetDealData, privatePostApiV3AccountBills, privatePostApiV3AccountFundingBills, privatePostApiV3Order, privatePostApiV3OrderBatch, privatePostApiV3RebateAffiliateInternalWithdrawal, privateDeleteApiV3Order, privateDeleteApiV3OpenOrders, privateDeleteApiV3OrderBatch, contractGetCapiV3MarketTime, contractGetCapiV3MarketExchangeInfo, contractGetCapiV3MarketDepth, contractGetCapiV3MarketTicker24hr, contractGetCapiV3MarketTickerBookTicker, contractGetCapiV3MarketTrades, contractGetCapiV3MarketKlines, contractGetCapiV3MarketIndexPriceKlines, contractGetCapiV3MarketMarkPriceKlines, contractGetCapiV3MarketHistoryKlines, contractGetCapiV3MarketSymbolPrice, contractGetCapiV3MarketOpenInterest, contractGetCapiV3MarketPremiumIndex, contractGetCapiV3MarketFundingRate, contractGetCapiV3MarketApiTradingSymbols, contractPrivateGetCapiV3AccountBalance, contractPrivateGetCapiV3AccountCommissionRate, contractPrivateGetCapiV3AccountAccountConfig, contractPrivateGetCapiV3AccountSymbolConfig, contractPrivateGetCapiV3AccountPositionAllPosition, contractPrivateGetCapiV3AccountPositionSinglePosition, contractPrivateGetCapiV3Order, contractPrivateGetCapiV3OpenOrders, contractPrivateGetCapiV3OrderHistory, contractPrivateGetCapiV3UserTrades, contractPrivateGetCapiV3OpenAlgoOrders, contractPrivateGetCapiV3AllAlgoOrders, contractPrivatePostCapiV3AccountIncome, contractPrivatePostCapiV3AccountMarginType, contractPrivatePostCapiV3AccountLeverage, contractPrivatePostCapiV3AccountPositionMargin, contractPrivatePostCapiV3AccountModifyAutoAppendMargin, contractPrivatePostCapiV3Order, contractPrivatePostCapiV3BatchOrders, contractPrivatePostCapiV3ClosePositions, contractPrivatePostCapiV3AlgoOrder, contractPrivatePostCapiV3PlaceTpSlOrder, contractPrivatePostCapiV3ModifyTpSlOrder, contractPrivateDeleteCapiV3Order, contractPrivateDeleteCapiV3BatchOrders, contractPrivateDeleteCapiV3AllOpenOrders, contractPrivateDeleteCapiV3AlgoOrder, contractPrivateDeleteCapiV3AlgoOpenOrders)
+    inst = Weex(Exchange(), describe, nonce, fetchStatus, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, fetchTickers, fetchBidsAsks, parseTicker, fetchLastPrices, parseLastPrice, fetchMarkPrice, fetchMarkPrices, fetchOrderBook, fetchOHLCV, fetchSpotOHLCV, fetchContractOHLCV, parseOHLCV, fetchTrades, parseTrade, fetchOpenInterest, parseOpenInterest, fetchFundingRates, parseFundingRate, fetchFundingRateHistory, parseFundingRateHistory, fetchBalance, parseBalance, fetchTransfers, parseTransfer, parseTransferStatus, createOrder, createSpotOrder, createSpotOrderRequest, createContractOrder, createContractOrderRequest, encodeTriggerPriceType, cancelOrder, cancelAllOrders, cancelOrders, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrders, fetchCanceledAndClosedOrders, parseOrder, parseOrderStatus, parseOrderType, handleOrderOrPositionError, fetchOrderTrades, fetchMyTrades, fetchLedger, parseLedgerEntry, parseLedgerType, fetchPositions, fetchPosition, fetchPositionsForSymbol, parsePosition, closeAllPositions, closePosition, fetchTradingFee, parseTradingFee, fetchMarginMode, fetchMarginModes, parseMarginMode, parseMarginType, setMarginMode, encodeMarginMode, fetchLeverage, fetchLeverages, parseLeverage, setLeverage, fetchPositionMode, setPositionMode, modifyMarginHelper, parseMarginModification, reduceMargin, addMargin, toSandboxMarketId, fromSandboxMarketId, setSandboxMode, sign, handleErrors, publicGetApiV3Time, publicGetApiV3Coins, publicGetApiV3ExchangeInfo, publicGetApiV3Ping, publicGetApiV3ApiTradingSymbols, publicGetApiV3MarketTickerPrice, publicGetApiV3MarketTicker24hr, publicGetApiV3MarketTrades, publicGetApiV3MarketKlines, publicGetApiV3MarketDepth, publicGetApiV3MarketTickerBookTicker, privateGetApiV3Account, privateGetApiV3AccountTransferRecords, privateGetApiV3Order, privateGetApiV3OpenOrders, privateGetApiV3AllOrders, privateGetApiV3MyTrades, privateGetApiV3RebateAffiliateGetAffiliateUIDs, privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset, privateGetApiV3RebateAffiliateGetAffiliateCommission, privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus, privateGetApiV3RebateAffiliateQuerySubChannelTransactions, privateGetApiV3AgencyVerifyReferrals, privateGetApiV3AgencyGetAssert, privateGetApiV3AgencyGetDealData, privatePostApiV3AccountBills, privatePostApiV3AccountFundingBills, privatePostApiV3Order, privatePostApiV3OrderBatch, privatePostApiV3RebateAffiliateInternalWithdrawal, privateDeleteApiV3Order, privateDeleteApiV3OpenOrders, privateDeleteApiV3OrderBatch, contractGetCapiV3MarketTime, contractGetCapiV3MarketExchangeInfo, contractGetCapiV3MarketDepth, contractGetCapiV3MarketTicker24hr, contractGetCapiV3MarketTickerBookTicker, contractGetCapiV3MarketTrades, contractGetCapiV3MarketKlines, contractGetCapiV3MarketIndexPriceKlines, contractGetCapiV3MarketMarkPriceKlines, contractGetCapiV3MarketHistoryKlines, contractGetCapiV3MarketSymbolPrice, contractGetCapiV3MarketOpenInterest, contractGetCapiV3MarketPremiumIndex, contractGetCapiV3MarketFundingRate, contractGetCapiV3MarketApiTradingSymbols, contractPrivateGetCapiV3AccountBalance, contractPrivateGetCapiV3AccountCommissionRate, contractPrivateGetCapiV3AccountAccountConfig, contractPrivateGetCapiV3AccountSymbolConfig, contractPrivateGetCapiV3AccountPositionAllPosition, contractPrivateGetCapiV3AccountPositionSinglePosition, contractPrivateGetCapiV3Order, contractPrivateGetCapiV3OpenOrders, contractPrivateGetCapiV3OrderHistory, contractPrivateGetCapiV3UserTrades, contractPrivateGetCapiV3OpenAlgoOrders, contractPrivateGetCapiV3AllAlgoOrders, contractPrivateGetCapiV3SimBalance, contractPrivateGetCapiV3SimPositionAllPosition, contractPrivateGetCapiV3SimOrderHistory, contractPrivatePostCapiV3AccountIncome, contractPrivatePostCapiV3AccountMarginType, contractPrivatePostCapiV3AccountLeverage, contractPrivatePostCapiV3AccountPositionMargin, contractPrivatePostCapiV3AccountModifyAutoAppendMargin, contractPrivatePostCapiV3Order, contractPrivatePostCapiV3BatchOrders, contractPrivatePostCapiV3ClosePositions, contractPrivatePostCapiV3AlgoOrder, contractPrivatePostCapiV3PlaceTpSlOrder, contractPrivatePostCapiV3ModifyTpSlOrder, contractPrivatePostCapiV3SimOrder, contractPrivateDeleteCapiV3Order, contractPrivateDeleteCapiV3BatchOrders, contractPrivateDeleteCapiV3AllOpenOrders, contractPrivateDeleteCapiV3AlgoOrder, contractPrivateDeleteCapiV3AlgoOpenOrders)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

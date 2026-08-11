@@ -141,38 +141,86 @@ function describe(self::Blockchaincom, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("tickers") => 1,
-                Symbol("tickers/{symbol}") => 1,
-                Symbol("symbols") => 1,
-                Symbol("symbols/{symbol}") => 1,
-                Symbol("l2/{symbol}") => 1,
-                Symbol("l3/{symbol}") => 1
+                Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("symbols/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("l2/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("l3/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("fees") => 1,
-                Symbol("orders") => 1,
-                Symbol("orders/{orderId}") => 1,
-                Symbol("trades") => 1,
-                Symbol("fills") => 1,
-                Symbol("deposits") => 1,
-                Symbol("deposits/{depositId}") => 1,
-                Symbol("accounts") => 1,
-                Symbol("accounts/{account}/{currency}") => 1,
-                Symbol("whitelist") => 1,
-                Symbol("whitelist/{currency}") => 1,
-                Symbol("withdrawals") => 1,
-                Symbol("withdrawals/{withdrawalId}") => 1
+                Symbol("fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{orderId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposits/{depositId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts/{account}/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("whitelist") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("whitelist/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawals/{withdrawalId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("orders") => 1,
-                Symbol("deposits/{currency}") => 1,
-                Symbol("withdrawals") => 1
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposits/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("orders") => 1,
-                Symbol("orders/{orderId}") => 1
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{orderId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -547,6 +595,9 @@ function createOrder(self::Blockchaincom, symbol, type_var, side, amount, price=
     uppercaseOrderType = uppercase(orderType);
     clientOrderId = safeString2(params, "clientOrderId", "clOrdId", uuid16());
     params = omit(params, ["ordType", "clientOrderId", "clOrdId"]);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("ordType") => uppercaseOrderType,
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -620,9 +671,10 @@ function fetchTradingFees(self::Blockchaincom, params=Dict())
     makerFee = self.safeNumber(response, "makerRate");
     takerFee = self.safeNumber(response, "takerRate");
     result = Dict{Symbol, Any}();
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         result[Symbol(symbol)] = Dict{Symbol, Any}(
             Symbol("info") => response,
             Symbol("symbol") => symbol,
@@ -969,112 +1021,165 @@ function handleErrors(self::Blockchaincom, code, reason, url, method, headers, b
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Blockchaincom, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetTickers(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickersSymbol(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "tickers/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tickers/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSymbols(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "symbols", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "symbols", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSymbolsSymbol(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "symbols/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "symbols/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetL2Symbol(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "l2/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "l2/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetL3Symbol(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "l3/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "l3/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFees(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "fees", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fees", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrders(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersOrderId(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "orders/{orderId}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/{orderId}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTrades(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFills(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "fills", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fills", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeposits(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "deposits", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deposits", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDepositsDepositId(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "deposits/{depositId}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deposits/{depositId}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccounts(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountsAccountCurrency(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "accounts/{account}/{currency}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accounts/{account}/{currency}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWhitelist(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "whitelist", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "whitelist", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWhitelistCurrency(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "whitelist/{currency}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "whitelist/{currency}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWithdrawals(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawals", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWithdrawalsWithdrawalId(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "withdrawals/{withdrawalId}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawals/{withdrawalId}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostOrders(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDepositsCurrency(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "deposits/{currency}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deposits/{currency}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawals(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "withdrawals", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawals", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrders(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersOrderId(self::Blockchaincom, params=Dict(), context=Dict())
-    return request(self, "orders/{orderId}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/{orderId}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Blockchaincom(; kwargs...)
     inst = Blockchaincom(Exchange(), describe, fetchMarkets, fetchOrderBook, fetchL3OrderBook, fetchL2OrderBook, parseTicker, fetchTicker, fetchTickers, parseOrderState, parseOrder, createOrder, cancelOrder, cancelAllOrders, fetchTradingFees, fetchCanceledOrders, fetchClosedOrders, fetchOpenOrders, fetchOrdersByState, parseTrade, fetchMyTrades, fetchDepositAddress, parseTransactionState, parseTransaction, withdraw, fetchWithdrawals, fetchWithdrawal, fetchDeposits, fetchDeposit, fetchBalance, fetchOrder, sign, handleErrors, publicGetTickers, publicGetTickersSymbol, publicGetSymbols, publicGetSymbolsSymbol, publicGetL2Symbol, publicGetL3Symbol, privateGetFees, privateGetOrders, privateGetOrdersOrderId, privateGetTrades, privateGetFills, privateGetDeposits, privateGetDepositsDepositId, privateGetAccounts, privateGetAccountsAccountCurrency, privateGetWhitelist, privateGetWhitelistCurrency, privateGetWithdrawals, privateGetWithdrawalsWithdrawalId, privatePostOrders, privatePostDepositsCurrency, privatePostWithdrawals, privateDeleteOrders, privateDeleteOrdersOrderId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

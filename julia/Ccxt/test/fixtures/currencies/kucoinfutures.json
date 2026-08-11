@@ -299,7 +299,7 @@
      "deposit": {}
     }
    },
-   "ARBONE": {
+   "ARBITRUM": {
     "info": {
      "chainName": "ARBITRUM",
      "chainId": "arbitrum",
@@ -323,7 +323,7 @@
     },
     "id": "arbitrum",
     "name": "ARBITRUM",
-    "code": "ARBONE",
+    "code": "ARBITRUM",
     "fee": 0.0001,
     "deposit": false,
     "withdraw": false,
@@ -717,7 +717,7 @@
      "deposit": {}
     }
    },
-   "ARBONE": {
+   "ARBITRUM": {
     "info": {
      "chainName": "ARBITRUM",
      "chainId": "arbitrum",
@@ -741,7 +741,7 @@
     },
     "id": "arbitrum",
     "name": "ARBITRUM",
-    "code": "ARBONE",
+    "code": "ARBITRUM",
     "fee": 0.0002,
     "deposit": true,
     "withdraw": true,
@@ -1865,7 +1865,7 @@
      "deposit": {}
     }
    },
-   "ARBONE": {
+   "ARBITRUM": {
     "info": {
      "chainName": "ARBITRUM",
      "chainId": "arbitrum",
@@ -1889,7 +1889,7 @@
     },
     "id": "arbitrum",
     "name": "ARBITRUM",
-    "code": "ARBONE",
+    "code": "ARBITRUM",
     "fee": 1,
     "deposit": true,
     "withdraw": true,

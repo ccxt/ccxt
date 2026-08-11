@@ -153,10 +153,11 @@ function describe(self::Lbank, )
         Symbol("fetchDepositAddress") => true,
         Symbol("fetchDepositAddresses") => false,
         Symbol("fetchDepositAddressesByNetwork") => false,
+        Symbol("fetchDeposits") => true,
         Symbol("fetchDepositWithdrawFee") => "emulated",
         Symbol("fetchDepositWithdrawFees") => true,
         Symbol("fetchFundingHistory") => false,
-        Symbol("fetchFundingRate") => false,
+        Symbol("fetchFundingRate") => true,
         Symbol("fetchFundingRateHistory") => false,
         Symbol("fetchFundingRates") => true,
         Symbol("fetchIndexOHLCV") => false,
@@ -183,8 +184,10 @@ function describe(self::Lbank, )
         Symbol("fetchTickers") => true,
         Symbol("fetchTime") => true,
         Symbol("fetchTrades") => true,
+        Symbol("fetchTradingFee") => true,
         Symbol("fetchTradingFees") => true,
         Symbol("fetchTransactionFees") => true,
+        Symbol("fetchWithdrawals") => true,
         Symbol("reduceMargin") => false,
         Symbol("setLeverage") => false,
         Symbol("setMarginMode") => false,
@@ -221,76 +224,192 @@ function describe(self::Lbank, )
         Symbol("spot") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("currencyPairs") => 2.5,
-                    Symbol("accuracy") => 2.5,
-                    Symbol("usdToCny") => 2.5,
-                    Symbol("assetConfigs") => 2.5,
-                    Symbol("withdrawConfigs") => 2.5 * 1.5,
-                    Symbol("timestamp") => 2.5,
-                    Symbol("ticker/24hr") => 2.5,
-                    Symbol("ticker") => 2.5,
-                    Symbol("depth") => 2.5,
-                    Symbol("incrDepth") => 2.5,
-                    Symbol("trades") => 2.5,
-                    Symbol("kline") => 2.5,
-                    Symbol("supplement/system_ping") => 2.5,
-                    Symbol("supplement/incrDepth") => 2.5,
-                    Symbol("supplement/trades") => 2.5,
-                    Symbol("supplement/ticker/price") => 2.5,
-                    Symbol("supplement/ticker/bookTicker") => 2.5
+                    Symbol("currencyPairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("accuracy") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("usdToCny") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("assetConfigs") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("withdrawConfigs") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5 * 1.5
+),
+                    Symbol("timestamp") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("incrDepth") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/system_ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/incrDepth") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("supplement/system_status") => 2.5
+                    Symbol("supplement/system_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("user_info") => 2.5,
-                    Symbol("subscribe/get_key") => 2.5,
-                    Symbol("subscribe/refresh_key") => 2.5,
-                    Symbol("subscribe/destroy_key") => 2.5,
-                    Symbol("get_deposit_address") => 2.5,
-                    Symbol("deposit_history") => 2.5,
-                    Symbol("create_order") => 1,
-                    Symbol("batch_create_order") => 1,
-                    Symbol("cancel_order") => 1,
-                    Symbol("cancel_clientOrders") => 1,
-                    Symbol("orders_info") => 2.5,
-                    Symbol("orders_info_history") => 2.5,
-                    Symbol("order_transaction_detail") => 2.5,
-                    Symbol("transaction_history") => 2.5,
-                    Symbol("orders_info_no_deal") => 2.5,
-                    Symbol("withdraw") => 2.5,
-                    Symbol("withdrawCancel") => 2.5,
-                    Symbol("withdraws") => 2.5,
-                    Symbol("supplement/user_info") => 2.5,
-                    Symbol("supplement/withdraw") => 2.5,
-                    Symbol("supplement/deposit_history") => 2.5,
-                    Symbol("supplement/withdraws") => 2.5,
-                    Symbol("supplement/get_deposit_address") => 2.5,
-                    Symbol("supplement/asset_detail") => 2.5,
-                    Symbol("supplement/customer_trade_fee") => 2.5,
-                    Symbol("supplement/api_Restrictions") => 2.5,
-                    Symbol("supplement/system_ping") => 2.5,
-                    Symbol("supplement/create_order_test") => 1,
-                    Symbol("supplement/create_order") => 1,
-                    Symbol("supplement/cancel_order") => 1,
-                    Symbol("supplement/cancel_order_by_symbol") => 1,
-                    Symbol("supplement/orders_info") => 2.5,
-                    Symbol("supplement/orders_info_no_deal") => 2.5,
-                    Symbol("supplement/orders_info_history") => 2.5,
-                    Symbol("supplement/user_info_account") => 2.5,
-                    Symbol("supplement/transaction_history") => 2.5
+                    Symbol("user_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("subscribe/get_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("subscribe/refresh_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("subscribe/destroy_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("get_deposit_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("deposit_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("create_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("batch_create_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("cancel_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("cancel_clientOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("orders_info_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("order_transaction_detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("transaction_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("orders_info_no_deal") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("withdrawCancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("withdraws") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/user_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/deposit_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/withdraws") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/get_deposit_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/asset_detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/customer_trade_fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/api_Restrictions") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/system_ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/create_order_test") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("supplement/create_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("supplement/cancel_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("supplement/cancel_order_by_symbol") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("supplement/orders_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/orders_info_no_deal") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/orders_info_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/user_info_account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("supplement/transaction_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+)
                 )
             )
         ),
         Symbol("contract") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("cfd/openApi/v1/pub/getTime") => 2.5,
-                    Symbol("cfd/openApi/v1/pub/instrument") => 2.5,
-                    Symbol("cfd/openApi/v1/pub/marketData") => 2.5,
-                    Symbol("cfd/openApi/v1/pub/marketOrder") => 2.5
+                    Symbol("cfd/openApi/v1/pub/getTime") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("cfd/openApi/v1/pub/instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("cfd/openApi/v1/pub/marketData") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("cfd/openApi/v1/pub/marketOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+)
                 )
             )
         )
@@ -474,26 +593,28 @@ function parseCurrency(self::Lbank, rawCurrency)
             networkId = safeString(networkEntry, "assetCode");
         end
         networkCode = self.networkIdToCode(networkId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(networkEntry, "min"),
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(networkEntry, "min"),
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(networkEntry, "minTransfer"),
+                        Symbol("max") => nothing
+                    )
                 ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(networkEntry, "minTransfer"),
-                    Symbol("max") => nothing
-                )
-            ),
-            Symbol("active") => nothing,
-            Symbol("deposit") => nothing,
-            Symbol("withdraw") => self.safeBool(networkEntry, "canWithDraw"),
-            Symbol("fee") => self.safeNumber(networkEntry, "fee"),
-            Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(networkEntry, "transferAmtScale"))),
-            Symbol("info") => networkEntry
-        );
+                Symbol("active") => nothing,
+                Symbol("deposit") => nothing,
+                Symbol("withdraw") => self.safeBool(networkEntry, "canWithDraw"),
+                Symbol("fee") => self.safeNumber(networkEntry, "fee"),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(networkEntry, "transferAmtScale"))),
+                Symbol("info") => networkEntry
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -669,6 +790,9 @@ function fetchSwapMarkets(self::Lbank, params=Dict())
 end
 function parseTicker(self::Lbank, ticker, market=nothing)
     timestamp = safeInteger(ticker, "timestamp");
+    if functions.ccxtruthy(timestamp == nothing)
+        timestamp = safeTimestamp(ticker, "lastTime");
+    end
     marketId = safeString(ticker, "symbol");
     symbol = self.safeSymbol(marketId, market);
     tickerData = safeValue(ticker, "ticker", Dict{Symbol, Any}());
@@ -917,7 +1041,9 @@ function parseBalance(self::Lbank, response)
             account = self.account();
             account[Symbol("used")] = safeString(used, currencyId);
             account[Symbol("free")] = safeString(free, currencyId);
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
             i += 1
         end
 
@@ -933,7 +1059,9 @@ function parseBalance(self::Lbank, response)
             account = self.account();
             account[Symbol("free")] = safeString(item, "free");
             account[Symbol("used")] = safeString(item, "locked");
-            result[Symbol(codeInner)] = account;
+            if functions.ccxtruthy(codeInner != nothing)
+                result[Symbol(codeInner)] = account;
+            end
             i += 1
         end
 
@@ -949,13 +1077,15 @@ function parseBalance(self::Lbank, response)
             account = self.account();
             account[Symbol("free")] = safeString(item, "usableAmt");
             account[Symbol("used")] = safeString(item, "freezeAmt");
-            result[Symbol(codeInner)] = account;
+            if functions.ccxtruthy(codeInner != nothing)
+                result[Symbol(codeInner)] = account;
+            end
             i += 1
         end
 
             return self.safeBalance(result)
     end
-    return nothing
+    return self.safeBalance(result)
 
 end
 function parseFundingRate(self::Lbank, ticker, market=nothing)
@@ -1027,7 +1157,12 @@ function fetchBalance(self::Lbank, params=Dict())
     else
         response = Base.fetch(self.spotPrivatePostSupplementUserInfo());
     end
-    return self.parseBalance(response)
+    balanceResponse = functions.ccxtruthy((response == nothing)) ? Dict{Symbol, Any}() : response;
+    balanceResult = self.parseBalance(balanceResponse);
+    if functions.ccxtruthy(balanceResult == nothing)
+        throw(NullResponse(string(self.id, " fetchBalance() returned empty response")));
+    end
+    return balanceResult
 
 end
 function parseTradingFee(self::Lbank, fee, market=nothing)
@@ -1650,14 +1785,20 @@ function fetchPrivateTransactionFees(self::Lbank, params=Dict())
         currencyId = safeString(entry, "coin");
         code = self.safeCurrencyCode(currencyId);
         networkList = safeValue(entry, "networkList", []);
-        withdrawFees[Symbol(code)] = Dict{Symbol, Any}();
+        if functions.ccxtruthy(code != nothing)
+            withdrawFees[Symbol(code)] = Dict{Symbol, Any}();
+        end
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(networkList)))
             networkEntry = get(networkList, j + 1, nothing);
             fee = self.safeNumber(networkEntry, "withdrawFee");
             if functions.ccxtruthy(fee != nothing)
                 networkCode = self.networkIdToCode(safeString(networkEntry, "name"), code);
-                withdrawFees[Symbol(code)][Symbol(networkCode)] = fee;
+                if functions.ccxtruthy(networkCode != nothing)
+                    if functions.ccxtruthy(@functions.ccxt_and((code != nothing), (networkCode != nothing)))
+                        withdrawFees[Symbol(code)][Symbol(networkCode)] = fee;
+                    end
+                end
             end
             j += 1
         end
@@ -1696,10 +1837,14 @@ function fetchPublicTransactionFees(self::Lbank, params=Dict())
                 network = codeInner;
             end
             fee = safeString(item, "fee");
-            if functions.ccxtruthy(get(withdrawFees, Symbol(codeInner), nothing) == nothing)
-                withdrawFees[Symbol(codeInner)] = Dict{Symbol, Any}();
+            if functions.ccxtruthy(safeValue(withdrawFees, codeInner) == nothing)
+                if functions.ccxtruthy(codeInner != nothing)
+                    withdrawFees[Symbol(codeInner)] = Dict{Symbol, Any}();
+                end
             end
-            withdrawFees[Symbol(codeInner)][Symbol(network)] = self.parseNumber(fee);
+            if functions.ccxtruthy(@functions.ccxt_and((codeInner != nothing), (network != nothing)))
+                withdrawFees[Symbol(codeInner)][Symbol(network)] = self.parseNumber(fee);
+            end
         end
         i += 1
     end
@@ -1759,7 +1904,7 @@ function parsePublicDepositWithdrawFees(self::Lbank, response, codes=nothing)
         if functions.ccxtruthy(canWithdraw)
             currencyId = safeString(fee, "assetCode");
             code = self.safeCurrencyCode(currencyId);
-            if functions.ccxtruthy(@functions.ccxt_or(codes == nothing, inArray(code, codes)))
+            if functions.ccxtruthy(@functions.ccxt_and((code != nothing), (@functions.ccxt_or(codes == nothing, inArray(code, codes)))))
                 withdrawFee = self.safeNumber(fee, "fee");
                 if functions.ccxtruthy(withdrawFee != nothing)
                     resultValue = safeValue(result, code);
@@ -1812,16 +1957,18 @@ function parseDepositWithdrawFee(self::Lbank, fee, currency=nothing)
                     Symbol("percentage") => nothing
                 );
             end
-            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("fee") => withdrawFee,
-                    Symbol("percentage") => nothing
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("fee") => nothing,
-                    Symbol("percentage") => nothing
-                )
-            );
+            if functions.ccxtruthy(networkCode != nothing)
+                result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("fee") => withdrawFee,
+                        Symbol("percentage") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("fee") => nothing,
+                        Symbol("percentage") => nothing
+                    )
+                );
+            end
         end
         j += 1
     end
@@ -1906,7 +2053,7 @@ function convertSecretToPem(self::Lbank, secret)
     while functions.ccxtruthy(functions.ccxt_lt(i, numLines))
         start = i * lineLength;
         end_var = self.sum(start, lineLength);
-        pem += string(self.secret[start + 1:end_var], "\n");
+        pem += string(functions.ccxt_slice(self.secret, start, end_var), "\n");
         i += 1
     end
     return string(pem, "-----END PRIVATE KEY-----")
@@ -1914,7 +2061,7 @@ function convertSecretToPem(self::Lbank, secret)
 end
 function handleErrors(self::Lbank, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody)
     if functions.ccxtruthy(response == nothing)
-            return nothing
+        throw(NullResponse(string(self.id, " parseBalance() returned empty response")));
     end
     success = safeValue(response, "result");
     if functions.ccxtruthy(@functions.ccxt_or(success == "false", !functions.ccxtruthy(success)))
@@ -2028,25 +2175,25 @@ function handleErrors(self::Lbank, httpCode, reason, url, method, headers, body,
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Lbank, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function spotPublicGetCurrencyPairs(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "currencyPairs", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "currencyPairs", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetAccuracy(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "accuracy", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "accuracy", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetUsdToCny(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "usdToCny", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "usdToCny", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetAssetConfigs(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "assetConfigs", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "assetConfigs", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetWithdrawConfigs(self::Lbank, params=Dict(), context=Dict())
@@ -2054,222 +2201,275 @@ function spotPublicGetWithdrawConfigs(self::Lbank, params=Dict(), context=Dict()
 end
 
 function spotPublicGetTimestamp(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "timestamp", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "timestamp", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetTicker24hr(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "ticker/24hr", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetTicker(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "ticker", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "ticker", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetDepth(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "depth", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "depth", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetIncrDepth(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "incrDepth", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "incrDepth", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetTrades(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "trades", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "trades", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetKline(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "kline", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "kline", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetSupplementSystemPing(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/system_ping", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/system_ping", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetSupplementIncrDepth(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/incrDepth", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/incrDepth", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetSupplementTrades(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/trades", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/trades", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetSupplementTickerPrice(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/ticker/price", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/ticker/price", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetSupplementTickerBookTicker(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/ticker/bookTicker", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/ticker/bookTicker", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicPostSupplementSystemStatus(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/system_status", ["spot", "public"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/system_status", ["spot", "public"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostUserInfo(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "user_info", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "user_info", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSubscribeGetKey(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "subscribe/get_key", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "subscribe/get_key", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSubscribeRefreshKey(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "subscribe/refresh_key", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "subscribe/refresh_key", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSubscribeDestroyKey(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "subscribe/destroy_key", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "subscribe/destroy_key", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostGetDepositAddress(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "get_deposit_address", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "get_deposit_address", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostDepositHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "deposit_history", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "deposit_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostCreateOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "create_order", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "create_order", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostBatchCreateOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "batch_create_order", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "batch_create_order", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostCancelOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cancel_order", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cancel_order", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostCancelClientOrders(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cancel_clientOrders", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cancel_clientOrders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostOrdersInfo(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "orders_info", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "orders_info", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostOrdersInfoHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "orders_info_history", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "orders_info_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostOrderTransactionDetail(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "order_transaction_detail", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "order_transaction_detail", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostTransactionHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "transaction_history", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "transaction_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostOrdersInfoNoDeal(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "orders_info_no_deal", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "orders_info_no_deal", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostWithdraw(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "withdraw", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "withdraw", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostWithdrawCancel(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "withdrawCancel", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "withdrawCancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostWithdraws(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "withdraws", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "withdraws", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementUserInfo(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/user_info", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/user_info", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementWithdraw(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/withdraw", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/withdraw", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementDepositHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/deposit_history", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/deposit_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementWithdraws(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/withdraws", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/withdraws", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementGetDepositAddress(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/get_deposit_address", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/get_deposit_address", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementAssetDetail(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/asset_detail", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/asset_detail", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementCustomerTradeFee(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/customer_trade_fee", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/customer_trade_fee", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementApiRestrictions(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/api_Restrictions", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/api_Restrictions", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementSystemPing(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/system_ping", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/system_ping", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementCreateOrderTest(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/create_order_test", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "supplement/create_order_test", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementCreateOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/create_order", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "supplement/create_order", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementCancelOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/cancel_order", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "supplement/cancel_order", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementCancelOrderBySymbol(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/cancel_order_by_symbol", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "supplement/cancel_order_by_symbol", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementOrdersInfo(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/orders_info", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/orders_info", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementOrdersInfoNoDeal(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/orders_info_no_deal", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/orders_info_no_deal", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementOrdersInfoHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/orders_info_history", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/orders_info_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementUserInfoAccount(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/user_info_account", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/user_info_account", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostSupplementTransactionHistory(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "supplement/transaction_history", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "supplement/transaction_history", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetCfdOpenApiV1PubGetTime(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cfd/openApi/v1/pub/getTime", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "cfd/openApi/v1/pub/getTime", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetCfdOpenApiV1PubInstrument(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cfd/openApi/v1/pub/instrument", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "cfd/openApi/v1/pub/instrument", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetCfdOpenApiV1PubMarketData(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cfd/openApi/v1/pub/marketData", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "cfd/openApi/v1/pub/marketData", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetCfdOpenApiV1PubMarketOrder(self::Lbank, params=Dict(), context=Dict())
-    return request(self, "cfd/openApi/v1/pub/marketOrder", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "cfd/openApi/v1/pub/marketOrder", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function Lbank(; kwargs...)
     inst = Lbank(Exchange(), describe, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, fetchSpotMarkets, fetchSwapMarkets, parseTicker, fetchTicker, fetchTickers, fetchOrderBook, parseTrade, fetchTrades, parseOHLCV, fetchOHLCV, parseBalance, parseFundingRate, fetchFundingRate, fetchFundingRates, fetchBalance, parseTradingFee, fetchTradingFee, fetchTradingFees, createMarketBuyOrderWithCost, createOrder, parseOrderStatus, parseOrder, fetchOrder, fetchOrderSupplement, fetchOrderDefault, fetchMyTrades, fetchOrders, fetchOpenOrders, cancelOrder, cancelAllOrders, getNetworkCodeForCurrency, fetchDepositAddress, fetchDepositAddressDefault, fetchDepositAddressSupplement, withdraw, parseTransactionStatus, parseTransaction, fetchDeposits, fetchWithdrawals, fetchTransactionFees, fetchPrivateTransactionFees, fetchPublicTransactionFees, fetchDepositWithdrawFees, fetchPrivateDepositWithdrawFees, fetchPublicDepositWithdrawFees, parsePublicDepositWithdrawFees, parseDepositWithdrawFee, sign, convertSecretToPem, handleErrors, spotPublicGetCurrencyPairs, spotPublicGetAccuracy, spotPublicGetUsdToCny, spotPublicGetAssetConfigs, spotPublicGetWithdrawConfigs, spotPublicGetTimestamp, spotPublicGetTicker24hr, spotPublicGetTicker, spotPublicGetDepth, spotPublicGetIncrDepth, spotPublicGetTrades, spotPublicGetKline, spotPublicGetSupplementSystemPing, spotPublicGetSupplementIncrDepth, spotPublicGetSupplementTrades, spotPublicGetSupplementTickerPrice, spotPublicGetSupplementTickerBookTicker, spotPublicPostSupplementSystemStatus, spotPrivatePostUserInfo, spotPrivatePostSubscribeGetKey, spotPrivatePostSubscribeRefreshKey, spotPrivatePostSubscribeDestroyKey, spotPrivatePostGetDepositAddress, spotPrivatePostDepositHistory, spotPrivatePostCreateOrder, spotPrivatePostBatchCreateOrder, spotPrivatePostCancelOrder, spotPrivatePostCancelClientOrders, spotPrivatePostOrdersInfo, spotPrivatePostOrdersInfoHistory, spotPrivatePostOrderTransactionDetail, spotPrivatePostTransactionHistory, spotPrivatePostOrdersInfoNoDeal, spotPrivatePostWithdraw, spotPrivatePostWithdrawCancel, spotPrivatePostWithdraws, spotPrivatePostSupplementUserInfo, spotPrivatePostSupplementWithdraw, spotPrivatePostSupplementDepositHistory, spotPrivatePostSupplementWithdraws, spotPrivatePostSupplementGetDepositAddress, spotPrivatePostSupplementAssetDetail, spotPrivatePostSupplementCustomerTradeFee, spotPrivatePostSupplementApiRestrictions, spotPrivatePostSupplementSystemPing, spotPrivatePostSupplementCreateOrderTest, spotPrivatePostSupplementCreateOrder, spotPrivatePostSupplementCancelOrder, spotPrivatePostSupplementCancelOrderBySymbol, spotPrivatePostSupplementOrdersInfo, spotPrivatePostSupplementOrdersInfoNoDeal, spotPrivatePostSupplementOrdersInfoHistory, spotPrivatePostSupplementUserInfoAccount, spotPrivatePostSupplementTransactionHistory, contractPublicGetCfdOpenApiV1PubGetTime, contractPublicGetCfdOpenApiV1PubInstrument, contractPublicGetCfdOpenApiV1PubMarketData, contractPublicGetCfdOpenApiV1PubMarketOrder)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

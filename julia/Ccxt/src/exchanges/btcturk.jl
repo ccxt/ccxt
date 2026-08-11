@@ -166,34 +166,66 @@ function describe(self::Btcturk, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("orderbook") => 1,
-                Symbol("ticker") => 0.1,
-                Symbol("trades") => 1,
-                Symbol("ohlc") => 1,
-                Symbol("server/exchangeinfo") => 1
+                Symbol("orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ohlc") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("server/exchangeinfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("users/balances") => 1,
-                Symbol("openOrders") => 1,
-                Symbol("allOrders") => 1,
-                Symbol("users/transactions/trade") => 1
+                Symbol("users/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("users/transactions/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("users/transactions/crypto") => 1,
-                Symbol("users/transactions/fiat") => 1,
-                Symbol("order") => 1,
-                Symbol("cancelOrder") => 1
+                Symbol("users/transactions/crypto") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("users/transactions/fiat") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("order") => 1
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("graph") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("ohlcs") => 1,
-                Symbol("klines/history") => 1
+                Symbol("ohlcs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("klines/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -311,7 +343,7 @@ function parseMarket(self::Btcturk, entry)
         j += 1
     end
     status = safeString(entry, "status");
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -359,7 +391,7 @@ function parseMarket(self::Btcturk, entry)
     ),
     Symbol("created") => nothing,
     Symbol("info") => entry
-)
+))
 
 end
 function parseBalance(self::Btcturk, response)
@@ -378,7 +410,9 @@ function parseBalance(self::Btcturk, response)
         account[Symbol("total")] = safeString(entry, "balance");
         account[Symbol("free")] = safeString(entry, "free");
         account[Symbol("used")] = safeString(entry, "locked");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -501,7 +535,11 @@ function fetchTrades(self::Btcturk, symbol, since=nothing, limit=nothing, params
     end
     response = Base.fetch(self.publicGetTrades(extend(request, params)));
     data = self.safeList(response, "data");
-    return self.parseTrades(data, market, since, limit)
+    dataList = [];
+    if functions.ccxtruthy(data != nothing)
+        dataList = data;
+    end
+    return self.parseTrades(dataList, market, since, limit)
 
 end
 function parseOHLCV(self::Btcturk, ohlcv, market=nothing)
@@ -587,7 +625,7 @@ function createOrder(self::Btcturk, symbol, type_var, side, amount, price=nothin
         request[Symbol("newClientOrderId")] = uuid();
     end
     response = Base.fetch(self.privatePostOrder(extend(request, params)));
-    data = self.safeDict(response, "data");
+    data = self.safeDict(response, "data", Dict{Symbol, Any}());
     return self.parseOrder(data, market)
 
 end
@@ -691,7 +729,11 @@ function fetchMyTrades(self::Btcturk, symbol=nothing, since=nothing, limit=nothi
     end
     response = Base.fetch(self.privateGetUsersTransactionsTrade());
     data = self.safeList(response, "data");
-    return self.parseTrades(data, market, since, limit)
+    dataList = [];
+    if functions.ccxtruthy(data != nothing)
+        dataList = data;
+    end
+    return self.parseTrades(dataList, market, since, limit)
 
 end
 function nonce(self::Btcturk, )
@@ -742,80 +784,133 @@ function handleErrors(self::Btcturk, code, reason, url, method, headers, body, r
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Btcturk, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetOrderbook(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.1))
+    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTrades(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOhlc(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "ohlc", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ohlc", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetServerExchangeinfo(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "server/exchangeinfo", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "server/exchangeinfo", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUsersBalances(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "users/balances", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "users/balances", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenOrders(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "openOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAllOrders(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "allOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "allOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUsersTransactionsTrade(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "users/transactions/trade", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "users/transactions/trade", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostUsersTransactionsCrypto(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "users/transactions/crypto", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "users/transactions/crypto", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUsersTransactionsFiat(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "users/transactions/fiat", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "users/transactions/fiat", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrder(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelOrder(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "cancelOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cancelOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrder(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function graphGetOhlcs(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "ohlcs", "graph", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ohlcs", "graph", "GET", params, nothing, nothing, Dict())
 end
 
 function graphGetKlinesHistory(self::Btcturk, params=Dict(), context=Dict())
-    return request(self, "klines/history", "graph", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "klines/history", "graph", "GET", params, nothing, nothing, Dict())
 end
 
 function Btcturk(; kwargs...)
     inst = Btcturk(Exchange(), describe, fetchMarkets, parseMarket, parseBalance, fetchBalance, fetchOrderBook, parseTicker, fetchTickers, fetchTicker, parseTrade, fetchTrades, parseOHLCV, fetchOHLCV, parseOHLCVs, createOrder, cancelOrder, fetchOpenOrders, fetchOrders, parseOrderStatus, parseOrder, fetchMyTrades, nonce, sign, handleErrors, publicGetOrderbook, publicGetTicker, publicGetTrades, publicGetOhlc, publicGetServerExchangeinfo, privateGetUsersBalances, privateGetOpenOrders, privateGetAllOrders, privateGetUsersTransactionsTrade, privatePostUsersTransactionsCrypto, privatePostUsersTransactionsFiat, privatePostOrder, privatePostCancelOrder, privateDeleteOrder, graphGetOhlcs, graphGetKlinesHistory)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

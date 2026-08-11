@@ -927,731 +927,2005 @@ function describe(self::Bitget, )
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("common") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v2/public/annoucements") => 1,
-                    Symbol("v2/public/time") => 1
+                    Symbol("v2/public/annoucements") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/public/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("spot") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("spot/v1/notice/queryAllNotices") => 1,
-                    Symbol("spot/v1/public/time") => 1,
-                    Symbol("spot/v1/public/currencies") => 6.6667,
-                    Symbol("spot/v1/public/products") => 1,
-                    Symbol("spot/v1/public/product") => 1,
-                    Symbol("spot/v1/market/ticker") => 1,
-                    Symbol("spot/v1/market/tickers") => 1,
-                    Symbol("spot/v1/market/fills") => 2,
-                    Symbol("spot/v1/market/fills-history") => 2,
-                    Symbol("spot/v1/market/candles") => 1,
-                    Symbol("spot/v1/market/depth") => 1,
-                    Symbol("spot/v1/market/spot-vip-level") => 2,
-                    Symbol("spot/v1/market/merge-depth") => 1,
-                    Symbol("spot/v1/market/history-candles") => 1,
-                    Symbol("spot/v1/public/loan/coinInfos") => 2,
-                    Symbol("spot/v1/public/loan/hour-interest") => 2,
-                    Symbol("v2/spot/public/coins") => 6.6667,
-                    Symbol("v2/spot/public/symbols") => 1,
-                    Symbol("v2/spot/market/vip-fee-rate") => 2,
-                    Symbol("v2/spot/market/tickers") => 1,
-                    Symbol("v2/spot/market/merge-depth") => 1,
-                    Symbol("v2/spot/market/orderbook") => 1,
-                    Symbol("v2/spot/market/candles") => 1,
-                    Symbol("v2/spot/market/history-candles") => 1,
-                    Symbol("v2/spot/market/fills") => 2,
-                    Symbol("v2/spot/market/fills-history") => 2
+                    Symbol("spot/v1/notice/queryAllNotices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/public/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/public/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("spot/v1/public/products") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/public/product") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/market/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/market/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/market/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/market/fills-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/market/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/market/spot-vip-level") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/market/merge-depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/market/history-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/public/loan/coinInfos") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/public/loan/hour-interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/public/coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v2/spot/public/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/market/vip-fee-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/market/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/market/merge-depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/market/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/market/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/market/history-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/market/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/market/fills-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("mix") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("mix/v1/market/contracts") => 1,
-                    Symbol("mix/v1/market/depth") => 1,
-                    Symbol("mix/v1/market/ticker") => 1,
-                    Symbol("mix/v1/market/tickers") => 1,
-                    Symbol("mix/v1/market/contract-vip-level") => 2,
-                    Symbol("mix/v1/market/fills") => 1,
-                    Symbol("mix/v1/market/fills-history") => 2,
-                    Symbol("mix/v1/market/candles") => 1,
-                    Symbol("mix/v1/market/index") => 1,
-                    Symbol("mix/v1/market/funding-time") => 1,
-                    Symbol("mix/v1/market/history-fundRate") => 1,
-                    Symbol("mix/v1/market/current-fundRate") => 1,
-                    Symbol("mix/v1/market/open-interest") => 1,
-                    Symbol("mix/v1/market/mark-price") => 1,
-                    Symbol("mix/v1/market/symbol-leverage") => 1,
-                    Symbol("mix/v1/market/queryPositionLever") => 1,
-                    Symbol("mix/v1/market/open-limit") => 1,
-                    Symbol("mix/v1/market/history-candles") => 1,
-                    Symbol("mix/v1/market/history-index-candles") => 1,
-                    Symbol("mix/v1/market/history-mark-candles") => 1,
-                    Symbol("mix/v1/market/merge-depth") => 1,
-                    Symbol("v2/mix/market/vip-fee-rate") => 2,
-                    Symbol("v2/mix/market/union-interest-rate-history") => 4,
-                    Symbol("v2/mix/market/exchange-rate") => 4,
-                    Symbol("v2/mix/market/discount-rate") => 4,
-                    Symbol("v2/mix/market/merge-depth") => 1,
-                    Symbol("v2/mix/market/ticker") => 1,
-                    Symbol("v2/mix/market/tickers") => 1,
-                    Symbol("v2/mix/market/fills") => 1,
-                    Symbol("v2/mix/market/fills-history") => 2,
-                    Symbol("v2/mix/market/candles") => 1,
-                    Symbol("v2/mix/market/history-candles") => 1,
-                    Symbol("v2/mix/market/history-index-candles") => 1,
-                    Symbol("v2/mix/market/history-mark-candles") => 1,
-                    Symbol("v2/mix/market/open-interest") => 1,
-                    Symbol("v2/mix/market/funding-time") => 1,
-                    Symbol("v2/mix/market/symbol-price") => 1,
-                    Symbol("v2/mix/market/history-fund-rate") => 1,
-                    Symbol("v2/mix/market/current-fund-rate") => 1,
-                    Symbol("v2/mix/market/oi-limit") => 2,
-                    Symbol("v2/mix/market/contracts") => 1,
-                    Symbol("v2/mix/market/query-position-lever") => 2,
-                    Symbol("v2/mix/market/account-long-short") => 20
+                    Symbol("mix/v1/market/contracts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/contract-vip-level") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/market/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/fills-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/market/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/funding-time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/history-fundRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/current-fundRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/open-interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/mark-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/symbol-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/queryPositionLever") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/open-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/history-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/history-index-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/history-mark-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/market/merge-depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/vip-fee-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/market/union-interest-rate-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/market/exchange-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/market/discount-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/market/merge-depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/fills-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/market/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/history-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/history-index-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/history-mark-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/open-interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/funding-time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/symbol-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/history-fund-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/current-fund-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/oi-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/market/contracts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/market/query-position-lever") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/market/account-long-short") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
                 )
             ),
             Symbol("margin") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("margin/v1/cross/public/interestRateAndLimit") => 2,
-                    Symbol("margin/v1/isolated/public/interestRateAndLimit") => 2,
-                    Symbol("margin/v1/cross/public/tierData") => 2,
-                    Symbol("margin/v1/isolated/public/tierData") => 2,
-                    Symbol("margin/v1/public/currencies") => 1,
-                    Symbol("v2/margin/currencies") => 2,
-                    Symbol("v2/margin/market/long-short-ratio") => 20
+                    Symbol("margin/v1/cross/public/interestRateAndLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/public/interestRateAndLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/public/tierData") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/public/tierData") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/public/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/margin/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/market/long-short-ratio") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
                 )
             ),
             Symbol("earn") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v2/earn/loan/public/coinInfos") => 2,
-                    Symbol("v2/earn/loan/public/hour-interest") => 2
+                    Symbol("v2/earn/loan/public/coinInfos") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/loan/public/hour-interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("uta") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v3/market/instruments") => 1,
-                    Symbol("v3/market/tickers") => 1,
-                    Symbol("v3/market/orderbook") => 1,
-                    Symbol("v3/market/fills") => 1,
-                    Symbol("v3/market/proof-of-reserves") => 1,
-                    Symbol("v3/market/open-interest") => 1,
-                    Symbol("v3/market/candles") => 1,
-                    Symbol("v3/market/history-candles") => 1,
-                    Symbol("v3/market/current-fund-rate") => 1,
-                    Symbol("v3/market/history-fund-rate") => 1,
-                    Symbol("v3/market/risk-reserve") => 1,
-                    Symbol("v3/market/discount-rate") => 1,
-                    Symbol("v3/market/margin-loans") => 1,
-                    Symbol("v3/market/position-tier") => 1,
-                    Symbol("v3/market/oi-limit") => 2,
-                    Symbol("v3/market/index-components") => 2
+                    Symbol("v3/market/instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/proof-of-reserves") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/open-interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/history-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/current-fund-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/history-fund-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/risk-reserve") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/discount-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/margin-loans") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/position-tier") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/market/oi-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/market/index-components") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("spot") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("spot/v1/wallet/deposit-address") => 4,
-                    Symbol("spot/v1/wallet/withdrawal-list") => 1,
-                    Symbol("spot/v1/wallet/deposit-list") => 1,
-                    Symbol("spot/v1/account/getInfo") => 20,
-                    Symbol("spot/v1/account/assets") => 2,
-                    Symbol("spot/v1/account/assets-lite") => 2,
-                    Symbol("spot/v1/account/transferRecords") => 1,
-                    Symbol("spot/v1/convert/currencies") => 2,
-                    Symbol("spot/v1/convert/convert-record") => 2,
-                    Symbol("spot/v1/loan/ongoing-orders") => 2,
-                    Symbol("spot/v1/loan/repay-history") => 2,
-                    Symbol("spot/v1/loan/revise-history") => 2,
-                    Symbol("spot/v1/loan/borrow-history") => 2,
-                    Symbol("spot/v1/loan/debts") => 2,
-                    Symbol("v2/spot/trade/orderInfo") => 1,
-                    Symbol("v2/spot/trade/unfilled-orders") => 1,
-                    Symbol("v2/spot/trade/history-orders") => 1,
-                    Symbol("v2/spot/trade/fills") => 2,
-                    Symbol("v2/spot/trade/current-plan-order") => 1,
-                    Symbol("v2/spot/trade/history-plan-order") => 1,
-                    Symbol("v2/spot/account/info") => 20,
-                    Symbol("v2/spot/account/assets") => 2,
-                    Symbol("v2/spot/account/subaccount-assets") => 2,
-                    Symbol("v2/spot/account/bills") => 2,
-                    Symbol("v2/spot/account/transferRecords") => 1,
-                    Symbol("v2/account/funding-assets") => 2,
-                    Symbol("v2/account/bot-assets") => 2,
-                    Symbol("v2/account/all-account-balance") => 20,
-                    Symbol("v2/spot/wallet/deposit-address") => 2,
-                    Symbol("v2/spot/wallet/deposit-records") => 2,
-                    Symbol("v2/spot/wallet/withdrawal-records") => 2,
-                    Symbol("v2/spot/account/upgrade-status") => 20
+                    Symbol("spot/v1/wallet/deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/wallet/withdrawal-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/wallet/deposit-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/account/getInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("spot/v1/account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/account/assets-lite") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/account/transferRecords") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/convert/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/convert/convert-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/loan/ongoing-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/loan/repay-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/loan/revise-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/loan/borrow-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/loan/debts") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/trade/orderInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/trade/unfilled-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/trade/history-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/trade/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/trade/current-plan-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/trade/history-plan-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/spot/account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/account/subaccount-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/account/bills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/account/transferRecords") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/account/funding-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/account/bot-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/account/all-account-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/spot/wallet/deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/wallet/deposit-records") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/wallet/withdrawal-records") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/account/upgrade-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("spot/v1/wallet/transfer") => 4,
-                    Symbol("spot/v1/wallet/transfer-v2") => 4,
-                    Symbol("spot/v1/wallet/subTransfer") => 10,
-                    Symbol("spot/v1/wallet/withdrawal") => 4,
-                    Symbol("spot/v1/wallet/withdrawal-v2") => 4,
-                    Symbol("spot/v1/wallet/withdrawal-inner") => 4,
-                    Symbol("spot/v1/wallet/withdrawal-inner-v2") => 4,
-                    Symbol("spot/v1/account/sub-account-spot-assets") => 200,
-                    Symbol("spot/v1/account/bills") => 2,
-                    Symbol("spot/v1/trade/orders") => 2,
-                    Symbol("spot/v1/trade/batch-orders") => 4,
-                    Symbol("spot/v1/trade/cancel-order") => 2,
-                    Symbol("spot/v1/trade/cancel-order-v2") => 2,
-                    Symbol("spot/v1/trade/cancel-symbol-order") => 2,
-                    Symbol("spot/v1/trade/cancel-batch-orders") => 4,
-                    Symbol("spot/v1/trade/cancel-batch-orders-v2") => 4,
-                    Symbol("spot/v1/trade/orderInfo") => 1,
-                    Symbol("spot/v1/trade/open-orders") => 1,
-                    Symbol("spot/v1/trade/history") => 1,
-                    Symbol("spot/v1/trade/fills") => 1,
-                    Symbol("spot/v1/plan/placePlan") => 1,
-                    Symbol("spot/v1/plan/modifyPlan") => 1,
-                    Symbol("spot/v1/plan/cancelPlan") => 1,
-                    Symbol("spot/v1/plan/currentPlan") => 1,
-                    Symbol("spot/v1/plan/historyPlan") => 1,
-                    Symbol("spot/v1/plan/batchCancelPlan") => 2,
-                    Symbol("spot/v1/convert/quoted-price") => 4,
-                    Symbol("spot/v1/convert/trade") => 4,
-                    Symbol("spot/v1/loan/borrow") => 2,
-                    Symbol("spot/v1/loan/repay") => 2,
-                    Symbol("spot/v1/loan/revise-pledge") => 2,
-                    Symbol("spot/v1/trace/order/orderCurrentList") => 2,
-                    Symbol("spot/v1/trace/order/orderHistoryList") => 2,
-                    Symbol("spot/v1/trace/order/closeTrackingOrder") => 2,
-                    Symbol("spot/v1/trace/order/updateTpsl") => 2,
-                    Symbol("spot/v1/trace/order/followerEndOrder") => 2,
-                    Symbol("spot/v1/trace/order/spotInfoList") => 2,
-                    Symbol("spot/v1/trace/config/getTraderSettings") => 2,
-                    Symbol("spot/v1/trace/config/getFollowerSettings") => 2,
-                    Symbol("spot/v1/trace/user/myTraders") => 2,
-                    Symbol("spot/v1/trace/config/setFollowerConfig") => 2,
-                    Symbol("spot/v1/trace/user/myFollowers") => 2,
-                    Symbol("spot/v1/trace/config/setProductCode") => 2,
-                    Symbol("spot/v1/trace/user/removeTrader") => 2,
-                    Symbol("spot/v1/trace/getRemovableFollower") => 2,
-                    Symbol("spot/v1/trace/user/removeFollower") => 2,
-                    Symbol("spot/v1/trace/profit/totalProfitInfo") => 2,
-                    Symbol("spot/v1/trace/profit/totalProfitList") => 2,
-                    Symbol("spot/v1/trace/profit/profitHisList") => 2,
-                    Symbol("spot/v1/trace/profit/profitHisDetailList") => 2,
-                    Symbol("spot/v1/trace/profit/waitProfitDetailList") => 2,
-                    Symbol("spot/v1/trace/user/getTraderInfo") => 2,
-                    Symbol("v2/spot/trade/place-order") => 2,
-                    Symbol("v2/spot/trade/cancel-order") => 2,
-                    Symbol("v2/spot/trade/batch-orders") => 20,
-                    Symbol("v2/spot/trade/batch-cancel-order") => 2,
-                    Symbol("v2/spot/trade/cancel-symbol-order") => 4,
-                    Symbol("v2/spot/trade/place-plan-order") => 1,
-                    Symbol("v2/spot/trade/modify-plan-order") => 1,
-                    Symbol("v2/spot/trade/cancel-plan-order") => 1,
-                    Symbol("v2/spot/trade/cancel-replace-order") => 2,
-                    Symbol("v2/spot/trade/batch-cancel-plan-order") => 2,
-                    Symbol("v2/spot/wallet/transfer") => 2,
-                    Symbol("v2/spot/wallet/subaccount-transfer") => 2,
-                    Symbol("v2/spot/wallet/withdrawal") => 2,
-                    Symbol("v2/spot/wallet/cancel-withdrawal") => 2,
-                    Symbol("v2/spot/wallet/modify-deposit-account") => 2,
-                    Symbol("v2/spot/account/upgrade") => 20
+                    Symbol("spot/v1/wallet/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/wallet/transfer-v2") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/wallet/subTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("spot/v1/wallet/withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/wallet/withdrawal-v2") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/wallet/withdrawal-inner") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/wallet/withdrawal-inner-v2") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/account/sub-account-spot-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 200
+),
+                    Symbol("spot/v1/account/bills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trade/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trade/batch-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/trade/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trade/cancel-order-v2") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trade/cancel-symbol-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trade/cancel-batch-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/trade/cancel-batch-orders-v2") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/trade/orderInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/trade/open-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/trade/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/trade/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/plan/placePlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/plan/modifyPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/plan/cancelPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/plan/currentPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/plan/historyPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/v1/plan/batchCancelPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/convert/quoted-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/convert/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("spot/v1/loan/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/loan/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/loan/revise-pledge") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/order/orderCurrentList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/order/orderHistoryList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/order/closeTrackingOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/order/updateTpsl") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/order/followerEndOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/order/spotInfoList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/config/getTraderSettings") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/config/getFollowerSettings") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/user/myTraders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/config/setFollowerConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/user/myFollowers") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/config/setProductCode") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/user/removeTrader") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/getRemovableFollower") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/user/removeFollower") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/profit/totalProfitInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/profit/totalProfitList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/profit/profitHisList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/profit/profitHisDetailList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/profit/waitProfitDetailList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("spot/v1/trace/user/getTraderInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/trade/place-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/trade/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/trade/batch-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/spot/trade/batch-cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/trade/cancel-symbol-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/spot/trade/place-plan-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/trade/modify-plan-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/trade/cancel-plan-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/spot/trade/cancel-replace-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/trade/batch-cancel-plan-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/wallet/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/wallet/subaccount-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/wallet/withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/wallet/cancel-withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/wallet/modify-deposit-account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/spot/account/upgrade") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
                 )
             ),
             Symbol("mix") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("mix/v1/account/account") => 2,
-                    Symbol("mix/v1/account/accounts") => 2,
-                    Symbol("mix/v1/position/singlePosition") => 2,
-                    Symbol("mix/v1/position/singlePosition-v2") => 2,
-                    Symbol("mix/v1/position/allPosition") => 4,
-                    Symbol("mix/v1/position/allPosition-v2") => 4,
-                    Symbol("mix/v1/position/history-position") => 1,
-                    Symbol("mix/v1/account/accountBill") => 2,
-                    Symbol("mix/v1/account/accountBusinessBill") => 4,
-                    Symbol("mix/v1/order/current") => 1,
-                    Symbol("mix/v1/order/marginCoinCurrent") => 1,
-                    Symbol("mix/v1/order/history") => 2,
-                    Symbol("mix/v1/order/historyProductType") => 4,
-                    Symbol("mix/v1/order/detail") => 2,
-                    Symbol("mix/v1/order/fills") => 2,
-                    Symbol("mix/v1/order/allFills") => 2,
-                    Symbol("mix/v1/plan/currentPlan") => 1,
-                    Symbol("mix/v1/plan/historyPlan") => 2,
-                    Symbol("mix/v1/trace/currentTrack") => 2,
-                    Symbol("mix/v1/trace/followerOrder") => 2,
-                    Symbol("mix/v1/trace/followerHistoryOrders") => 2,
-                    Symbol("mix/v1/trace/historyTrack") => 2,
-                    Symbol("mix/v1/trace/summary") => 1,
-                    Symbol("mix/v1/trace/profitSettleTokenIdGroup") => 1,
-                    Symbol("mix/v1/trace/profitDateGroupList") => 1,
-                    Symbol("mix/v1/trade/profitDateList") => 2,
-                    Symbol("mix/v1/trace/waitProfitDateList") => 1,
-                    Symbol("mix/v1/trace/traderSymbols") => 1,
-                    Symbol("mix/v1/trace/traderList") => 2,
-                    Symbol("mix/v1/trace/traderDetail") => 2,
-                    Symbol("mix/v1/trace/queryTraceConfig") => 2,
-                    Symbol("v2/mix/account/account") => 2,
-                    Symbol("v2/mix/account/accounts") => 2,
-                    Symbol("v2/mix/account/sub-account-assets") => 200,
-                    Symbol("v2/mix/account/interest-history") => 4,
-                    Symbol("v2/mix/account/max-open") => 1,
-                    Symbol("v2/mix/account/liq-price") => 1,
-                    Symbol("v2/mix/account/open-count") => 2,
-                    Symbol("v2/mix/account/bill") => 2,
-                    Symbol("v2/mix/account/transfer-limits") => 20,
-                    Symbol("v2/mix/account/union-config") => 20,
-                    Symbol("v2/mix/account/switch-union-usdt") => 20,
-                    Symbol("v2/mix/account/isolated-symbols") => 2,
-                    Symbol("v2/mix/market/query-position-lever") => 2,
-                    Symbol("v2/mix/position/single-position") => 2,
-                    Symbol("v2/mix/position/all-position") => 4,
-                    Symbol("v2/mix/position/adlRank") => 4,
-                    Symbol("v2/mix/position/history-position") => 1,
-                    Symbol("v2/mix/order/detail") => 2,
-                    Symbol("v2/mix/order/fills") => 2,
-                    Symbol("v2/mix/order/fill-history") => 2,
-                    Symbol("v2/mix/order/orders-pending") => 2,
-                    Symbol("v2/mix/order/orders-history") => 2,
-                    Symbol("v2/mix/order/plan-sub-order") => 2,
-                    Symbol("v2/mix/order/orders-plan-pending") => 2,
-                    Symbol("v2/mix/order/orders-plan-history") => 2,
-                    Symbol("v2/mix/market/position-long-short") => 20
+                    Symbol("mix/v1/account/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/account/accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/position/singlePosition") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/position/singlePosition-v2") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/position/allPosition") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("mix/v1/position/allPosition-v2") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("mix/v1/position/history-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/account/accountBill") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/account/accountBusinessBill") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("mix/v1/order/current") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/order/marginCoinCurrent") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/order/historyProductType") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("mix/v1/order/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/order/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/order/allFills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/plan/currentPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/plan/historyPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/currentTrack") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/followerOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/followerHistoryOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/historyTrack") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/trace/profitSettleTokenIdGroup") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/trace/profitDateGroupList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/trade/profitDateList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/waitProfitDateList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/trace/traderSymbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/trace/traderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/traderDetail") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/queryTraceConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/account/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/account/accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/account/sub-account-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 200
+),
+                    Symbol("v2/mix/account/interest-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/account/max-open") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/account/liq-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/account/open-count") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/account/bill") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/account/transfer-limits") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/mix/account/union-config") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/mix/account/switch-union-usdt") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/mix/account/isolated-symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/market/query-position-lever") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/position/single-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/position/all-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/position/adlRank") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/position/history-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/mix/order/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/fill-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/orders-pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/orders-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/plan-sub-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/orders-plan-pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/orders-plan-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/market/position-long-short") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("mix/v1/account/sub-account-contract-assets") => 200,
-                    Symbol("mix/v1/account/open-count") => 1,
-                    Symbol("mix/v1/account/setLeverage") => 4,
-                    Symbol("mix/v1/account/setMargin") => 4,
-                    Symbol("mix/v1/account/setMarginMode") => 4,
-                    Symbol("mix/v1/account/setPositionMode") => 4,
-                    Symbol("mix/v1/order/placeOrder") => 2,
-                    Symbol("mix/v1/order/batch-orders") => 2,
-                    Symbol("mix/v1/order/cancel-order") => 2,
-                    Symbol("mix/v1/order/cancel-batch-orders") => 2,
-                    Symbol("mix/v1/order/modifyOrder") => 2,
-                    Symbol("mix/v1/order/cancel-symbol-orders") => 2,
-                    Symbol("mix/v1/order/cancel-all-orders") => 2,
-                    Symbol("mix/v1/order/close-all-positions") => 20,
-                    Symbol("mix/v1/plan/placePlan") => 2,
-                    Symbol("mix/v1/plan/modifyPlan") => 2,
-                    Symbol("mix/v1/plan/modifyPlanPreset") => 2,
-                    Symbol("mix/v1/plan/placeTPSL") => 2,
-                    Symbol("mix/v1/plan/placeTrailStop") => 2,
-                    Symbol("mix/v1/plan/placePositionsTPSL") => 2,
-                    Symbol("mix/v1/plan/modifyTPSLPlan") => 2,
-                    Symbol("mix/v1/plan/cancelPlan") => 2,
-                    Symbol("mix/v1/plan/cancelSymbolPlan") => 2,
-                    Symbol("mix/v1/plan/cancelAllPlan") => 2,
-                    Symbol("mix/v1/trace/closeTrackOrder") => 2,
-                    Symbol("mix/v1/trace/modifyTPSL") => 2,
-                    Symbol("mix/v1/trace/closeTrackOrderBySymbol") => 2,
-                    Symbol("mix/v1/trace/setUpCopySymbols") => 2,
-                    Symbol("mix/v1/trace/followerSetBatchTraceConfig") => 2,
-                    Symbol("mix/v1/trace/followerCloseByTrackingNo") => 2,
-                    Symbol("mix/v1/trace/followerCloseByAll") => 2,
-                    Symbol("mix/v1/trace/followerSetTpsl") => 2,
-                    Symbol("mix/v1/trace/cancelCopyTrader") => 4,
-                    Symbol("mix/v1/trace/traderUpdateConfig") => 2,
-                    Symbol("mix/v1/trace/myTraderList") => 2,
-                    Symbol("mix/v1/trace/myFollowerList") => 2,
-                    Symbol("mix/v1/trace/removeFollower") => 2,
-                    Symbol("mix/v1/trace/public/getFollowerConfig") => 2,
-                    Symbol("mix/v1/trace/report/order/historyList") => 2,
-                    Symbol("mix/v1/trace/report/order/currentList") => 2,
-                    Symbol("mix/v1/trace/queryTraderTpslRatioConfig") => 2,
-                    Symbol("mix/v1/trace/traderUpdateTpslRatioConfig") => 2,
-                    Symbol("v2/mix/account/set-auto-margin") => 4,
-                    Symbol("v2/mix/account/set-leverage") => 4,
-                    Symbol("v2/mix/account/set-all-leverage") => 4,
-                    Symbol("v2/mix/account/set-margin") => 4,
-                    Symbol("v2/mix/account/set-asset-mode") => 10,
-                    Symbol("v2/mix/account/set-margin-mode") => 4,
-                    Symbol("v2/mix/account/union-convert") => 20,
-                    Symbol("v2/mix/account/set-position-mode") => 4,
-                    Symbol("v2/mix/order/place-order") => 2,
-                    Symbol("v2/mix/order/click-backhand") => 20,
-                    Symbol("v2/mix/order/batch-place-order") => 20,
-                    Symbol("v2/mix/order/modify-order") => 2,
-                    Symbol("v2/mix/order/cancel-order") => 2,
-                    Symbol("v2/mix/order/batch-cancel-orders") => 2,
-                    Symbol("v2/mix/order/close-positions") => 20,
-                    Symbol("v2/mix/order/cancel-all-orders") => 20,
-                    Symbol("v2/mix/order/place-tpsl-order") => 2,
-                    Symbol("v2/mix/order/place-pos-tpsl") => 2,
-                    Symbol("v2/mix/order/place-plan-order") => 2,
-                    Symbol("v2/mix/order/modify-tpsl-order") => 2,
-                    Symbol("v2/mix/order/modify-plan-order") => 2,
-                    Symbol("v2/mix/order/cancel-plan-order") => 2
+                    Symbol("mix/v1/account/sub-account-contract-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 200
+),
+                    Symbol("mix/v1/account/open-count") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mix/v1/account/setLeverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("mix/v1/account/setMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("mix/v1/account/setMarginMode") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("mix/v1/account/setPositionMode") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("mix/v1/order/placeOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/order/batch-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/order/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/order/cancel-batch-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/order/modifyOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/order/cancel-symbol-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/order/cancel-all-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/order/close-all-positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("mix/v1/plan/placePlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/plan/modifyPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/plan/modifyPlanPreset") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/plan/placeTPSL") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/plan/placeTrailStop") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/plan/placePositionsTPSL") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/plan/modifyTPSLPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/plan/cancelPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/plan/cancelSymbolPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/plan/cancelAllPlan") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/closeTrackOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/modifyTPSL") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/closeTrackOrderBySymbol") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/setUpCopySymbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/followerSetBatchTraceConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/followerCloseByTrackingNo") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/followerCloseByAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/followerSetTpsl") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/cancelCopyTrader") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("mix/v1/trace/traderUpdateConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/myTraderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/myFollowerList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/removeFollower") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/public/getFollowerConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/report/order/historyList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/report/order/currentList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/queryTraderTpslRatioConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("mix/v1/trace/traderUpdateTpslRatioConfig") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/account/set-auto-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/account/set-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/account/set-all-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/account/set-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/account/set-asset-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/mix/account/set-margin-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/account/union-convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/mix/account/set-position-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/mix/order/place-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/click-backhand") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/mix/order/batch-place-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/mix/order/modify-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/batch-cancel-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/close-positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/mix/order/cancel-all-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/mix/order/place-tpsl-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/place-pos-tpsl") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/place-plan-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/modify-tpsl-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/modify-plan-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/mix/order/cancel-plan-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("user") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("user/v1/fee/query") => 2,
-                    Symbol("user/v1/sub/virtual-list") => 2,
-                    Symbol("user/v1/sub/virtual-api-list") => 2,
-                    Symbol("user/v1/tax/spot-record") => 1,
-                    Symbol("user/v1/tax/future-record") => 1,
-                    Symbol("user/v1/tax/margin-record") => 1,
-                    Symbol("user/v1/tax/p2p-record") => 1,
-                    Symbol("v2/user/virtual-subaccount-list") => 2,
-                    Symbol("v2/user/virtual-subaccount-apikey-list") => 2
+                    Symbol("user/v1/fee/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("user/v1/sub/virtual-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("user/v1/sub/virtual-api-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("user/v1/tax/spot-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/v1/tax/future-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/v1/tax/margin-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/v1/tax/p2p-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/user/virtual-subaccount-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/user/virtual-subaccount-apikey-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("user/v1/sub/virtual-create") => 4,
-                    Symbol("user/v1/sub/virtual-modify") => 4,
-                    Symbol("user/v1/sub/virtual-api-batch-create") => 20,
-                    Symbol("user/v1/sub/virtual-api-create") => 4,
-                    Symbol("user/v1/sub/virtual-api-modify") => 4,
-                    Symbol("v2/user/create-virtual-subaccount") => 4,
-                    Symbol("v2/user/modify-virtual-subaccount") => 4,
-                    Symbol("v2/user/batch-create-subaccount-and-apikey") => 20,
-                    Symbol("v2/user/create-virtual-subaccount-apikey") => 4,
-                    Symbol("v2/user/modify-virtual-subaccount-apikey") => 4
+                    Symbol("user/v1/sub/virtual-create") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("user/v1/sub/virtual-modify") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("user/v1/sub/virtual-api-batch-create") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("user/v1/sub/virtual-api-create") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("user/v1/sub/virtual-api-modify") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/user/create-virtual-subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/user/modify-virtual-subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/user/batch-create-subaccount-and-apikey") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/user/create-virtual-subaccount-apikey") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/user/modify-virtual-subaccount-apikey") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+)
                 )
             ),
             Symbol("p2p") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("p2p/v1/merchant/merchantList") => 2,
-                    Symbol("p2p/v1/merchant/merchantInfo") => 2,
-                    Symbol("p2p/v1/merchant/advList") => 2,
-                    Symbol("p2p/v1/merchant/orderList") => 2,
-                    Symbol("v2/p2p/merchantList") => 2,
-                    Symbol("v2/p2p/merchantInfo") => 2,
-                    Symbol("v2/p2p/orderList") => 2,
-                    Symbol("v2/p2p/advList") => 2
+                    Symbol("p2p/v1/merchant/merchantList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("p2p/v1/merchant/merchantInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("p2p/v1/merchant/advList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("p2p/v1/merchant/orderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/p2p/merchantList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/p2p/merchantInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/p2p/orderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/p2p/advList") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("broker") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("broker/v1/account/info") => 2,
-                    Symbol("broker/v1/account/sub-list") => 20,
-                    Symbol("broker/v1/account/sub-email") => 20,
-                    Symbol("broker/v1/account/sub-spot-assets") => 2,
-                    Symbol("broker/v1/account/sub-future-assets") => 2,
-                    Symbol("broker/v1/account/subaccount-transfer") => 1,
-                    Symbol("broker/v1/account/subaccount-deposit") => 1,
-                    Symbol("broker/v1/account/subaccount-withdrawal") => 1,
-                    Symbol("broker/v1/account/sub-api-list") => 2,
-                    Symbol("v2/broker/account/info") => 2,
-                    Symbol("v2/broker/account/subaccount-list") => 20,
-                    Symbol("v2/broker/account/subaccount-email") => 2,
-                    Symbol("v2/broker/account/subaccount-spot-assets") => 2,
-                    Symbol("v2/broker/account/subaccount-future-assets") => 2,
-                    Symbol("v2/broker/manage/subaccount-apikey-list") => 2
+                    Symbol("broker/v1/account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("broker/v1/account/sub-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("broker/v1/account/sub-email") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("broker/v1/account/sub-spot-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("broker/v1/account/sub-future-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("broker/v1/account/subaccount-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("broker/v1/account/subaccount-deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("broker/v1/account/subaccount-withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("broker/v1/account/sub-api-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/broker/account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/broker/account/subaccount-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/broker/account/subaccount-email") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/broker/account/subaccount-spot-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/broker/account/subaccount-future-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/broker/manage/subaccount-apikey-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("broker/v1/account/sub-create") => 20,
-                    Symbol("broker/v1/account/sub-modify") => 20,
-                    Symbol("broker/v1/account/sub-modify-email") => 20,
-                    Symbol("broker/v1/account/sub-address") => 2,
-                    Symbol("broker/v1/account/sub-withdrawal") => 2,
-                    Symbol("broker/v1/account/sub-auto-transfer") => 4,
-                    Symbol("broker/v1/account/sub-api-create") => 2,
-                    Symbol("broker/v1/account/sub-api-modify") => 2,
-                    Symbol("v2/broker/account/modify-subaccount-email") => 2,
-                    Symbol("v2/broker/account/create-subaccount") => 20,
-                    Symbol("v2/broker/account/modify-subaccount") => 20,
-                    Symbol("v2/broker/account/subaccount-address") => 2,
-                    Symbol("v2/broker/account/subaccount-withdrawal") => 2,
-                    Symbol("v2/broker/account/set-subaccount-autotransfer") => 2,
-                    Symbol("v2/broker/manage/create-subaccount-apikey") => 2,
-                    Symbol("v2/broker/manage/modify-subaccount-apikey") => 2
+                    Symbol("broker/v1/account/sub-create") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("broker/v1/account/sub-modify") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("broker/v1/account/sub-modify-email") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("broker/v1/account/sub-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("broker/v1/account/sub-withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("broker/v1/account/sub-auto-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("broker/v1/account/sub-api-create") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("broker/v1/account/sub-api-modify") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/broker/account/modify-subaccount-email") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/broker/account/create-subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/broker/account/modify-subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/broker/account/subaccount-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/broker/account/subaccount-withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/broker/account/set-subaccount-autotransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/broker/manage/create-subaccount-apikey") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/broker/manage/modify-subaccount-apikey") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("margin") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("margin/v1/cross/account/riskRate") => 2,
-                    Symbol("margin/v1/cross/account/maxTransferOutAmount") => 2,
-                    Symbol("margin/v1/isolated/account/maxTransferOutAmount") => 2,
-                    Symbol("margin/v1/isolated/order/openOrders") => 2,
-                    Symbol("margin/v1/isolated/order/history") => 2,
-                    Symbol("margin/v1/isolated/order/fills") => 2,
-                    Symbol("margin/v1/isolated/loan/list") => 2,
-                    Symbol("margin/v1/isolated/repay/list") => 2,
-                    Symbol("margin/v1/isolated/interest/list") => 2,
-                    Symbol("margin/v1/isolated/liquidation/list") => 2,
-                    Symbol("margin/v1/isolated/fin/list") => 2,
-                    Symbol("margin/v1/cross/order/openOrders") => 2,
-                    Symbol("margin/v1/cross/order/history") => 2,
-                    Symbol("margin/v1/cross/order/fills") => 2,
-                    Symbol("margin/v1/cross/loan/list") => 2,
-                    Symbol("margin/v1/cross/repay/list") => 2,
-                    Symbol("margin/v1/cross/interest/list") => 2,
-                    Symbol("margin/v1/cross/liquidation/list") => 2,
-                    Symbol("margin/v1/cross/fin/list") => 2,
-                    Symbol("margin/v1/cross/account/assets") => 2,
-                    Symbol("margin/v1/isolated/account/assets") => 2,
-                    Symbol("v2/margin/crossed/borrow-history") => 2,
-                    Symbol("v2/margin/crossed/repay-history") => 2,
-                    Symbol("v2/margin/crossed/interest-history") => 2,
-                    Symbol("v2/margin/crossed/liquidation-history") => 2,
-                    Symbol("v2/margin/crossed/financial-records") => 2,
-                    Symbol("v2/margin/crossed/account/assets") => 2,
-                    Symbol("v2/margin/crossed/account/risk-rate") => 2,
-                    Symbol("v2/margin/crossed/account/max-borrowable-amount") => 2,
-                    Symbol("v2/margin/crossed/account/max-transfer-out-amount") => 2,
-                    Symbol("v2/margin/crossed/interest-rate-and-limit") => 2,
-                    Symbol("v2/margin/crossed/tier-data") => 2,
-                    Symbol("v2/margin/crossed/open-orders") => 2,
-                    Symbol("v2/margin/crossed/history-orders") => 2,
-                    Symbol("v2/margin/crossed/fills") => 2,
-                    Symbol("v2/margin/isolated/borrow-history") => 2,
-                    Symbol("v2/margin/isolated/repay-history") => 2,
-                    Symbol("v2/margin/isolated/interest-history") => 2,
-                    Symbol("v2/margin/isolated/liquidation-history") => 2,
-                    Symbol("v2/margin/isolated/financial-records") => 2,
-                    Symbol("v2/margin/isolated/account/assets") => 2,
-                    Symbol("v2/margin/isolated/account/risk-rate") => 2,
-                    Symbol("v2/margin/isolated/account/max-borrowable-amount") => 2,
-                    Symbol("v2/margin/isolated/account/max-transfer-out-amount") => 2,
-                    Symbol("v2/margin/isolated/interest-rate-and-limit") => 2,
-                    Symbol("v2/margin/isolated/tier-data") => 2,
-                    Symbol("v2/margin/isolated/open-orders") => 2,
-                    Symbol("v2/margin/isolated/history-orders") => 2,
-                    Symbol("v2/margin/isolated/fills") => 2
+                    Symbol("margin/v1/cross/account/riskRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/account/maxTransferOutAmount") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/account/maxTransferOutAmount") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/order/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/order/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/loan/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/repay/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/interest/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/liquidation/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/fin/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/order/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/order/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/loan/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/repay/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/interest/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/liquidation/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/fin/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/borrow-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/repay-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/interest-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/liquidation-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/financial-records") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/account/risk-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/account/max-borrowable-amount") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/account/max-transfer-out-amount") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/interest-rate-and-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/tier-data") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/open-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/history-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/borrow-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/repay-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/interest-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/liquidation-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/financial-records") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/account/risk-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/account/max-borrowable-amount") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/account/max-transfer-out-amount") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/interest-rate-and-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/tier-data") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/open-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/history-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("margin/v1/cross/account/borrow") => 2,
-                    Symbol("margin/v1/isolated/account/borrow") => 2,
-                    Symbol("margin/v1/cross/account/repay") => 2,
-                    Symbol("margin/v1/isolated/account/repay") => 2,
-                    Symbol("margin/v1/isolated/account/riskRate") => 2,
-                    Symbol("margin/v1/cross/account/maxBorrowableAmount") => 2,
-                    Symbol("margin/v1/isolated/account/maxBorrowableAmount") => 2,
-                    Symbol("margin/v1/isolated/account/flashRepay") => 2,
-                    Symbol("margin/v1/isolated/account/queryFlashRepayStatus") => 2,
-                    Symbol("margin/v1/cross/account/flashRepay") => 2,
-                    Symbol("margin/v1/cross/account/queryFlashRepayStatus") => 2,
-                    Symbol("margin/v1/isolated/order/placeOrder") => 4,
-                    Symbol("margin/v1/isolated/order/batchPlaceOrder") => 4,
-                    Symbol("margin/v1/isolated/order/cancelOrder") => 2,
-                    Symbol("margin/v1/isolated/order/batchCancelOrder") => 2,
-                    Symbol("margin/v1/cross/order/placeOrder") => 2,
-                    Symbol("margin/v1/cross/order/batchPlaceOrder") => 2,
-                    Symbol("margin/v1/cross/order/cancelOrder") => 2,
-                    Symbol("margin/v1/cross/order/batchCancelOrder") => 2,
-                    Symbol("v2/margin/crossed/account/borrow") => 2,
-                    Symbol("v2/margin/crossed/account/repay") => 2,
-                    Symbol("v2/margin/crossed/account/flash-repay") => 2,
-                    Symbol("v2/margin/crossed/account/query-flash-repay-status") => 2,
-                    Symbol("v2/margin/crossed/place-order") => 2,
-                    Symbol("v2/margin/crossed/batch-place-order") => 2,
-                    Symbol("v2/margin/crossed/cancel-order") => 2,
-                    Symbol("v2/margin/crossed/batch-cancel-order") => 2,
-                    Symbol("v2/margin/isolated/account/borrow") => 2,
-                    Symbol("v2/margin/isolated/account/repay") => 2,
-                    Symbol("v2/margin/isolated/account/flash-repay") => 2,
-                    Symbol("v2/margin/isolated/account/query-flash-repay-status") => 2,
-                    Symbol("v2/margin/isolated/place-order") => 2,
-                    Symbol("v2/margin/isolated/batch-place-order") => 2,
-                    Symbol("v2/margin/isolated/cancel-order") => 2,
-                    Symbol("v2/margin/isolated/batch-cancel-order") => 2
+                    Symbol("margin/v1/cross/account/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/account/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/account/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/account/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/account/riskRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/account/maxBorrowableAmount") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/account/maxBorrowableAmount") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/account/flashRepay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/account/queryFlashRepayStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/account/flashRepay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/account/queryFlashRepayStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/order/placeOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("margin/v1/isolated/order/batchPlaceOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("margin/v1/isolated/order/cancelOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/isolated/order/batchCancelOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/order/placeOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/order/batchPlaceOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/order/cancelOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("margin/v1/cross/order/batchCancelOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/account/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/account/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/account/flash-repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/account/query-flash-repay-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/place-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/batch-place-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/crossed/batch-cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/account/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/account/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/account/flash-repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/account/query-flash-repay-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/place-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/batch-place-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/margin/isolated/batch-cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("copy") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v2/copy/mix-trader/order-current-track") => 2,
-                    Symbol("v2/copy/mix-trader/order-history-track") => 2,
-                    Symbol("v2/copy/mix-trader/order-total-detail") => 2,
-                    Symbol("v2/copy/mix-trader/profit-history-summarys") => 1,
-                    Symbol("v2/copy/mix-trader/profit-history-details") => 1,
-                    Symbol("v2/copy/mix-trader/profit-details") => 1,
-                    Symbol("v2/copy/mix-trader/profits-group-coin-date") => 1,
-                    Symbol("v2/copy/mix-trader/config-query-symbols") => 1,
-                    Symbol("v2/copy/mix-trader/config-query-followers") => 2,
-                    Symbol("v2/copy/mix-follower/query-current-orders") => 2,
-                    Symbol("v2/copy/mix-follower/query-history-orders") => 1,
-                    Symbol("v2/copy/mix-follower/query-settings") => 2,
-                    Symbol("v2/copy/mix-follower/query-traders") => 2,
-                    Symbol("v2/copy/mix-follower/query-quantity-limit") => 2,
-                    Symbol("v2/copy/mix-broker/query-traders") => 2,
-                    Symbol("v2/copy/mix-broker/query-history-traces") => 2,
-                    Symbol("v2/copy/mix-broker/query-current-traces") => 2,
-                    Symbol("v2/copy/spot-trader/profit-summarys") => 2,
-                    Symbol("v2/copy/spot-trader/profit-history-details") => 2,
-                    Symbol("v2/copy/spot-trader/profit-details") => 2,
-                    Symbol("v2/copy/spot-trader/order-total-detail") => 2,
-                    Symbol("v2/copy/spot-trader/order-history-track") => 2,
-                    Symbol("v2/copy/spot-trader/order-current-track") => 2,
-                    Symbol("v2/copy/spot-trader/config-query-settings") => 2,
-                    Symbol("v2/copy/spot-trader/config-query-followers") => 2,
-                    Symbol("v2/copy/spot-follower/query-traders") => 2,
-                    Symbol("v2/copy/spot-follower/query-trader-symbols") => 2,
-                    Symbol("v2/copy/spot-follower/query-settings") => 2,
-                    Symbol("v2/copy/spot-follower/query-history-orders") => 2,
-                    Symbol("v2/copy/spot-follower/query-current-orders") => 2
+                    Symbol("v2/copy/mix-trader/order-current-track") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-trader/order-history-track") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-trader/order-total-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-trader/profit-history-summarys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/copy/mix-trader/profit-history-details") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/copy/mix-trader/profit-details") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/copy/mix-trader/profits-group-coin-date") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/copy/mix-trader/config-query-symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/copy/mix-trader/config-query-followers") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-follower/query-current-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-follower/query-history-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/copy/mix-follower/query-settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-follower/query-traders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-follower/query-quantity-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-broker/query-traders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-broker/query-history-traces") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-broker/query-current-traces") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-trader/profit-summarys") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-trader/profit-history-details") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-trader/profit-details") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-trader/order-total-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-trader/order-history-track") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-trader/order-current-track") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-trader/config-query-settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-trader/config-query-followers") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-follower/query-traders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-follower/query-trader-symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-follower/query-settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-follower/query-history-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-follower/query-current-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("v2/copy/mix-trader/order-modify-tpsl") => 2,
-                    Symbol("v2/copy/mix-trader/order-close-positions") => 2,
-                    Symbol("v2/copy/mix-trader/config-setting-symbols") => 2,
-                    Symbol("v2/copy/mix-trader/config-setting-base") => 2,
-                    Symbol("v2/copy/mix-trader/config-remove-follower") => 2,
-                    Symbol("v2/copy/mix-follower/setting-tpsl") => 1,
-                    Symbol("v2/copy/mix-follower/settings") => 2,
-                    Symbol("v2/copy/mix-follower/close-positions") => 2,
-                    Symbol("v2/copy/mix-follower/cancel-trader") => 4,
-                    Symbol("v2/copy/spot-trader/order-modify-tpsl") => 2,
-                    Symbol("v2/copy/spot-trader/order-close-tracking") => 2,
-                    Symbol("v2/copy/spot-trader/config-setting-symbols") => 2,
-                    Symbol("v2/copy/spot-trader/config-remove-follower") => 2,
-                    Symbol("v2/copy/spot-follower/stop-order") => 2,
-                    Symbol("v2/copy/spot-follower/settings") => 2,
-                    Symbol("v2/copy/spot-follower/setting-tpsl") => 2,
-                    Symbol("v2/copy/spot-follower/order-close-tracking") => 2,
-                    Symbol("v2/copy/spot-follower/cancel-trader") => 2
+                    Symbol("v2/copy/mix-trader/order-modify-tpsl") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-trader/order-close-positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-trader/config-setting-symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-trader/config-setting-base") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-trader/config-remove-follower") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-follower/setting-tpsl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/copy/mix-follower/settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-follower/close-positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/mix-follower/cancel-trader") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/copy/spot-trader/order-modify-tpsl") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-trader/order-close-tracking") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-trader/config-setting-symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-trader/config-remove-follower") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-follower/stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-follower/settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-follower/setting-tpsl") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-follower/order-close-tracking") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/copy/spot-follower/cancel-trader") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("tax") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v2/tax/spot-record") => 20,
-                    Symbol("v2/tax/future-record") => 20,
-                    Symbol("v2/tax/margin-record") => 20,
-                    Symbol("v2/tax/p2p-record") => 20
+                    Symbol("v2/tax/spot-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/tax/future-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/tax/margin-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v2/tax/p2p-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
                 )
             ),
             Symbol("convert") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v2/convert/currencies") => 2,
-                    Symbol("v2/convert/quoted-price") => 2,
-                    Symbol("v2/convert/convert-record") => 2,
-                    Symbol("v2/convert/bgb-convert-coin-list") => 2,
-                    Symbol("v2/convert/bgb-convert-records") => 2
+                    Symbol("v2/convert/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/convert/quoted-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/convert/convert-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/convert/bgb-convert-coin-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/convert/bgb-convert-records") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("v2/convert/trade") => 2,
-                    Symbol("v2/convert/bgb-convert") => 2
+                    Symbol("v2/convert/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/convert/bgb-convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("earn") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v2/earn/savings/product") => 2,
-                    Symbol("v2/earn/savings/account") => 2,
-                    Symbol("v2/earn/savings/assets") => 2,
-                    Symbol("v2/earn/savings/records") => 2,
-                    Symbol("v2/earn/savings/subscribe-info") => 2,
-                    Symbol("v2/earn/savings/subscribe-result") => 2,
-                    Symbol("v2/earn/savings/redeem-result") => 2,
-                    Symbol("v2/earn/sharkfin/product") => 2,
-                    Symbol("v2/earn/sharkfin/account") => 2,
-                    Symbol("v2/earn/sharkfin/assets") => 2,
-                    Symbol("v2/earn/sharkfin/records") => 2,
-                    Symbol("v2/earn/sharkfin/subscribe-info") => 2,
-                    Symbol("v2/earn/sharkfin/subscribe-result") => 4,
-                    Symbol("v2/earn/loan/ongoing-orders") => 2,
-                    Symbol("v2/earn/loan/repay-history") => 2,
-                    Symbol("v2/earn/loan/revise-history") => 2,
-                    Symbol("v2/earn/loan/borrow-history") => 2,
-                    Symbol("v2/earn/loan/debts") => 2,
-                    Symbol("v2/earn/loan/reduces") => 2,
-                    Symbol("v2/earn/account/assets") => 2
+                    Symbol("v2/earn/savings/product") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/savings/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/savings/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/savings/records") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/savings/subscribe-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/savings/subscribe-result") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/savings/redeem-result") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/sharkfin/product") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/sharkfin/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/sharkfin/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/sharkfin/records") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/sharkfin/subscribe-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/sharkfin/subscribe-result") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/earn/loan/ongoing-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/loan/repay-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/loan/revise-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/loan/borrow-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/loan/debts") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/loan/reduces") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("v2/earn/savings/subscribe") => 2,
-                    Symbol("v2/earn/savings/redeem") => 2,
-                    Symbol("v2/earn/sharkfin/subscribe") => 2,
-                    Symbol("v2/earn/loan/borrow") => 2,
-                    Symbol("v2/earn/loan/repay") => 2,
-                    Symbol("v2/earn/loan/revise-pledge") => 2
+                    Symbol("v2/earn/savings/subscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/savings/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/sharkfin/subscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/loan/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/loan/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v2/earn/loan/revise-pledge") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("common") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v2/common/trade-rate") => 2
+                    Symbol("v2/common/trade-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("uta") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v3/account/assets") => 1,
-                    Symbol("v3/account/funding-assets") => 1,
-                    Symbol("v3/account/settings") => 1,
-                    Symbol("v3/account/financial-records") => 1,
-                    Symbol("v3/account/repayable-coins") => 2,
-                    Symbol("v3/account/payment-coins") => 2,
-                    Symbol("v3/account/convert-records") => 1,
-                    Symbol("v3/account/deduct-info") => 20,
-                    Symbol("v3/account/fee-rate") => 6.6667,
-                    Symbol("v3/account/switch-status") => 4,
-                    Symbol("v3/account/max-transferable") => 6.6667,
-                    Symbol("v3/account/open-interest-limit") => 4,
-                    Symbol("v3/account/sub-unified-assets") => 20,
-                    Symbol("v3/account/transferable-coins") => 2,
-                    Symbol("v3/account/sub-transfer-record") => 4,
-                    Symbol("v3/account/deposit-address") => 2,
-                    Symbol("v3/account/sub-deposit-address") => 2,
-                    Symbol("v3/account/deposit-records") => 2,
-                    Symbol("v3/account/sub-deposit-records") => 2,
-                    Symbol("v3/account/withdrawal-records") => 2,
-                    Symbol("v3/broker/sub-list") => 1,
-                    Symbol("v3/broker/all-sub-deposit-withdrawal") => 1,
-                    Symbol("v3/broker/commission") => 1,
-                    Symbol("v3/broker/query-sub-apikey") => 1,
-                    Symbol("v3/ins-loan/transfered") => 6.6667,
-                    Symbol("v3/ins-loan/symbols") => 6.6667,
-                    Symbol("v3/ins-loan/risk-unit") => 6.6667,
-                    Symbol("v3/ins-loan/repaid-history") => 6.6667,
-                    Symbol("v3/ins-loan/product-infos") => 6.6667,
-                    Symbol("v3/ins-loan/loan-order") => 6.6667,
-                    Symbol("v3/ins-loan/ltv-convert") => 6.6667,
-                    Symbol("v3/ins-loan/ensure-coins-convert") => 6.6667,
-                    Symbol("v3/loan/coins") => 2,
-                    Symbol("v3/loan/interest") => 2,
-                    Symbol("v3/loan/borrow-ongoing") => 2,
-                    Symbol("v3/loan/borrow-history") => 2,
-                    Symbol("v3/loan/repay-history") => 2,
-                    Symbol("v3/loan/pledge-rate-history") => 2,
-                    Symbol("v3/loan/debts") => 2,
-                    Symbol("v3/loan/reduces") => 2,
-                    Symbol("v3/position/current-position") => 1,
-                    Symbol("v3/position/history-position") => 1,
-                    Symbol("v3/position/adlRank") => 20,
-                    Symbol("v3/tax/records") => 20,
-                    Symbol("v3/trade/order-info") => 1,
-                    Symbol("v3/trade/unfilled-orders") => 1,
-                    Symbol("v3/trade/unfilled-strategy-orders") => 1,
-                    Symbol("v3/trade/history-orders") => 1,
-                    Symbol("v3/trade/history-strategy-orders") => 1,
-                    Symbol("v3/trade/fills") => 1,
-                    Symbol("v3/user/sub-list") => 2,
-                    Symbol("v3/user/sub-api-list") => 2
+                    Symbol("v3/account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/account/funding-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/account/settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/account/financial-records") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/account/repayable-coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/account/payment-coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/account/convert-records") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/account/deduct-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v3/account/fee-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v3/account/switch-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/account/max-transferable") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v3/account/open-interest-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/account/sub-unified-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v3/account/transferable-coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/account/sub-transfer-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/account/deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/account/sub-deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/account/deposit-records") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/account/sub-deposit-records") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/account/withdrawal-records") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/broker/sub-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/broker/all-sub-deposit-withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/broker/commission") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/broker/query-sub-apikey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/ins-loan/transfered") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v3/ins-loan/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v3/ins-loan/risk-unit") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v3/ins-loan/repaid-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v3/ins-loan/product-infos") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v3/ins-loan/loan-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v3/ins-loan/ltv-convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v3/ins-loan/ensure-coins-convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v3/loan/coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/loan/interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/loan/borrow-ongoing") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/loan/borrow-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/loan/repay-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/loan/pledge-rate-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/loan/debts") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/loan/reduces") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/position/current-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/position/history-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/position/adlRank") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v3/tax/records") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v3/trade/order-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/trade/unfilled-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/trade/unfilled-strategy-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/trade/history-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/trade/history-strategy-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/trade/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/user/sub-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/user/sub-api-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("v3/account/set-leverage") => 2,
-                    Symbol("v3/account/set-hold-mode") => 2,
-                    Symbol("v3/account/repay") => 4,
-                    Symbol("v3/account/switch-deduct") => 20,
-                    Symbol("v3/account/deposit-account") => 20,
-                    Symbol("v3/account/switch") => 20,
-                    Symbol("v3/account/adjust-account-mode") => 20,
-                    Symbol("v3/account/transfer") => 4,
-                    Symbol("v3/account/sub-transfer") => 4,
-                    Symbol("v3/account/sub-master-transfer") => 4,
-                    Symbol("v3/account/max-open-available") => 4,
-                    Symbol("v3/account/withdrawal") => 20,
-                    Symbol("v3/broker/create-sub") => 1,
-                    Symbol("v3/broker/modify-sub") => 1,
-                    Symbol("v3/broker/sub-withdrawal") => 1,
-                    Symbol("v3/broker/sub-deposit-address") => 1,
-                    Symbol("v3/broker/create-sub-apikey") => 1,
-                    Symbol("v3/broker/modify-sub-apikey") => 1,
-                    Symbol("v3/broker/delete-sub-apikey") => 1,
-                    Symbol("v3/ins-loan/bind-uid") => 6.6667,
-                    Symbol("v3/loan/borrow") => 2,
-                    Symbol("v3/loan/repay") => 2,
-                    Symbol("v3/loan/revise-pledge") => 2,
-                    Symbol("v3/trade/place-order") => 2,
-                    Symbol("v3/trade/place-strategy-order") => 2,
-                    Symbol("v3/trade/modify-order") => 2,
-                    Symbol("v3/trade/modify-strategy-order") => 2,
-                    Symbol("v3/trade/cancel-order") => 2,
-                    Symbol("v3/trade/cancel-strategy-order") => 2,
-                    Symbol("v3/trade/place-batch") => 4,
-                    Symbol("v3/trade/batch-modify-order") => 2,
-                    Symbol("v3/trade/cancel-batch") => 4,
-                    Symbol("v3/trade/cancel-symbol-order") => 4,
-                    Symbol("v3/trade/close-positions") => 4,
-                    Symbol("v3/trade/countdown-cancel-all") => 20,
-                    Symbol("v3/user/create-sub") => 2,
-                    Symbol("v3/user/freeze-sub") => 2,
-                    Symbol("v3/user/create-sub-api") => 2,
-                    Symbol("v3/user/update-sub-api") => 2,
-                    Symbol("v3/user/delete-sub-api") => 2
+                    Symbol("v3/account/set-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/account/set-hold-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/account/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/account/switch-deduct") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v3/account/deposit-account") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v3/account/switch") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v3/account/adjust-account-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v3/account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/account/sub-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/account/sub-master-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/account/max-open-available") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/account/withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v3/broker/create-sub") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/broker/modify-sub") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/broker/sub-withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/broker/sub-deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/broker/create-sub-apikey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/broker/modify-sub-apikey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/broker/delete-sub-apikey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v3/ins-loan/bind-uid") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.6667
+),
+                    Symbol("v3/loan/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/loan/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/loan/revise-pledge") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/trade/place-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/trade/place-strategy-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/trade/modify-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/trade/modify-strategy-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/trade/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/trade/cancel-strategy-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/trade/place-batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/trade/batch-modify-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/trade/cancel-batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/trade/cancel-symbol-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/trade/close-positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v3/trade/countdown-cancel-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("v3/user/create-sub") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/user/freeze-sub") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/user/create-sub-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/user/update-sub-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("v3/user/delete-sub-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             )
         )
@@ -2298,13 +3572,16 @@ function describe(self::Bitget, )
             Symbol("method") => "publicMixGetV2MixMarketCurrentFundRate"
         ),
         Symbol("accountsByType") => Dict{Symbol, Any}(
+            Symbol("funding") => "spot",
             Symbol("spot") => "spot",
             Symbol("cross") => "crossed_margin",
             Symbol("isolated") => "isolated_margin",
             Symbol("swap") => "usdt_futures",
             Symbol("usdc_swap") => "usdc_futures",
             Symbol("future") => "coin_futures",
-            Symbol("p2p") => "p2p"
+            Symbol("p2p") => "p2p",
+            Symbol("uta") => "uta",
+            Symbol("unified") => "uta"
         ),
         Symbol("accountsById") => Dict{Symbol, Any}(
             Symbol("spot") => "spot",
@@ -2313,7 +3590,8 @@ function describe(self::Bitget, )
             Symbol("usdt_futures") => "swap",
             Symbol("usdc_futures") => "usdc_swap",
             Symbol("coin_futures") => "future",
-            Symbol("p2p") => "p2p"
+            Symbol("p2p") => "p2p",
+            Symbol("uta") => "uta"
         ),
         Symbol("sandboxMode") => false,
         Symbol("networks") => Dict{Symbol, Any}(
@@ -2323,8 +3601,8 @@ function describe(self::Bitget, )
             Symbol("ATOM") => "ATOM",
             Symbol("ACA") => "AcalaToken",
             Symbol("APT") => "Aptos",
-            Symbol("ARBONE") => "ArbitrumOne",
-            Symbol("ARBNOVA") => "ArbitrumNova",
+            Symbol("ARBITRUM") => "ArbitrumOne",
+            Symbol("ARBITRUM_NOVA") => "ArbitrumNova",
             Symbol("AVAXC") => "C-Chain",
             Symbol("AVAXX") => "X-Chain",
             Symbol("AR") => "Arweave",
@@ -2398,6 +3676,7 @@ function describe(self::Bitget, )
             Symbol("AZERO") => "AZERO",
             Symbol("TRC10") => "TRC10",
             Symbol("JUNO") => "JUNO",
+            Symbol("CANTO") => "CANTO-EVM",
             Symbol("ZKSYNC") => "zkSyncEra",
             Symbol("STARKNET") => "Starknet",
             Symbol("VIC") => "VICTION"
@@ -2676,9 +3955,26 @@ function fetchDefaultMarkets(self::Bitget, params)
         firstData = self.safeDict(data, 0, Dict{Symbol, Any}());
         isBorrowable = self.safeBool(firstData, "isBorrowable");
         if functions.ccxtruthy(@functions.ccxt_and(fetchMargins, isBorrowable != nothing))
-            keysList = objectKeys(indexBy(data, "symbol"));
-            self.options[Symbol("crossMarginPairsData")] = keysList;
-            self.options[Symbol("isolatedMarginPairsData")] = keysList;
+            crossKeys = [];
+            isolatedKeys = [];
+            j = 0
+            while functions.ccxtruthy(functions.ccxt_lt(j, length(data)))
+                entry = self.safeDict(data, j, Dict{Symbol, Any}());
+                entrySymbol = safeString(entry, "symbol");
+                entryBorrowable = self.safeBool(entry, "isBorrowable", true);
+                if functions.ccxtruthy(@functions.ccxt_and(entryBorrowable, self.safeBool(entry, "isCrossBorrowable", true)))
+                                        push!(crossKeys, entrySymbol);
+                end
+                isolatedBase = self.safeBool(entry, "isIsolatedBaseBorrowable", true);
+                isolatedQuote = self.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
+                if functions.ccxtruthy(@functions.ccxt_and(entryBorrowable, (@functions.ccxt_or(isolatedBase, isolatedQuote))))
+                                        push!(isolatedKeys, entrySymbol);
+                end
+                j += 1
+            end
+
+            self.options[Symbol("crossMarginPairsData")] = crossKeys;
+            self.options[Symbol("isolatedMarginPairsData")] = isolatedKeys;
         else
             markets = arrayConcat(markets, data);
         end
@@ -2741,9 +4037,9 @@ function fetchDefaultMarkets(self::Bitget, params)
                 expiryParts = split(expiryDatetime, "-");
                 yearPart = safeString(expiryParts, 0, "");
                 dayPart = safeString(expiryParts, 2, "");
-                year = yearPart[2 + 1:4];
+                year = functions.ccxt_slice(yearPart, 2, 4);
                 month = safeString(expiryParts, 1);
-                day = dayPart[0 + 1:2];
+                day = functions.ccxt_slice(dayPart, 0, 2);
                 expiryString = string(year, month, day);
                 type_var = "future";
                 future = true;
@@ -2925,9 +4221,9 @@ function fetchUtaMarkets(self::Bitget, params)
                 expiryParts = split(expiryDatetime, "-");
                 yearPart = safeString(expiryParts, 0, "");
                 dayPart = safeString(expiryParts, 2, "");
-                year = yearPart[2 + 1:4];
+                year = functions.ccxt_slice(yearPart, 2, 4);
                 month = safeString(expiryParts, 1);
-                day = dayPart[0 + 1:2];
+                day = functions.ccxt_slice(dayPart, 0, 2);
                 expiryString = string(year, month, day);
                 type_var = "future";
                 future = true;
@@ -3031,6 +4327,9 @@ function parseCurrency(self::Bitget, rawCurrency)
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "chain");
         network = self.networkIdToCode(networkId, code);
+        if functions.ccxtruthy(network == nothing)
+            throw(ArgumentsRequired(string(self.id, " requires a network argument")));
+        end
         network = uppercase(network);
         withdrawable = (safeString(chain, "withdrawable") == "true");
         rechargeable = (safeString(chain, "rechargeable") == "true");
@@ -3863,8 +5162,13 @@ function fetchOHLCV(self::Bitget, symbol, timeframe="1m", since=nothing, limit=n
     if functions.ccxtruthy(response == "")
             return []
     end
-    data = self.safeList(response, "data", response);
-    return self.parseOHLCVs(data, market, timeframe, since, limit)
+    candles = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        candles = response;
+    else
+        candles = self.safeList(response, "data", []);
+    end
+    return self.parseOHLCVs(candles, market, timeframe, since, limit)
 
 end
 function fetchBalance(self::Bitget, params=Dict())
@@ -3880,9 +5184,15 @@ function fetchBalance(self::Bitget, params=Dict())
     (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
     (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params);
     if functions.ccxtruthy(uta)
-        response = Base.fetch(self.privateUtaGetV3AccountAssets(extend(request, params)));
-        results = self.safeDict(response, "data", Dict{Symbol, Any}());
-        assets = self.safeList(results, "assets", []);
+        assets = nothing;
+        if functions.ccxtruthy(marketType == "funding")
+            response = Base.fetch(self.privateUtaGetV3AccountFundingAssets(extend(request, params)));
+            assets = self.safeList(response, "data", []);
+        else
+            response = Base.fetch(self.privateUtaGetV3AccountAssets(extend(request, params)));
+            results = self.safeDict(response, "data", Dict{Symbol, Any}());
+            assets = self.safeList(results, "assets", []);
+        end
             return self.parseUtaBalance(assets)
     elseif functions.ccxtruthy(@functions.ccxt_or((marketType == "swap"), (marketType == "future")))
         productType = nothing;
@@ -3919,10 +5229,12 @@ function parseUtaBalance(self::Bitget, balance)
         currencyId = safeString(entry, "coin");
         code = self.safeCurrencyCode(currencyId);
         account[Symbol("debt")] = safeString(entry, "debt");
-        account[Symbol("used")] = safeString(entry, "locked");
+        account[Symbol("used")] = safeString2(entry, "locked", "frozen");
         account[Symbol("free")] = safeString(entry, "available");
         account[Symbol("total")] = safeString(entry, "balance");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -3957,7 +5269,9 @@ function parseBalance(self::Bitget, balance)
                 account[Symbol("used")] = stringAdd(frozen, locked);
             end
         end
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -4025,7 +5339,7 @@ function parseOrder(self::Bitget, order, market=nothing)
         );
     else
         if functions.ccxtruthy(feeDetail != nothing)
-            parsedFeeDetail = JSON3.parse(feeDetail);
+            parsedFeeDetail = functions.ccxt_json_parse(feeDetail);
             feeValues = objectValues(parsedFeeDetail);
             feeObject = nothing;
             i = 0
@@ -4184,6 +5498,12 @@ function createOrder(self::Bitget, symbol, type_var, side, amount, price=nothing
 
 end
 function createUtaOrderRequest(self::Bitget, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     productType = nothing;
     (productType, params) = self.handleProductTypeAndParams(market, params);
@@ -4307,6 +5627,12 @@ function createUtaOrderRequest(self::Bitget, symbol, type_var, side, amount, pri
 
 end
 function createOrderRequest(self::Bitget, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     marketType = nothing;
     marginMode = nothing;
@@ -4418,7 +5744,7 @@ function createOrderRequest(self::Bitget, symbol, type_var, side, amount, price=
                 if functions.ccxtruthy(price != nothing)
                     request[Symbol("executePrice")] = self.priceToPrecision(symbol, price);
                     if functions.ccxtruthy(ccxt_in("price", request))
-
+                                                delete!(request, :price);
                     end
                 end
                 if functions.ccxtruthy(hedged)
@@ -4436,11 +5762,25 @@ function createOrderRequest(self::Bitget, symbol, type_var, side, amount, price=
             else
                 if functions.ccxtruthy(hasStopLoss)
                     slTriggerPrice = safeValue2(stopLoss, "triggerPrice", "stopPrice");
+                    if functions.ccxtruthy(slTriggerPrice == nothing)
+                        throw(ArgumentsRequired(string(self.id, " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")));
+                    end
                     request[Symbol("presetStopLossPrice")] = self.priceToPrecision(symbol, slTriggerPrice);
+                    slLimitPrice = safeValue(stopLoss, "price");
+                    if functions.ccxtruthy(slLimitPrice != nothing)
+                        request[Symbol("presetStopLossExecutePrice")] = self.priceToPrecision(symbol, slLimitPrice);
+                    end
                 end
                 if functions.ccxtruthy(hasTakeProfit)
                     tpTriggerPrice = safeValue2(takeProfit, "triggerPrice", "stopPrice");
+                    if functions.ccxtruthy(tpTriggerPrice == nothing)
+                        throw(ArgumentsRequired(string(self.id, " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")));
+                    end
                     request[Symbol("presetStopSurplusPrice")] = self.priceToPrecision(symbol, tpTriggerPrice);
+                    tpLimitPrice = safeValue(takeProfit, "price");
+                    if functions.ccxtruthy(tpLimitPrice != nothing)
+                        request[Symbol("presetStopSurplusExecutePrice")] = self.priceToPrecision(symbol, tpLimitPrice);
+                    end
                 end
             end
 
@@ -4736,7 +6076,9 @@ function editOrder(self::Bitget, id, symbol, type_var, side, amount=nothing, pri
         request[Symbol("orderType")] = type_var;
         if functions.ccxtruthy(triggerPrice != nothing)
             request[Symbol("triggerPrice")] = self.priceToPrecision(symbol, triggerPrice);
-            request[Symbol("executePrice")] = self.priceToPrecision(symbol, price);
+            if functions.ccxtruthy(price != nothing)
+                request[Symbol("executePrice")] = self.priceToPrecision(symbol, price);
+            end
         else
             request[Symbol("price")] = self.priceToPrecision(symbol, price);
         end
@@ -5114,7 +6456,7 @@ function fetchOrder(self::Bitget, id, symbol=nothing, params=Dict())
 
     end
     if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(uta), (isa(response, AbstractString))))
-        response = JSON3.parse(response);
+        response = functions.ccxt_json_parse(response);
     end
     data = self.safeDict(response, "data");
     if functions.ccxtruthy((data != nothing))
@@ -5340,7 +6682,7 @@ function fetchCanceledAndClosedOrders(self::Bitget, symbol=nothing, since=nothin
             if functions.ccxtruthy(symbol == nothing)
                 throw(ArgumentsRequired(string(self.id, " fetchCanceledAndClosedOrders() requires a symbol argument")));
             end
-            endTime = safeIntegerN(params, ["endTime", "until"]);
+            endTime = safeInteger2(params, "endTime", "until");
             params = omit(params, ["until"]);
             if functions.ccxtruthy(since == nothing)
                 since = now - 7776000000;
@@ -5379,7 +6721,7 @@ function fetchCanceledAndClosedOrders(self::Bitget, symbol=nothing, since=nothin
         return self.parseOrders(safeValue(data, "entrustedList", []), market, since, limit)
     end
     if functions.ccxtruthy(isa(response, AbstractString))
-        response = JSON3.parse(response);
+        response = functions.ccxt_json_parse(response);
     end
     orders = self.safeList(response, "data", []);
     return self.parseOrders(orders, market, since, limit)
@@ -6205,7 +7547,7 @@ function setLeverage(self::Bitget, leverage, symbol=nothing, params=Dict())
     if functions.ccxtruthy(uta)
         if functions.ccxtruthy(productType == "SPOT")
             marginMode = nothing;
-            (marginMode, params) = self.handleMarginModeAndParams("fetchTrades", params);
+            (marginMode, params) = self.handleMarginModeAndParams("setLeverage", params);
             if functions.ccxtruthy(marginMode != nothing)
                 productType = "MARGIN";
             end
@@ -6349,6 +7691,8 @@ function transfer(self::Bitget, code, amount, fromAccount, toAccount, params=Dic
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
+    uta = nothing;
+    (uta, params) = Base.fetch(self.handleUTAAndParams(params, "transfer", false));
     currency = self.currency(code);
     accountsByType = safeValue(self.options, "accountsByType", Dict{Symbol, Any}());
     fromType = safeString(accountsByType, fromAccount);
@@ -6366,7 +7710,12 @@ function transfer(self::Bitget, code, amount, fromAccount, toAccount, params=Dic
         market = self.market(symbol);
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
-    response = Base.fetch(self.privateSpotPostV2SpotWalletTransfer(extend(request, params)));
+    response = nothing;
+    if functions.ccxtruthy(uta)
+        response = Base.fetch(self.privateUtaPostV3AccountTransfer(extend(request, params)));
+    else
+        response = Base.fetch(self.privateSpotPostV2SpotWalletTransfer(extend(request, params)));
+    end
     data = safeValue(response, "data", Dict{Symbol, Any}());
     data[Symbol("ts")] = safeInteger(response, "requestTime");
     return self.parseTransfer(data, currency)
@@ -6422,16 +7771,18 @@ function parseDepositWithdrawFee(self::Bitget, fee, currency=nothing)
         networkId = safeString(chain, "chain");
         currencyCode = safeString(currency, "code");
         networkCode = self.networkIdToCode(networkId, currencyCode);
-        result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("deposit") => Dict{Symbol, Any}(
-                Symbol("fee") => nothing,
-                Symbol("percentage") => nothing
-            ),
-            Symbol("withdraw") => Dict{Symbol, Any}(
-                Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
-                Symbol("percentage") => false
-            )
-        );
+        if functions.ccxtruthy(networkCode != nothing)
+            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("deposit") => Dict{Symbol, Any}(
+                    Symbol("fee") => nothing,
+                    Symbol("percentage") => nothing
+                ),
+                Symbol("withdraw") => Dict{Symbol, Any}(
+                    Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
+                    Symbol("percentage") => false
+                )
+            );
+        end
         if functions.ccxtruthy(chainsLength == 1)
             result[Symbol("withdraw")][Symbol("fee")] = self.safeNumber(chain, "withdrawFee");
             result[Symbol("withdraw")][Symbol("percentage")] = false;
@@ -6951,34 +8302,36 @@ function fetchConvertCurrencies(self::Bitget, params=Dict())
         entry = get(data, i + 1, nothing);
         id = safeString(entry, "coin");
         code = self.safeCurrencyCode(id);
-        result[Symbol(code)] = Dict{Symbol, Any}(
-            Symbol("info") => entry,
-            Symbol("id") => id,
-            Symbol("code") => code,
-            Symbol("networks") => nothing,
-            Symbol("type") => nothing,
-            Symbol("name") => nothing,
-            Symbol("active") => nothing,
-            Symbol("deposit") => nothing,
-            Symbol("withdraw") => self.safeNumber(entry, "available"),
-            Symbol("fee") => nothing,
-            Symbol("precision") => nothing,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("amount") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(entry, "minAmount"),
-                    Symbol("max") => self.safeNumber(entry, "maxAmount")
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = Dict{Symbol, Any}(
+                Symbol("info") => entry,
+                Symbol("id") => id,
+                Symbol("code") => code,
+                Symbol("networks") => nothing,
+                Symbol("type") => nothing,
+                Symbol("name") => nothing,
+                Symbol("active") => nothing,
+                Symbol("deposit") => nothing,
+                Symbol("withdraw") => self.safeNumber(entry, "available"),
+                Symbol("fee") => nothing,
+                Symbol("precision") => nothing,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("amount") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(entry, "minAmount"),
+                        Symbol("max") => self.safeNumber(entry, "maxAmount")
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
                 ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                )
-            ),
-            Symbol("created") => nothing
-        );
+                Symbol("created") => nothing
+            );
+        end
         i += 1
     end
     return result
@@ -7133,2564 +8486,2617 @@ function sign(self::Bitget, path, api=[], method="GET", params=Dict(), headers=n
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitget, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicCommonGetV2PublicAnnoucements(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/public/annoucements", ["public", "common"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/public/annoucements", ["public", "common"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicCommonGetV2PublicTime(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/public/time", ["public", "common"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/public/time", ["public", "common"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1NoticeQueryAllNotices(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/notice/queryAllNotices", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/notice/queryAllNotices", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1PublicTime(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/time", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/public/time", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1PublicCurrencies(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/currencies", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "spot/v1/public/currencies", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1PublicProducts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/products", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/public/products", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1PublicProduct(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/product", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/public/product", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1MarketTicker(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/ticker", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/market/ticker", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1MarketTickers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/tickers", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/market/tickers", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1MarketFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/fills", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/market/fills", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1MarketFillsHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/fills-history", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/market/fills-history", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1MarketCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/candles", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/market/candles", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1MarketDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/depth", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/market/depth", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1MarketSpotVipLevel(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/spot-vip-level", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/market/spot-vip-level", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1MarketMergeDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/merge-depth", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/market/merge-depth", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1MarketHistoryCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/market/history-candles", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/market/history-candles", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1PublicLoanCoinInfos(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/loan/coinInfos", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/public/loan/coinInfos", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSpotV1PublicLoanHourInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/public/loan/hour-interest", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/public/loan/hour-interest", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2SpotPublicCoins(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/public/coins", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v2/spot/public/coins", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2SpotPublicSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/public/symbols", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/public/symbols", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2SpotMarketVipFeeRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/vip-fee-rate", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/market/vip-fee-rate", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2SpotMarketTickers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/tickers", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/market/tickers", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2SpotMarketMergeDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/merge-depth", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/market/merge-depth", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2SpotMarketOrderbook(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/orderbook", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/market/orderbook", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2SpotMarketCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/candles", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/market/candles", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2SpotMarketHistoryCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/history-candles", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/market/history-candles", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2SpotMarketFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/fills", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/market/fills", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2SpotMarketFillsHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/market/fills-history", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/market/fills-history", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketContracts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/contracts", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/contracts", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/depth", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/depth", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketTicker(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/ticker", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/ticker", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketTickers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/tickers", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/tickers", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketContractVipLevel(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/contract-vip-level", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/market/contract-vip-level", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/fills", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/fills", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketFillsHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/fills-history", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/market/fills-history", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/candles", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketIndex(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/index", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/index", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketFundingTime(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/funding-time", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/funding-time", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketHistoryFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/history-fundRate", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/history-fundRate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketCurrentFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/current-fundRate", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/current-fundRate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketOpenInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/open-interest", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/open-interest", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketMarkPrice(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/mark-price", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/mark-price", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketSymbolLeverage(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/symbol-leverage", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/symbol-leverage", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketQueryPositionLever(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/queryPositionLever", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/queryPositionLever", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketOpenLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/open-limit", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/open-limit", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketHistoryCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/history-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/history-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketHistoryIndexCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/history-index-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/history-index-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketHistoryMarkCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/history-mark-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/history-mark-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetMixV1MarketMergeDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/market/merge-depth", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/market/merge-depth", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketVipFeeRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/vip-fee-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/market/vip-fee-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketUnionInterestRateHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/union-interest-rate-history", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/market/union-interest-rate-history", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketExchangeRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/exchange-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/market/exchange-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketDiscountRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/discount-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/market/discount-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketMergeDepth(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/merge-depth", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/merge-depth", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketTicker(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/ticker", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/ticker", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketTickers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/tickers", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/tickers", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/fills", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/fills", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketFillsHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/fills-history", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/market/fills-history", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/candles", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketHistoryCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/history-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/history-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketHistoryIndexCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/history-index-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/history-index-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketHistoryMarkCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/history-mark-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/history-mark-candles", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketOpenInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/open-interest", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/open-interest", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketFundingTime(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/funding-time", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/funding-time", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketSymbolPrice(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/symbol-price", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/symbol-price", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketHistoryFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/history-fund-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/history-fund-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketCurrentFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/current-fund-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/current-fund-rate", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketOiLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/oi-limit", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/market/oi-limit", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketContracts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/contracts", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/market/contracts", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketQueryPositionLever(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/query-position-lever", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/market/query-position-lever", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMixGetV2MixMarketAccountLongShort(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/account-long-short", ["public", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/mix/market/account-long-short", ["public", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMarginGetMarginV1CrossPublicInterestRateAndLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/public/interestRateAndLimit", ["public", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/public/interestRateAndLimit", ["public", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/public/interestRateAndLimit", ["public", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/public/interestRateAndLimit", ["public", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMarginGetMarginV1CrossPublicTierData(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/public/tierData", ["public", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/public/tierData", ["public", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMarginGetMarginV1IsolatedPublicTierData(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/public/tierData", ["public", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/public/tierData", ["public", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMarginGetMarginV1PublicCurrencies(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/public/currencies", ["public", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/v1/public/currencies", ["public", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMarginGetV2MarginCurrencies(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/currencies", ["public", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/currencies", ["public", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicMarginGetV2MarginMarketLongShortRatio(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/market/long-short-ratio", ["public", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/margin/market/long-short-ratio", ["public", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicEarnGetV2EarnLoanPublicCoinInfos(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/public/coinInfos", ["public", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/loan/public/coinInfos", ["public", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicEarnGetV2EarnLoanPublicHourInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/public/hour-interest", ["public", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/loan/public/hour-interest", ["public", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketInstruments(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/instruments", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/instruments", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketTickers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/tickers", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/tickers", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketOrderbook(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/orderbook", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/orderbook", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/fills", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/fills", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketProofOfReserves(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/proof-of-reserves", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/proof-of-reserves", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketOpenInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/open-interest", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/open-interest", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/candles", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/candles", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketHistoryCandles(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/history-candles", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/history-candles", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketCurrentFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/current-fund-rate", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/current-fund-rate", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketHistoryFundRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/history-fund-rate", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/history-fund-rate", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketRiskReserve(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/risk-reserve", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/risk-reserve", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketDiscountRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/discount-rate", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/discount-rate", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketMarginLoans(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/margin-loans", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/margin-loans", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketPositionTier(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/position-tier", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/market/position-tier", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketOiLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/oi-limit", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/market/oi-limit", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicUtaGetV3MarketIndexComponents(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/market/index-components", ["public", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/market/index-components", ["public", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1WalletDepositAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/deposit-address", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/wallet/deposit-address", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1WalletWithdrawalList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/withdrawal-list", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/wallet/withdrawal-list", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1WalletDepositList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/deposit-list", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/wallet/deposit-list", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1AccountGetInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/getInfo", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "spot/v1/account/getInfo", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1AccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/assets", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/account/assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1AccountAssetsLite(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/assets-lite", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/account/assets-lite", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1AccountTransferRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/transferRecords", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/account/transferRecords", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1ConvertCurrencies(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/convert/currencies", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/convert/currencies", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1ConvertConvertRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/convert/convert-record", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/convert/convert-record", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1LoanOngoingOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/ongoing-orders", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/loan/ongoing-orders", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1LoanRepayHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/repay-history", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/loan/repay-history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1LoanReviseHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/revise-history", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/loan/revise-history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1LoanBorrowHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/borrow-history", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/loan/borrow-history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetSpotV1LoanDebts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/debts", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/loan/debts", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotTradeOrderInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/orderInfo", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/trade/orderInfo", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotTradeUnfilledOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/unfilled-orders", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/trade/unfilled-orders", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotTradeHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/history-orders", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/trade/history-orders", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotTradeFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/fills", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/trade/fills", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotTradeCurrentPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/current-plan-order", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/trade/current-plan-order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotTradeHistoryPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/history-plan-order", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/trade/history-plan-order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotAccountInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/info", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/spot/account/info", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/assets", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/account/assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotAccountSubaccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/subaccount-assets", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/account/subaccount-assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotAccountBills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/bills", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/account/bills", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotAccountTransferRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/transferRecords", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/account/transferRecords", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2AccountFundingAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/account/funding-assets", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/account/funding-assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2AccountBotAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/account/bot-assets", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/account/bot-assets", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2AccountAllAccountBalance(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/account/all-account-balance", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/account/all-account-balance", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotWalletDepositAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/deposit-address", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/wallet/deposit-address", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotWalletDepositRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/deposit-records", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/wallet/deposit-records", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotWalletWithdrawalRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/withdrawal-records", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/wallet/withdrawal-records", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2SpotAccountUpgradeStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/upgrade-status", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/spot/account/upgrade-status", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1WalletTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/wallet/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1WalletTransferV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/transfer-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/wallet/transfer-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1WalletSubTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/subTransfer", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/v1/wallet/subTransfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1WalletWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/withdrawal", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/wallet/withdrawal", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1WalletWithdrawalV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/withdrawal-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/wallet/withdrawal-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1WalletWithdrawalInner(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/withdrawal-inner", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/wallet/withdrawal-inner", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1WalletWithdrawalInnerV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/wallet/withdrawal-inner-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/wallet/withdrawal-inner-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1AccountSubAccountSpotAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/sub-account-spot-assets", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 200))
+    return request(self, "spot/v1/account/sub-account-spot-assets", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1AccountBills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/account/bills", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/account/bills", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TradeOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/orders", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trade/orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TradeBatchOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/batch-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/trade/batch-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TradeCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/cancel-order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trade/cancel-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TradeCancelOrderV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/cancel-order-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trade/cancel-order-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TradeCancelSymbolOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/cancel-symbol-order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trade/cancel-symbol-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TradeCancelBatchOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/cancel-batch-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/trade/cancel-batch-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TradeCancelBatchOrdersV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/cancel-batch-orders-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/trade/cancel-batch-orders-v2", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TradeOrderInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/orderInfo", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/trade/orderInfo", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TradeOpenOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/open-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/trade/open-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TradeHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/history", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/trade/history", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TradeFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trade/fills", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/trade/fills", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1PlanPlacePlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/placePlan", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/plan/placePlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1PlanModifyPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/modifyPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/plan/modifyPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1PlanCancelPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/cancelPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/plan/cancelPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1PlanCurrentPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/currentPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/plan/currentPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1PlanHistoryPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/historyPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v1/plan/historyPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1PlanBatchCancelPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/plan/batchCancelPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/plan/batchCancelPlan", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1ConvertQuotedPrice(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/convert/quoted-price", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/convert/quoted-price", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1ConvertTrade(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/convert/trade", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "spot/v1/convert/trade", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1LoanBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/borrow", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/loan/borrow", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1LoanRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/repay", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/loan/repay", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1LoanRevisePledge(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/loan/revise-pledge", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/loan/revise-pledge", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderOrderCurrentList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/orderCurrentList", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/order/orderCurrentList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderOrderHistoryList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/orderHistoryList", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/order/orderHistoryList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderCloseTrackingOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/closeTrackingOrder", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/order/closeTrackingOrder", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderUpdateTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/updateTpsl", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/order/updateTpsl", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderFollowerEndOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/followerEndOrder", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/order/followerEndOrder", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceOrderSpotInfoList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/order/spotInfoList", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/order/spotInfoList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceConfigGetTraderSettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/config/getTraderSettings", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/config/getTraderSettings", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceConfigGetFollowerSettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/config/getFollowerSettings", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/config/getFollowerSettings", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceUserMyTraders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/user/myTraders", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/user/myTraders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceConfigSetFollowerConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/config/setFollowerConfig", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/config/setFollowerConfig", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceUserMyFollowers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/user/myFollowers", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/user/myFollowers", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceConfigSetProductCode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/config/setProductCode", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/config/setProductCode", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceUserRemoveTrader(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/user/removeTrader", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/user/removeTrader", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceGetRemovableFollower(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/getRemovableFollower", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/getRemovableFollower", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceUserRemoveFollower(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/user/removeFollower", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/user/removeFollower", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceProfitTotalProfitInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/profit/totalProfitInfo", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/profit/totalProfitInfo", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceProfitTotalProfitList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/profit/totalProfitList", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/profit/totalProfitList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceProfitProfitHisList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/profit/profitHisList", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/profit/profitHisList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceProfitProfitHisDetailList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/profit/profitHisDetailList", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/profit/profitHisDetailList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceProfitWaitProfitDetailList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/profit/waitProfitDetailList", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/profit/waitProfitDetailList", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostSpotV1TraceUserGetTraderInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "spot/v1/trace/user/getTraderInfo", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/v1/trace/user/getTraderInfo", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotTradePlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/place-order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/trade/place-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotTradeCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/cancel-order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/trade/cancel-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotTradeBatchOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/batch-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/spot/trade/batch-orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotTradeBatchCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/batch-cancel-order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/trade/batch-cancel-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotTradeCancelSymbolOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/cancel-symbol-order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/spot/trade/cancel-symbol-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotTradePlacePlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/place-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/trade/place-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotTradeModifyPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/modify-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/trade/modify-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotTradeCancelPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/cancel-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/spot/trade/cancel-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotTradeCancelReplaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/cancel-replace-order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/trade/cancel-replace-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotTradeBatchCancelPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/trade/batch-cancel-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/trade/batch-cancel-plan-order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotWalletTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/wallet/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotWalletSubaccountTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/subaccount-transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/wallet/subaccount-transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotWalletWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/withdrawal", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/wallet/withdrawal", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotWalletCancelWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/cancel-withdrawal", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/wallet/cancel-withdrawal", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotWalletModifyDepositAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/wallet/modify-deposit-account", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/spot/wallet/modify-deposit-account", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2SpotAccountUpgrade(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/spot/account/upgrade", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/spot/account/upgrade", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1AccountAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/account", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/account/account", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1AccountAccounts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/accounts", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/account/accounts", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1PositionSinglePosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/position/singlePosition", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/position/singlePosition", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1PositionSinglePositionV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/position/singlePosition-v2", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/position/singlePosition-v2", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1PositionAllPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/position/allPosition", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "mix/v1/position/allPosition", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1PositionAllPositionV2(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/position/allPosition-v2", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "mix/v1/position/allPosition-v2", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1PositionHistoryPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/position/history-position", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/position/history-position", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1AccountAccountBill(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/accountBill", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/account/accountBill", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1AccountAccountBusinessBill(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/accountBusinessBill", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "mix/v1/account/accountBusinessBill", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1OrderCurrent(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/current", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/order/current", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1OrderMarginCoinCurrent(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/marginCoinCurrent", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/order/marginCoinCurrent", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1OrderHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/history", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/order/history", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1OrderHistoryProductType(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/historyProductType", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "mix/v1/order/historyProductType", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1OrderDetail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/detail", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/order/detail", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1OrderFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/fills", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/order/fills", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1OrderAllFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/allFills", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/order/allFills", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1PlanCurrentPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/currentPlan", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/plan/currentPlan", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1PlanHistoryPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/historyPlan", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/plan/historyPlan", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceCurrentTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/currentTrack", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/currentTrack", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceFollowerOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerOrder", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/followerOrder", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceFollowerHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerHistoryOrders", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/followerHistoryOrders", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceHistoryTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/historyTrack", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/historyTrack", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceSummary(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/summary", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/trace/summary", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceProfitSettleTokenIdGroup(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/profitSettleTokenIdGroup", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/trace/profitSettleTokenIdGroup", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceProfitDateGroupList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/profitDateGroupList", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/trace/profitDateGroupList", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TradeProfitDateList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trade/profitDateList", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trade/profitDateList", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceWaitProfitDateList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/waitProfitDateList", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/trace/waitProfitDateList", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceTraderSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/traderSymbols", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/trace/traderSymbols", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceTraderList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/traderList", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/traderList", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceTraderDetail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/traderDetail", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/traderDetail", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetMixV1TraceQueryTraceConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/queryTraceConfig", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/queryTraceConfig", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/account", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/account/account", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountAccounts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/accounts", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/account/accounts", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountSubAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/sub-account-assets", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 200))
+    return request(self, "v2/mix/account/sub-account-assets", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountInterestHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/interest-history", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/account/interest-history", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountMaxOpen(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/max-open", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/account/max-open", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountLiqPrice(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/liq-price", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/account/liq-price", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountOpenCount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/open-count", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/account/open-count", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountBill(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/bill", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/account/bill", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountTransferLimits(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/transfer-limits", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/mix/account/transfer-limits", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountUnionConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/union-config", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/mix/account/union-config", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountSwitchUnionUsdt(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/switch-union-usdt", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/mix/account/switch-union-usdt", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixAccountIsolatedSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/isolated-symbols", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/account/isolated-symbols", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixMarketQueryPositionLever(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/query-position-lever", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/market/query-position-lever", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixPositionSinglePosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/position/single-position", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/position/single-position", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixPositionAllPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/position/all-position", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/position/all-position", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixPositionAdlRank(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/position/adlRank", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/position/adlRank", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixPositionHistoryPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/position/history-position", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/mix/position/history-position", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixOrderDetail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/detail", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/detail", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixOrderFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/fills", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/fills", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixOrderFillHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/fill-history", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/fill-history", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixOrderOrdersPending(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/orders-pending", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/orders-pending", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixOrderOrdersHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/orders-history", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/orders-history", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixOrderPlanSubOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/plan-sub-order", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/plan-sub-order", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixOrderOrdersPlanPending(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/orders-plan-pending", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/orders-plan-pending", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixOrderOrdersPlanHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/orders-plan-history", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/orders-plan-history", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixGetV2MixMarketPositionLongShort(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/market/position-long-short", ["private", "mix"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/mix/market/position-long-short", ["private", "mix"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1AccountSubAccountContractAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/sub-account-contract-assets", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 200))
+    return request(self, "mix/v1/account/sub-account-contract-assets", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1AccountOpenCount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/open-count", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mix/v1/account/open-count", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1AccountSetLeverage(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/setLeverage", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "mix/v1/account/setLeverage", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1AccountSetMargin(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/setMargin", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "mix/v1/account/setMargin", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1AccountSetMarginMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/setMarginMode", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "mix/v1/account/setMarginMode", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1AccountSetPositionMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/account/setPositionMode", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "mix/v1/account/setPositionMode", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1OrderPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/placeOrder", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/order/placeOrder", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1OrderBatchOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/batch-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/order/batch-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1OrderCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/cancel-order", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/order/cancel-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1OrderCancelBatchOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/cancel-batch-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/order/cancel-batch-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1OrderModifyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/modifyOrder", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/order/modifyOrder", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1OrderCancelSymbolOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/cancel-symbol-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/order/cancel-symbol-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1OrderCancelAllOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/cancel-all-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/order/cancel-all-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1OrderCloseAllPositions(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/order/close-all-positions", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "mix/v1/order/close-all-positions", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1PlanPlacePlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/placePlan", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/plan/placePlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1PlanModifyPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/modifyPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/plan/modifyPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1PlanModifyPlanPreset(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/modifyPlanPreset", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/plan/modifyPlanPreset", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1PlanPlaceTPSL(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/placeTPSL", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/plan/placeTPSL", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1PlanPlaceTrailStop(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/placeTrailStop", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/plan/placeTrailStop", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1PlanPlacePositionsTPSL(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/placePositionsTPSL", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/plan/placePositionsTPSL", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1PlanModifyTPSLPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/modifyTPSLPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/plan/modifyTPSLPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1PlanCancelPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/cancelPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/plan/cancelPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1PlanCancelSymbolPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/cancelSymbolPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/plan/cancelSymbolPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1PlanCancelAllPlan(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/plan/cancelAllPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/plan/cancelAllPlan", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceCloseTrackOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/closeTrackOrder", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/closeTrackOrder", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceModifyTPSL(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/modifyTPSL", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/modifyTPSL", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceCloseTrackOrderBySymbol(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/closeTrackOrderBySymbol", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/closeTrackOrderBySymbol", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceSetUpCopySymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/setUpCopySymbols", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/setUpCopySymbols", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceFollowerSetBatchTraceConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerSetBatchTraceConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/followerSetBatchTraceConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceFollowerCloseByTrackingNo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerCloseByTrackingNo", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/followerCloseByTrackingNo", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceFollowerCloseByAll(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerCloseByAll", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/followerCloseByAll", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceFollowerSetTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/followerSetTpsl", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/followerSetTpsl", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceCancelCopyTrader(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/cancelCopyTrader", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "mix/v1/trace/cancelCopyTrader", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceTraderUpdateConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/traderUpdateConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/traderUpdateConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceMyTraderList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/myTraderList", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/myTraderList", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceMyFollowerList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/myFollowerList", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/myFollowerList", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceRemoveFollower(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/removeFollower", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/removeFollower", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TracePublicGetFollowerConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/public/getFollowerConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/public/getFollowerConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceReportOrderHistoryList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/report/order/historyList", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/report/order/historyList", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceReportOrderCurrentList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/report/order/currentList", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/report/order/currentList", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceQueryTraderTpslRatioConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/queryTraderTpslRatioConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/queryTraderTpslRatioConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostMixV1TraceTraderUpdateTpslRatioConfig(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "mix/v1/trace/traderUpdateTpslRatioConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "mix/v1/trace/traderUpdateTpslRatioConfig", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixAccountSetAutoMargin(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-auto-margin", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/account/set-auto-margin", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixAccountSetLeverage(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-leverage", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/account/set-leverage", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixAccountSetAllLeverage(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-all-leverage", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/account/set-all-leverage", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixAccountSetMargin(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-margin", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/account/set-margin", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixAccountSetAssetMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-asset-mode", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/mix/account/set-asset-mode", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixAccountSetMarginMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-margin-mode", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/account/set-margin-mode", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixAccountUnionConvert(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/union-convert", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/mix/account/union-convert", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixAccountSetPositionMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/account/set-position-mode", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/mix/account/set-position-mode", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/place-order", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/place-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderClickBackhand(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/click-backhand", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/mix/order/click-backhand", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderBatchPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/batch-place-order", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/mix/order/batch-place-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderModifyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/modify-order", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/modify-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/cancel-order", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/cancel-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderBatchCancelOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/batch-cancel-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/batch-cancel-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderClosePositions(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/close-positions", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/mix/order/close-positions", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderCancelAllOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/cancel-all-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/mix/order/cancel-all-orders", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderPlaceTpslOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/place-tpsl-order", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/place-tpsl-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderPlacePosTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/place-pos-tpsl", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/place-pos-tpsl", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderPlacePlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/place-plan-order", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/place-plan-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderModifyTpslOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/modify-tpsl-order", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/modify-tpsl-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderModifyPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/modify-plan-order", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/modify-plan-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMixPostV2MixOrderCancelPlanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/mix/order/cancel-plan-order", ["private", "mix"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/mix/order/cancel-plan-order", ["private", "mix"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserGetUserV1FeeQuery(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/fee/query", ["private", "user"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "user/v1/fee/query", ["private", "user"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUserGetUserV1SubVirtualList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-list", ["private", "user"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "user/v1/sub/virtual-list", ["private", "user"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUserGetUserV1SubVirtualApiList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-api-list", ["private", "user"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "user/v1/sub/virtual-api-list", ["private", "user"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUserGetUserV1TaxSpotRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/tax/spot-record", ["private", "user"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/v1/tax/spot-record", ["private", "user"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUserGetUserV1TaxFutureRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/tax/future-record", ["private", "user"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/v1/tax/future-record", ["private", "user"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUserGetUserV1TaxMarginRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/tax/margin-record", ["private", "user"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/v1/tax/margin-record", ["private", "user"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUserGetUserV1TaxP2pRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/tax/p2p-record", ["private", "user"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/v1/tax/p2p-record", ["private", "user"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUserGetV2UserVirtualSubaccountList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/virtual-subaccount-list", ["private", "user"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/user/virtual-subaccount-list", ["private", "user"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUserGetV2UserVirtualSubaccountApikeyList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/virtual-subaccount-apikey-list", ["private", "user"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/user/virtual-subaccount-apikey-list", ["private", "user"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUserPostUserV1SubVirtualCreate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-create", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "user/v1/sub/virtual-create", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserPostUserV1SubVirtualModify(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-modify", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "user/v1/sub/virtual-modify", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserPostUserV1SubVirtualApiBatchCreate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-api-batch-create", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "user/v1/sub/virtual-api-batch-create", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserPostUserV1SubVirtualApiCreate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-api-create", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "user/v1/sub/virtual-api-create", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserPostUserV1SubVirtualApiModify(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "user/v1/sub/virtual-api-modify", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "user/v1/sub/virtual-api-modify", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserPostV2UserCreateVirtualSubaccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/create-virtual-subaccount", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/user/create-virtual-subaccount", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserPostV2UserModifyVirtualSubaccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/modify-virtual-subaccount", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/user/modify-virtual-subaccount", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserPostV2UserBatchCreateSubaccountAndApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/batch-create-subaccount-and-apikey", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/user/batch-create-subaccount-and-apikey", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserPostV2UserCreateVirtualSubaccountApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/create-virtual-subaccount-apikey", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/user/create-virtual-subaccount-apikey", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserPostV2UserModifyVirtualSubaccountApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/user/modify-virtual-subaccount-apikey", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/user/modify-virtual-subaccount-apikey", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateP2pGetP2pV1MerchantMerchantList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "p2p/v1/merchant/merchantList", ["private", "p2p"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "p2p/v1/merchant/merchantList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateP2pGetP2pV1MerchantMerchantInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "p2p/v1/merchant/merchantInfo", ["private", "p2p"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "p2p/v1/merchant/merchantInfo", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateP2pGetP2pV1MerchantAdvList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "p2p/v1/merchant/advList", ["private", "p2p"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "p2p/v1/merchant/advList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateP2pGetP2pV1MerchantOrderList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "p2p/v1/merchant/orderList", ["private", "p2p"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "p2p/v1/merchant/orderList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateP2pGetV2P2pMerchantList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/p2p/merchantList", ["private", "p2p"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/p2p/merchantList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateP2pGetV2P2pMerchantInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/p2p/merchantInfo", ["private", "p2p"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/p2p/merchantInfo", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateP2pGetV2P2pOrderList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/p2p/orderList", ["private", "p2p"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/p2p/orderList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateP2pGetV2P2pAdvList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/p2p/advList", ["private", "p2p"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/p2p/advList", ["private", "p2p"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetBrokerV1AccountInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/info", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "broker/v1/account/info", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-list", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "broker/v1/account/sub-list", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubEmail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-email", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "broker/v1/account/sub-email", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubSpotAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-spot-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "broker/v1/account/sub-spot-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubFutureAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-future-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "broker/v1/account/sub-future-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubaccountTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/subaccount-transfer", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/v1/account/subaccount-transfer", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubaccountDeposit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/subaccount-deposit", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/v1/account/subaccount-deposit", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubaccountWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/subaccount-withdrawal", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "broker/v1/account/subaccount-withdrawal", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetBrokerV1AccountSubApiList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-api-list", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "broker/v1/account/sub-api-list", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetV2BrokerAccountInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/info", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/broker/account/info", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetV2BrokerAccountSubaccountList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-list", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/broker/account/subaccount-list", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetV2BrokerAccountSubaccountEmail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-email", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/broker/account/subaccount-email", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetV2BrokerAccountSubaccountSpotAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-spot-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/broker/account/subaccount-spot-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetV2BrokerAccountSubaccountFutureAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-future-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/broker/account/subaccount-future-assets", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerGetV2BrokerManageSubaccountApikeyList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/manage/subaccount-apikey-list", ["private", "broker"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/broker/manage/subaccount-apikey-list", ["private", "broker"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubCreate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-create", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "broker/v1/account/sub-create", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubModify(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-modify", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "broker/v1/account/sub-modify", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubModifyEmail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-modify-email", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "broker/v1/account/sub-modify-email", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-address", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "broker/v1/account/sub-address", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-withdrawal", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "broker/v1/account/sub-withdrawal", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubAutoTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-auto-transfer", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "broker/v1/account/sub-auto-transfer", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubApiCreate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-api-create", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "broker/v1/account/sub-api-create", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostBrokerV1AccountSubApiModify(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "broker/v1/account/sub-api-modify", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "broker/v1/account/sub-api-modify", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostV2BrokerAccountModifySubaccountEmail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/modify-subaccount-email", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/broker/account/modify-subaccount-email", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostV2BrokerAccountCreateSubaccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/create-subaccount", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/broker/account/create-subaccount", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostV2BrokerAccountModifySubaccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/modify-subaccount", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/broker/account/modify-subaccount", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostV2BrokerAccountSubaccountAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-address", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/broker/account/subaccount-address", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostV2BrokerAccountSubaccountWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/subaccount-withdrawal", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/broker/account/subaccount-withdrawal", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostV2BrokerAccountSetSubaccountAutotransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/account/set-subaccount-autotransfer", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/broker/account/set-subaccount-autotransfer", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostV2BrokerManageCreateSubaccountApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/manage/create-subaccount-apikey", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/broker/manage/create-subaccount-apikey", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateBrokerPostV2BrokerManageModifySubaccountApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/broker/manage/modify-subaccount-apikey", ["private", "broker"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/broker/manage/modify-subaccount-apikey", ["private", "broker"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1CrossAccountRiskRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/riskRate", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/account/riskRate", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1CrossAccountMaxTransferOutAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/maxTransferOutAmount", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/account/maxTransferOutAmount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/maxTransferOutAmount", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/account/maxTransferOutAmount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1IsolatedOrderOpenOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/openOrders", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/order/openOrders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1IsolatedOrderHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/history", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/order/history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1IsolatedOrderFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/order/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1IsolatedLoanList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/loan/list", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/loan/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1IsolatedRepayList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/repay/list", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/repay/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1IsolatedInterestList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/interest/list", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/interest/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1IsolatedLiquidationList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/liquidation/list", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/liquidation/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1IsolatedFinList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/fin/list", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/fin/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1CrossOrderOpenOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/openOrders", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/order/openOrders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1CrossOrderHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/history", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/order/history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1CrossOrderFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/order/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1CrossLoanList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/loan/list", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/loan/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1CrossRepayList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/repay/list", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/repay/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1CrossInterestList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/interest/list", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/interest/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1CrossLiquidationList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/liquidation/list", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/liquidation/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1CrossFinList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/fin/list", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/fin/list", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1CrossAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetMarginV1IsolatedAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedBorrowHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/borrow-history", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/borrow-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedRepayHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/repay-history", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/repay-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedInterestHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/interest-history", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/interest-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedLiquidationHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/liquidation-history", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/liquidation-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedFinancialRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/financial-records", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/financial-records", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedAccountRiskRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/risk-rate", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/account/risk-rate", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedAccountMaxBorrowableAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/max-borrowable-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/account/max-borrowable-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedAccountMaxTransferOutAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/max-transfer-out-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/account/max-transfer-out-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedInterestRateAndLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/interest-rate-and-limit", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/interest-rate-and-limit", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedTierData(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/tier-data", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/tier-data", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedOpenOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/open-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/open-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/history-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/history-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginCrossedFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedBorrowHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/borrow-history", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/borrow-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedRepayHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/repay-history", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/repay-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedInterestHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/interest-history", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/interest-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedLiquidationHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/liquidation-history", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/liquidation-history", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedFinancialRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/financial-records", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/financial-records", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/account/assets", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedAccountRiskRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/risk-rate", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/account/risk-rate", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/max-borrowable-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/account/max-borrowable-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/max-transfer-out-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/account/max-transfer-out-amount", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedInterestRateAndLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/interest-rate-and-limit", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/interest-rate-and-limit", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedTierData(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/tier-data", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/tier-data", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedOpenOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/open-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/open-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/history-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/history-orders", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginGetV2MarginIsolatedFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/fills", ["private", "margin"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1CrossAccountBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1CrossAccountRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountRiskRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/riskRate", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/account/riskRate", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1CrossAccountMaxBorrowableAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/maxBorrowableAmount", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/account/maxBorrowableAmount", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/maxBorrowableAmount", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/account/maxBorrowableAmount", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountFlashRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/flashRepay", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/account/flashRepay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/account/queryFlashRepayStatus", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/account/queryFlashRepayStatus", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1CrossAccountFlashRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/flashRepay", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/account/flashRepay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1CrossAccountQueryFlashRepayStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/account/queryFlashRepayStatus", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/account/queryFlashRepayStatus", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1IsolatedOrderPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/placeOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "margin/v1/isolated/order/placeOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1IsolatedOrderBatchPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/batchPlaceOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "margin/v1/isolated/order/batchPlaceOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1IsolatedOrderCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/cancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/order/cancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/isolated/order/batchCancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/isolated/order/batchCancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1CrossOrderPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/placeOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/order/placeOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1CrossOrderBatchPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/batchPlaceOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/order/batchPlaceOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1CrossOrderCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/cancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/order/cancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostMarginV1CrossOrderBatchCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "margin/v1/cross/order/batchCancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "margin/v1/cross/order/batchCancelOrder", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginCrossedAccountBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginCrossedAccountRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginCrossedAccountFlashRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/flash-repay", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/account/flash-repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/account/query-flash-repay-status", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/account/query-flash-repay-status", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginCrossedPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginCrossedBatchPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/batch-place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/batch-place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginCrossedCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginCrossedBatchCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/crossed/batch-cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/crossed/batch-cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginIsolatedAccountBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/account/borrow", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginIsolatedAccountRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/account/repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginIsolatedAccountFlashRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/flash-repay", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/account/flash-repay", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/account/query-flash-repay-status", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/account/query-flash-repay-status", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginIsolatedPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginIsolatedBatchPlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/batch-place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/batch-place-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginIsolatedCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateMarginPostV2MarginIsolatedBatchCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/margin/isolated/batch-cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/margin/isolated/batch-cancel-order", ["private", "margin"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixTraderOrderCurrentTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/order-current-track", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-trader/order-current-track", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixTraderOrderHistoryTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/order-history-track", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-trader/order-history-track", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixTraderOrderTotalDetail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/order-total-detail", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-trader/order-total-detail", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixTraderProfitHistorySummarys(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/profit-history-summarys", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/copy/mix-trader/profit-history-summarys", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixTraderProfitHistoryDetails(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/profit-history-details", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/copy/mix-trader/profit-history-details", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixTraderProfitDetails(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/profit-details", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/copy/mix-trader/profit-details", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixTraderProfitsGroupCoinDate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/profits-group-coin-date", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/copy/mix-trader/profits-group-coin-date", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixTraderConfigQuerySymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/config-query-symbols", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/copy/mix-trader/config-query-symbols", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixTraderConfigQueryFollowers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/config-query-followers", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-trader/config-query-followers", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixFollowerQueryCurrentOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/query-current-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-follower/query-current-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixFollowerQueryHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/query-history-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/copy/mix-follower/query-history-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixFollowerQuerySettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/query-settings", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-follower/query-settings", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixFollowerQueryTraders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/query-traders", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-follower/query-traders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixFollowerQueryQuantityLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/query-quantity-limit", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-follower/query-quantity-limit", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixBrokerQueryTraders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-broker/query-traders", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-broker/query-traders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixBrokerQueryHistoryTraces(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-broker/query-history-traces", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-broker/query-history-traces", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopyMixBrokerQueryCurrentTraces(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-broker/query-current-traces", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-broker/query-current-traces", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotTraderProfitSummarys(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/profit-summarys", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/profit-summarys", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotTraderProfitHistoryDetails(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/profit-history-details", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/profit-history-details", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotTraderProfitDetails(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/profit-details", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/profit-details", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotTraderOrderTotalDetail(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/order-total-detail", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/order-total-detail", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotTraderOrderHistoryTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/order-history-track", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/order-history-track", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotTraderOrderCurrentTrack(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/order-current-track", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/order-current-track", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotTraderConfigQuerySettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/config-query-settings", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/config-query-settings", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotTraderConfigQueryFollowers(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/config-query-followers", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/config-query-followers", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotFollowerQueryTraders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/query-traders", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-follower/query-traders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotFollowerQueryTraderSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/query-trader-symbols", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-follower/query-trader-symbols", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotFollowerQuerySettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/query-settings", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-follower/query-settings", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotFollowerQueryHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/query-history-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-follower/query-history-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyGetV2CopySpotFollowerQueryCurrentOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/query-current-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-follower/query-current-orders", ["private", "copy"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopyMixTraderOrderModifyTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/order-modify-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-trader/order-modify-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopyMixTraderOrderClosePositions(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/order-close-positions", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-trader/order-close-positions", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopyMixTraderConfigSettingSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/config-setting-symbols", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-trader/config-setting-symbols", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopyMixTraderConfigSettingBase(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/config-setting-base", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-trader/config-setting-base", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopyMixTraderConfigRemoveFollower(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-trader/config-remove-follower", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-trader/config-remove-follower", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopyMixFollowerSettingTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/setting-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/copy/mix-follower/setting-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopyMixFollowerSettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/settings", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-follower/settings", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopyMixFollowerClosePositions(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/close-positions", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/mix-follower/close-positions", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopyMixFollowerCancelTrader(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/mix-follower/cancel-trader", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/copy/mix-follower/cancel-trader", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopySpotTraderOrderModifyTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/order-modify-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/order-modify-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopySpotTraderOrderCloseTracking(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/order-close-tracking", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/order-close-tracking", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopySpotTraderConfigSettingSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/config-setting-symbols", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/config-setting-symbols", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopySpotTraderConfigRemoveFollower(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-trader/config-remove-follower", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-trader/config-remove-follower", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopySpotFollowerStopOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/stop-order", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-follower/stop-order", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopySpotFollowerSettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/settings", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-follower/settings", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopySpotFollowerSettingTpsl(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/setting-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-follower/setting-tpsl", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopySpotFollowerOrderCloseTracking(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/order-close-tracking", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-follower/order-close-tracking", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCopyPostV2CopySpotFollowerCancelTrader(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/copy/spot-follower/cancel-trader", ["private", "copy"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/copy/spot-follower/cancel-trader", ["private", "copy"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateTaxGetV2TaxSpotRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/tax/spot-record", ["private", "tax"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/tax/spot-record", ["private", "tax"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateTaxGetV2TaxFutureRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/tax/future-record", ["private", "tax"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/tax/future-record", ["private", "tax"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateTaxGetV2TaxMarginRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/tax/margin-record", ["private", "tax"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/tax/margin-record", ["private", "tax"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateTaxGetV2TaxP2pRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/tax/p2p-record", ["private", "tax"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/tax/p2p-record", ["private", "tax"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateConvertGetV2ConvertCurrencies(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/currencies", ["private", "convert"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/convert/currencies", ["private", "convert"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateConvertGetV2ConvertQuotedPrice(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/quoted-price", ["private", "convert"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/convert/quoted-price", ["private", "convert"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateConvertGetV2ConvertConvertRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/convert-record", ["private", "convert"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/convert/convert-record", ["private", "convert"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateConvertGetV2ConvertBgbConvertCoinList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/bgb-convert-coin-list", ["private", "convert"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/convert/bgb-convert-coin-list", ["private", "convert"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateConvertGetV2ConvertBgbConvertRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/bgb-convert-records", ["private", "convert"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/convert/bgb-convert-records", ["private", "convert"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateConvertPostV2ConvertTrade(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/trade", ["private", "convert"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/convert/trade", ["private", "convert"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateConvertPostV2ConvertBgbConvert(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/convert/bgb-convert", ["private", "convert"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/convert/bgb-convert", ["private", "convert"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSavingsProduct(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/product", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/savings/product", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSavingsAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/account", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/savings/account", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSavingsAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/assets", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/savings/assets", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSavingsRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/records", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/savings/records", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSavingsSubscribeInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/subscribe-info", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/savings/subscribe-info", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSavingsSubscribeResult(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/subscribe-result", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/savings/subscribe-result", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSavingsRedeemResult(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/redeem-result", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/savings/redeem-result", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSharkfinProduct(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/product", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/sharkfin/product", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSharkfinAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/account", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/sharkfin/account", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSharkfinAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/assets", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/sharkfin/assets", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSharkfinRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/records", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/sharkfin/records", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSharkfinSubscribeInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/subscribe-info", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/sharkfin/subscribe-info", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnSharkfinSubscribeResult(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/subscribe-result", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v2/earn/sharkfin/subscribe-result", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnLoanOngoingOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/ongoing-orders", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/loan/ongoing-orders", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnLoanRepayHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/repay-history", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/loan/repay-history", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnLoanReviseHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/revise-history", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/loan/revise-history", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnLoanBorrowHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/borrow-history", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/loan/borrow-history", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnLoanDebts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/debts", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/loan/debts", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnLoanReduces(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/reduces", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/loan/reduces", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnGetV2EarnAccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/account/assets", ["private", "earn"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/account/assets", ["private", "earn"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateEarnPostV2EarnSavingsSubscribe(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/subscribe", ["private", "earn"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/savings/subscribe", ["private", "earn"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateEarnPostV2EarnSavingsRedeem(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/savings/redeem", ["private", "earn"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/savings/redeem", ["private", "earn"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateEarnPostV2EarnSharkfinSubscribe(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/sharkfin/subscribe", ["private", "earn"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/sharkfin/subscribe", ["private", "earn"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateEarnPostV2EarnLoanBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/borrow", ["private", "earn"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/loan/borrow", ["private", "earn"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateEarnPostV2EarnLoanRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/repay", ["private", "earn"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/loan/repay", ["private", "earn"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateEarnPostV2EarnLoanRevisePledge(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/earn/loan/revise-pledge", ["private", "earn"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/earn/loan/revise-pledge", ["private", "earn"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateCommonGetV2CommonTradeRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v2/common/trade-rate", ["private", "common"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v2/common/trade-rate", ["private", "common"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/assets", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/account/assets", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountFundingAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/funding-assets", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/account/funding-assets", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountSettings(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/settings", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/account/settings", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountFinancialRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/financial-records", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/account/financial-records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountRepayableCoins(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/repayable-coins", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/account/repayable-coins", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountPaymentCoins(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/payment-coins", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/account/payment-coins", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountConvertRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/convert-records", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/account/convert-records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountDeductInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/deduct-info", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/account/deduct-info", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountFeeRate(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/fee-rate", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v3/account/fee-rate", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountSwitchStatus(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/switch-status", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/account/switch-status", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountMaxTransferable(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/max-transferable", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v3/account/max-transferable", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountOpenInterestLimit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/open-interest-limit", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/account/open-interest-limit", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountSubUnifiedAssets(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-unified-assets", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/account/sub-unified-assets", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountTransferableCoins(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/transferable-coins", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/account/transferable-coins", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountSubTransferRecord(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-transfer-record", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/account/sub-transfer-record", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountDepositAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/deposit-address", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/account/deposit-address", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountSubDepositAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-deposit-address", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/account/sub-deposit-address", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountDepositRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/deposit-records", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/account/deposit-records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountSubDepositRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-deposit-records", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/account/sub-deposit-records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3AccountWithdrawalRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/withdrawal-records", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/account/withdrawal-records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3BrokerSubList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/sub-list", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/broker/sub-list", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3BrokerAllSubDepositWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/all-sub-deposit-withdrawal", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/broker/all-sub-deposit-withdrawal", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3BrokerCommission(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/commission", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/broker/commission", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3BrokerQuerySubApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/query-sub-apikey", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/broker/query-sub-apikey", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3InsLoanTransfered(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/transfered", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v3/ins-loan/transfered", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3InsLoanSymbols(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/symbols", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v3/ins-loan/symbols", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3InsLoanRiskUnit(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/risk-unit", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v3/ins-loan/risk-unit", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3InsLoanRepaidHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/repaid-history", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v3/ins-loan/repaid-history", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3InsLoanProductInfos(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/product-infos", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v3/ins-loan/product-infos", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3InsLoanLoanOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/loan-order", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v3/ins-loan/loan-order", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3InsLoanLtvConvert(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/ltv-convert", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v3/ins-loan/ltv-convert", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3InsLoanEnsureCoinsConvert(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/ensure-coins-convert", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v3/ins-loan/ensure-coins-convert", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3LoanCoins(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/coins", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/loan/coins", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3LoanInterest(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/interest", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/loan/interest", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3LoanBorrowOngoing(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/borrow-ongoing", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/loan/borrow-ongoing", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3LoanBorrowHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/borrow-history", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/loan/borrow-history", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3LoanRepayHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/repay-history", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/loan/repay-history", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3LoanPledgeRateHistory(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/pledge-rate-history", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/loan/pledge-rate-history", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3LoanDebts(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/debts", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/loan/debts", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3LoanReduces(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/reduces", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/loan/reduces", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3PositionCurrentPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/position/current-position", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/position/current-position", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3PositionHistoryPosition(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/position/history-position", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/position/history-position", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3PositionAdlRank(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/position/adlRank", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/position/adlRank", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3TaxRecords(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/tax/records", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/tax/records", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3TradeOrderInfo(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order-info", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/trade/order-info", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3TradeUnfilledOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/unfilled-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/trade/unfilled-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3TradeUnfilledStrategyOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/unfilled-strategy-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/trade/unfilled-strategy-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3TradeHistoryOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/history-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/trade/history-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3TradeHistoryStrategyOrders(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/history-strategy-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/trade/history-strategy-orders", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3TradeFills(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/fills", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/trade/fills", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3UserSubList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/sub-list", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/user/sub-list", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaGetV3UserSubApiList(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/sub-api-list", ["private", "uta"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/user/sub-api-list", ["private", "uta"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountSetLeverage(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/set-leverage", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/account/set-leverage", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountSetHoldMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/set-hold-mode", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/account/set-hold-mode", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/repay", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/account/repay", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountSwitchDeduct(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/switch-deduct", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/account/switch-deduct", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountDepositAccount(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/deposit-account", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/account/deposit-account", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountSwitch(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/switch", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/account/switch", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountAdjustAccountMode(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/adjust-account-mode", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/account/adjust-account-mode", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/transfer", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/account/transfer", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountSubTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-transfer", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/account/sub-transfer", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountSubMasterTransfer(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/sub-master-transfer", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/account/sub-master-transfer", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountMaxOpenAvailable(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/max-open-available", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/account/max-open-available", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3AccountWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/account/withdrawal", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/account/withdrawal", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3BrokerCreateSub(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/create-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/broker/create-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3BrokerModifySub(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/modify-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/broker/modify-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3BrokerSubWithdrawal(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/sub-withdrawal", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/broker/sub-withdrawal", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3BrokerSubDepositAddress(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/sub-deposit-address", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/broker/sub-deposit-address", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3BrokerCreateSubApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/create-sub-apikey", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/broker/create-sub-apikey", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3BrokerModifySubApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/modify-sub-apikey", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/broker/modify-sub-apikey", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3BrokerDeleteSubApikey(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/broker/delete-sub-apikey", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/broker/delete-sub-apikey", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3InsLoanBindUid(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/ins-loan/bind-uid", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 6.6667))
+    return request(self, "v3/ins-loan/bind-uid", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3LoanBorrow(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/borrow", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/loan/borrow", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3LoanRepay(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/repay", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/loan/repay", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3LoanRevisePledge(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/loan/revise-pledge", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/loan/revise-pledge", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradePlaceOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/place-order", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/trade/place-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradePlaceStrategyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/place-strategy-order", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/trade/place-strategy-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradeModifyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/modify-order", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/trade/modify-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradeModifyStrategyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/modify-strategy-order", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/trade/modify-strategy-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradeCancelOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/cancel-order", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/trade/cancel-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradeCancelStrategyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/cancel-strategy-order", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/trade/cancel-strategy-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradePlaceBatch(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/place-batch", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/trade/place-batch", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradeBatchModifyOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/batch-modify-order", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/trade/batch-modify-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradeCancelBatch(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/cancel-batch", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/trade/cancel-batch", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradeCancelSymbolOrder(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/cancel-symbol-order", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/trade/cancel-symbol-order", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradeClosePositions(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/close-positions", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/trade/close-positions", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3TradeCountdownCancelAll(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/trade/countdown-cancel-all", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/trade/countdown-cancel-all", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3UserCreateSub(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/create-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/user/create-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3UserFreezeSub(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/freeze-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/user/freeze-sub", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3UserCreateSubApi(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/create-sub-api", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/user/create-sub-api", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3UserUpdateSubApi(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/update-sub-api", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/user/update-sub-api", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUtaPostV3UserDeleteSubApi(self::Bitget, params=Dict(), context=Dict())
-    return request(self, "v3/user/delete-sub-api", ["private", "uta"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/user/delete-sub-api", ["private", "uta"], "POST", params, nothing, nothing, Dict())
 end
 
 function Bitget(; kwargs...)
     inst = Bitget(Exchange(), describe, setSandboxMode, enableDemoTrading, handleProductTypeAndParams, handleUTAAndParams, fetchTime, fetchMarkets, fetchDefaultMarkets, fetchUtaMarkets, fetchCurrencies, parseCurrency, fetchMarketLeverageTiers, parseMarketLeverageTiers, fetchDeposits, withdraw, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchDepositAddress, parseDepositAddress, fetchOrderBook, parseTicker, fetchTicker, fetchMarkPrice, fetchTickers, parseTrade, fetchTrades, fetchTradingFee, fetchTradingFees, parseTradingFee, parseOHLCV, fetchOHLCV, fetchBalance, parseUtaBalance, parseBalance, parseOrderStatus, parseOrder, createMarketBuyOrderWithCost, createOrder, createUtaOrderRequest, createOrderRequest, createUtaOrders, createOrders, editOrder, cancelOrder, cancelUtaOrders, cancelOrders, cancelAllOrders, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchCanceledAndClosedOrders, fetchUtaCanceledAndClosedOrders, fetchLedger, parseLedgerEntry, parseLedgerType, fetchMyTrades, fetchPosition, fetchPositions, parsePosition, fetchFundingRateHistory, fetchFundingRate, fetchFundingRates, fetchFundingIntervals, parseFundingRate, fetchFundingHistory, parseFundingHistory, parseFundingHistories, modifyMarginHelper, parseMarginModification, reduceMargin, addMargin, fetchLeverage, parseLeverage, setLeverage, setMarginMode, setPositionMode, fetchOpenInterest, parseOpenInterest, fetchTransfers, transfer, parseTransfer, parseTransferStatus, parseDepositWithdrawFee, fetchDepositWithdrawFees, borrowCrossMargin, borrowIsolatedMargin, repayIsolatedMargin, repayCrossMargin, parseMarginLoan, fetchMyLiquidations, parseLiquidation, fetchIsolatedBorrowRate, parseIsolatedBorrowRate, fetchCrossBorrowRate, parseBorrowRate, fetchBorrowInterest, parseBorrowInterest, closePosition, closeAllPositions, fetchMarginMode, parseMarginMode, fetchPositionsHistory, fetchConvertQuote, createConvertTrade, fetchConvertTradeHistory, parseConversion, fetchConvertCurrencies, fetchFundingInterval, fetchLongShortRatioHistory, parseLongShortRatio, handleErrors, nonce, sign, publicCommonGetV2PublicAnnoucements, publicCommonGetV2PublicTime, publicSpotGetSpotV1NoticeQueryAllNotices, publicSpotGetSpotV1PublicTime, publicSpotGetSpotV1PublicCurrencies, publicSpotGetSpotV1PublicProducts, publicSpotGetSpotV1PublicProduct, publicSpotGetSpotV1MarketTicker, publicSpotGetSpotV1MarketTickers, publicSpotGetSpotV1MarketFills, publicSpotGetSpotV1MarketFillsHistory, publicSpotGetSpotV1MarketCandles, publicSpotGetSpotV1MarketDepth, publicSpotGetSpotV1MarketSpotVipLevel, publicSpotGetSpotV1MarketMergeDepth, publicSpotGetSpotV1MarketHistoryCandles, publicSpotGetSpotV1PublicLoanCoinInfos, publicSpotGetSpotV1PublicLoanHourInterest, publicSpotGetV2SpotPublicCoins, publicSpotGetV2SpotPublicSymbols, publicSpotGetV2SpotMarketVipFeeRate, publicSpotGetV2SpotMarketTickers, publicSpotGetV2SpotMarketMergeDepth, publicSpotGetV2SpotMarketOrderbook, publicSpotGetV2SpotMarketCandles, publicSpotGetV2SpotMarketHistoryCandles, publicSpotGetV2SpotMarketFills, publicSpotGetV2SpotMarketFillsHistory, publicMixGetMixV1MarketContracts, publicMixGetMixV1MarketDepth, publicMixGetMixV1MarketTicker, publicMixGetMixV1MarketTickers, publicMixGetMixV1MarketContractVipLevel, publicMixGetMixV1MarketFills, publicMixGetMixV1MarketFillsHistory, publicMixGetMixV1MarketCandles, publicMixGetMixV1MarketIndex, publicMixGetMixV1MarketFundingTime, publicMixGetMixV1MarketHistoryFundRate, publicMixGetMixV1MarketCurrentFundRate, publicMixGetMixV1MarketOpenInterest, publicMixGetMixV1MarketMarkPrice, publicMixGetMixV1MarketSymbolLeverage, publicMixGetMixV1MarketQueryPositionLever, publicMixGetMixV1MarketOpenLimit, publicMixGetMixV1MarketHistoryCandles, publicMixGetMixV1MarketHistoryIndexCandles, publicMixGetMixV1MarketHistoryMarkCandles, publicMixGetMixV1MarketMergeDepth, publicMixGetV2MixMarketVipFeeRate, publicMixGetV2MixMarketUnionInterestRateHistory, publicMixGetV2MixMarketExchangeRate, publicMixGetV2MixMarketDiscountRate, publicMixGetV2MixMarketMergeDepth, publicMixGetV2MixMarketTicker, publicMixGetV2MixMarketTickers, publicMixGetV2MixMarketFills, publicMixGetV2MixMarketFillsHistory, publicMixGetV2MixMarketCandles, publicMixGetV2MixMarketHistoryCandles, publicMixGetV2MixMarketHistoryIndexCandles, publicMixGetV2MixMarketHistoryMarkCandles, publicMixGetV2MixMarketOpenInterest, publicMixGetV2MixMarketFundingTime, publicMixGetV2MixMarketSymbolPrice, publicMixGetV2MixMarketHistoryFundRate, publicMixGetV2MixMarketCurrentFundRate, publicMixGetV2MixMarketOiLimit, publicMixGetV2MixMarketContracts, publicMixGetV2MixMarketQueryPositionLever, publicMixGetV2MixMarketAccountLongShort, publicMarginGetMarginV1CrossPublicInterestRateAndLimit, publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit, publicMarginGetMarginV1CrossPublicTierData, publicMarginGetMarginV1IsolatedPublicTierData, publicMarginGetMarginV1PublicCurrencies, publicMarginGetV2MarginCurrencies, publicMarginGetV2MarginMarketLongShortRatio, publicEarnGetV2EarnLoanPublicCoinInfos, publicEarnGetV2EarnLoanPublicHourInterest, publicUtaGetV3MarketInstruments, publicUtaGetV3MarketTickers, publicUtaGetV3MarketOrderbook, publicUtaGetV3MarketFills, publicUtaGetV3MarketProofOfReserves, publicUtaGetV3MarketOpenInterest, publicUtaGetV3MarketCandles, publicUtaGetV3MarketHistoryCandles, publicUtaGetV3MarketCurrentFundRate, publicUtaGetV3MarketHistoryFundRate, publicUtaGetV3MarketRiskReserve, publicUtaGetV3MarketDiscountRate, publicUtaGetV3MarketMarginLoans, publicUtaGetV3MarketPositionTier, publicUtaGetV3MarketOiLimit, publicUtaGetV3MarketIndexComponents, privateSpotGetSpotV1WalletDepositAddress, privateSpotGetSpotV1WalletWithdrawalList, privateSpotGetSpotV1WalletDepositList, privateSpotGetSpotV1AccountGetInfo, privateSpotGetSpotV1AccountAssets, privateSpotGetSpotV1AccountAssetsLite, privateSpotGetSpotV1AccountTransferRecords, privateSpotGetSpotV1ConvertCurrencies, privateSpotGetSpotV1ConvertConvertRecord, privateSpotGetSpotV1LoanOngoingOrders, privateSpotGetSpotV1LoanRepayHistory, privateSpotGetSpotV1LoanReviseHistory, privateSpotGetSpotV1LoanBorrowHistory, privateSpotGetSpotV1LoanDebts, privateSpotGetV2SpotTradeOrderInfo, privateSpotGetV2SpotTradeUnfilledOrders, privateSpotGetV2SpotTradeHistoryOrders, privateSpotGetV2SpotTradeFills, privateSpotGetV2SpotTradeCurrentPlanOrder, privateSpotGetV2SpotTradeHistoryPlanOrder, privateSpotGetV2SpotAccountInfo, privateSpotGetV2SpotAccountAssets, privateSpotGetV2SpotAccountSubaccountAssets, privateSpotGetV2SpotAccountBills, privateSpotGetV2SpotAccountTransferRecords, privateSpotGetV2AccountFundingAssets, privateSpotGetV2AccountBotAssets, privateSpotGetV2AccountAllAccountBalance, privateSpotGetV2SpotWalletDepositAddress, privateSpotGetV2SpotWalletDepositRecords, privateSpotGetV2SpotWalletWithdrawalRecords, privateSpotGetV2SpotAccountUpgradeStatus, privateSpotPostSpotV1WalletTransfer, privateSpotPostSpotV1WalletTransferV2, privateSpotPostSpotV1WalletSubTransfer, privateSpotPostSpotV1WalletWithdrawal, privateSpotPostSpotV1WalletWithdrawalV2, privateSpotPostSpotV1WalletWithdrawalInner, privateSpotPostSpotV1WalletWithdrawalInnerV2, privateSpotPostSpotV1AccountSubAccountSpotAssets, privateSpotPostSpotV1AccountBills, privateSpotPostSpotV1TradeOrders, privateSpotPostSpotV1TradeBatchOrders, privateSpotPostSpotV1TradeCancelOrder, privateSpotPostSpotV1TradeCancelOrderV2, privateSpotPostSpotV1TradeCancelSymbolOrder, privateSpotPostSpotV1TradeCancelBatchOrders, privateSpotPostSpotV1TradeCancelBatchOrdersV2, privateSpotPostSpotV1TradeOrderInfo, privateSpotPostSpotV1TradeOpenOrders, privateSpotPostSpotV1TradeHistory, privateSpotPostSpotV1TradeFills, privateSpotPostSpotV1PlanPlacePlan, privateSpotPostSpotV1PlanModifyPlan, privateSpotPostSpotV1PlanCancelPlan, privateSpotPostSpotV1PlanCurrentPlan, privateSpotPostSpotV1PlanHistoryPlan, privateSpotPostSpotV1PlanBatchCancelPlan, privateSpotPostSpotV1ConvertQuotedPrice, privateSpotPostSpotV1ConvertTrade, privateSpotPostSpotV1LoanBorrow, privateSpotPostSpotV1LoanRepay, privateSpotPostSpotV1LoanRevisePledge, privateSpotPostSpotV1TraceOrderOrderCurrentList, privateSpotPostSpotV1TraceOrderOrderHistoryList, privateSpotPostSpotV1TraceOrderCloseTrackingOrder, privateSpotPostSpotV1TraceOrderUpdateTpsl, privateSpotPostSpotV1TraceOrderFollowerEndOrder, privateSpotPostSpotV1TraceOrderSpotInfoList, privateSpotPostSpotV1TraceConfigGetTraderSettings, privateSpotPostSpotV1TraceConfigGetFollowerSettings, privateSpotPostSpotV1TraceUserMyTraders, privateSpotPostSpotV1TraceConfigSetFollowerConfig, privateSpotPostSpotV1TraceUserMyFollowers, privateSpotPostSpotV1TraceConfigSetProductCode, privateSpotPostSpotV1TraceUserRemoveTrader, privateSpotPostSpotV1TraceGetRemovableFollower, privateSpotPostSpotV1TraceUserRemoveFollower, privateSpotPostSpotV1TraceProfitTotalProfitInfo, privateSpotPostSpotV1TraceProfitTotalProfitList, privateSpotPostSpotV1TraceProfitProfitHisList, privateSpotPostSpotV1TraceProfitProfitHisDetailList, privateSpotPostSpotV1TraceProfitWaitProfitDetailList, privateSpotPostSpotV1TraceUserGetTraderInfo, privateSpotPostV2SpotTradePlaceOrder, privateSpotPostV2SpotTradeCancelOrder, privateSpotPostV2SpotTradeBatchOrders, privateSpotPostV2SpotTradeBatchCancelOrder, privateSpotPostV2SpotTradeCancelSymbolOrder, privateSpotPostV2SpotTradePlacePlanOrder, privateSpotPostV2SpotTradeModifyPlanOrder, privateSpotPostV2SpotTradeCancelPlanOrder, privateSpotPostV2SpotTradeCancelReplaceOrder, privateSpotPostV2SpotTradeBatchCancelPlanOrder, privateSpotPostV2SpotWalletTransfer, privateSpotPostV2SpotWalletSubaccountTransfer, privateSpotPostV2SpotWalletWithdrawal, privateSpotPostV2SpotWalletCancelWithdrawal, privateSpotPostV2SpotWalletModifyDepositAccount, privateSpotPostV2SpotAccountUpgrade, privateMixGetMixV1AccountAccount, privateMixGetMixV1AccountAccounts, privateMixGetMixV1PositionSinglePosition, privateMixGetMixV1PositionSinglePositionV2, privateMixGetMixV1PositionAllPosition, privateMixGetMixV1PositionAllPositionV2, privateMixGetMixV1PositionHistoryPosition, privateMixGetMixV1AccountAccountBill, privateMixGetMixV1AccountAccountBusinessBill, privateMixGetMixV1OrderCurrent, privateMixGetMixV1OrderMarginCoinCurrent, privateMixGetMixV1OrderHistory, privateMixGetMixV1OrderHistoryProductType, privateMixGetMixV1OrderDetail, privateMixGetMixV1OrderFills, privateMixGetMixV1OrderAllFills, privateMixGetMixV1PlanCurrentPlan, privateMixGetMixV1PlanHistoryPlan, privateMixGetMixV1TraceCurrentTrack, privateMixGetMixV1TraceFollowerOrder, privateMixGetMixV1TraceFollowerHistoryOrders, privateMixGetMixV1TraceHistoryTrack, privateMixGetMixV1TraceSummary, privateMixGetMixV1TraceProfitSettleTokenIdGroup, privateMixGetMixV1TraceProfitDateGroupList, privateMixGetMixV1TradeProfitDateList, privateMixGetMixV1TraceWaitProfitDateList, privateMixGetMixV1TraceTraderSymbols, privateMixGetMixV1TraceTraderList, privateMixGetMixV1TraceTraderDetail, privateMixGetMixV1TraceQueryTraceConfig, privateMixGetV2MixAccountAccount, privateMixGetV2MixAccountAccounts, privateMixGetV2MixAccountSubAccountAssets, privateMixGetV2MixAccountInterestHistory, privateMixGetV2MixAccountMaxOpen, privateMixGetV2MixAccountLiqPrice, privateMixGetV2MixAccountOpenCount, privateMixGetV2MixAccountBill, privateMixGetV2MixAccountTransferLimits, privateMixGetV2MixAccountUnionConfig, privateMixGetV2MixAccountSwitchUnionUsdt, privateMixGetV2MixAccountIsolatedSymbols, privateMixGetV2MixMarketQueryPositionLever, privateMixGetV2MixPositionSinglePosition, privateMixGetV2MixPositionAllPosition, privateMixGetV2MixPositionAdlRank, privateMixGetV2MixPositionHistoryPosition, privateMixGetV2MixOrderDetail, privateMixGetV2MixOrderFills, privateMixGetV2MixOrderFillHistory, privateMixGetV2MixOrderOrdersPending, privateMixGetV2MixOrderOrdersHistory, privateMixGetV2MixOrderPlanSubOrder, privateMixGetV2MixOrderOrdersPlanPending, privateMixGetV2MixOrderOrdersPlanHistory, privateMixGetV2MixMarketPositionLongShort, privateMixPostMixV1AccountSubAccountContractAssets, privateMixPostMixV1AccountOpenCount, privateMixPostMixV1AccountSetLeverage, privateMixPostMixV1AccountSetMargin, privateMixPostMixV1AccountSetMarginMode, privateMixPostMixV1AccountSetPositionMode, privateMixPostMixV1OrderPlaceOrder, privateMixPostMixV1OrderBatchOrders, privateMixPostMixV1OrderCancelOrder, privateMixPostMixV1OrderCancelBatchOrders, privateMixPostMixV1OrderModifyOrder, privateMixPostMixV1OrderCancelSymbolOrders, privateMixPostMixV1OrderCancelAllOrders, privateMixPostMixV1OrderCloseAllPositions, privateMixPostMixV1PlanPlacePlan, privateMixPostMixV1PlanModifyPlan, privateMixPostMixV1PlanModifyPlanPreset, privateMixPostMixV1PlanPlaceTPSL, privateMixPostMixV1PlanPlaceTrailStop, privateMixPostMixV1PlanPlacePositionsTPSL, privateMixPostMixV1PlanModifyTPSLPlan, privateMixPostMixV1PlanCancelPlan, privateMixPostMixV1PlanCancelSymbolPlan, privateMixPostMixV1PlanCancelAllPlan, privateMixPostMixV1TraceCloseTrackOrder, privateMixPostMixV1TraceModifyTPSL, privateMixPostMixV1TraceCloseTrackOrderBySymbol, privateMixPostMixV1TraceSetUpCopySymbols, privateMixPostMixV1TraceFollowerSetBatchTraceConfig, privateMixPostMixV1TraceFollowerCloseByTrackingNo, privateMixPostMixV1TraceFollowerCloseByAll, privateMixPostMixV1TraceFollowerSetTpsl, privateMixPostMixV1TraceCancelCopyTrader, privateMixPostMixV1TraceTraderUpdateConfig, privateMixPostMixV1TraceMyTraderList, privateMixPostMixV1TraceMyFollowerList, privateMixPostMixV1TraceRemoveFollower, privateMixPostMixV1TracePublicGetFollowerConfig, privateMixPostMixV1TraceReportOrderHistoryList, privateMixPostMixV1TraceReportOrderCurrentList, privateMixPostMixV1TraceQueryTraderTpslRatioConfig, privateMixPostMixV1TraceTraderUpdateTpslRatioConfig, privateMixPostV2MixAccountSetAutoMargin, privateMixPostV2MixAccountSetLeverage, privateMixPostV2MixAccountSetAllLeverage, privateMixPostV2MixAccountSetMargin, privateMixPostV2MixAccountSetAssetMode, privateMixPostV2MixAccountSetMarginMode, privateMixPostV2MixAccountUnionConvert, privateMixPostV2MixAccountSetPositionMode, privateMixPostV2MixOrderPlaceOrder, privateMixPostV2MixOrderClickBackhand, privateMixPostV2MixOrderBatchPlaceOrder, privateMixPostV2MixOrderModifyOrder, privateMixPostV2MixOrderCancelOrder, privateMixPostV2MixOrderBatchCancelOrders, privateMixPostV2MixOrderClosePositions, privateMixPostV2MixOrderCancelAllOrders, privateMixPostV2MixOrderPlaceTpslOrder, privateMixPostV2MixOrderPlacePosTpsl, privateMixPostV2MixOrderPlacePlanOrder, privateMixPostV2MixOrderModifyTpslOrder, privateMixPostV2MixOrderModifyPlanOrder, privateMixPostV2MixOrderCancelPlanOrder, privateUserGetUserV1FeeQuery, privateUserGetUserV1SubVirtualList, privateUserGetUserV1SubVirtualApiList, privateUserGetUserV1TaxSpotRecord, privateUserGetUserV1TaxFutureRecord, privateUserGetUserV1TaxMarginRecord, privateUserGetUserV1TaxP2pRecord, privateUserGetV2UserVirtualSubaccountList, privateUserGetV2UserVirtualSubaccountApikeyList, privateUserPostUserV1SubVirtualCreate, privateUserPostUserV1SubVirtualModify, privateUserPostUserV1SubVirtualApiBatchCreate, privateUserPostUserV1SubVirtualApiCreate, privateUserPostUserV1SubVirtualApiModify, privateUserPostV2UserCreateVirtualSubaccount, privateUserPostV2UserModifyVirtualSubaccount, privateUserPostV2UserBatchCreateSubaccountAndApikey, privateUserPostV2UserCreateVirtualSubaccountApikey, privateUserPostV2UserModifyVirtualSubaccountApikey, privateP2pGetP2pV1MerchantMerchantList, privateP2pGetP2pV1MerchantMerchantInfo, privateP2pGetP2pV1MerchantAdvList, privateP2pGetP2pV1MerchantOrderList, privateP2pGetV2P2pMerchantList, privateP2pGetV2P2pMerchantInfo, privateP2pGetV2P2pOrderList, privateP2pGetV2P2pAdvList, privateBrokerGetBrokerV1AccountInfo, privateBrokerGetBrokerV1AccountSubList, privateBrokerGetBrokerV1AccountSubEmail, privateBrokerGetBrokerV1AccountSubSpotAssets, privateBrokerGetBrokerV1AccountSubFutureAssets, privateBrokerGetBrokerV1AccountSubaccountTransfer, privateBrokerGetBrokerV1AccountSubaccountDeposit, privateBrokerGetBrokerV1AccountSubaccountWithdrawal, privateBrokerGetBrokerV1AccountSubApiList, privateBrokerGetV2BrokerAccountInfo, privateBrokerGetV2BrokerAccountSubaccountList, privateBrokerGetV2BrokerAccountSubaccountEmail, privateBrokerGetV2BrokerAccountSubaccountSpotAssets, privateBrokerGetV2BrokerAccountSubaccountFutureAssets, privateBrokerGetV2BrokerManageSubaccountApikeyList, privateBrokerPostBrokerV1AccountSubCreate, privateBrokerPostBrokerV1AccountSubModify, privateBrokerPostBrokerV1AccountSubModifyEmail, privateBrokerPostBrokerV1AccountSubAddress, privateBrokerPostBrokerV1AccountSubWithdrawal, privateBrokerPostBrokerV1AccountSubAutoTransfer, privateBrokerPostBrokerV1AccountSubApiCreate, privateBrokerPostBrokerV1AccountSubApiModify, privateBrokerPostV2BrokerAccountModifySubaccountEmail, privateBrokerPostV2BrokerAccountCreateSubaccount, privateBrokerPostV2BrokerAccountModifySubaccount, privateBrokerPostV2BrokerAccountSubaccountAddress, privateBrokerPostV2BrokerAccountSubaccountWithdrawal, privateBrokerPostV2BrokerAccountSetSubaccountAutotransfer, privateBrokerPostV2BrokerManageCreateSubaccountApikey, privateBrokerPostV2BrokerManageModifySubaccountApikey, privateMarginGetMarginV1CrossAccountRiskRate, privateMarginGetMarginV1CrossAccountMaxTransferOutAmount, privateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount, privateMarginGetMarginV1IsolatedOrderOpenOrders, privateMarginGetMarginV1IsolatedOrderHistory, privateMarginGetMarginV1IsolatedOrderFills, privateMarginGetMarginV1IsolatedLoanList, privateMarginGetMarginV1IsolatedRepayList, privateMarginGetMarginV1IsolatedInterestList, privateMarginGetMarginV1IsolatedLiquidationList, privateMarginGetMarginV1IsolatedFinList, privateMarginGetMarginV1CrossOrderOpenOrders, privateMarginGetMarginV1CrossOrderHistory, privateMarginGetMarginV1CrossOrderFills, privateMarginGetMarginV1CrossLoanList, privateMarginGetMarginV1CrossRepayList, privateMarginGetMarginV1CrossInterestList, privateMarginGetMarginV1CrossLiquidationList, privateMarginGetMarginV1CrossFinList, privateMarginGetMarginV1CrossAccountAssets, privateMarginGetMarginV1IsolatedAccountAssets, privateMarginGetV2MarginCrossedBorrowHistory, privateMarginGetV2MarginCrossedRepayHistory, privateMarginGetV2MarginCrossedInterestHistory, privateMarginGetV2MarginCrossedLiquidationHistory, privateMarginGetV2MarginCrossedFinancialRecords, privateMarginGetV2MarginCrossedAccountAssets, privateMarginGetV2MarginCrossedAccountRiskRate, privateMarginGetV2MarginCrossedAccountMaxBorrowableAmount, privateMarginGetV2MarginCrossedAccountMaxTransferOutAmount, privateMarginGetV2MarginCrossedInterestRateAndLimit, privateMarginGetV2MarginCrossedTierData, privateMarginGetV2MarginCrossedOpenOrders, privateMarginGetV2MarginCrossedHistoryOrders, privateMarginGetV2MarginCrossedFills, privateMarginGetV2MarginIsolatedBorrowHistory, privateMarginGetV2MarginIsolatedRepayHistory, privateMarginGetV2MarginIsolatedInterestHistory, privateMarginGetV2MarginIsolatedLiquidationHistory, privateMarginGetV2MarginIsolatedFinancialRecords, privateMarginGetV2MarginIsolatedAccountAssets, privateMarginGetV2MarginIsolatedAccountRiskRate, privateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount, privateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount, privateMarginGetV2MarginIsolatedInterestRateAndLimit, privateMarginGetV2MarginIsolatedTierData, privateMarginGetV2MarginIsolatedOpenOrders, privateMarginGetV2MarginIsolatedHistoryOrders, privateMarginGetV2MarginIsolatedFills, privateMarginPostMarginV1CrossAccountBorrow, privateMarginPostMarginV1IsolatedAccountBorrow, privateMarginPostMarginV1CrossAccountRepay, privateMarginPostMarginV1IsolatedAccountRepay, privateMarginPostMarginV1IsolatedAccountRiskRate, privateMarginPostMarginV1CrossAccountMaxBorrowableAmount, privateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount, privateMarginPostMarginV1IsolatedAccountFlashRepay, privateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus, privateMarginPostMarginV1CrossAccountFlashRepay, privateMarginPostMarginV1CrossAccountQueryFlashRepayStatus, privateMarginPostMarginV1IsolatedOrderPlaceOrder, privateMarginPostMarginV1IsolatedOrderBatchPlaceOrder, privateMarginPostMarginV1IsolatedOrderCancelOrder, privateMarginPostMarginV1IsolatedOrderBatchCancelOrder, privateMarginPostMarginV1CrossOrderPlaceOrder, privateMarginPostMarginV1CrossOrderBatchPlaceOrder, privateMarginPostMarginV1CrossOrderCancelOrder, privateMarginPostMarginV1CrossOrderBatchCancelOrder, privateMarginPostV2MarginCrossedAccountBorrow, privateMarginPostV2MarginCrossedAccountRepay, privateMarginPostV2MarginCrossedAccountFlashRepay, privateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus, privateMarginPostV2MarginCrossedPlaceOrder, privateMarginPostV2MarginCrossedBatchPlaceOrder, privateMarginPostV2MarginCrossedCancelOrder, privateMarginPostV2MarginCrossedBatchCancelOrder, privateMarginPostV2MarginIsolatedAccountBorrow, privateMarginPostV2MarginIsolatedAccountRepay, privateMarginPostV2MarginIsolatedAccountFlashRepay, privateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus, privateMarginPostV2MarginIsolatedPlaceOrder, privateMarginPostV2MarginIsolatedBatchPlaceOrder, privateMarginPostV2MarginIsolatedCancelOrder, privateMarginPostV2MarginIsolatedBatchCancelOrder, privateCopyGetV2CopyMixTraderOrderCurrentTrack, privateCopyGetV2CopyMixTraderOrderHistoryTrack, privateCopyGetV2CopyMixTraderOrderTotalDetail, privateCopyGetV2CopyMixTraderProfitHistorySummarys, privateCopyGetV2CopyMixTraderProfitHistoryDetails, privateCopyGetV2CopyMixTraderProfitDetails, privateCopyGetV2CopyMixTraderProfitsGroupCoinDate, privateCopyGetV2CopyMixTraderConfigQuerySymbols, privateCopyGetV2CopyMixTraderConfigQueryFollowers, privateCopyGetV2CopyMixFollowerQueryCurrentOrders, privateCopyGetV2CopyMixFollowerQueryHistoryOrders, privateCopyGetV2CopyMixFollowerQuerySettings, privateCopyGetV2CopyMixFollowerQueryTraders, privateCopyGetV2CopyMixFollowerQueryQuantityLimit, privateCopyGetV2CopyMixBrokerQueryTraders, privateCopyGetV2CopyMixBrokerQueryHistoryTraces, privateCopyGetV2CopyMixBrokerQueryCurrentTraces, privateCopyGetV2CopySpotTraderProfitSummarys, privateCopyGetV2CopySpotTraderProfitHistoryDetails, privateCopyGetV2CopySpotTraderProfitDetails, privateCopyGetV2CopySpotTraderOrderTotalDetail, privateCopyGetV2CopySpotTraderOrderHistoryTrack, privateCopyGetV2CopySpotTraderOrderCurrentTrack, privateCopyGetV2CopySpotTraderConfigQuerySettings, privateCopyGetV2CopySpotTraderConfigQueryFollowers, privateCopyGetV2CopySpotFollowerQueryTraders, privateCopyGetV2CopySpotFollowerQueryTraderSymbols, privateCopyGetV2CopySpotFollowerQuerySettings, privateCopyGetV2CopySpotFollowerQueryHistoryOrders, privateCopyGetV2CopySpotFollowerQueryCurrentOrders, privateCopyPostV2CopyMixTraderOrderModifyTpsl, privateCopyPostV2CopyMixTraderOrderClosePositions, privateCopyPostV2CopyMixTraderConfigSettingSymbols, privateCopyPostV2CopyMixTraderConfigSettingBase, privateCopyPostV2CopyMixTraderConfigRemoveFollower, privateCopyPostV2CopyMixFollowerSettingTpsl, privateCopyPostV2CopyMixFollowerSettings, privateCopyPostV2CopyMixFollowerClosePositions, privateCopyPostV2CopyMixFollowerCancelTrader, privateCopyPostV2CopySpotTraderOrderModifyTpsl, privateCopyPostV2CopySpotTraderOrderCloseTracking, privateCopyPostV2CopySpotTraderConfigSettingSymbols, privateCopyPostV2CopySpotTraderConfigRemoveFollower, privateCopyPostV2CopySpotFollowerStopOrder, privateCopyPostV2CopySpotFollowerSettings, privateCopyPostV2CopySpotFollowerSettingTpsl, privateCopyPostV2CopySpotFollowerOrderCloseTracking, privateCopyPostV2CopySpotFollowerCancelTrader, privateTaxGetV2TaxSpotRecord, privateTaxGetV2TaxFutureRecord, privateTaxGetV2TaxMarginRecord, privateTaxGetV2TaxP2pRecord, privateConvertGetV2ConvertCurrencies, privateConvertGetV2ConvertQuotedPrice, privateConvertGetV2ConvertConvertRecord, privateConvertGetV2ConvertBgbConvertCoinList, privateConvertGetV2ConvertBgbConvertRecords, privateConvertPostV2ConvertTrade, privateConvertPostV2ConvertBgbConvert, privateEarnGetV2EarnSavingsProduct, privateEarnGetV2EarnSavingsAccount, privateEarnGetV2EarnSavingsAssets, privateEarnGetV2EarnSavingsRecords, privateEarnGetV2EarnSavingsSubscribeInfo, privateEarnGetV2EarnSavingsSubscribeResult, privateEarnGetV2EarnSavingsRedeemResult, privateEarnGetV2EarnSharkfinProduct, privateEarnGetV2EarnSharkfinAccount, privateEarnGetV2EarnSharkfinAssets, privateEarnGetV2EarnSharkfinRecords, privateEarnGetV2EarnSharkfinSubscribeInfo, privateEarnGetV2EarnSharkfinSubscribeResult, privateEarnGetV2EarnLoanOngoingOrders, privateEarnGetV2EarnLoanRepayHistory, privateEarnGetV2EarnLoanReviseHistory, privateEarnGetV2EarnLoanBorrowHistory, privateEarnGetV2EarnLoanDebts, privateEarnGetV2EarnLoanReduces, privateEarnGetV2EarnAccountAssets, privateEarnPostV2EarnSavingsSubscribe, privateEarnPostV2EarnSavingsRedeem, privateEarnPostV2EarnSharkfinSubscribe, privateEarnPostV2EarnLoanBorrow, privateEarnPostV2EarnLoanRepay, privateEarnPostV2EarnLoanRevisePledge, privateCommonGetV2CommonTradeRate, privateUtaGetV3AccountAssets, privateUtaGetV3AccountFundingAssets, privateUtaGetV3AccountSettings, privateUtaGetV3AccountFinancialRecords, privateUtaGetV3AccountRepayableCoins, privateUtaGetV3AccountPaymentCoins, privateUtaGetV3AccountConvertRecords, privateUtaGetV3AccountDeductInfo, privateUtaGetV3AccountFeeRate, privateUtaGetV3AccountSwitchStatus, privateUtaGetV3AccountMaxTransferable, privateUtaGetV3AccountOpenInterestLimit, privateUtaGetV3AccountSubUnifiedAssets, privateUtaGetV3AccountTransferableCoins, privateUtaGetV3AccountSubTransferRecord, privateUtaGetV3AccountDepositAddress, privateUtaGetV3AccountSubDepositAddress, privateUtaGetV3AccountDepositRecords, privateUtaGetV3AccountSubDepositRecords, privateUtaGetV3AccountWithdrawalRecords, privateUtaGetV3BrokerSubList, privateUtaGetV3BrokerAllSubDepositWithdrawal, privateUtaGetV3BrokerCommission, privateUtaGetV3BrokerQuerySubApikey, privateUtaGetV3InsLoanTransfered, privateUtaGetV3InsLoanSymbols, privateUtaGetV3InsLoanRiskUnit, privateUtaGetV3InsLoanRepaidHistory, privateUtaGetV3InsLoanProductInfos, privateUtaGetV3InsLoanLoanOrder, privateUtaGetV3InsLoanLtvConvert, privateUtaGetV3InsLoanEnsureCoinsConvert, privateUtaGetV3LoanCoins, privateUtaGetV3LoanInterest, privateUtaGetV3LoanBorrowOngoing, privateUtaGetV3LoanBorrowHistory, privateUtaGetV3LoanRepayHistory, privateUtaGetV3LoanPledgeRateHistory, privateUtaGetV3LoanDebts, privateUtaGetV3LoanReduces, privateUtaGetV3PositionCurrentPosition, privateUtaGetV3PositionHistoryPosition, privateUtaGetV3PositionAdlRank, privateUtaGetV3TaxRecords, privateUtaGetV3TradeOrderInfo, privateUtaGetV3TradeUnfilledOrders, privateUtaGetV3TradeUnfilledStrategyOrders, privateUtaGetV3TradeHistoryOrders, privateUtaGetV3TradeHistoryStrategyOrders, privateUtaGetV3TradeFills, privateUtaGetV3UserSubList, privateUtaGetV3UserSubApiList, privateUtaPostV3AccountSetLeverage, privateUtaPostV3AccountSetHoldMode, privateUtaPostV3AccountRepay, privateUtaPostV3AccountSwitchDeduct, privateUtaPostV3AccountDepositAccount, privateUtaPostV3AccountSwitch, privateUtaPostV3AccountAdjustAccountMode, privateUtaPostV3AccountTransfer, privateUtaPostV3AccountSubTransfer, privateUtaPostV3AccountSubMasterTransfer, privateUtaPostV3AccountMaxOpenAvailable, privateUtaPostV3AccountWithdrawal, privateUtaPostV3BrokerCreateSub, privateUtaPostV3BrokerModifySub, privateUtaPostV3BrokerSubWithdrawal, privateUtaPostV3BrokerSubDepositAddress, privateUtaPostV3BrokerCreateSubApikey, privateUtaPostV3BrokerModifySubApikey, privateUtaPostV3BrokerDeleteSubApikey, privateUtaPostV3InsLoanBindUid, privateUtaPostV3LoanBorrow, privateUtaPostV3LoanRepay, privateUtaPostV3LoanRevisePledge, privateUtaPostV3TradePlaceOrder, privateUtaPostV3TradePlaceStrategyOrder, privateUtaPostV3TradeModifyOrder, privateUtaPostV3TradeModifyStrategyOrder, privateUtaPostV3TradeCancelOrder, privateUtaPostV3TradeCancelStrategyOrder, privateUtaPostV3TradePlaceBatch, privateUtaPostV3TradeBatchModifyOrder, privateUtaPostV3TradeCancelBatch, privateUtaPostV3TradeCancelSymbolOrder, privateUtaPostV3TradeClosePositions, privateUtaPostV3TradeCountdownCancelAll, privateUtaPostV3UserCreateSub, privateUtaPostV3UserFreezeSub, privateUtaPostV3UserCreateSubApi, privateUtaPostV3UserUpdateSubApi, privateUtaPostV3UserDeleteSubApi)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

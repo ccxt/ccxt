@@ -195,17 +195,228 @@ function describe(self::Coinspot, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["latest"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("latest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("post") => ["orders", "orders/history", "my/coin/deposit", "my/coin/send", "quote/buy", "quote/sell", "my/balances", "my/orders", "my/buy", "my/sell", "my/buy/cancel", "my/sell/cancel", "ro/my/balances", "ro/my/balances/{cointype}", "ro/my/deposits", "ro/my/withdrawals", "ro/my/transactions", "ro/my/transactions/{cointype}", "ro/my/transactions/open", "ro/my/transactions/{cointype}/open", "ro/my/sendreceive", "ro/my/affiliatepayments", "ro/my/referralpayments"]
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("my/coin/deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("my/coin/send") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/buy") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/sell") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("my/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("my/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("my/buy") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("my/sell") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("my/buy/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("my/sell/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ro/my/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ro/my/balances/{cointype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ro/my/deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ro/my/withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ro/my/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ro/my/transactions/{cointype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ro/my/transactions/open") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ro/my/transactions/{cointype}/open") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ro/my/sendreceive") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ro/my/affiliatepayments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ro/my/referralpayments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("v2") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
-                Symbol("get") => ["latest", "latest/{cointype}", "latest/{cointype}/{markettype}", "buyprice/{cointype}", "buyprice/{cointype}/{markettype}", "sellprice/{cointype}", "sellprice/{cointype}/{markettype}", "orders/open/{cointype}", "orders/open/{cointype}/{markettype}", "orders/completed/{cointype}", "orders/completed/{cointype}/{markettype}", "orders/summary/completed/{cointype}", "orders/summary/completed/{cointype}/{markettype}"]
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("latest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("latest/{cointype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("latest/{cointype}/{markettype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("buyprice/{cointype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("buyprice/{cointype}/{markettype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sellprice/{cointype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sellprice/{cointype}/{markettype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders/open/{cointype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders/open/{cointype}/{markettype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders/completed/{cointype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders/completed/{cointype}/{markettype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders/summary/completed/{cointype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders/summary/completed/{cointype}/{markettype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             ),
             Symbol("private") => Dict{Symbol, Any}(
-                Symbol("post") => ["status", "my/coin/deposit", "quote/buy/now", "quote/sell/now", "quote/swap/now", "my/buy", "my/buy/edit", "my/sell", "my/sell/edit", "my/buy/now", "my/sell/now", "my/swap/now", "my/buy/cancel", "my/buy/cancel/all", "my/sell/cancel", "my/sell/cancel/all", "my/coin/withdraw/senddetails", "my/coin/withdraw/send", "ro/status", "ro/orders/market/open", "ro/orders/market/completed", "ro/my/balances", "ro/my/balance/{cointype}", "ro/my/orders/market/open", "ro/my/orders/limit/open", "ro/my/orders/completed", "ro/my/orders/market/completed", "ro/my/sendreceive", "ro/my/deposits", "ro/my/withdrawals", "ro/my/affiliatepayments", "ro/my/referralpayments"]
+                Symbol("post") => Dict{Symbol, Any}(
+                    Symbol("status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/coin/deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("quote/buy/now") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("quote/sell/now") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("quote/swap/now") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/buy") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/buy/edit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/sell") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/sell/edit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/buy/now") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/sell/now") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/swap/now") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/buy/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/buy/cancel/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/sell/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/sell/cancel/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/coin/withdraw/senddetails") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my/coin/withdraw/send") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/orders/market/open") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/orders/market/completed") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/my/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/my/balance/{cointype}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/my/orders/market/open") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/my/orders/limit/open") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/my/orders/completed") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/my/orders/market/completed") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/my/sendreceive") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/my/deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/my/withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/my/affiliatepayments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ro/my/referralpayments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             )
         )
     ),
@@ -456,7 +667,9 @@ function parseBalance(self::Coinspot, response)
                 code = self.safeCurrencyCode(currencyId);
                 account = self.account();
                 account[Symbol("total")] = safeString(balance, "balance");
-                result[Symbol(code)] = account;
+                if functions.ccxtruthy(code != nothing)
+                    result[Symbol(code)] = account;
+                end
                 j += 1
             end
             i += 1
@@ -470,7 +683,9 @@ function parseBalance(self::Coinspot, response)
             code = self.safeCurrencyCode(currencyId);
             account = self.account();
             account[Symbol("total")] = safeString(balances, currencyId);
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
             i += 1
         end
     end
@@ -482,7 +697,7 @@ function fetchBalance(self::Coinspot, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     method = safeString(self.options, "fetchBalance", "private_post_my_balances");
-    response = Base.fetch(getproperty(self, Symbol(method))(self, params));
+    response = Base.fetch(getproperty(self, Symbol(method))(params));
     return self.parseBalance(response)
 
 end
@@ -734,7 +949,7 @@ function sign(self::Coinspot, path, api="public", method="GET", params=Dict(), h
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Coinspot, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1017,9 +1232,62 @@ end
 
 function Coinspot(; kwargs...)
     inst = Coinspot(Exchange(), describe, parseBalance, fetchBalance, fetchOrderBook, parseTicker, fetchTicker, fetchTickers, fetchTrades, fetchMyTrades, parseTrade, createOrder, cancelOrder, handleErrors, sign, publicGetLatest, privatePostOrders, privatePostOrdersHistory, privatePostMyCoinDeposit, privatePostMyCoinSend, privatePostQuoteBuy, privatePostQuoteSell, privatePostMyBalances, privatePostMyOrders, privatePostMyBuy, privatePostMySell, privatePostMyBuyCancel, privatePostMySellCancel, privatePostRoMyBalances, privatePostRoMyBalancesCointype, privatePostRoMyDeposits, privatePostRoMyWithdrawals, privatePostRoMyTransactions, privatePostRoMyTransactionsCointype, privatePostRoMyTransactionsOpen, privatePostRoMyTransactionsCointypeOpen, privatePostRoMySendreceive, privatePostRoMyAffiliatepayments, privatePostRoMyReferralpayments, v2PublicGetLatest, v2PublicGetLatestCointype, v2PublicGetLatestCointypeMarkettype, v2PublicGetBuypriceCointype, v2PublicGetBuypriceCointypeMarkettype, v2PublicGetSellpriceCointype, v2PublicGetSellpriceCointypeMarkettype, v2PublicGetOrdersOpenCointype, v2PublicGetOrdersOpenCointypeMarkettype, v2PublicGetOrdersCompletedCointype, v2PublicGetOrdersCompletedCointypeMarkettype, v2PublicGetOrdersSummaryCompletedCointype, v2PublicGetOrdersSummaryCompletedCointypeMarkettype, v2PrivatePostStatus, v2PrivatePostMyCoinDeposit, v2PrivatePostQuoteBuyNow, v2PrivatePostQuoteSellNow, v2PrivatePostQuoteSwapNow, v2PrivatePostMyBuy, v2PrivatePostMyBuyEdit, v2PrivatePostMySell, v2PrivatePostMySellEdit, v2PrivatePostMyBuyNow, v2PrivatePostMySellNow, v2PrivatePostMySwapNow, v2PrivatePostMyBuyCancel, v2PrivatePostMyBuyCancelAll, v2PrivatePostMySellCancel, v2PrivatePostMySellCancelAll, v2PrivatePostMyCoinWithdrawSenddetails, v2PrivatePostMyCoinWithdrawSend, v2PrivatePostRoStatus, v2PrivatePostRoOrdersMarketOpen, v2PrivatePostRoOrdersMarketCompleted, v2PrivatePostRoMyBalances, v2PrivatePostRoMyBalanceCointype, v2PrivatePostRoMyOrdersMarketOpen, v2PrivatePostRoMyOrdersLimitOpen, v2PrivatePostRoMyOrdersCompleted, v2PrivatePostRoMyOrdersMarketCompleted, v2PrivatePostRoMySendreceive, v2PrivatePostRoMyDeposits, v2PrivatePostRoMyWithdrawals, v2PrivatePostRoMyAffiliatepayments, v2PrivatePostRoMyReferralpayments)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -168,10 +168,96 @@ function describe(self::Bithumb, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["ticker/ALL_{quoteId}", "ticker/{baseId}_{quoteId}", "orderbook/ALL_{quoteId}", "orderbook/{baseId}_{quoteId}", "transaction_history/{baseId}_{quoteId}", "network-info", "assetsstatus/multichain/ALL", "assetsstatus/multichain/{currency}", "withdraw/minimum/ALL", "withdraw/minimum/{currency}", "assetsstatus/ALL", "assetsstatus/{baseId}", "candlestick/{baseId}_{quoteId}/{interval}"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("ticker/ALL_{quoteId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker/{baseId}_{quoteId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook/ALL_{quoteId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook/{baseId}_{quoteId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction_history/{baseId}_{quoteId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("network-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assetsstatus/multichain/ALL") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assetsstatus/multichain/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraw/minimum/ALL") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraw/minimum/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assetsstatus/ALL") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assetsstatus/{baseId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("candlestick/{baseId}_{quoteId}/{interval}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("post") => ["info/account", "info/balance", "info/wallet_address", "info/ticker", "info/orders", "info/user_transactions", "info/order_detail", "trade/place", "trade/cancel", "trade/btc_withdrawal", "trade/krw_deposit", "trade/krw_withdrawal", "trade/market_buy", "trade/market_sell", "trade/stop_limit"]
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("info/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("info/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("info/wallet_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("info/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("info/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("info/user_transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("info/order_detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/place") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/btc_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/krw_deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/krw_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/market_buy") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/market_sell") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/stop_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(
@@ -295,7 +381,8 @@ function safeMarket(self::Bithumb, marketId=nothing, market=nothing, delimiter=n
 
 end
 function amountToPrecision(self::Bithumb, symbol, amount)
-    return decimalToPrecision(amount, TRUNCATE, get(get(get(self.markets, Symbol(symbol), nothing), Symbol("precision"), nothing), Symbol("amount"), nothing), DECIMAL_PLACES)
+    market = self.market(symbol);
+    return decimalToPrecision(amount, TRUNCATE, get(get(market, Symbol("precision"), nothing), Symbol("amount"), nothing), DECIMAL_PLACES)
 
 end
 function fetchMarkets(self::Bithumb, params=Dict())
@@ -633,7 +720,7 @@ function createOrder(self::Bithumb, symbol, type_var, side, amount, price=nothin
     else
         method = string("privatePostTradeMarket", capitalize(side));
     end
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     id = safeString(response, "order_id");
     if functions.ccxtruthy(id == nothing)
         throw(InvalidOrder(string(self.id, " createOrder() did not return an order id")));
@@ -867,6 +954,8 @@ function sign(self::Bithumb, path, api="public", method="GET", params=Dict(), he
         body = self.urlencode(extend(Dict{Symbol, Any}(
     Symbol("endpoint") => endpoint
 ), query));
+        bodyParts = split(body, "%20");
+        body = join(bodyParts, "+");
         nonce = string(self.nonce());
         auth = string(endpoint, "\0", body, "\0", nonce);
         signature = self.hmac(self.encode(auth), self.encode(self.secret), sha512);
@@ -910,7 +999,7 @@ function handleErrors(self::Bithumb, httpCode, reason, url, method, headers, bod
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bithumb, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1029,9 +1118,62 @@ end
 
 function Bithumb(; kwargs...)
     inst = Bithumb(Exchange(), describe, safeMarket, amountToPrecision, fetchMarkets, parseBalance, fetchBalance, fetchOrderBook, parseTicker, fetchTickers, fetchTicker, parseOHLCV, fetchOHLCV, parseTrade, fetchTrades, createOrder, fetchOrder, parseOrderStatus, parseOrder, fetchOpenOrders, cancelOrder, cancelUnifiedOrder, withdraw, parseTransaction, fixCommaNumber, nonce, sign, handleErrors, publicGetTickerALLQuoteId, publicGetTickerBaseIdQuoteId, publicGetOrderbookALLQuoteId, publicGetOrderbookBaseIdQuoteId, publicGetTransactionHistoryBaseIdQuoteId, publicGetNetworkInfo, publicGetAssetsstatusMultichainALL, publicGetAssetsstatusMultichainCurrency, publicGetWithdrawMinimumALL, publicGetWithdrawMinimumCurrency, publicGetAssetsstatusALL, publicGetAssetsstatusBaseId, publicGetCandlestickBaseIdQuoteIdInterval, privatePostInfoAccount, privatePostInfoBalance, privatePostInfoWalletAddress, privatePostInfoTicker, privatePostInfoOrders, privatePostInfoUserTransactions, privatePostInfoOrderDetail, privatePostTradePlace, privatePostTradeCancel, privatePostTradeBtcWithdrawal, privatePostTradeKrwDeposit, privatePostTradeKrwWithdrawal, privatePostTradeMarketBuy, privatePostTradeMarketSell, privatePostTradeStopLimit)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

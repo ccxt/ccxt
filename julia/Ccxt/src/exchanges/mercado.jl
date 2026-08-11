@@ -174,16 +174,83 @@ function describe(self::Mercado, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["coins", "{coin}/orderbook/", "{coin}/ticker/", "{coin}/trades/", "{coin}/trades/{from}/", "{coin}/trades/{from}/{to}", "{coin}/day-summary/{year}/{month}/{day}/"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{coin}/orderbook/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{coin}/ticker/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{coin}/trades/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{coin}/trades/{from}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{coin}/trades/{from}/{to}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("{coin}/day-summary/{year}/{month}/{day}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("post") => ["cancel_order", "get_account_info", "get_order", "get_withdrawal", "list_system_messages", "list_orders", "list_orderbook", "place_buy_order", "place_sell_order", "place_market_buy_order", "place_market_sell_order", "withdraw_coin"]
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("cancel_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_account_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("list_system_messages") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("list_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("list_orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("place_buy_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("place_sell_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("place_market_buy_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("place_market_sell_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraw_coin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("v4Public") => Dict{Symbol, Any}(
-            Symbol("get") => ["{coin}/candle/"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("{coin}/candle/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("v4PublicNet") => Dict{Symbol, Any}(
-            Symbol("get") => ["candles"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(
@@ -278,13 +345,17 @@ function fetchMarkets(self::Mercado, params=Dict())
     response = Base.fetch(self.publicGetCoins(params));
     result = [];
     amountLimits = safeValue(self.options, "limits", Dict{Symbol, Any}());
+    coins = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        coin = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(coins)))
+        coin = get(coins, i + 1, nothing);
         baseId = coin;
         quoteId = "BRL";
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
+        if functions.ccxtruthy(@functions.ccxt_or((base == nothing), (quote_var == nothing)))
+            i += 1; continue
+        end
         id = string(quote_var, base);
         push!(result, Dict{Symbol, Any}(
     Symbol("id") => id,
@@ -443,7 +514,7 @@ function fetchTrades(self::Mercado, symbol, since=nothing, limit=nothing, params
     if functions.ccxtruthy(to != nothing)
         method += "To";
     end
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     return self.parseTrades(response, market, since, limit)
 
 end
@@ -463,7 +534,9 @@ function parseBalance(self::Mercado, response)
             account = self.account();
             account[Symbol("free")] = safeString(balance, "available");
             account[Symbol("total")] = safeString(balance, "total");
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
         end
         i += 1
     end
@@ -495,7 +568,7 @@ function createOrder(self::Mercado, symbol, type_var, side, amount, price=nothin
         method = string("privatePostPlaceMarket", method);
         if functions.ccxtruthy(side == "buy")
             if functions.ccxtruthy(price == nothing)
-                throw(InvalidOrder(string(self.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")));
+                throw(InvalidOrder(string(self.id, " createOrder() requires the price argument with market buy orders to calculate total order Ccxt.cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")));
             end
             amountString = numberToString(amount);
             priceString = numberToString(price);
@@ -505,7 +578,7 @@ function createOrder(self::Mercado, symbol, type_var, side, amount, price=nothin
             request[Symbol("quantity")] = self.amountToPrecision(get(market, Symbol("symbol"), nothing), amount);
         end
     end
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
     Symbol("id") => string(get(get(get(response, Symbol("response_data"), nothing), Symbol("order"), nothing), Symbol("order_id"), nothing))
@@ -692,8 +765,7 @@ function fetchOHLCV(self::Mercado, symbol, timeframe="15m", since=nothing, limit
         request[Symbol("from")] = get(request, Symbol("to"), nothing) - (limit * self.parseTimeframe(timeframe));
     end
     response = Base.fetch(self.v4PublicNetGetCandles(extend(request, params)));
-    candles = self.convertTradingViewToOHLCV(response, "t", "o", "h", "l", "c", "v");
-    return self.parseOHLCVs(candles, market, timeframe, since, limit)
+    return self.parseTradingViewOHLCV(response, market, timeframe, since, limit)
 
 end
 function fetchOrders(self::Mercado, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -809,7 +881,7 @@ function handleErrors(self::Mercado, httpCode, reason, url, method, headers, bod
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Mercado, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -900,9 +972,62 @@ end
 
 function Mercado(; kwargs...)
     inst = Mercado(Exchange(), describe, fetchMarkets, fetchOrderBook, parseTicker, fetchTicker, parseTrade, fetchTrades, parseBalance, fetchBalance, createOrder, cancelOrder, parseOrderStatus, parseOrder, fetchOrder, withdraw, parseTransaction, parseOHLCV, fetchOHLCV, fetchOrders, fetchOpenOrders, fetchMyTrades, ordersToTrades, sign, handleErrors, publicGetCoins, publicGetCoinOrderbook, publicGetCoinTicker, publicGetCoinTrades, publicGetCoinTradesFrom, publicGetCoinTradesFromTo, publicGetCoinDaySummaryYearMonthDay, privatePostCancelOrder, privatePostGetAccountInfo, privatePostGetOrder, privatePostGetWithdrawal, privatePostListSystemMessages, privatePostListOrders, privatePostListOrderbook, privatePostPlaceBuyOrder, privatePostPlaceSellOrder, privatePostPlaceMarketBuyOrder, privatePostPlaceMarketSellOrder, privatePostWithdrawCoin, v4PublicGetCoinCandle, v4PublicNetGetCandles)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -209,6 +209,7 @@ function describe(self::Gate, )
         Symbol("cancelOrder") => true,
         Symbol("cancelOrders") => true,
         Symbol("cancelOrdersForSymbols") => true,
+        Symbol("closePosition") => true,
         Symbol("createMarketBuyOrderWithCost") => true,
         Symbol("createMarketOrder") => true,
         Symbol("createMarketOrderWithCost") => false,
@@ -268,6 +269,8 @@ function describe(self::Gate, )
         Symbol("fetchOptionChain") => true,
         Symbol("fetchOrder") => true,
         Symbol("fetchOrderBook") => true,
+        Symbol("fetchOrdersByStatus") => true,
+        Symbol("fetchOrderTrades") => true,
         Symbol("fetchPosition") => true,
         Symbol("fetchPositionHistory") => "emulated",
         Symbol("fetchPositionMode") => false,
@@ -300,499 +303,1177 @@ function describe(self::Gate, )
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("wallet") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("currency_chains") => 1
+                    Symbol("currency_chains") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("unified") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("currencies") => 1,
-                    Symbol("history_loan_rate") => 1
+                    Symbol("currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("history_loan_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("spot") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("currencies") => 1,
-                    Symbol("currencies/{currency}") => 1,
-                    Symbol("currency_pairs") => 1,
-                    Symbol("currency_pairs/{currency_pair}") => 1,
-                    Symbol("tickers") => 1,
-                    Symbol("order_book") => 1,
-                    Symbol("trades") => 1,
-                    Symbol("candlesticks") => 1,
-                    Symbol("time") => 1,
-                    Symbol("insurance_history") => 1
+                    Symbol("currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("currencies/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("currency_pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("currency_pairs/{currency_pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("candlesticks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("insurance_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("margin") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("uni/currency_pairs") => 1,
-                    Symbol("uni/currency_pairs/{currency_pair}") => 1,
-                    Symbol("loan_margin_tiers") => 1,
-                    Symbol("currency_pairs") => 1,
-                    Symbol("currency_pairs/{currency_pair}") => 1,
-                    Symbol("funding_book") => 1,
-                    Symbol("cross/currencies") => 1,
-                    Symbol("cross/currencies/{currency}") => 1
+                    Symbol("uni/currency_pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("uni/currency_pairs/{currency_pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("loan_margin_tiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("currency_pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("currency_pairs/{currency_pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("funding_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("cross/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("cross/currencies/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("flash_swap") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("currency_pairs") => 1,
-                    Symbol("currencies") => 1
+                    Symbol("currency_pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("futures") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("{settle}/contracts") => 1,
-                    Symbol("{settle}/contracts/{contract}") => 1,
-                    Symbol("{settle}/order_book") => 1,
-                    Symbol("{settle}/trades") => 1,
-                    Symbol("{settle}/candlesticks") => 1,
-                    Symbol("{settle}/premium_index") => 1,
-                    Symbol("{settle}/tickers") => 1,
-                    Symbol("{settle}/funding_rate") => 1,
-                    Symbol("{settle}/insurance") => 1,
-                    Symbol("{settle}/contract_stats") => 1,
-                    Symbol("{settle}/index_constituents/{index}") => 1,
-                    Symbol("{settle}/liq_orders") => 1,
-                    Symbol("{settle}/risk_limit_tiers") => 1
+                    Symbol("{settle}/contracts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/contracts/{contract}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/order_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/candlesticks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/premium_index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/funding_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/insurance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/contract_stats") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/index_constituents/{index}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/liq_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/risk_limit_tiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("delivery") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("{settle}/contracts") => 1,
-                    Symbol("{settle}/contracts/{contract}") => 1,
-                    Symbol("{settle}/order_book") => 1,
-                    Symbol("{settle}/trades") => 1,
-                    Symbol("{settle}/candlesticks") => 1,
-                    Symbol("{settle}/tickers") => 1,
-                    Symbol("{settle}/insurance") => 1,
-                    Symbol("{settle}/risk_limit_tiers") => 1
+                    Symbol("{settle}/contracts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/contracts/{contract}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/order_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/candlesticks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/insurance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/risk_limit_tiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("options") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("underlyings") => 1,
-                    Symbol("expirations") => 1,
-                    Symbol("contracts") => 1,
-                    Symbol("contracts/{contract}") => 1,
-                    Symbol("settlements") => 1,
-                    Symbol("settlements/{contract}") => 1,
-                    Symbol("order_book") => 1,
-                    Symbol("tickers") => 1,
-                    Symbol("underlying/tickers/{underlying}") => 1,
-                    Symbol("candlesticks") => 1,
-                    Symbol("underlying/candlesticks") => 1,
-                    Symbol("trades") => 1
+                    Symbol("underlyings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("expirations") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("contracts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("contracts/{contract}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("settlements") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("settlements/{contract}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("underlying/tickers/{underlying}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("candlesticks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("underlying/candlesticks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("earn") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("uni/currencies") => 1,
-                    Symbol("uni/currencies/{currency}") => 1,
-                    Symbol("dual/investment_plan") => 1,
-                    Symbol("structured/products") => 1
+                    Symbol("uni/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("uni/currencies/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("dual/investment_plan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("structured/products") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("loan") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("collateral/currencies") => 1,
-                    Symbol("multi_collateral/currencies") => 1,
-                    Symbol("multi_collateral/ltv") => 1,
-                    Symbol("multi_collateral/fixed_rate") => 1,
-                    Symbol("multi_collateral/current_rate") => 1
+                    Symbol("collateral/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("multi_collateral/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("multi_collateral/ltv") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("multi_collateral/fixed_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("multi_collateral/current_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("withdrawals") => Dict{Symbol, Any}(
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("withdrawals") => 20,
-                    Symbol("push") => 1
+                    Symbol("withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("push") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("withdrawals/{withdrawal_id}") => 1
+                    Symbol("withdrawals/{withdrawal_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("wallet") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("deposit_address") => 1,
-                    Symbol("withdrawals") => 1,
-                    Symbol("deposits") => 1,
-                    Symbol("sub_account_transfers") => 1,
-                    Symbol("order_status") => 1,
-                    Symbol("withdraw_status") => 1,
-                    Symbol("sub_account_balances") => 2.5,
-                    Symbol("sub_account_margin_balances") => 2.5,
-                    Symbol("sub_account_futures_balances") => 2.5,
-                    Symbol("sub_account_cross_margin_balances") => 2.5,
-                    Symbol("saved_address") => 1,
-                    Symbol("fee") => 1,
-                    Symbol("total_balance") => 2.5,
-                    Symbol("small_balance") => 1,
-                    Symbol("small_balance_history") => 1,
-                    Symbol("push") => 1,
-                    Symbol("getLowCapExchangeList") => 1
+                    Symbol("deposit_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub_account_transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("withdraw_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub_account_balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("sub_account_margin_balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("sub_account_futures_balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("sub_account_cross_margin_balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("saved_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("total_balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("small_balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("small_balance_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("push") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("getLowCapExchangeList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("transfers") => 2.5,
-                    Symbol("sub_account_transfers") => 2.5,
-                    Symbol("sub_account_to_sub_account") => 2.5,
-                    Symbol("small_balance") => 1
+                    Symbol("transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("sub_account_transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("sub_account_to_sub_account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("small_balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("subAccounts") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("sub_accounts") => 2.5,
-                    Symbol("sub_accounts/{user_id}") => 2.5,
-                    Symbol("sub_accounts/{user_id}/keys") => 2.5,
-                    Symbol("sub_accounts/{user_id}/keys/{key}") => 2.5
+                    Symbol("sub_accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("sub_accounts/{user_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("sub_accounts/{user_id}/keys") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("sub_accounts/{user_id}/keys/{key}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("sub_accounts") => 2.5,
-                    Symbol("sub_accounts/{user_id}/keys") => 2.5,
-                    Symbol("sub_accounts/{user_id}/lock") => 2.5,
-                    Symbol("sub_accounts/{user_id}/unlock") => 2.5
+                    Symbol("sub_accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("sub_accounts/{user_id}/keys") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("sub_accounts/{user_id}/lock") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                    Symbol("sub_accounts/{user_id}/unlock") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("sub_accounts/{user_id}/keys/{key}") => 2.5
+                    Symbol("sub_accounts/{user_id}/keys/{key}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("sub_accounts/{user_id}/keys/{key}") => 2.5
+                    Symbol("sub_accounts/{user_id}/keys/{key}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+)
                 )
             ),
             Symbol("unified") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("accounts") => 20 / 15,
-                    Symbol("borrowable") => 20 / 15,
-                    Symbol("transferable") => 20 / 15,
-                    Symbol("transferables") => 20 / 15,
-                    Symbol("batch_borrowable") => 20 / 15,
-                    Symbol("loans") => 20 / 15,
-                    Symbol("loan_records") => 20 / 15,
-                    Symbol("interest_records") => 20 / 15,
-                    Symbol("risk_units") => 20 / 15,
-                    Symbol("unified_mode") => 20 / 15,
-                    Symbol("estimate_rate") => 20 / 15,
-                    Symbol("currency_discount_tiers") => 20 / 15,
-                    Symbol("loan_margin_tiers") => 20 / 15,
-                    Symbol("leverage/user_currency_config") => 20 / 15,
-                    Symbol("leverage/user_currency_setting") => 20 / 15,
-                    Symbol("account_mode") => 20 / 15
+                    Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("borrowable") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("transferable") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("transferables") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("batch_borrowable") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("loans") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("loan_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("interest_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("risk_units") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("unified_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("estimate_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("currency_discount_tiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("loan_margin_tiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("leverage/user_currency_config") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("leverage/user_currency_setting") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("account_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("loans") => 200 / 15,
-                    Symbol("portfolio_calculator") => 20 / 15,
-                    Symbol("leverage/user_currency_setting") => 20 / 15,
-                    Symbol("collateral_currencies") => 20 / 15,
-                    Symbol("account_mode") => 20 / 15
+                    Symbol("loans") => Dict{Symbol, Any}(
+    Symbol("cost") => 200 / 15
+),
+                    Symbol("portfolio_calculator") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("leverage/user_currency_setting") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("collateral_currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("account_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("unified_mode") => 20 / 15
+                    Symbol("unified_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 )
             ),
             Symbol("spot") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("fee") => 1,
-                    Symbol("batch_fee") => 1,
-                    Symbol("accounts") => 1,
-                    Symbol("account_book") => 1,
-                    Symbol("open_orders") => 1,
-                    Symbol("orders") => 1,
-                    Symbol("orders/{order_id}") => 1,
-                    Symbol("my_trades") => 1,
-                    Symbol("price_orders") => 1,
-                    Symbol("price_orders/{order_id}") => 1
+                    Symbol("fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("batch_fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("account_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("open_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("my_trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("price_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("price_orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("batch_orders") => 0.4,
-                    Symbol("cross_liquidate_orders") => 1,
-                    Symbol("orders") => 0.4,
-                    Symbol("cancel_batch_orders") => 20 / 75,
-                    Symbol("countdown_cancel_all") => 20 / 75,
-                    Symbol("amend_batch_orders") => 0.4,
-                    Symbol("price_orders") => 0.4
+                    Symbol("batch_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("cross_liquidate_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("cancel_batch_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 75
+),
+                    Symbol("countdown_cancel_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 75
+),
+                    Symbol("amend_batch_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("price_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("orders") => 20 / 75,
-                    Symbol("orders/{order_id}") => 20 / 75,
-                    Symbol("price_orders") => 20 / 75,
-                    Symbol("price_orders/{order_id}") => 20 / 75
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 75
+),
+                    Symbol("orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 75
+),
+                    Symbol("price_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 75
+),
+                    Symbol("price_orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 75
+)
                 ),
                 Symbol("patch") => Dict{Symbol, Any}(
-                    Symbol("orders/{order_id}") => 0.4
+                    Symbol("orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+)
                 )
             ),
             Symbol("margin") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("accounts") => 20 / 15,
-                    Symbol("account_book") => 20 / 15,
-                    Symbol("funding_accounts") => 20 / 15,
-                    Symbol("auto_repay") => 20 / 15,
-                    Symbol("transferable") => 20 / 15,
-                    Symbol("uni/estimate_rate") => 20 / 15,
-                    Symbol("uni/loans") => 20 / 15,
-                    Symbol("uni/loan_records") => 20 / 15,
-                    Symbol("uni/interest_records") => 20 / 15,
-                    Symbol("uni/borrowable") => 20 / 15,
-                    Symbol("user/loan_margin_tiers") => 20 / 15,
-                    Symbol("user/account") => 20 / 15,
-                    Symbol("loans") => 20 / 15,
-                    Symbol("loans/{loan_id}") => 20 / 15,
-                    Symbol("loans/{loan_id}/repayment") => 20 / 15,
-                    Symbol("loan_records") => 20 / 15,
-                    Symbol("loan_records/{loan_record_id}") => 20 / 15,
-                    Symbol("borrowable") => 20 / 15,
-                    Symbol("cross/accounts") => 20 / 15,
-                    Symbol("cross/account_book") => 20 / 15,
-                    Symbol("cross/loans") => 20 / 15,
-                    Symbol("cross/loans/{loan_id}") => 20 / 15,
-                    Symbol("cross/repayments") => 20 / 15,
-                    Symbol("cross/interest_records") => 20 / 15,
-                    Symbol("cross/transferable") => 20 / 15,
-                    Symbol("cross/estimate_rate") => 20 / 15,
-                    Symbol("cross/borrowable") => 20 / 15
+                    Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("account_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("funding_accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("auto_repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("transferable") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/estimate_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/loans") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/loan_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/interest_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/borrowable") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("user/loan_margin_tiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("user/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("loans") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("loans/{loan_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("loans/{loan_id}/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("loan_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("loan_records/{loan_record_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("borrowable") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("cross/accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("cross/account_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("cross/loans") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("cross/loans/{loan_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("cross/repayments") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("cross/interest_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("cross/transferable") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("cross/estimate_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("cross/borrowable") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("auto_repay") => 20 / 15,
-                    Symbol("uni/loans") => 20 / 15,
-                    Symbol("leverage/user_market_setting") => 20 / 15,
-                    Symbol("loans") => 20 / 15,
-                    Symbol("merged_loans") => 20 / 15,
-                    Symbol("loans/{loan_id}/repayment") => 20 / 15,
-                    Symbol("cross/loans") => 20 / 15,
-                    Symbol("cross/repayments") => 20 / 15
+                    Symbol("auto_repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/loans") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("leverage/user_market_setting") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("loans") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("merged_loans") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("loans/{loan_id}/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("cross/loans") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("cross/repayments") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("patch") => Dict{Symbol, Any}(
-                    Symbol("loans/{loan_id}") => 20 / 15,
-                    Symbol("loan_records/{loan_record_id}") => 20 / 15
+                    Symbol("loans/{loan_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("loan_records/{loan_record_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("loans/{loan_id}") => 20 / 15
+                    Symbol("loans/{loan_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 )
             ),
             Symbol("flash_swap") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("orders") => 1,
-                    Symbol("orders/{order_id}") => 1
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("orders") => 1,
-                    Symbol("orders/preview") => 1
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders/preview") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("futures") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("{settle}/accounts") => 1,
-                    Symbol("{settle}/account_book") => 1,
-                    Symbol("{settle}/positions") => 1,
-                    Symbol("{settle}/positions/{contract}") => 1,
-                    Symbol("{settle}/get_leverage/{contract}") => 1,
-                    Symbol("{settle}/dual_comp/positions/{contract}") => 1,
-                    Symbol("{settle}/orders") => 1,
-                    Symbol("{settle}/orders_timerange") => 1,
-                    Symbol("{settle}/orders/{order_id}") => 1,
-                    Symbol("{settle}/my_trades") => 1,
-                    Symbol("{settle}/my_trades_timerange") => 1,
-                    Symbol("{settle}/position_close") => 1,
-                    Symbol("{settle}/liquidates") => 1,
-                    Symbol("{settle}/auto_deleverages") => 1,
-                    Symbol("{settle}/fee") => 1,
-                    Symbol("{settle}/risk_limit_table") => 1,
-                    Symbol("{settle}/price_orders") => 1,
-                    Symbol("{settle}/price_orders/{order_id}") => 1
+                    Symbol("{settle}/accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/account_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/positions/{contract}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/get_leverage/{contract}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/dual_comp/positions/{contract}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/orders_timerange") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/my_trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/my_trades_timerange") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/position_close") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/liquidates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/auto_deleverages") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/risk_limit_table") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/price_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/price_orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("{settle}/positions/{contract}/margin") => 1,
-                    Symbol("{settle}/positions/{contract}/leverage") => 1,
-                    Symbol("{settle}/positions/{contract}/set_leverage") => 1,
-                    Symbol("{settle}/positions/{contract}/risk_limit") => 1,
-                    Symbol("{settle}/positions/cross_mode") => 1,
-                    Symbol("{settle}/dual_comp/positions/cross_mode") => 1,
-                    Symbol("{settle}/dual_mode") => 1,
-                    Symbol("{settle}/set_position_mode") => 1,
-                    Symbol("{settle}/dual_comp/positions/{contract}/margin") => 1,
-                    Symbol("{settle}/dual_comp/positions/{contract}/leverage") => 1,
-                    Symbol("{settle}/dual_comp/positions/{contract}/risk_limit") => 1,
-                    Symbol("{settle}/orders") => 0.4,
-                    Symbol("{settle}/batch_orders") => 0.4,
-                    Symbol("{settle}/countdown_cancel_all") => 0.4,
-                    Symbol("{settle}/batch_cancel_orders") => 0.4,
-                    Symbol("{settle}/batch_amend_orders") => 0.4,
-                    Symbol("{settle}/bbo_orders") => 0.4,
-                    Symbol("{settle}/price_orders") => 0.4
+                    Symbol("{settle}/positions/{contract}/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/positions/{contract}/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/positions/{contract}/set_leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/positions/{contract}/risk_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/positions/cross_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/dual_comp/positions/cross_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/dual_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/set_position_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/dual_comp/positions/{contract}/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/dual_comp/positions/{contract}/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/dual_comp/positions/{contract}/risk_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("{settle}/batch_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("{settle}/countdown_cancel_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("{settle}/batch_cancel_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("{settle}/batch_amend_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("{settle}/bbo_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("{settle}/price_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("{settle}/orders/{order_id}") => 1,
-                    Symbol("{settle}/price_orders/{order_id}") => 1
+                    Symbol("{settle}/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("{settle}/price_orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("{settle}/orders") => 20 / 75,
-                    Symbol("{settle}/orders/{order_id}") => 20 / 75,
-                    Symbol("{settle}/price_orders") => 20 / 75,
-                    Symbol("{settle}/price_orders/{order_id}") => 20 / 75
+                    Symbol("{settle}/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 75
+),
+                    Symbol("{settle}/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 75
+),
+                    Symbol("{settle}/price_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 75
+),
+                    Symbol("{settle}/price_orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 75
+)
                 )
             ),
             Symbol("delivery") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("{settle}/accounts") => 20 / 15,
-                    Symbol("{settle}/account_book") => 20 / 15,
-                    Symbol("{settle}/positions") => 20 / 15,
-                    Symbol("{settle}/positions/{contract}") => 20 / 15,
-                    Symbol("{settle}/orders") => 20 / 15,
-                    Symbol("{settle}/orders/{order_id}") => 20 / 15,
-                    Symbol("{settle}/my_trades") => 20 / 15,
-                    Symbol("{settle}/position_close") => 20 / 15,
-                    Symbol("{settle}/liquidates") => 20 / 15,
-                    Symbol("{settle}/settlements") => 20 / 15,
-                    Symbol("{settle}/price_orders") => 20 / 15,
-                    Symbol("{settle}/price_orders/{order_id}") => 20 / 15
+                    Symbol("{settle}/accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/account_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/positions/{contract}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/my_trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/position_close") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/liquidates") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/settlements") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/price_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/price_orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("{settle}/positions/{contract}/margin") => 20 / 15,
-                    Symbol("{settle}/positions/{contract}/leverage") => 20 / 15,
-                    Symbol("{settle}/positions/{contract}/risk_limit") => 20 / 15,
-                    Symbol("{settle}/orders") => 20 / 15,
-                    Symbol("{settle}/price_orders") => 20 / 15
+                    Symbol("{settle}/positions/{contract}/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/positions/{contract}/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/positions/{contract}/risk_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/price_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("{settle}/orders") => 20 / 15,
-                    Symbol("{settle}/orders/{order_id}") => 20 / 15,
-                    Symbol("{settle}/price_orders") => 20 / 15,
-                    Symbol("{settle}/price_orders/{order_id}") => 20 / 15
+                    Symbol("{settle}/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/price_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("{settle}/price_orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 )
             ),
             Symbol("options") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("my_settlements") => 20 / 15,
-                    Symbol("accounts") => 20 / 15,
-                    Symbol("account_book") => 20 / 15,
-                    Symbol("positions") => 20 / 15,
-                    Symbol("positions/{contract}") => 20 / 15,
-                    Symbol("position_close") => 20 / 15,
-                    Symbol("orders") => 20 / 15,
-                    Symbol("orders/{order_id}") => 20 / 15,
-                    Symbol("my_trades") => 20 / 15,
-                    Symbol("mmp") => 20 / 15
+                    Symbol("my_settlements") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("account_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("positions/{contract}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("position_close") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("my_trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("mmp") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("orders") => 20 / 15,
-                    Symbol("countdown_cancel_all") => 20 / 15,
-                    Symbol("mmp") => 20 / 15,
-                    Symbol("mmp/reset") => 20 / 15
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("countdown_cancel_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("mmp") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("mmp/reset") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("orders") => 20 / 15,
-                    Symbol("orders/{order_id}") => 20 / 15
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 )
             ),
             Symbol("earn") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("uni/lends") => 20 / 15,
-                    Symbol("uni/lend_records") => 20 / 15,
-                    Symbol("uni/interests/{currency}") => 20 / 15,
-                    Symbol("uni/interest_records") => 20 / 15,
-                    Symbol("uni/interest_status/{currency}") => 20 / 15,
-                    Symbol("uni/chart") => 20 / 15,
-                    Symbol("uni/rate") => 20 / 15,
-                    Symbol("staking/eth2/rate_records") => 20 / 15,
-                    Symbol("dual/orders") => 20 / 15,
-                    Symbol("dual/balance") => 20 / 15,
-                    Symbol("structured/orders") => 20 / 15,
-                    Symbol("staking/coins") => 20 / 15,
-                    Symbol("staking/order_list") => 20 / 15,
-                    Symbol("staking/award_list") => 20 / 15,
-                    Symbol("staking/assets") => 20 / 15,
-                    Symbol("uni/currencies") => 20 / 15,
-                    Symbol("uni/currencies/{currency}") => 20 / 15
+                    Symbol("uni/lends") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/lend_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/interests/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/interest_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/interest_status/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/chart") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("staking/eth2/rate_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("dual/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("dual/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("structured/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("staking/coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("staking/order_list") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("staking/award_list") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("staking/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("uni/currencies/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("uni/lends") => 20 / 15,
-                    Symbol("staking/eth2/swap") => 20 / 15,
-                    Symbol("dual/orders") => 20 / 15,
-                    Symbol("structured/orders") => 20 / 15,
-                    Symbol("staking/swap") => 20 / 15
+                    Symbol("uni/lends") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("staking/eth2/swap") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("dual/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("structured/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("staking/swap") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("uni/interest_reinvest") => 20 / 15
+                    Symbol("uni/interest_reinvest") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("patch") => Dict{Symbol, Any}(
-                    Symbol("uni/lends") => 20 / 15
+                    Symbol("uni/lends") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 )
             ),
             Symbol("loan") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("collateral/orders") => 20 / 15,
-                    Symbol("collateral/orders/{order_id}") => 20 / 15,
-                    Symbol("collateral/repay_records") => 20 / 15,
-                    Symbol("collateral/collaterals") => 20 / 15,
-                    Symbol("collateral/total_amount") => 20 / 15,
-                    Symbol("collateral/ltv") => 20 / 15,
-                    Symbol("multi_collateral/orders") => 20 / 15,
-                    Symbol("multi_collateral/orders/{order_id}") => 20 / 15,
-                    Symbol("multi_collateral/repay") => 20 / 15,
-                    Symbol("multi_collateral/mortgage") => 20 / 15,
-                    Symbol("multi_collateral/currency_quota") => 20 / 15,
-                    Symbol("collateral/currencies") => 20 / 15,
-                    Symbol("multi_collateral/currencies") => 20 / 15,
-                    Symbol("multi_collateral/ltv") => 20 / 15,
-                    Symbol("multi_collateral/fixed_rate") => 20 / 15,
-                    Symbol("multi_collateral/current_rate") => 20 / 15
+                    Symbol("collateral/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("collateral/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("collateral/repay_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("collateral/collaterals") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("collateral/total_amount") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("collateral/ltv") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/mortgage") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/currency_quota") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("collateral/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/ltv") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/fixed_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/current_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("collateral/orders") => 20 / 15,
-                    Symbol("collateral/repay") => 20 / 15,
-                    Symbol("collateral/collaterals") => 20 / 15,
-                    Symbol("multi_collateral/orders") => 20 / 15,
-                    Symbol("multi_collateral/repay") => 20 / 15,
-                    Symbol("multi_collateral/mortgage") => 20 / 15
+                    Symbol("collateral/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("collateral/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("collateral/collaterals") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("multi_collateral/mortgage") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 )
             ),
             Symbol("account") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("detail") => 20 / 15,
-                    Symbol("main_keys") => 20 / 15,
-                    Symbol("rate_limit") => 20 / 15,
-                    Symbol("stp_groups") => 20 / 15,
-                    Symbol("stp_groups/{stp_id}/users") => 20 / 15,
-                    Symbol("stp_groups/debit_fee") => 20 / 15,
-                    Symbol("debit_fee") => 20 / 15
+                    Symbol("detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("main_keys") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("rate_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("stp_groups") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("stp_groups/{stp_id}/users") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("stp_groups/debit_fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("debit_fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("stp_groups") => 20 / 15,
-                    Symbol("stp_groups/{stp_id}/users") => 20 / 15,
-                    Symbol("debit_fee") => 20 / 15
+                    Symbol("stp_groups") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("stp_groups/{stp_id}/users") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("debit_fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("stp_groups/{stp_id}/users") => 20 / 15
+                    Symbol("stp_groups/{stp_id}/users") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 )
             ),
             Symbol("rebate") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("agency/transaction_history") => 20 / 15,
-                    Symbol("agency/commission_history") => 20 / 15,
-                    Symbol("partner/transaction_history") => 20 / 15,
-                    Symbol("partner/commission_history") => 20 / 15,
-                    Symbol("partner/sub_list") => 20 / 15,
-                    Symbol("broker/commission_history") => 20 / 15,
-                    Symbol("broker/transaction_history") => 20 / 15,
-                    Symbol("user/info") => 20 / 15,
-                    Symbol("user/sub_relation") => 20 / 15
+                    Symbol("agency/transaction_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("agency/commission_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("partner/transaction_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("partner/commission_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("partner/sub_list") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("broker/commission_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("broker/transaction_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("user/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+),
+                    Symbol("user/sub_relation") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 15
+)
                 )
             ),
             Symbol("otc") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("get_user_def_bank") => 1,
-                    Symbol("order/list") => 1,
-                    Symbol("stable_coin/order/list") => 1,
-                    Symbol("order/detail") => 1
+                    Symbol("get_user_def_bank") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("stable_coin/order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("quote") => 1,
-                    Symbol("order/create") => 1,
-                    Symbol("stable_coin/order/create") => 1,
-                    Symbol("order/paid") => 1,
-                    Symbol("order/cancel") => 1
+                    Symbol("quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("stable_coin/order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/paid") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             )
         )
@@ -866,7 +1547,8 @@ function describe(self::Gate, )
             Symbol("ADA") => "ADA",
             Symbol("AVAXC") => "AVAX_C",
             Symbol("NEAR") => "NEAR",
-            Symbol("ARBONE") => "ARBEVM",
+            Symbol("ARBITRUM") => "ARBEVM",
+            Symbol("ARBITRUM_NOVA") => "ARBNOVA",
             Symbol("BASE") => "BASEEVM",
             Symbol("SUI") => "SUI",
             Symbol("CRONOS") => "CRO",
@@ -884,7 +1566,7 @@ function describe(self::Gate, )
             Symbol("MNT") => "MNT",
             Symbol("CELO") => "CELO",
             Symbol("HBAR") => "HBAR",
-            Symbol("ZKSERA") => "ZKSERA",
+            Symbol("ZKSYNC") => "ZKSERA",
             Symbol("KLAY") => "KLAY",
             Symbol("EOS") => "EOS",
             Symbol("ACA") => "ACA",
@@ -1233,7 +1915,7 @@ function createExpiredOptionMarket(self::Gate, symbol)
         base = safeString(symbolBase, 0);
     else
         base = safeString(marketIdBase, 0);
-        expiry = expiry[2 + 1:8];
+        expiry = functions.ccxt_slice(expiry, 2, 8);
     end
     strike = safeString(optionParts, 2);
     optionType = safeString(optionParts, 3);
@@ -1287,7 +1969,7 @@ function createExpiredOptionMarket(self::Gate, symbol)
 end
 function safeMarket(self::Gate, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     isOption = @functions.ccxt_and((marketId != nothing), (@functions.ccxt_or((findfirst("-C", marketId) !== nothing), (findfirst("-P", marketId) !== nothing))));
-    if functions.ccxtruthy(@functions.ccxt_and(isOption, !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))
+    if functions.ccxtruthy(@functions.ccxt_and(isOption, (@functions.ccxt_or((self.markets_by_id == nothing), !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))))
             return self.createExpiredOptionMarket(marketId)
     end
     return safeMarket(self.parent, marketId, market, delimiter, marketType)
@@ -1332,7 +2014,7 @@ function fetchSpotMarkets(self::Gate, params=Dict())
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(spotMarketsResponse)))
-        spotMarket = get(spotMarketsResponse, i + 1, nothing);
+        spotMarket = self.safeDict(spotMarketsResponse, i, Dict{Symbol, Any}());
         id = safeString(spotMarket, "id");
         marginMarket = safeValue(marginMarkets, id);
         market = deepExtend(marginMarket, spotMarket);
@@ -1343,10 +2025,12 @@ function fetchSpotMarkets(self::Gate, params=Dict())
         makerPercent = safeString(market, "maker_fee_rate", takerPercent);
         amountPrecision = self.parseNumber(self.parsePrecision(safeString(market, "amount_precision")));
         tradeStatus = safeString(market, "trade_status");
+        marginStatus = safeInteger(market, "status", 1);
         leverage = self.safeNumber(market, "leverage");
         margin = leverage != nothing;
         buyStart = safeIntegerProduct(spotMarket, "buy_start", 1000);
         createdTs = functions.ccxtruthy((buyStart != 0)) ? buyStart : nothing;
+        active = @functions.ccxt_or((tradeStatus == "tradable"), (@functions.ccxt_and(margin, (marginStatus == 1))));
         push!(result, Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
@@ -1362,7 +2046,7 @@ function fetchSpotMarkets(self::Gate, params=Dict())
     Symbol("swap") => false,
     Symbol("future") => false,
     Symbol("option") => false,
-    Symbol("active") => (tradeStatus == "tradable"),
+    Symbol("active") => active,
     Symbol("contract") => false,
     Symbol("linear") => nothing,
     Symbol("inverse") => nothing,
@@ -1418,7 +2102,8 @@ function fetchSwapMarkets(self::Gate, params=Dict())
         response = Base.fetch(self.publicFuturesGetSettleContracts(extend(request, params)));
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-            parsedMarket = self.parseContractMarket(get(response, i + 1, nothing), settleId);
+            contract = self.safeDict(response, i, Dict{Symbol, Any}());
+            parsedMarket = self.parseContractMarket(contract, settleId);
             push!(result, parsedMarket);
             i += 1
         end
@@ -1442,7 +2127,8 @@ function fetchFutureMarkets(self::Gate, params=Dict())
         response = Base.fetch(self.publicDeliveryGetSettleContracts(extend(request, params)));
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-            parsedMarket = self.parseContractMarket(get(response, i + 1, nothing), settleId);
+            contract = self.safeDict(response, i, Dict{Symbol, Any}());
+            parsedMarket = self.parseContractMarket(contract, settleId);
             push!(result, parsedMarket);
             i += 1
         end
@@ -1480,6 +2166,7 @@ function parseContractMarket(self::Gate, market, settleId)
     if functions.ccxtruthy(contractSize == "0")
         contractSize = "1";
     end
+    status = safeString(market, "status", "trading");
     return Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
@@ -1495,7 +2182,7 @@ function parseContractMarket(self::Gate, market, settleId)
     Symbol("swap") => marketType == "swap",
     Symbol("future") => marketType == "future",
     Symbol("option") => marketType == "option",
-    Symbol("active") => true,
+    Symbol("active") => status == "trading",
     Symbol("contract") => true,
     Symbol("linear") => isLinear,
     Symbol("inverse") => !functions.ccxtruthy(isLinear),
@@ -1544,7 +2231,7 @@ function fetchOptionMarkets(self::Gate, params=Dict())
         response = Base.fetch(self.publicOptionsGetContracts(query));
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(response)))
-            market = get(response, j + 1, nothing);
+            market = self.safeDict(response, j, Dict{Symbol, Any}());
             id = safeString(market, "name");
             parts = split(underlying, "_");
             baseId = safeString(parts, 0);
@@ -1631,7 +2318,7 @@ function fetchOptionUnderlyings(self::Gate, )
     underlyings = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(underlyingsResponse)))
-        underlying = get(underlyingsResponse, i + 1, nothing);
+        underlying = self.safeDict(underlyingsResponse, i, Dict{Symbol, Any}());
         name = safeString(underlying, "name");
         if functions.ccxtruthy(name != nothing)
                         push!(underlyings, name);
@@ -1750,26 +2437,28 @@ function parseCurrency(self::Gate, rawCurrency)
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "name");
         networkCode = self.networkIdToCode(networkId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => chain,
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("active") => nothing,
-            Symbol("deposit") => !functions.ccxtruthy(self.safeBool(chain, "deposit_disabled")),
-            Symbol("withdraw") => !functions.ccxtruthy(self.safeBool(chain, "withdraw_disabled")),
-            Symbol("fee") => nothing,
-            Symbol("precision") => self.parseNumber("0.0001"),
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => chain,
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("active") => nothing,
+                Symbol("deposit") => !functions.ccxtruthy(self.safeBool(chain, "deposit_disabled")),
+                Symbol("withdraw") => !functions.ccxtruthy(self.safeBool(chain, "withdraw_disabled")),
+                Symbol("fee") => nothing,
+                Symbol("precision") => self.parseNumber("0.0001"),
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -1915,9 +2604,10 @@ function fetchDepositAddress(self::Gate, code, params=Dict())
     end
     networkCode = nothing;
     (networkCode, params) = self.handleNetworkCodeAndParams(params);
-    chainsIndexedById = Base.fetch(self.fetchDepositAddressesByNetwork(code, params));
+    chainsIndexedByIdRaw = Base.fetch(self.fetchDepositAddressesByNetwork(code, params));
+    chainsIndexedById = chainsIndexedByIdRaw;
     selectedNetworkIdOrCode = self.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
-    return get(chainsIndexedById, selectedNetworkIdOrCode + 1, nothing)
+    return get(chainsIndexedById, Symbol(selectedNetworkIdOrCode), nothing)
 
 end
 function parseDepositAddress(self::Gate, depositAddress, currency=nothing)
@@ -1955,9 +2645,10 @@ function fetchTradingFees(self::Gate, params=Dict())
 end
 function parseTradingFees(self::Gate, response)
     result = Dict{Symbol, Any}();
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         market = self.market(symbol);
         result[Symbol(symbol)] = self.parseTradingFee(response, market);
         i += 1
@@ -1992,7 +2683,7 @@ function fetchTransactionFees(self::Gate, codes=nothing, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         withdrawFees = Dict{Symbol, Any}();
-        entry = get(response, i + 1, nothing);
+        entry = self.safeDict(response, i, Dict{Symbol, Any}());
         currencyId = safeString(entry, "currency");
         code = self.safeCurrencyCode(currencyId);
         if functions.ccxtruthy(@functions.ccxt_and((codes != nothing), !functions.ccxtruthy(inArray(code, codes))))
@@ -2007,7 +2698,9 @@ function fetchTransactionFees(self::Gate, codes=nothing, params=Dict())
             while functions.ccxtruthy(functions.ccxt_lt(j, length(networkIds)))
                 networkId = get(networkIds, j + 1, nothing);
                 networkCode = self.networkIdToCode(networkId, code);
-                withdrawFees[Symbol(networkCode)] = self.parseNumber(get(withdrawFixOnChains, Symbol(networkId), nothing));
+                if functions.ccxtruthy(networkCode != nothing)
+                    withdrawFees[Symbol(networkCode)] = self.parseNumber(get(withdrawFixOnChains, Symbol(networkId), nothing));
+                end
                 j += 1
             end
         end
@@ -2051,16 +2744,18 @@ function parseDepositWithdrawFee(self::Gate, fee, currency=nothing)
             currencyId = safeString(fee, "currency");
             code = self.safeCurrencyCode(currencyId, currency);
             networkCode = self.networkIdToCode(chainKey, code);
-            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("fee") => self.parseNumber(get(withdrawFixOnChains, Symbol(chainKey), nothing)),
-                    Symbol("percentage") => false
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("fee") => nothing,
-                    Symbol("percentage") => nothing
-                )
-            );
+            if functions.ccxtruthy(networkCode != nothing)
+                result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("fee") => self.parseNumber(get(withdrawFixOnChains, Symbol(chainKey), nothing)),
+                        Symbol("percentage") => false
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("fee") => nothing,
+                        Symbol("percentage") => nothing
+                    )
+                );
+            end
             i += 1
         end
 
@@ -2154,6 +2849,9 @@ function fetchOrderBook(self::Gate, symbol, limit=nothing, params=Dict())
 
     end
     timestamp = safeInteger(response, "current");
+    if functions.ccxtruthy(timestamp == nothing)
+        throw(ExchangeError(string(self.id, " method() missing timestamp")));
+    end
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
         timestamp = timestamp * 1000;
     end
@@ -2202,6 +2900,9 @@ function fetchTicker(self::Gate, symbol, params=Dict())
 
     else
         ticker = safeValue(response, 0);
+    end
+    if functions.ccxtruthy(ticker == nothing)
+        throw(NullResponse(string(self.id, " fetchTicker() returned empty response")));
     end
     return self.parseTicker(ticker, market)
 
@@ -2436,7 +3137,7 @@ function fetchOHLCV(self::Gate, symbol, timeframe="1m", since=nothing, limit=not
         end
         request[Symbol("limit")] = limit;
     end
-    response = nothing;
+    response = [];
     if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
         isMark = (price == "mark");
         isIndex = (price == "index");
@@ -2452,7 +3153,7 @@ function fetchOHLCV(self::Gate, symbol, timeframe="1m", since=nothing, limit=not
     else
         response = Base.fetch(self.publicSpotGetCandlesticks(extend(request, params)));
     end
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
 
 end
 function fetchOptionOHLCV(self::Gate, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
@@ -2464,7 +3165,7 @@ function fetchOptionOHLCV(self::Gate, symbol, timeframe="1m", since=nothing, lim
     (request, params) = self.prepareRequest(market, nothing, params);
     request[Symbol("interval")] = safeString(self.timeframes, timeframe, timeframe);
     response = Base.fetch(self.publicOptionsGetCandlesticks(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
 
 end
 function fetchFundingRateHistory(self::Gate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -2500,7 +3201,7 @@ function fetchFundingRateHistory(self::Gate, symbol=nothing, since=nothing, limi
     rates = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        entry = get(response, i + 1, nothing);
+        entry = self.safeDict(response, i, Dict{Symbol, Any}());
         timestamp = safeTimestamp(entry, "t");
         push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
@@ -2637,7 +3338,7 @@ function parseTrade(self::Gate, trade, market=nothing)
     msString = safeString(trade, "create_time_ms");
     if functions.ccxtruthy(msString != nothing)
         msString = stringMul(msString, "1000");
-        msString = msString[0 + 1:13];
+        msString = functions.ccxt_slice(msString, 0, 13);
         timestamp = self.parseToInt(msString);
     else
         timestamp = safeTimestamp2(trade, "time", "create_time");
@@ -2954,6 +3655,12 @@ function createOrders(self::Gate, orders, params=Dict())
 
 end
 function createOrderRequest(self::Gate, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     contract = get(market, Symbol("contract"), nothing);
     trigger = safeValue(params, "trigger");
@@ -3482,6 +4189,11 @@ function fetchClosedOrders(self::Gate, symbol=nothing, since=nothing, limit=noth
         Base.fetch(self.loadMarkets());
     end
     Base.fetch(self.loadUnifiedStatus());
+    paginate = false;
+    (paginate, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "paginate");
+    if functions.ccxtruthy(paginate)
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+    end
     until = safeInteger(params, "until");
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -3601,14 +4313,16 @@ function fetchOrdersByStatus(self::Gate, status, symbol=nothing, since=nothing, 
     end
     result = response;
     if functions.ccxtruthy(openSpotOrders)
-        result = [];
+        spotResult = [];
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-            ordersInner = safeValue(get(response, i + 1, nothing), "orders");
-            result = arrayConcat(result, ordersInner);
+            responseEntry = self.safeDict(response, i, Dict{Symbol, Any}());
+            ordersInner = safeValue(responseEntry, "orders");
+            spotResult = arrayConcat(spotResult, ordersInner);
             i += 1
         end
 
+        result = spotResult;
     end
     orders = self.parseOrders(result, market, since, limit);
     return self.filterBySymbolSinceLimit(orders, symbol, since, limit)
@@ -3941,6 +4655,9 @@ function fetchPosition(self::Gate, symbol, params=Dict())
         end
 
     end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " fetchPosition() returned empty response")));
+    end
     return self.parsePosition(response, market)
 
 end
@@ -3982,7 +4699,11 @@ function fetchPositions(self::Gate, symbols=nothing, params=Dict())
         end
 
     end
-    return self.parsePositions(response, symbols)
+    responseList = [];
+    if functions.ccxtruthy(response != nothing)
+        responseList = toArray(response);
+    end
+    return self.parsePositions(responseList, symbols)
 
 end
 function fetchLeverageTiers(self::Gate, symbols=nothing, params=Dict())
@@ -4162,7 +4883,7 @@ function parseMarginLoan(self::Gate, info, currency=nothing)
     currencyId = safeString(info, "currency");
     marketId = safeString(info, "currency_pair");
     return Dict{Symbol, Any}(
-    Symbol("id") => safeInteger(info, "id"),
+    Symbol("id") => safeString(info, "id"),
     Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
     Symbol("amount") => self.safeNumber(info, "amount"),
     Symbol("symbol") => self.safeSymbol(marketId, nothing, "_", "margin"),
@@ -4247,7 +4968,7 @@ function sign(self::Gate, path, api=[], method="GET", params=Dict(), headers=not
         settle = self.safeDict(params, 0);
         path = self.implodeParams(path, settle);
         newParams = [];
-        anyParams = params;
+        anyParams = toArray(params);
         i = 1
         while functions.ccxtruthy(functions.ccxt_lt(i, length(anyParams)))
             push!(newParams, get(params, i + 1, nothing));
@@ -4672,7 +5393,7 @@ function fetchUnderlyingAssets(self::Gate, params=Dict())
     underlyings = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        underlying = get(response, i + 1, nothing);
+        underlying = self.safeDict(response, i, Dict{Symbol, Any}());
         name = safeString(underlying, "name");
         if functions.ccxtruthy(name != nothing)
                         push!(underlyings, name);
@@ -4702,7 +5423,7 @@ function fetchLiquidations(self::Gate, symbol, since=nothing, limit=nothing, par
     end
     (request, params) = self.handleUntilOption("to", request, params);
     response = Base.fetch(self.publicFuturesGetSettleLiqOrders(extend(request, params)));
-    return self.parseLiquidations(response, market, since, limit)
+    return self.parseLiquidations(toArray(response), market, since, limit)
 
 end
 function fetchMyLiquidations(self::Gate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -4738,7 +5459,7 @@ function fetchMyLiquidations(self::Gate, symbol=nothing, since=nothing, limit=no
         end
 
     end
-    return self.parseLiquidations(response, market, since, limit)
+    return self.parseLiquidations(toArray(response), market, since, limit)
 
 end
 function parseLiquidation(self::Gate, liquidation, market=nothing)
@@ -4795,19 +5516,22 @@ function fetchGreeks(self::Gate, symbol, params=Dict())
     marketId = get(market, Symbol("id"), nothing);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        entry = get(response, i + 1, nothing);
+        entry = self.safeDict(response, i, Dict{Symbol, Any}());
         entryMarketId = safeString(entry, "name");
         if functions.ccxtruthy(entryMarketId == marketId)
                 return self.parseGreeks(entry, market)
         end
         i += 1
     end
-    return nothing
+    throw(NullResponse(string(self.id, " fetchGreeks() could not find greeks for ", symbol)));
 
 end
 function parseGreeks(self::Gate, greeks, market=nothing)
     marketId = safeString(greeks, "name");
     symbol = self.safeSymbol(marketId, market);
+    if functions.ccxtruthy(market == nothing)
+        throw(ExchangeError(string(self.id, " parseGreeks() could not resolve market")));
+    end
     return Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("timestamp") => nothing,
@@ -4882,7 +5606,7 @@ function fetchLeverages(self::Gate, symbols=nothing, params=Dict())
     else
         response = Base.fetch(self.publicMarginGetCurrencyPairs(params));
     end
-    return self.parseLeverages(response, symbols, marketIdRequest, "spot")
+    return self.parseLeverages(toArray(response), symbols, marketIdRequest, "spot")
 
 end
 function parseLeverage(self::Gate, leverage, market=nothing)
@@ -4918,7 +5642,7 @@ function fetchOptionChain(self::Gate, code, params=Dict())
         Symbol("underlying") => string(get(currency, Symbol("code"), nothing), "_USDT")
     );
     response = Base.fetch(self.publicOptionsGetContracts(extend(request, params)));
-    return self.parseOptionChain(response, nothing, "name")
+    return self.parseOptionChain(toArray(response), nothing, "name")
 
 end
 function parseOption(self::Gate, chain, currency=nothing, market=nothing)
@@ -4979,7 +5703,11 @@ function fetchPositionsHistory(self::Gate, symbols=nothing, since=nothing, limit
     else
         throw(NotSupported(string(self.id, " fetchPositionsHistory() does not support markets of type ", marketType)));
     end
-    return self.parsePositions(response, symbols, params)
+    responseList = [];
+    if functions.ccxtruthy(response != nothing)
+        responseList = toArray(response);
+    end
+    return self.parsePositions(responseList, symbols, params)
 
 end
 function handleErrors(self::Gate, code, reason, url, method, headers, body, response, requestHeaders, requestBody)
@@ -4996,15 +5724,68 @@ function handleErrors(self::Gate, code, reason, url, method, headers, body, resp
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Gate, name::Symbol) = ccxt_getproperty(self, name)
 
 function Gate(; kwargs...)
     inst = Gate(Exchange(), describe, setSandboxMode, loadUnifiedStatus, upgradeUnifiedTradeAccount, fetchTime, createExpiredOptionMarket, safeMarket, fetchMarkets, fetchSpotMarkets, fetchSwapMarkets, fetchFutureMarkets, parseContractMarket, fetchOptionMarkets, fetchOptionUnderlyings, prepareRequest, spotOrderPrepareRequest, multiOrderSpotPrepareRequest, getMarginMode, getSettlementCurrencies, fetchCurrencies, parseCurrency, fetchFundingRate, fetchFundingRates, parseFundingRate, parseFundingInterval, fetchNetworkDepositAddress, fetchDepositAddressesByNetwork, fetchDepositAddress, parseDepositAddress, fetchTradingFee, fetchTradingFees, parseTradingFees, parseTradingFee, fetchTransactionFees, fetchDepositWithdrawFees, parseDepositWithdrawFee, fetchFundingHistory, parseFundingHistories, parseFundingHistory, fetchOrderBook, fetchTicker, parseTicker, fetchTickers, parseBalanceHelper, fetchBalance, fetchOHLCV, fetchOptionOHLCV, fetchFundingRateHistory, parseOHLCV, fetchTrades, fetchOrderTrades, fetchMyTrades, parseTrade, fetchDeposits, fetchWithdrawals, withdraw, parseTransactionStatus, parseTransactionType, parseTransaction, createOrder, createOrdersRequest, createOrders, createOrderRequest, createMarketBuyOrderWithCost, editOrderRequest, editOrder, parseOrderStatus, parseOrder, fetchOrderRequest, fetchOrder, fetchOpenOrders, fetchClosedOrders, prepareOrdersByStatusRequest, fetchOrdersByStatus, cancelOrder, cancelOrders, cancelOrdersForSymbols, cancelAllOrders, transfer, parseTransfer, setLeverage, parsePosition, fetchPosition, fetchPositions, fetchLeverageTiers, fetchMarketLeverageTiers, parseEmulatedLeverageTiers, parseMarketLeverageTiers, repayIsolatedMargin, repayCrossMargin, borrowIsolatedMargin, borrowCrossMargin, parseMarginLoan, fetchBorrowInterest, parseBorrowInterest, nonce, sign, modifyMarginHelper, parseMarginModification, reduceMargin, addMargin, fetchOpenInterestHistory, parseOpenInterest, fetchSettlementHistory, fetchMySettlementHistory, parseSettlement, parseSettlements, fetchLedger, parseLedgerEntry, parseLedgerEntryType, setPositionMode, fetchUnderlyingAssets, fetchLiquidations, fetchMyLiquidations, parseLiquidation, fetchGreeks, parseGreeks, closePosition, fetchLeverage, fetchLeverages, parseLeverage, fetchOption, fetchOptionChain, parseOption, fetchPositionsHistory, handleErrors)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -83,6 +83,7 @@ include("exchanges/mercado.jl")
 include("exchanges/mexc.jl")
 include("exchanges/modetrade.jl")
 include("exchanges/mudrex.jl")
+include("exchanges/nado.jl")
 include("exchanges/ndax.jl")
 include("exchanges/okx.jl")
 include("exchanges/okxus.jl")
@@ -107,4 +108,4 @@ include("exchanges/bequant.jl")
 include("exchanges/fmfwio.jl")
 include("exchanges/myokx.jl")
 
-export Alpaca, Apex, Aster, Backpack, Bequant, Bigone, Binance, Binancecoinm, Binanceus, Binanceusdm, Bingx, Bit2c, Bitbank, Bitbns, Bitfinex, Bitflyer, Bitget, Bithumb, Bitmart, Bitmex, Bitopro, Bitrue, Bitso, Bitstamp, Bitteam, Bittrade, Bitvavo, Blockchaincom, Blofin, Btcbox, Btcmarkets, Btcturk, Bullish, Bybit, Bybiteu, Bydfi, Cex, Coinbase, Coinbaseexchange, Coinbaseinternational, Coincheck, Coinex, Coinmate, Coinone, Coinsph, Coinspot, Cryptocom, Cryptomus, Deepcoin, Delta, Deribit, Derive, Digifinex, Dydx, Exmo, Extended, Fmfwio, Foxbit, Gate, Gateeu, Gemini, Grvt, Hashkey, Hibachi, Hitbtc, Hollaex, Htx, Hyperliquid, Independentreserve, Indodax, Kraken, Krakenfutures, Kucoin, Kucoineu, Kucoinfutures, Latoken, Lbank, Lighter, Luno, Mercado, Mexc, Modetrade, Mudrex, Myokx, Ndax, Okx, Okxus, Onetrading, P2b, Pacifica, Paradex, Paymium, Phemex, Poloniex, Tokocrypto, Toobit, Upbit, Weex, Whitebit, Woo, Woofipro, Xt, Zaif, Zebpay
+export Alpaca, Apex, Aster, Backpack, Bequant, Bigone, Binance, Binancecoinm, Binanceus, Binanceusdm, Bingx, Bit2c, Bitbank, Bitbns, Bitfinex, Bitflyer, Bitget, Bithumb, Bitmart, Bitmex, Bitopro, Bitrue, Bitso, Bitstamp, Bitteam, Bittrade, Bitvavo, Blockchaincom, Blofin, Btcbox, Btcmarkets, Btcturk, Bullish, Bybit, Bybiteu, Bydfi, Cex, Coinbase, Coinbaseexchange, Coinbaseinternational, Coincheck, Coinex, Coinmate, Coinone, Coinsph, Coinspot, Cryptocom, Cryptomus, Deepcoin, Delta, Deribit, Derive, Digifinex, Dydx, Exmo, Extended, Fmfwio, Foxbit, Gate, Gateeu, Gemini, Grvt, Hashkey, Hibachi, Hitbtc, Hollaex, Htx, Hyperliquid, Independentreserve, Indodax, Kraken, Krakenfutures, Kucoin, Kucoineu, Kucoinfutures, Latoken, Lbank, Lighter, Luno, Mercado, Mexc, Modetrade, Mudrex, Myokx, Nado, Ndax, Okx, Okxus, Onetrading, P2b, Pacifica, Paradex, Paymium, Phemex, Poloniex, Tokocrypto, Toobit, Upbit, Weex, Whitebit, Woo, Woofipro, Xt, Zaif, Zebpay

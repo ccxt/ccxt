@@ -145,11 +145,119 @@ function describe(self::Bitflyer, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["getmarkets/usa", "getmarkets/eu", "getmarkets", "getboard", "getticker", "getexecutions", "gethealth", "getboardstate", "getchats", "getfundingrate"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("getmarkets/usa") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getmarkets/eu") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getmarkets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getboard") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getexecutions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("gethealth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getboardstate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getchats") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getfundingrate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("get") => ["getpermissions", "getbalance", "getbalancehistory", "getcollateral", "getcollateralhistory", "getcollateralaccounts", "getaddresses", "getcoinins", "getcoinouts", "getbankaccounts", "getdeposits", "getwithdrawals", "getchildorders", "getparentorders", "getparentorder", "getexecutions", "getpositions", "gettradingcommission"],
-            Symbol("post") => ["sendcoin", "withdraw", "sendchildorder", "cancelchildorder", "sendparentorder", "cancelparentorder", "cancelallchildorders"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("getpermissions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getbalance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getbalancehistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getcollateral") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getcollateralhistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getcollateralaccounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getaddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getcoinins") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getcoinouts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getbankaccounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getdeposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getwithdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getchildorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getparentorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getparentorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getexecutions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getpositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("gettradingcommission") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("sendcoin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sendchildorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelchildorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sendparentorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelparentorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelallchildorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(
@@ -244,9 +352,9 @@ function describe(self::Bitflyer, )
 
 end
 function parseExpiryDate(self::Bitflyer, expiry)
-    day = expiry[0 + 1:2];
-    monthName = expiry[2 + 1:5];
-    year = expiry[5 + 1:9];
+    day = functions.ccxt_slice(expiry, 0, 2);
+    monthName = functions.ccxt_slice(expiry, 2, 5);
+    year = functions.ccxt_slice(expiry, 5, 9);
     months = Dict{Symbol, Any}(
         Symbol("JAN") => "01",
         Symbol("FEB") => "02",
@@ -273,8 +381,8 @@ function fetchMarkets(self::Bitflyer, params=Dict())
     jp_markets = Base.fetch(self.publicGetGetmarkets(params));
     us_markets = Base.fetch(self.publicGetGetmarketsUsa(params));
     eu_markets = Base.fetch(self.publicGetGetmarketsEu(params));
-    markets = arrayConcat(jp_markets, us_markets);
-    markets = arrayConcat(markets, eu_markets);
+    markets = arrayConcat(toArray(jp_markets), toArray(us_markets));
+    markets = arrayConcat(markets, toArray(eu_markets));
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
@@ -301,15 +409,15 @@ function fetchMarkets(self::Bitflyer, params=Dict())
             if functions.ccxtruthy(future)
                 alias = safeString(market, "alias");
                 if functions.ccxtruthy(alias == nothing)
-                    baseId = id[0 + 1:3];
-                    quoteId = id[3 + 1:6];
-                    expiryDate = id[-9 + 1:end];
+                    baseId = functions.ccxt_slice(id, 0, 3);
+                    quoteId = functions.ccxt_slice(id, 3, 6);
+                    expiryDate = functions.ccxt_slice(id, -9);
                     expiry = self.parseExpiryDate(expiryDate);
                 else
                     splitAlias = split(alias, "_");
                     currencyIds = safeString(splitAlias, 0);
-                    baseId = currencyIds[0 + 1:-3];
-                    quoteId = currencyIds[-3 + 1:end];
+                    baseId = functions.ccxt_slice(currencyIds, 0, -3);
+                    quoteId = functions.ccxt_slice(currencyIds, -3);
                     splitId = split(id, currencyIds);
                     expiryDate = safeString(splitId, 1);
                     expiry = self.parseExpiryDate(expiryDate);
@@ -401,7 +509,9 @@ function parseBalance(self::Bitflyer, response)
         account = self.account();
         account[Symbol("total")] = safeString(balance, "amount");
         account[Symbol("free")] = safeString(balance, "available");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -917,7 +1027,7 @@ function handleErrors(self::Bitflyer, code, reason, url, method, headers, body, 
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitflyer, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1064,9 +1174,62 @@ end
 
 function Bitflyer(; kwargs...)
     inst = Bitflyer(Exchange(), describe, parseExpiryDate, safeMarket, fetchMarkets, parseBalance, fetchBalance, fetchOrderBook, parseTicker, fetchTicker, parseTrade, fetchTrades, fetchTradingFee, createOrder, cancelOrder, parseOrderStatus, parseOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchOrder, fetchMyTrades, fetchPositions, withdraw, fetchDeposits, fetchWithdrawals, parseDepositStatus, parseWithdrawalStatus, parseTransaction, fetchFundingRate, parseFundingRate, sign, handleErrors, publicGetGetmarketsUsa, publicGetGetmarketsEu, publicGetGetmarkets, publicGetGetboard, publicGetGetticker, publicGetGetexecutions, publicGetGethealth, publicGetGetboardstate, publicGetGetchats, publicGetGetfundingrate, privateGetGetpermissions, privateGetGetbalance, privateGetGetbalancehistory, privateGetGetcollateral, privateGetGetcollateralhistory, privateGetGetcollateralaccounts, privateGetGetaddresses, privateGetGetcoinins, privateGetGetcoinouts, privateGetGetbankaccounts, privateGetGetdeposits, privateGetGetwithdrawals, privateGetGetchildorders, privateGetGetparentorders, privateGetGetparentorder, privateGetGetexecutions, privateGetGetpositions, privateGetGettradingcommission, privatePostSendcoin, privatePostWithdraw, privatePostSendchildorder, privatePostCancelchildorder, privatePostSendparentorder, privatePostCancelparentorder, privatePostCancelallchildorders)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

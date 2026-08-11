@@ -177,6 +177,7 @@ function describe(self::Gemini, )
         Symbol("fetchMarkOHLCV") => false,
         Symbol("fetchMyTrades") => true,
         Symbol("fetchOHLCV") => true,
+        Symbol("fetchOpenInterest") => true,
         Symbol("fetchOpenInterestHistory") => false,
         Symbol("fetchOpenOrders") => true,
         Symbol("fetchOrder") => true,
@@ -221,99 +222,267 @@ function describe(self::Gemini, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("webExchange") => Dict{Symbol, Any}(
-            Symbol("get") => [""]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("web") => Dict{Symbol, Any}(
-            Symbol("get") => ["rest-api"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("rest-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v1/symbols") => 5,
-                Symbol("v1/symbols/details/{symbol}") => 5,
-                Symbol("v1/network/{token}") => 5,
-                Symbol("v1/staking/rates") => 5,
-                Symbol("v1/pubticker/{symbol}") => 5,
-                Symbol("v1/feepromos") => 5,
-                Symbol("v2/ticker/{symbol}") => 5,
-                Symbol("v2/candles/{symbol}/{timeframe}") => 5,
-                Symbol("v1/trades/{symbol}") => 5,
-                Symbol("v1/auction/{symbol}") => 5,
-                Symbol("v1/auction/{symbol}/history") => 5,
-                Symbol("v1/pricefeed") => 5,
-                Symbol("v1/fundingamount/{symbol}") => 5,
-                Symbol("v1/fundingamountreport/records.xlsx") => 5,
-                Symbol("v1/book/{symbol}") => 5,
-                Symbol("v1/earn/rates") => 5,
-                Symbol("v2/derivatives/candles/{symbol}/{time_frame}") => 5,
-                Symbol("v2/fxrate/{symbol}/{timestamp}") => 5,
-                Symbol("v1/riskstats/{symbol}") => 5
+                Symbol("v1/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/symbols/details/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/network/{token}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/staking/rates") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/pubticker/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/feepromos") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v2/ticker/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v2/candles/{symbol}/{timeframe}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/trades/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/auction/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/auction/{symbol}/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/pricefeed") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/fundingamount/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/fundingamountreport/records.xlsx") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/book/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/earn/rates") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v2/derivatives/candles/{symbol}/{time_frame}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v2/fxrate/{symbol}/{timestamp}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v1/riskstats/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v1/perpetuals/fundingpaymentreport/records.xlsx") => 1
+                Symbol("v1/perpetuals/fundingpaymentreport/records.xlsx") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("v1/staking/unstake") => 1,
-                Symbol("v1/staking/stake") => 1,
-                Symbol("v1/staking/rewards") => 1,
-                Symbol("v1/staking/history") => 1,
-                Symbol("v1/order/new") => 1,
-                Symbol("v1/order/cancel") => 1,
-                Symbol("v1/wrap/{symbol}") => 1,
-                Symbol("v1/order/cancel/session") => 1,
-                Symbol("v1/order/cancel/all") => 1,
-                Symbol("v1/order/status") => 1,
-                Symbol("v1/orders") => 1,
-                Symbol("v1/mytrades") => 1,
-                Symbol("v1/notionalvolume") => 1,
-                Symbol("v1/tradevolume") => 1,
-                Symbol("v1/clearing/new") => 1,
-                Symbol("v1/clearing/status") => 1,
-                Symbol("v1/clearing/cancel") => 1,
-                Symbol("v1/clearing/confirm") => 1,
-                Symbol("v1/balances") => 1,
-                Symbol("v1/balances/staking") => 1,
-                Symbol("v1/notionalbalances/{currency}") => 1,
-                Symbol("v1/transfers") => 1,
-                Symbol("v1/addresses/{network}") => 1,
-                Symbol("v1/deposit/{network}/newAddress") => 1,
-                Symbol("v1/deposit/{currency}/newAddress") => 1,
-                Symbol("v1/withdraw/{currency}") => 1,
-                Symbol("v1/account/transfer/{currency}") => 1,
-                Symbol("v1/payments/addbank") => 1,
-                Symbol("v1/payments/methods") => 1,
-                Symbol("v1/payments/sen/withdraw") => 1,
-                Symbol("v1/balances/earn") => 1,
-                Symbol("v1/earn/interest") => 1,
-                Symbol("v1/earn/history") => 1,
-                Symbol("v1/approvedAddresses/{network}/request") => 1,
-                Symbol("v1/approvedAddresses/account/{network}") => 1,
-                Symbol("v1/approvedAddresses/{network}/remove") => 1,
-                Symbol("v1/account") => 1,
-                Symbol("v1/account/create") => 1,
-                Symbol("v1/account/list") => 1,
-                Symbol("v1/heartbeat") => 1,
-                Symbol("v1/roles") => 1,
-                Symbol("v1/custodyaccountfees") => 1,
-                Symbol("v1/withdraw/{currencyCodeLowerCase}/feeEstimate") => 1,
-                Symbol("v1/payments/addbank/cad") => 1,
-                Symbol("v1/transactions") => 1,
-                Symbol("v1/margin/account") => 1,
-                Symbol("v1/margin/rates") => 1,
-                Symbol("v1/margin/order/preview") => 1,
-                Symbol("v1/clearing/list") => 1,
-                Symbol("v1/clearing/broker/list") => 1,
-                Symbol("v1/clearing/broker/new") => 1,
-                Symbol("v1/clearing/trades") => 1,
-                Symbol("v1/instant/quote") => 1,
-                Symbol("v1/instant/execute") => 1,
-                Symbol("v1/account/rename") => 1,
-                Symbol("v1/oauth/revokeByToken") => 1,
-                Symbol("v1/margin") => 1,
-                Symbol("v1/perpetuals/fundingPayment") => 1,
-                Symbol("v1/perpetuals/fundingpaymentreport/records.json") => 1,
-                Symbol("v1/positions") => 1
+                Symbol("v1/staking/unstake") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/staking/stake") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/staking/rewards") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/staking/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/order/new") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/wrap/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/order/cancel/session") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/order/cancel/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/order/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/mytrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/notionalvolume") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/tradevolume") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/clearing/new") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/clearing/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/clearing/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/clearing/confirm") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/balances/staking") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/notionalbalances/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/addresses/{network}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/deposit/{network}/newAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/deposit/{currency}/newAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/withdraw/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/account/transfer/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/payments/addbank") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/payments/methods") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/payments/sen/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/balances/earn") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/earn/interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/earn/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/approvedAddresses/{network}/request") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/approvedAddresses/account/{network}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/approvedAddresses/{network}/remove") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/account/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/account/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/heartbeat") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/roles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/custodyaccountfees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/withdraw/{currencyCodeLowerCase}/feeEstimate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/payments/addbank/cad") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/margin/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/margin/rates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/margin/order/preview") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/clearing/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/clearing/broker/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/clearing/broker/new") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/clearing/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/instant/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/instant/execute") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/account/rename") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/oauth/revokeByToken") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/perpetuals/fundingPayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/perpetuals/fundingpaymentreport/records.json") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -517,26 +686,28 @@ function parseCurrency(self::Gemini, rawCurrency)
     networkCode = nothing;
     if functions.ccxtruthy(networkId != nothing)
         networkCode = self.networkIdToCode(networkId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => rawCurrency,
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("active") => nothing,
-            Symbol("deposit") => nothing,
-            Symbol("withdraw") => nothing,
-            Symbol("fee") => nothing,
-            Symbol("precision") => precision,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => rawCurrency,
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("active") => nothing,
+                Symbol("deposit") => nothing,
+                Symbol("withdraw") => nothing,
+                Symbol("fee") => nothing,
+                Symbol("precision") => precision,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
     Symbol("info") => rawCurrency,
@@ -608,7 +779,7 @@ function fetchMarketsFromWeb(self::Gemini, params=Dict())
         startingIndex = idLength - 3;
         pricePrecisionString = replace(get(cells, 4, nothing), "<td>" => "");
         pricePrecisionParts = split(pricePrecisionString, " ");
-        quoteId = safeStringLower(pricePrecisionParts, 1, marketId[startingIndex + 1:idLength]);
+        quoteId = safeStringLower(pricePrecisionParts, 1, functions.ccxt_slice(marketId, startingIndex, idLength));
         baseId = safeStringLower(amountPrecisionParts, 1, replace(marketId, quoteId => ""));
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
@@ -705,10 +876,14 @@ function fetchMarketsFromAPI(self::Gemini, params=Dict())
     options = self.safeDict(self.options, "fetchMarketsFromAPI", Dict{Symbol, Any}());
     brokenPairs = self.safeList(self.options, "brokenPairs", []);
     marketIds = [];
+    allMarketIds = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(marketIdsRaw))
+        allMarketIds = marketIdsRaw;
+    end
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIdsRaw)))
-        if functions.ccxtruthy(!functions.ccxtruthy(inArray(get(marketIdsRaw, i + 1, nothing), brokenPairs)))
-                        push!(marketIds, get(marketIdsRaw, i + 1, nothing));
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(allMarketIds)))
+        if functions.ccxtruthy(!functions.ccxtruthy(inArray(get(allMarketIds, i + 1, nothing), brokenPairs)))
+                        push!(marketIds, get(allMarketIds, i + 1, nothing));
         end
         i += 1
     end
@@ -810,7 +985,7 @@ function parseMarket(self::Gemini, response)
                 quoteCurrency = get(quoteCurrencies, i + 1, nothing);
                 if functions.ccxtruthy(endswith(marketIdWithoutPerp, quoteCurrency))
                     quoteLength = self.parseToInt(-1 * length(quoteCurrency));
-                    baseId = marketIdWithoutPerp[0 + 1:quoteLength];
+                    baseId = functions.ccxt_slice(marketIdWithoutPerp, 0, quoteLength);
                     quoteId = quoteCurrency;
                     if functions.ccxtruthy(isPerp)
                         settleId = quoteCurrency;
@@ -834,7 +1009,7 @@ function parseMarket(self::Gemini, response)
     end
     type_var = functions.ccxtruthy(swap) ? "swap" : "spot";
     isSpot = !functions.ccxtruthy(swap);
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -882,7 +1057,7 @@ function parseMarket(self::Gemini, response)
     ),
     Symbol("created") => nothing,
     Symbol("info") => response
-)
+))
 
 end
 function fetchOrderBook(self::Gemini, symbol, limit=nothing, params=Dict())
@@ -964,11 +1139,11 @@ function parseTicker(self::Gemini, ticker, market=nothing)
     if functions.ccxtruthy(@functions.ccxt_and((marketId != nothing), (market == nothing)))
         idLength = length(marketId) - 0;
         if functions.ccxtruthy(idLength == 7)
-            baseId = marketId[0 + 1:4];
-            quoteId = marketId[4 + 1:7];
+            baseId = functions.ccxt_slice(marketId, 0, 4);
+            quoteId = functions.ccxt_slice(marketId, 4, 7);
         else
-            baseId = marketId[0 + 1:3];
-            quoteId = marketId[3 + 1:6];
+            baseId = functions.ccxt_slice(marketId, 0, 3);
+            quoteId = functions.ccxt_slice(marketId, 3, 6);
         end
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
@@ -1080,7 +1255,9 @@ function parseBalance(self::Gemini, response)
         account = self.account();
         account[Symbol("free")] = safeString(balance, "available");
         account[Symbol("total")] = safeString(balance, "amount");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1098,9 +1275,10 @@ function fetchTradingFees(self::Gemini, params=Dict())
     maker = self.parseNumber(makerString);
     taker = self.parseNumber(takerString);
     result = Dict{Symbol, Any}();
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         result[Symbol(symbol)] = Dict{Symbol, Any}(
             Symbol("info") => response,
             Symbol("symbol") => symbol,
@@ -1538,7 +1716,11 @@ function fetchOHLCV(self::Gemini, symbol, timeframe="1m", since=nothing, limit=n
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetV2CandlesSymbolTimeframe(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    candles = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        candles = response;
+    end
+    return self.parseOHLCVs(candles, market, timeframe, since, limit)
 
 end
 function fetchOpenInterest(self::Gemini, symbol, params=Dict())
@@ -1565,7 +1747,7 @@ function parseOpenInterest(self::Gemini, interest, market=nothing)
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Gemini, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1579,330 +1761,383 @@ function webGetRestApi(self::Gemini, params=Dict(), context=Dict())
 end
 
 function publicGetV1Symbols(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/symbols", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/symbols", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1SymbolsDetailsSymbol(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/symbols/details/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/symbols/details/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1NetworkToken(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/network/{token}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/network/{token}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1StakingRates(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/staking/rates", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/staking/rates", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1PubtickerSymbol(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/pubticker/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/pubticker/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1Feepromos(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/feepromos", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/feepromos", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV2TickerSymbol(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v2/ticker/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/ticker/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV2CandlesSymbolTimeframe(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v2/candles/{symbol}/{timeframe}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/candles/{symbol}/{timeframe}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1TradesSymbol(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/trades/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/trades/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1AuctionSymbol(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/auction/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/auction/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1AuctionSymbolHistory(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/auction/{symbol}/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/auction/{symbol}/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1Pricefeed(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/pricefeed", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/pricefeed", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FundingamountSymbol(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/fundingamount/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/fundingamount/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FundingamountreportRecordsXlsx(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/fundingamountreport/records.xlsx", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/fundingamountreport/records.xlsx", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1BookSymbol(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/book/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/book/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1EarnRates(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/earn/rates", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/earn/rates", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV2DerivativesCandlesSymbolTimeFrame(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v2/derivatives/candles/{symbol}/{time_frame}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/derivatives/candles/{symbol}/{time_frame}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV2FxrateSymbolTimestamp(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v2/fxrate/{symbol}/{timestamp}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/fxrate/{symbol}/{timestamp}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1RiskstatsSymbol(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/riskstats/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v1/riskstats/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1PerpetualsFundingpaymentreportRecordsXlsx(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/perpetuals/fundingpaymentreport/records.xlsx", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/perpetuals/fundingpaymentreport/records.xlsx", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostV1StakingUnstake(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/staking/unstake", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/staking/unstake", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1StakingStake(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/staking/stake", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/staking/stake", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1StakingRewards(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/staking/rewards", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/staking/rewards", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1StakingHistory(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/staking/history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/staking/history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1OrderNew(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/order/new", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order/new", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1OrderCancel(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/order/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1WrapSymbol(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/wrap/{symbol}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/wrap/{symbol}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1OrderCancelSession(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/order/cancel/session", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order/cancel/session", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1OrderCancelAll(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/order/cancel/all", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order/cancel/all", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1OrderStatus(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/order/status", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order/status", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Orders(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Mytrades(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/mytrades", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/mytrades", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Notionalvolume(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/notionalvolume", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/notionalvolume", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Tradevolume(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/tradevolume", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/tradevolume", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1ClearingNew(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/clearing/new", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/clearing/new", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1ClearingStatus(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/clearing/status", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/clearing/status", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1ClearingCancel(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/clearing/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/clearing/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1ClearingConfirm(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/clearing/confirm", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/clearing/confirm", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Balances(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/balances", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/balances", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1BalancesStaking(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/balances/staking", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/balances/staking", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1NotionalbalancesCurrency(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/notionalbalances/{currency}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/notionalbalances/{currency}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Transfers(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/transfers", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/transfers", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1AddressesNetwork(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/addresses/{network}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/addresses/{network}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1DepositNetworkNewAddress(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/deposit/{network}/newAddress", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/deposit/{network}/newAddress", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1DepositCurrencyNewAddress(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/deposit/{currency}/newAddress", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/deposit/{currency}/newAddress", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1WithdrawCurrency(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/withdraw/{currency}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/withdraw/{currency}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1AccountTransferCurrency(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/account/transfer/{currency}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/account/transfer/{currency}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1PaymentsAddbank(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/payments/addbank", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/payments/addbank", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1PaymentsMethods(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/payments/methods", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/payments/methods", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1PaymentsSenWithdraw(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/payments/sen/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/payments/sen/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1BalancesEarn(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/balances/earn", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/balances/earn", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1EarnInterest(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/earn/interest", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/earn/interest", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1EarnHistory(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/earn/history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/earn/history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1ApprovedAddressesNetworkRequest(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/approvedAddresses/{network}/request", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/approvedAddresses/{network}/request", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1ApprovedAddressesAccountNetwork(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/approvedAddresses/account/{network}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/approvedAddresses/account/{network}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1ApprovedAddressesNetworkRemove(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/approvedAddresses/{network}/remove", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/approvedAddresses/{network}/remove", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Account(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/account", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/account", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1AccountCreate(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/account/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/account/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1AccountList(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/account/list", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/account/list", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Heartbeat(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/heartbeat", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/heartbeat", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Roles(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/roles", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/roles", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Custodyaccountfees(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/custodyaccountfees", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/custodyaccountfees", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/withdraw/{currencyCodeLowerCase}/feeEstimate", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/withdraw/{currencyCodeLowerCase}/feeEstimate", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1PaymentsAddbankCad(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/payments/addbank/cad", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/payments/addbank/cad", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Transactions(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/transactions", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/transactions", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1MarginAccount(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/margin/account", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/margin/account", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1MarginRates(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/margin/rates", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/margin/rates", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1MarginOrderPreview(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/margin/order/preview", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/margin/order/preview", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1ClearingList(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/clearing/list", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/clearing/list", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1ClearingBrokerList(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/clearing/broker/list", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/clearing/broker/list", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1ClearingBrokerNew(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/clearing/broker/new", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/clearing/broker/new", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1ClearingTrades(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/clearing/trades", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/clearing/trades", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1InstantQuote(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/instant/quote", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/instant/quote", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1InstantExecute(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/instant/execute", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/instant/execute", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1AccountRename(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/account/rename", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/account/rename", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1OauthRevokeByToken(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/oauth/revokeByToken", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/oauth/revokeByToken", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Margin(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1PerpetualsFundingPayment(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/perpetuals/fundingPayment", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/perpetuals/fundingPayment", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1PerpetualsFundingpaymentreportRecordsJson(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/perpetuals/fundingpaymentreport/records.json", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/perpetuals/fundingpaymentreport/records.json", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1Positions(self::Gemini, params=Dict(), context=Dict())
-    return request(self, "v1/positions", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/positions", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Gemini(; kwargs...)
     inst = Gemini(Exchange(), describe, fetchCurrencies, fetchCurrenciesFromWeb, parseCurrency, fetchMarkets, fetchMarketsFromWeb, parseMarketActive, fetchUSDTMarkets, fetchMarketsFromAPI, parseMarket, fetchOrderBook, fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2, fetchTicker, parseTicker, fetchTickers, parseTrade, fetchTrades, parseBalance, fetchTradingFees, fetchBalance, parseOrder, fetchOrder, fetchOpenOrders, createOrder, cancelOrder, fetchMyTrades, withdraw, nonce, fetchDepositsWithdrawals, parseTransaction, parseTransactionStatus, parseDepositAddress, fetchDepositAddress, fetchDepositAddressesByNetwork, sign, handleErrors, createDepositAddress, fetchOHLCV, fetchOpenInterest, parseOpenInterest, webExchangeGet, webGetRestApi, publicGetV1Symbols, publicGetV1SymbolsDetailsSymbol, publicGetV1NetworkToken, publicGetV1StakingRates, publicGetV1PubtickerSymbol, publicGetV1Feepromos, publicGetV2TickerSymbol, publicGetV2CandlesSymbolTimeframe, publicGetV1TradesSymbol, publicGetV1AuctionSymbol, publicGetV1AuctionSymbolHistory, publicGetV1Pricefeed, publicGetV1FundingamountSymbol, publicGetV1FundingamountreportRecordsXlsx, publicGetV1BookSymbol, publicGetV1EarnRates, publicGetV2DerivativesCandlesSymbolTimeFrame, publicGetV2FxrateSymbolTimestamp, publicGetV1RiskstatsSymbol, privateGetV1PerpetualsFundingpaymentreportRecordsXlsx, privatePostV1StakingUnstake, privatePostV1StakingStake, privatePostV1StakingRewards, privatePostV1StakingHistory, privatePostV1OrderNew, privatePostV1OrderCancel, privatePostV1WrapSymbol, privatePostV1OrderCancelSession, privatePostV1OrderCancelAll, privatePostV1OrderStatus, privatePostV1Orders, privatePostV1Mytrades, privatePostV1Notionalvolume, privatePostV1Tradevolume, privatePostV1ClearingNew, privatePostV1ClearingStatus, privatePostV1ClearingCancel, privatePostV1ClearingConfirm, privatePostV1Balances, privatePostV1BalancesStaking, privatePostV1NotionalbalancesCurrency, privatePostV1Transfers, privatePostV1AddressesNetwork, privatePostV1DepositNetworkNewAddress, privatePostV1DepositCurrencyNewAddress, privatePostV1WithdrawCurrency, privatePostV1AccountTransferCurrency, privatePostV1PaymentsAddbank, privatePostV1PaymentsMethods, privatePostV1PaymentsSenWithdraw, privatePostV1BalancesEarn, privatePostV1EarnInterest, privatePostV1EarnHistory, privatePostV1ApprovedAddressesNetworkRequest, privatePostV1ApprovedAddressesAccountNetwork, privatePostV1ApprovedAddressesNetworkRemove, privatePostV1Account, privatePostV1AccountCreate, privatePostV1AccountList, privatePostV1Heartbeat, privatePostV1Roles, privatePostV1Custodyaccountfees, privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate, privatePostV1PaymentsAddbankCad, privatePostV1Transactions, privatePostV1MarginAccount, privatePostV1MarginRates, privatePostV1MarginOrderPreview, privatePostV1ClearingList, privatePostV1ClearingBrokerList, privatePostV1ClearingBrokerNew, privatePostV1ClearingTrades, privatePostV1InstantQuote, privatePostV1InstantExecute, privatePostV1AccountRename, privatePostV1OauthRevokeByToken, privatePostV1Margin, privatePostV1PerpetualsFundingPayment, privatePostV1PerpetualsFundingpaymentreportRecordsJson, privatePostV1Positions)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

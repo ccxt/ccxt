@@ -246,136 +246,356 @@ function describe(self::Bittrade, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("v2Public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("reference/currencies") => 1,
-                Symbol("market-status") => 1
+                Symbol("reference/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("v2Private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("account/ledger") => 1,
-                Symbol("account/withdraw/quota") => 1,
-                Symbol("account/withdraw/address") => 1,
-                Symbol("account/deposit/address") => 1,
-                Symbol("account/repayment") => 5,
-                Symbol("reference/transact-fee-rate") => 1,
-                Symbol("account/asset-valuation") => 0.2,
-                Symbol("point/account") => 5,
-                Symbol("sub-user/user-list") => 1,
-                Symbol("sub-user/user-state") => 1,
-                Symbol("sub-user/account-list") => 1,
-                Symbol("sub-user/deposit-address") => 1,
-                Symbol("sub-user/query-deposit") => 1,
-                Symbol("user/api-key") => 1,
-                Symbol("user/uid") => 1,
-                Symbol("algo-orders/opening") => 1,
-                Symbol("algo-orders/history") => 1,
-                Symbol("algo-orders/specific") => 1,
-                Symbol("c2c/offers") => 1,
-                Symbol("c2c/offer") => 1,
-                Symbol("c2c/transactions") => 1,
-                Symbol("c2c/repayment") => 1,
-                Symbol("c2c/account") => 1,
-                Symbol("etp/reference") => 1,
-                Symbol("etp/transactions") => 5,
-                Symbol("etp/transaction") => 5,
-                Symbol("etp/rebalance") => 1,
-                Symbol("etp/limit") => 1
+                Symbol("account/ledger") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/withdraw/quota") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/withdraw/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("reference/transact-fee-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/asset-valuation") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("point/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("sub-user/user-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/user-state") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/account-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/query-deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/api-key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/uid") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders/opening") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders/specific") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/offers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/offer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("etp/reference") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("etp/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("etp/transaction") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("etp/rebalance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("etp/limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("account/transfer") => 1,
-                Symbol("account/repayment") => 5,
-                Symbol("point/transfer") => 5,
-                Symbol("sub-user/management") => 1,
-                Symbol("sub-user/creation") => 1,
-                Symbol("sub-user/tradable-market") => 1,
-                Symbol("sub-user/transferability") => 1,
-                Symbol("sub-user/api-key-generation") => 1,
-                Symbol("sub-user/api-key-modification") => 1,
-                Symbol("sub-user/api-key-deletion") => 1,
-                Symbol("sub-user/deduct-mode") => 1,
-                Symbol("algo-orders") => 1,
-                Symbol("algo-orders/cancel-all-after") => 1,
-                Symbol("algo-orders/cancellation") => 1,
-                Symbol("c2c/offer") => 1,
-                Symbol("c2c/cancellation") => 1,
-                Symbol("c2c/cancel-all") => 1,
-                Symbol("c2c/repayment") => 1,
-                Symbol("c2c/transfer") => 1,
-                Symbol("etp/creation") => 5,
-                Symbol("etp/redemption") => 5,
-                Symbol("etp/{transactId}/cancel") => 10,
-                Symbol("etp/batch-cancel") => 50
+                Symbol("account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("point/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("sub-user/management") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/creation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/tradable-market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/transferability") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/api-key-generation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/api-key-modification") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/api-key-deletion") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/deduct-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders/cancel-all-after") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders/cancellation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/offer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/cancellation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/cancel-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("etp/creation") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("etp/redemption") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("etp/{transactId}/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("etp/batch-cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+)
             )
         ),
         Symbol("market") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("history/kline") => 1,
-                Symbol("detail/merged") => 1,
-                Symbol("depth") => 1,
-                Symbol("trade") => 1,
-                Symbol("history/trade") => 1,
-                Symbol("detail") => 1,
-                Symbol("tickers") => 1,
-                Symbol("etp") => 1
+                Symbol("history/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("detail/merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("history/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("etp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("common/symbols") => 1,
-                Symbol("common/currencys") => 1,
-                Symbol("common/timestamp") => 1,
-                Symbol("common/exchange") => 1,
-                Symbol("settings/currencys") => 1
+                Symbol("common/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("common/currencys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("common/timestamp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("common/exchange") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("settings/currencys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("account/accounts") => 0.2,
-                Symbol("account/accounts/{id}/balance") => 0.2,
-                Symbol("account/accounts/{sub-uid}") => 1,
-                Symbol("account/history") => 4,
-                Symbol("cross-margin/loan-info") => 1,
-                Symbol("margin/loan-info") => 1,
-                Symbol("fee/fee-rate/get") => 1,
-                Symbol("order/openOrders") => 0.4,
-                Symbol("order/orders") => 0.4,
-                Symbol("order/orders/{id}") => 0.4,
-                Symbol("order/orders/{id}/matchresults") => 0.4,
-                Symbol("order/orders/getClientOrder") => 0.4,
-                Symbol("order/history") => 1,
-                Symbol("order/matchresults") => 1,
-                Symbol("query/deposit-withdraw") => 1,
-                Symbol("margin/loan-orders") => 0.2,
-                Symbol("margin/accounts/balance") => 0.2,
-                Symbol("cross-margin/loan-orders") => 1,
-                Symbol("cross-margin/accounts/balance") => 1,
-                Symbol("points/actions") => 1,
-                Symbol("points/orders") => 1,
-                Symbol("subuser/aggregate-balance") => 10,
-                Symbol("stable-coin/exchange_rate") => 1,
-                Symbol("stable-coin/quote") => 1
+                Symbol("account/accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("account/accounts/{id}/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("account/accounts/{sub-uid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("cross-margin/loan-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/loan-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fee/fee-rate/get") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders/{id}/matchresults") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders/getClientOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/matchresults") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("query/deposit-withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/loan-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("margin/accounts/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("cross-margin/loan-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cross-margin/accounts/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("points/actions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("points/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("subuser/aggregate-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("stable-coin/exchange_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("stable-coin/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("account/transfer") => 1,
-                Symbol("futures/transfer") => 1,
-                Symbol("order/batch-orders") => 0.4,
-                Symbol("order/orders/place") => 0.2,
-                Symbol("order/orders/submitCancelClientOrder") => 0.2,
-                Symbol("order/orders/batchCancelOpenOrders") => 0.4,
-                Symbol("order/orders/{id}/submitcancel") => 0.2,
-                Symbol("order/orders/batchcancel") => 0.4,
-                Symbol("dw/withdraw/api/create") => 1,
-                Symbol("dw/withdraw-virtual/{id}/cancel") => 1,
-                Symbol("dw/transfer-in/margin") => 10,
-                Symbol("dw/transfer-out/margin") => 10,
-                Symbol("margin/orders") => 10,
-                Symbol("margin/orders/{id}/repay") => 10,
-                Symbol("cross-margin/transfer-in") => 1,
-                Symbol("cross-margin/transfer-out") => 1,
-                Symbol("cross-margin/orders") => 1,
-                Symbol("cross-margin/orders/{id}/repay") => 1,
-                Symbol("stable-coin/exchange") => 1,
-                Symbol("subuser/transfer") => 10
+                Symbol("account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/batch-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders/place") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("order/orders/submitCancelClientOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("order/orders/batchCancelOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders/{id}/submitcancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("order/orders/batchcancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("dw/withdraw/api/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dw/withdraw-virtual/{id}/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dw/transfer-in/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("dw/transfer-out/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("margin/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("margin/orders/{id}/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("cross-margin/transfer-in") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cross-margin/transfer-out") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cross-margin/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cross-margin/orders/{id}/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("stable-coin/exchange") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("subuser/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
             )
         )
     ),
@@ -561,6 +781,9 @@ function fetchTradingLimits(self::Bittrade, symbols=nothing, params=Dict())
     if functions.ccxtruthy(symbols == nothing)
         symbols = self.symbols;
     end
+    if functions.ccxtruthy(symbols == nothing)
+        throw(ExchangeError(string(self.id, " markets not loaded")));
+    end
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
@@ -592,12 +815,12 @@ function parseTradingLimits(self::Bittrade, limits, symbol=nothing, params=Dict(
 
 end
 function costToPrecision(self::Bittrade, symbol, cost)
-    return decimalToPrecision(cost, TRUNCATE, get(get(get(self.markets, Symbol(symbol), nothing), Symbol("precision"), nothing), Symbol("cost"), nothing), self.precisionMode)
+    return decimalToPrecision(cost, TRUNCATE, get(get(self.market(symbol), Symbol("precision"), nothing), Symbol("cost"), nothing), self.precisionMode)
 
 end
 function fetchMarkets(self::Bittrade, params=Dict())
     method = self.handleOption("fetchMarkets", "method", "publicGetCommonSymbols");
-    response = Base.fetch(getproperty(self, Symbol(method))(self, params));
+    response = Base.fetch(getproperty(self, Symbol(method))(params));
     markets = safeValue(response, "data", []);
     numMarkets = length(markets);
     if functions.ccxtruthy(functions.ccxt_lt(numMarkets, 1))
@@ -616,6 +839,12 @@ function fetchMarkets(self::Bittrade, params=Dict())
         superLeverageRatio = safeString(market, "super-margin-leverage-ratio", "1");
         margin = @functions.ccxt_or(stringGt(leverageRatio, "1"), stringGt(superLeverageRatio, "1"));
         fee = functions.ccxtruthy((base == "OMG")) ? self.parseNumber("0") : self.parseNumber("0.002");
+        if functions.ccxtruthy(baseId == nothing)
+            throw(ExchangeError(string(self.id, " fetchMarkets() missing baseId")));
+        end
+        if functions.ccxtruthy(quoteId == nothing)
+            throw(ExchangeError(string(self.id, " fetchMarkets() missing quoteId")));
+        end
         push!(result, Dict{Symbol, Any}(
     Symbol("id") => string(baseId, quoteId),
     Symbol("symbol") => string(base, "/", quote_var),
@@ -759,7 +988,8 @@ function fetchTicker(self::Bittrade, symbol, params=Dict())
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.marketGetDetailMerged(extend(request, params)));
-    ticker = self.parseTicker(get(response, Symbol("tick"), nothing), market);
+    tick = self.safeDict(response, "tick", Dict{Symbol, Any}());
+    ticker = self.parseTicker(tick, market);
     timestamp = safeInteger(response, "ts");
     ticker[Symbol("timestamp")] = timestamp;
     ticker[Symbol("datetime")] = self.iso8601(timestamp);
@@ -848,7 +1078,8 @@ function fetchOrderTrades(self::Bittrade, id, symbol=nothing, since=nothing, lim
         Symbol("id") => id
     );
     response = Base.fetch(self.privateGetOrderOrdersIdMatchresults(extend(request, params)));
-    return self.parseTrades(get(response, Symbol("data"), nothing), nothing, since, limit)
+    data = self.safeList(response, "data", []);
+    return self.parseTrades(data, nothing, since, limit)
 
 end
 function fetchMyTrades(self::Bittrade, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -868,7 +1099,8 @@ function fetchMyTrades(self::Bittrade, symbol=nothing, since=nothing, limit=noth
         request[Symbol("start-time")] = since;
     end
     response = Base.fetch(self.privateGetOrderMatchresults(extend(request, params)));
-    return self.parseTrades(get(response, Symbol("data"), nothing), market, since, limit)
+    data = self.safeList(response, "data", []);
+    return self.parseTrades(data, market, since, limit)
 
 end
 function fetchTrades(self::Bittrade, symbol, since=nothing, limit=1000, params=Dict())
@@ -926,7 +1158,7 @@ function fetchAccounts(self::Bittrade, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     response = Base.fetch(self.privateGetAccountAccounts(params));
-    return get(response, Symbol("data"), nothing)
+    return self.safeList(response, "data", [])
 
 end
 function fetchCurrencies(self::Bittrade, params=Dict())
@@ -989,18 +1221,26 @@ function parseBalance(self::Bittrade, response)
         currencyId = safeString(balance, "currency");
         code = self.safeCurrencyCode(currencyId);
         account = nothing;
-        if functions.ccxtruthy(ccxt_in(code, result))
+        if functions.ccxtruthy(@functions.ccxt_and((code != nothing), (ccxt_in(code, result))))
             account = get(result, Symbol(code), nothing);
         else
             account = self.account();
         end
+        if functions.ccxtruthy(account == nothing)
+            throw(ExchangeError(string(self.id, " parseBalance() could not resolve account")));
+        end
         if functions.ccxtruthy(get(balance, Symbol("type"), nothing) == "trade")
             account[Symbol("free")] = safeString(balance, "balance");
+        end
+        if functions.ccxtruthy(account == nothing)
+            throw(ExchangeError(string(self.id, " parseBalance() could not resolve account")));
         end
         if functions.ccxtruthy(get(balance, Symbol("type"), nothing) == "frozen")
             account[Symbol("used")] = safeString(balance, "balance");
         end
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1015,7 +1255,7 @@ function fetchBalance(self::Bittrade, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("id") => get(get(self.accounts, 1, nothing), Symbol("id"), nothing)
     );
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     return self.parseBalance(response)
 
 end
@@ -1032,7 +1272,7 @@ function fetchOrdersByStates(self::Bittrade, states, symbol=nothing, since=nothi
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
     end
     method = self.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     return self.parseOrders(get(response, Symbol("data"), nothing), market, since, limit)
 
 end
@@ -1044,7 +1284,7 @@ function fetchOrder(self::Bittrade, id, symbol=nothing, params=Dict())
         Symbol("id") => id
     );
     response = Base.fetch(self.privateGetOrderOrdersId(extend(request, params)));
-    order = self.safeDict(response, "data");
+    order = self.safeDict(response, "data", Dict{Symbol, Any}());
     return self.parseOrder(order)
 
 end
@@ -1054,7 +1294,7 @@ function fetchOrders(self::Bittrade, symbol=nothing, since=nothing, limit=nothin
 end
 function fetchOpenOrders(self::Bittrade, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     method = self.handleOption("fetchOpenOrders", "method", "fetch_open_orders_v1");
-    return Base.fetch(getproperty(self, Symbol(method))(self, symbol, since, limit, params))
+    return Base.fetch(getproperty(self, Symbol(method))(symbol, since, limit, params))
 
 end
 function fetchOpenOrdersV1(self::Bittrade, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -1227,7 +1467,7 @@ function createOrder(self::Bittrade, symbol, type_var, side, amount, price=nothi
         request[Symbol("price")] = self.priceToPrecision(symbol, price);
     end
     method = get(self.options, Symbol("createOrderMethod"), nothing);
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     id = safeString(response, "data");
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
@@ -1371,7 +1611,8 @@ function fetchDeposits(self::Bittrade, code=nothing, since=nothing, limit=nothin
         request[Symbol("size")] = limit;
     end
     response = Base.fetch(self.privateGetQueryDepositWithdraw(extend(request, params)));
-    return self.parseTransactions(get(response, Symbol("data"), nothing), currency, since, limit)
+    data = self.safeList(response, "data", []);
+    return self.parseTransactions(data, currency, since, limit)
 
 end
 function fetchWithdrawals(self::Bittrade, code=nothing, since=nothing, limit=nothing, params=Dict())
@@ -1396,7 +1637,8 @@ function fetchWithdrawals(self::Bittrade, code=nothing, since=nothing, limit=not
         request[Symbol("size")] = limit;
     end
     response = Base.fetch(self.privateGetQueryDepositWithdraw(extend(request, params)));
-    return self.parseTransactions(get(response, Symbol("data"), nothing), currency, since, limit)
+    data = self.safeList(response, "data", []);
+    return self.parseTransactions(data, currency, since, limit)
 
 end
 function parseTransaction(self::Bittrade, transaction, currency=nothing)
@@ -1570,456 +1812,509 @@ function handleErrors(self::Bittrade, httpCode, reason, url, method, headers, bo
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bittrade, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v2PublicGetReferenceCurrencies(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "reference/currencies", "v2Public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "reference/currencies", "v2Public", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetMarketStatus(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "market-status", "v2Public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market-status", "v2Public", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountLedger(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/ledger", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/ledger", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountWithdrawQuota(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/withdraw/quota", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/withdraw/quota", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountWithdrawAddress(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/withdraw/address", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/withdraw/address", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountDepositAddress(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/deposit/address", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/deposit/address", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountRepayment(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/repayment", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "account/repayment", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetReferenceTransactFeeRate(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "reference/transact-fee-rate", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "reference/transact-fee-rate", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountAssetValuation(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/asset-valuation", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "account/asset-valuation", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetPointAccount(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "point/account", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "point/account", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSubUserUserList(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/user-list", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/user-list", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSubUserUserState(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/user-state", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/user-state", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSubUserAccountList(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/account-list", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/account-list", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSubUserDepositAddress(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/deposit-address", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/deposit-address", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSubUserQueryDeposit(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/query-deposit", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/query-deposit", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetUserApiKey(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "user/api-key", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/api-key", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetUserUid(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "user/uid", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/uid", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAlgoOrdersOpening(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders/opening", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders/opening", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAlgoOrdersHistory(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders/history", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders/history", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAlgoOrdersSpecific(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders/specific", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders/specific", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetC2cOffers(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/offers", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/offers", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetC2cOffer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/offer", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/offer", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetC2cTransactions(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/transactions", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/transactions", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetC2cRepayment(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/repayment", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/repayment", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetC2cAccount(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/account", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/account", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetEtpReference(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/reference", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "etp/reference", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetEtpTransactions(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/transactions", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "etp/transactions", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetEtpTransaction(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/transaction", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "etp/transaction", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetEtpRebalance(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/rebalance", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "etp/rebalance", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetEtpLimit(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/limit", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "etp/limit", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/transfer", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountRepayment(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/repayment", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "account/repayment", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostPointTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "point/transfer", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "point/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserManagement(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/management", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/management", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserCreation(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/creation", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/creation", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserTradableMarket(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/tradable-market", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/tradable-market", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserTransferability(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/transferability", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/transferability", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserApiKeyGeneration(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-generation", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/api-key-generation", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserApiKeyModification(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-modification", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/api-key-modification", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserApiKeyDeletion(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-deletion", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/api-key-deletion", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserDeductMode(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "sub-user/deduct-mode", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/deduct-mode", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAlgoOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAlgoOrdersCancelAllAfter(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders/cancel-all-after", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders/cancel-all-after", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAlgoOrdersCancellation(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "algo-orders/cancellation", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders/cancellation", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostC2cOffer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/offer", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/offer", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostC2cCancellation(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/cancellation", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/cancellation", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostC2cCancelAll(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/cancel-all", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/cancel-all", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostC2cRepayment(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/repayment", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/repayment", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostC2cTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "c2c/transfer", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostEtpCreation(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/creation", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "etp/creation", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostEtpRedemption(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/redemption", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "etp/redemption", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostEtpTransactIdCancel(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/{transactId}/cancel", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "etp/{transactId}/cancel", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostEtpBatchCancel(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp/batch-cancel", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "etp/batch-cancel", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function marketGetHistoryKline(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "history/kline", "market", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "history/kline", "market", "GET", params, nothing, nothing, Dict())
 end
 
 function marketGetDetailMerged(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "detail/merged", "market", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "detail/merged", "market", "GET", params, nothing, nothing, Dict())
 end
 
 function marketGetDepth(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "depth", "market", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "depth", "market", "GET", params, nothing, nothing, Dict())
 end
 
 function marketGetTrade(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "trade", "market", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade", "market", "GET", params, nothing, nothing, Dict())
 end
 
 function marketGetHistoryTrade(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "history/trade", "market", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "history/trade", "market", "GET", params, nothing, nothing, Dict())
 end
 
 function marketGetDetail(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "detail", "market", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "detail", "market", "GET", params, nothing, nothing, Dict())
 end
 
 function marketGetTickers(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "tickers", "market", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tickers", "market", "GET", params, nothing, nothing, Dict())
 end
 
 function marketGetEtp(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "etp", "market", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "etp", "market", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCommonSymbols(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "common/symbols", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/symbols", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCommonCurrencys(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "common/currencys", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/currencys", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCommonTimestamp(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "common/timestamp", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/timestamp", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCommonExchange(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "common/exchange", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/exchange", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSettingsCurrencys(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "settings/currencys", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "settings/currencys", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountAccounts(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/accounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "account/accounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountAccountsIdBalance(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/accounts/{id}/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "account/accounts/{id}/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountAccountsSubUid(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/accounts/{sub-uid}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/accounts/{sub-uid}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountHistory(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCrossMarginLoanInfo(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/loan-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/loan-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginLoanInfo(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "margin/loan-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/loan-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFeeFeeRateGet(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "fee/fee-rate/get", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fee/fee-rate/get", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderOpenOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/openOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/openOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderOrdersId(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderOrdersIdMatchresults(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}/matchresults", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders/{id}/matchresults", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderOrdersGetClientOrder(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/getClientOrder", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders/getClientOrder", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderHistory(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderMatchresults(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/matchresults", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/matchresults", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetQueryDepositWithdraw(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "query/deposit-withdraw", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "query/deposit-withdraw", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginLoanOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "margin/loan-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "margin/loan-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginAccountsBalance(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCrossMarginLoanOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/loan-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/loan-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCrossMarginAccountsBalance(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPointsActions(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "points/actions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "points/actions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPointsOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "points/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "points/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubuserAggregateBalance(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "subuser/aggregate-balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "subuser/aggregate-balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetStableCoinExchangeRate(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "stable-coin/exchange_rate", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "stable-coin/exchange_rate", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetStableCoinQuote(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "stable-coin/quote", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "stable-coin/quote", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "account/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "futures/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderBatchOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/batch-orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/batch-orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderOrdersPlace(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/place", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order/orders/place", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderOrdersSubmitCancelClientOrder(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/submitCancelClientOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order/orders/submitCancelClientOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderOrdersBatchCancelOpenOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/batchCancelOpenOrders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders/batchCancelOpenOrders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderOrdersIdSubmitcancel(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}/submitcancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order/orders/{id}/submitcancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderOrdersBatchcancel(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "order/orders/batchcancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders/batchcancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDwWithdrawApiCreate(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "dw/withdraw/api/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dw/withdraw/api/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDwWithdrawVirtualIdCancel(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "dw/withdraw-virtual/{id}/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dw/withdraw-virtual/{id}/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDwTransferInMargin(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "dw/transfer-in/margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "dw/transfer-in/margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDwTransferOutMargin(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "dw/transfer-out/margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "dw/transfer-out/margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMarginOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "margin/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "margin/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMarginOrdersIdRepay(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCrossMarginTransferIn(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/transfer-in", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/transfer-in", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCrossMarginTransferOut(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/transfer-out", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/transfer-out", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCrossMarginOrders(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCrossMarginOrdersIdRepay(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "cross-margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostStableCoinExchange(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "stable-coin/exchange", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "stable-coin/exchange", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubuserTransfer(self::Bittrade, params=Dict(), context=Dict())
-    return request(self, "subuser/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "subuser/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Bittrade(; kwargs...)
     inst = Bittrade(Exchange(), describe, fetchTime, fetchTradingLimits, fetchTradingLimitsById, parseTradingLimits, costToPrecision, fetchMarkets, parseTicker, fetchOrderBook, fetchTicker, fetchTickers, parseTrade, fetchOrderTrades, fetchMyTrades, fetchTrades, parseOHLCV, fetchOHLCV, fetchAccounts, fetchCurrencies, parseCurrency, parseBalance, fetchBalance, fetchOrdersByStates, fetchOrder, fetchOrders, fetchOpenOrders, fetchOpenOrdersV1, fetchClosedOrders, fetchOpenOrdersV2, parseOrderStatus, parseOrder, createMarketBuyOrderWithCost, createOrder, cancelOrder, cancelOrders, parseCancelOrders, cancelAllOrders, parseDepositAddress, fetchDeposits, fetchWithdrawals, parseTransaction, parseTransactionStatus, withdraw, sign, handleErrors, v2PublicGetReferenceCurrencies, v2PublicGetMarketStatus, v2PrivateGetAccountLedger, v2PrivateGetAccountWithdrawQuota, v2PrivateGetAccountWithdrawAddress, v2PrivateGetAccountDepositAddress, v2PrivateGetAccountRepayment, v2PrivateGetReferenceTransactFeeRate, v2PrivateGetAccountAssetValuation, v2PrivateGetPointAccount, v2PrivateGetSubUserUserList, v2PrivateGetSubUserUserState, v2PrivateGetSubUserAccountList, v2PrivateGetSubUserDepositAddress, v2PrivateGetSubUserQueryDeposit, v2PrivateGetUserApiKey, v2PrivateGetUserUid, v2PrivateGetAlgoOrdersOpening, v2PrivateGetAlgoOrdersHistory, v2PrivateGetAlgoOrdersSpecific, v2PrivateGetC2cOffers, v2PrivateGetC2cOffer, v2PrivateGetC2cTransactions, v2PrivateGetC2cRepayment, v2PrivateGetC2cAccount, v2PrivateGetEtpReference, v2PrivateGetEtpTransactions, v2PrivateGetEtpTransaction, v2PrivateGetEtpRebalance, v2PrivateGetEtpLimit, v2PrivatePostAccountTransfer, v2PrivatePostAccountRepayment, v2PrivatePostPointTransfer, v2PrivatePostSubUserManagement, v2PrivatePostSubUserCreation, v2PrivatePostSubUserTradableMarket, v2PrivatePostSubUserTransferability, v2PrivatePostSubUserApiKeyGeneration, v2PrivatePostSubUserApiKeyModification, v2PrivatePostSubUserApiKeyDeletion, v2PrivatePostSubUserDeductMode, v2PrivatePostAlgoOrders, v2PrivatePostAlgoOrdersCancelAllAfter, v2PrivatePostAlgoOrdersCancellation, v2PrivatePostC2cOffer, v2PrivatePostC2cCancellation, v2PrivatePostC2cCancelAll, v2PrivatePostC2cRepayment, v2PrivatePostC2cTransfer, v2PrivatePostEtpCreation, v2PrivatePostEtpRedemption, v2PrivatePostEtpTransactIdCancel, v2PrivatePostEtpBatchCancel, marketGetHistoryKline, marketGetDetailMerged, marketGetDepth, marketGetTrade, marketGetHistoryTrade, marketGetDetail, marketGetTickers, marketGetEtp, publicGetCommonSymbols, publicGetCommonCurrencys, publicGetCommonTimestamp, publicGetCommonExchange, publicGetSettingsCurrencys, privateGetAccountAccounts, privateGetAccountAccountsIdBalance, privateGetAccountAccountsSubUid, privateGetAccountHistory, privateGetCrossMarginLoanInfo, privateGetMarginLoanInfo, privateGetFeeFeeRateGet, privateGetOrderOpenOrders, privateGetOrderOrders, privateGetOrderOrdersId, privateGetOrderOrdersIdMatchresults, privateGetOrderOrdersGetClientOrder, privateGetOrderHistory, privateGetOrderMatchresults, privateGetQueryDepositWithdraw, privateGetMarginLoanOrders, privateGetMarginAccountsBalance, privateGetCrossMarginLoanOrders, privateGetCrossMarginAccountsBalance, privateGetPointsActions, privateGetPointsOrders, privateGetSubuserAggregateBalance, privateGetStableCoinExchangeRate, privateGetStableCoinQuote, privatePostAccountTransfer, privatePostFuturesTransfer, privatePostOrderBatchOrders, privatePostOrderOrdersPlace, privatePostOrderOrdersSubmitCancelClientOrder, privatePostOrderOrdersBatchCancelOpenOrders, privatePostOrderOrdersIdSubmitcancel, privatePostOrderOrdersBatchcancel, privatePostDwWithdrawApiCreate, privatePostDwWithdrawVirtualIdCancel, privatePostDwTransferInMargin, privatePostDwTransferOutMargin, privatePostMarginOrders, privatePostMarginOrdersIdRepay, privatePostCrossMarginTransferIn, privatePostCrossMarginTransferOut, privatePostCrossMarginOrders, privatePostCrossMarginOrdersIdRepay, privatePostStableCoinExchange, privatePostSubuserTransfer)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

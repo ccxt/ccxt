@@ -237,6 +237,7 @@ function describe(self::Blofin, )
         Symbol("fetchPositions") => true,
         Symbol("fetchPositionsADLRank") => true,
         Symbol("fetchPositionsForSymbol") => false,
+        Symbol("fetchPositionsHistory") => true,
         Symbol("fetchPositionsRisk") => false,
         Symbol("fetchPremiumIndexOHLCV") => false,
         Symbol("fetchSettlementHistory") => false,
@@ -303,91 +304,249 @@ function describe(self::Blofin, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("market/instruments") => 1,
-                Symbol("market/tickers") => 1,
-                Symbol("market/books") => 1,
-                Symbol("market/trades") => 1,
-                Symbol("market/mark-price") => 1,
-                Symbol("market/funding-rate") => 1,
-                Symbol("market/funding-rate-history") => 1,
-                Symbol("market/candles") => 1,
-                Symbol("market/index-candles") => 1,
-                Symbol("market/mark-price-candles") => 1,
-                Symbol("market/position-tiers") => 1
+                Symbol("market/instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/books") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/mark-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/funding-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/funding-rate-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/index-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/mark-price-candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/position-tiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("asset/balances") => 1,
-                Symbol("asset/bills") => 1,
-                Symbol("asset/withdrawal-history") => 1,
-                Symbol("asset/deposit-history") => 1,
-                Symbol("account/config") => 1,
-                Symbol("asset/currencies") => 1,
-                Symbol("account/balance") => 1,
-                Symbol("account/positions") => 1,
-                Symbol("account/positions-history") => 1,
-                Symbol("account/margin-mode") => 1,
-                Symbol("account/position-mode") => 1,
-                Symbol("account/leverage-info") => 1,
-                Symbol("account/batch-leverage-info") => 1,
-                Symbol("trade/orders-pending") => 1,
-                Symbol("trade/order-detail") => 1,
-                Symbol("trade/orders-tpsl-pending") => 1,
-                Symbol("trade/order-tpsl-detail") => 1,
-                Symbol("trade/orders-algo-pending") => 1,
-                Symbol("trade/orders-history") => 1,
-                Symbol("trade/orders-tpsl-history") => 1,
-                Symbol("trade/orders-algo-history") => 1,
-                Symbol("trade/fills-history") => 1,
-                Symbol("trade/order/price-range") => 1,
-                Symbol("affiliate/basic") => 1,
-                Symbol("affiliate/referral-code") => 1,
-                Symbol("affiliate/invitees") => 1,
-                Symbol("affiliate/sub-invitees") => 1,
-                Symbol("affiliate/sub-affiliates") => 1,
-                Symbol("affiliate/invitees/daily/info") => 1,
-                Symbol("copytrading/instruments") => 1,
-                Symbol("copytrading/config") => 1,
-                Symbol("copytrading/account/balance") => 1,
-                Symbol("copytrading/account/positions-by-order") => 1,
-                Symbol("copytrading/account/positions-details-by-order") => 1,
-                Symbol("copytrading/account/positions-by-contract") => 1,
-                Symbol("copytrading/account/position-mode") => 1,
-                Symbol("copytrading/account/leverage-info") => 1,
-                Symbol("copytrading/trade/orders-pending") => 1,
-                Symbol("copytrading/trade/pending-tpsl-by-contract") => 1,
-                Symbol("copytrading/trade/position-history-by-order") => 1,
-                Symbol("copytrading/trade/orders-history") => 1,
-                Symbol("copytrading/trade/pending-tpsl-by-order") => 1,
-                Symbol("user/query-apikey") => 1,
-                Symbol("spot/trade/fills-history") => 1
+                Symbol("asset/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("asset/bills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("asset/withdrawal-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("asset/deposit-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("asset/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/positions-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/margin-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/position-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/leverage-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/batch-leverage-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/orders-pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/order-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/orders-tpsl-pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/order-tpsl-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/orders-algo-pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/orders-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/orders-tpsl-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/orders-algo-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/fills-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/order/price-range") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("affiliate/basic") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("affiliate/referral-code") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("affiliate/invitees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("affiliate/sub-invitees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("affiliate/sub-affiliates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("affiliate/invitees/daily/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/account/positions-by-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/account/positions-details-by-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/account/positions-by-contract") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/account/position-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/account/leverage-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/orders-pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/pending-tpsl-by-contract") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/position-history-by-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/orders-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/pending-tpsl-by-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/query-apikey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/trade/fills-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("asset/transfer") => 1,
-                Symbol("asset/demo-apply-money") => 1,
-                Symbol("account/set-margin-mode") => 1,
-                Symbol("account/set-position-mode") => 1,
-                Symbol("account/set-leverage") => 1,
-                Symbol("trade/order") => 1,
-                Symbol("trade/batch-orders") => 1,
-                Symbol("trade/order-tpsl") => 1,
-                Symbol("trade/order-algo") => 1,
-                Symbol("trade/cancel-order") => 1,
-                Symbol("trade/cancel-batch-orders") => 1,
-                Symbol("trade/cancel-tpsl") => 1,
-                Symbol("trade/cancel-algo") => 1,
-                Symbol("trade/close-position") => 1,
-                Symbol("copytrading/account/set-position-mode") => 1,
-                Symbol("copytrading/account/set-leverage") => 1,
-                Symbol("copytrading/trade/place-order") => 1,
-                Symbol("copytrading/trade/cancel-order") => 1,
-                Symbol("copytrading/trade/place-tpsl-by-contract") => 1,
-                Symbol("copytrading/trade/cancel-tpsl-by-contract") => 1,
-                Symbol("copytrading/trade/place-tpsl-by-order") => 1,
-                Symbol("copytrading/trade/cancel-tpsl-by-order") => 1,
-                Symbol("copytrading/trade/close-position-by-order") => 1,
-                Symbol("copytrading/trade/close-position-by-contract") => 1
+                Symbol("asset/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("asset/demo-apply-money") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/set-margin-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/set-position-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/set-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/batch-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/order-tpsl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/order-algo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/cancel-batch-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/cancel-tpsl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/cancel-algo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/close-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/account/set-position-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/account/set-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/place-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/place-tpsl-by-contract") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/cancel-tpsl-by-contract") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/place-tpsl-by-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/cancel-tpsl-by-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/close-position-by-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("copytrading/trade/close-position-by-contract") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -627,7 +786,7 @@ function parseMarket(self::Blofin, market)
     contract = @functions.ccxt_or(swap, future);
     baseId = safeString(market, "baseCurrency");
     quoteId = safeString(market, "quoteCurrency");
-    settleId = safeString(market, "quoteCurrency");
+    settleId = safeString(market, "settleCurrency", quoteId);
     settle = self.safeCurrencyCode(settleId);
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
@@ -646,6 +805,9 @@ function parseMarket(self::Blofin, market)
     maxLeverage = stringMax(maxLeverage, "1");
     isActive = (safeString(market, "state") == "live");
     isMargin = @functions.ccxt_and(spot, (stringGt(maxLeverage, "1")));
+    contractType = safeString(market, "contractType");
+    maxLimitAmount = self.safeNumber(market, "maxLimitSize");
+    maxSpotCost = self.safeNumber(market, "maxMarketSize");
     return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
@@ -665,8 +827,8 @@ function parseMarket(self::Blofin, market)
     Symbol("taker") => taker,
     Symbol("maker") => maker,
     Symbol("contract") => contract,
-    Symbol("linear") => functions.ccxtruthy(contract) ? (quoteId == settleId) : nothing,
-    Symbol("inverse") => functions.ccxtruthy(contract) ? (baseId == settleId) : nothing,
+    Symbol("linear") => functions.ccxtruthy(contract) ? (contractType == "linear") : nothing,
+    Symbol("inverse") => functions.ccxtruthy(contract) ? (contractType == "inverse") : nothing,
     Symbol("contractSize") => functions.ccxtruthy(contract) ? self.safeNumber(market, "contractValue") : nothing,
     Symbol("expiry") => expiry,
     Symbol("expiryDatetime") => expiry,
@@ -684,7 +846,7 @@ function parseMarket(self::Blofin, market)
         ),
         Symbol("amount") => Dict{Symbol, Any}(
             Symbol("min") => self.safeNumber(market, "minSize"),
-            Symbol("max") => nothing
+            Symbol("max") => maxLimitAmount
         ),
         Symbol("price") => Dict{Symbol, Any}(
             Symbol("min") => nothing,
@@ -692,7 +854,7 @@ function parseMarket(self::Blofin, market)
         ),
         Symbol("cost") => Dict{Symbol, Any}(
             Symbol("min") => nothing,
-            Symbol("max") => nothing
+            Symbol("max") => functions.ccxtruthy(contract) ? nothing : maxSpotCost
         )
     ),
     Symbol("info") => market
@@ -1102,6 +1264,12 @@ function fetchBalance(self::Blofin, params=Dict())
 
 end
 function createOrderRequest(self::Blofin, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("instId") => get(market, Symbol("id"), nothing),
@@ -1373,7 +1541,7 @@ function cancelOrder(self::Blofin, id, symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("instId") => get(market, Symbol("id"), nothing)
     );
-    isTrigger = self.safeBoolN(params, ["trigger"], false);
+    isTrigger = self.safeBool(params, "trigger", false);
     isTpsl = self.safeBool2(params, "tpsl", "TPSL", false);
     clientOrderId = safeString(params, "clientOrderId");
     if functions.ccxtruthy(clientOrderId != nothing)
@@ -1808,7 +1976,7 @@ function fetchPosition(self::Blofin, symbol, params=Dict())
     data = self.safeList(response, "data", []);
     position = self.safeDict(data, 0);
     if functions.ccxtruthy(position == nothing)
-            return nothing
+        throw(NullResponse(string(self.id, " fetchPosition() returned empty position")));
     end
     return self.parsePosition(position, market)
 
@@ -1898,7 +2066,8 @@ function parsePosition(self::Blofin, position, market=nothing)
     if functions.ccxtruthy(initialMarginPercentage == nothing)
         initialMarginPercentage = self.parseNumber(stringDiv(initialMarginString, notionalString, 4));
     elseif functions.ccxtruthy(initialMarginString == nothing)
-        initialMarginString = stringMul(initialMarginPercentage, notionalString);
+        initialMarginPercentageString = numberToString(initialMarginPercentage);
+        initialMarginString = stringMul(initialMarginPercentageString, notionalString);
     end
     rounder = "0.00005";
     maintenanceMarginPercentage = self.parseNumber(stringDiv(stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
@@ -2235,332 +2404,385 @@ function sign(self::Blofin, path, api="public", method="GET", params=Dict(), hea
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Blofin, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarketInstruments(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/instruments", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/instruments", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketTickers(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketBooks(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/books", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/books", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketTrades(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketMarkPrice(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/mark-price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/mark-price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketFundingRate(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/funding-rate", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/funding-rate", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketFundingRateHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/funding-rate-history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/funding-rate-history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketCandles(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/candles", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/candles", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketIndexCandles(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/index-candles", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/index-candles", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketMarkPriceCandles(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/mark-price-candles", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/mark-price-candles", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketPositionTiers(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "market/position-tiers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/position-tiers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetBalances(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/balances", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "asset/balances", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetBills(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/bills", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "asset/bills", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetWithdrawalHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/withdrawal-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "asset/withdrawal-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetDepositHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/deposit-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "asset/deposit-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountConfig(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/config", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/config", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetCurrencies(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/currencies", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "asset/currencies", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountBalance(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountPositions(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountPositionsHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/positions-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/positions-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountMarginMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/margin-mode", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/margin-mode", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountPositionMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/position-mode", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/position-mode", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountLeverageInfo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/leverage-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/leverage-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountBatchLeverageInfo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/batch-leverage-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/batch-leverage-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrdersPending(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-pending", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/orders-pending", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrderDetail(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order-detail", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/order-detail", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrdersTpslPending(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-tpsl-pending", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/orders-tpsl-pending", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrderTpslDetail(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order-tpsl-detail", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/order-tpsl-detail", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrdersAlgoPending(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-algo-pending", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/orders-algo-pending", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrdersHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/orders-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrdersTpslHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-tpsl-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/orders-tpsl-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrdersAlgoHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/orders-algo-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/orders-algo-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeFillsHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/fills-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/fills-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrderPriceRange(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order/price-range", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/order/price-range", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAffiliateBasic(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/basic", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "affiliate/basic", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAffiliateReferralCode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/referral-code", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "affiliate/referral-code", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAffiliateInvitees(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/invitees", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "affiliate/invitees", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAffiliateSubInvitees(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/sub-invitees", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "affiliate/sub-invitees", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAffiliateSubAffiliates(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/sub-affiliates", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "affiliate/sub-affiliates", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAffiliateInviteesDailyInfo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "affiliate/invitees/daily/info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "affiliate/invitees/daily/info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingInstruments(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/instruments", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/instruments", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingConfig(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/config", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/config", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingAccountBalance(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/account/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingAccountPositionsByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/positions-by-order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/account/positions-by-order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingAccountPositionsDetailsByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/positions-details-by-order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/account/positions-details-by-order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingAccountPositionsByContract(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/positions-by-contract", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/account/positions-by-contract", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingAccountPositionMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/position-mode", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/account/position-mode", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingAccountLeverageInfo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/leverage-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/account/leverage-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingTradeOrdersPending(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/orders-pending", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/orders-pending", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingTradePendingTpslByContract(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/pending-tpsl-by-contract", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/pending-tpsl-by-contract", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingTradePositionHistoryByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/position-history-by-order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/position-history-by-order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingTradeOrdersHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/orders-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/orders-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCopytradingTradePendingTpslByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/pending-tpsl-by-order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/pending-tpsl-by-order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserQueryApikey(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "user/query-apikey", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/query-apikey", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotTradeFillsHistory(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "spot/trade/fills-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/trade/fills-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetTransfer(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "asset/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetDemoApplyMoney(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "asset/demo-apply-money", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "asset/demo-apply-money", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountSetMarginMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/set-margin-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/set-margin-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountSetPositionMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/set-position-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/set-position-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountSetLeverage(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "account/set-leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/set-leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeBatchOrders(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/batch-orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/batch-orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeOrderTpsl(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order-tpsl", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/order-tpsl", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeOrderAlgo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/order-algo", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/order-algo", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeCancelOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/cancel-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeCancelBatchOrders(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-batch-orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/cancel-batch-orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeCancelTpsl(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-tpsl", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/cancel-tpsl", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeCancelAlgo(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/cancel-algo", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/cancel-algo", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeClosePosition(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "trade/close-position", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/close-position", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCopytradingAccountSetPositionMode(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/set-position-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/account/set-position-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCopytradingAccountSetLeverage(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/account/set-leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/account/set-leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCopytradingTradePlaceOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/place-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/place-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCopytradingTradeCancelOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/cancel-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/cancel-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCopytradingTradePlaceTpslByContract(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/place-tpsl-by-contract", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/place-tpsl-by-contract", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCopytradingTradeCancelTpslByContract(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/cancel-tpsl-by-contract", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/cancel-tpsl-by-contract", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCopytradingTradePlaceTpslByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/place-tpsl-by-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/place-tpsl-by-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCopytradingTradeCancelTpslByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/cancel-tpsl-by-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/cancel-tpsl-by-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCopytradingTradeClosePositionByOrder(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/close-position-by-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/close-position-by-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCopytradingTradeClosePositionByContract(self::Blofin, params=Dict(), context=Dict())
-    return request(self, "copytrading/trade/close-position-by-contract", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "copytrading/trade/close-position-by-contract", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Blofin(; kwargs...)
     inst = Blofin(Exchange(), describe, fetchMarkets, parseMarket, fetchOrderBook, parseTicker, fetchTicker, fetchMarkPrice, fetchTickers, parseTrade, fetchTrades, parseOHLCV, fetchOHLCV, fetchFundingRateHistory, parseFundingRate, fetchFundingRate, parseBalanceByType, parseBalance, parseFundingBalance, parseTradingFee, fetchBalance, createOrderRequest, parseOrderStatus, parseOrder, createOrder, createTpslOrderRequest, cancelOrder, createOrders, fetchOpenOrders, fetchMyTrades, fetchDeposits, fetchWithdrawals, fetchLedger, parseTransaction, parseTransactionWithdrawalStatus, parseTransactionDepositStatus, parseLedgerEntryType, parseLedgerEntry, parseIds, cancelOrders, transfer, parseTransfer, fetchPosition, fetchPositions, fetchPositionsHistory, parsePosition, fetchLeverages, fetchLeverage, parseLeverage, setLeverage, closePosition, fetchClosedOrders, fetchMarginMode, parseMarginMode, setMarginMode, fetchPositionMode, setPositionMode, fetchPositionsADLRank, parseADLRank, handleErrors, sign, publicGetMarketInstruments, publicGetMarketTickers, publicGetMarketBooks, publicGetMarketTrades, publicGetMarketMarkPrice, publicGetMarketFundingRate, publicGetMarketFundingRateHistory, publicGetMarketCandles, publicGetMarketIndexCandles, publicGetMarketMarkPriceCandles, publicGetMarketPositionTiers, privateGetAssetBalances, privateGetAssetBills, privateGetAssetWithdrawalHistory, privateGetAssetDepositHistory, privateGetAccountConfig, privateGetAssetCurrencies, privateGetAccountBalance, privateGetAccountPositions, privateGetAccountPositionsHistory, privateGetAccountMarginMode, privateGetAccountPositionMode, privateGetAccountLeverageInfo, privateGetAccountBatchLeverageInfo, privateGetTradeOrdersPending, privateGetTradeOrderDetail, privateGetTradeOrdersTpslPending, privateGetTradeOrderTpslDetail, privateGetTradeOrdersAlgoPending, privateGetTradeOrdersHistory, privateGetTradeOrdersTpslHistory, privateGetTradeOrdersAlgoHistory, privateGetTradeFillsHistory, privateGetTradeOrderPriceRange, privateGetAffiliateBasic, privateGetAffiliateReferralCode, privateGetAffiliateInvitees, privateGetAffiliateSubInvitees, privateGetAffiliateSubAffiliates, privateGetAffiliateInviteesDailyInfo, privateGetCopytradingInstruments, privateGetCopytradingConfig, privateGetCopytradingAccountBalance, privateGetCopytradingAccountPositionsByOrder, privateGetCopytradingAccountPositionsDetailsByOrder, privateGetCopytradingAccountPositionsByContract, privateGetCopytradingAccountPositionMode, privateGetCopytradingAccountLeverageInfo, privateGetCopytradingTradeOrdersPending, privateGetCopytradingTradePendingTpslByContract, privateGetCopytradingTradePositionHistoryByOrder, privateGetCopytradingTradeOrdersHistory, privateGetCopytradingTradePendingTpslByOrder, privateGetUserQueryApikey, privateGetSpotTradeFillsHistory, privatePostAssetTransfer, privatePostAssetDemoApplyMoney, privatePostAccountSetMarginMode, privatePostAccountSetPositionMode, privatePostAccountSetLeverage, privatePostTradeOrder, privatePostTradeBatchOrders, privatePostTradeOrderTpsl, privatePostTradeOrderAlgo, privatePostTradeCancelOrder, privatePostTradeCancelBatchOrders, privatePostTradeCancelTpsl, privatePostTradeCancelAlgo, privatePostTradeClosePosition, privatePostCopytradingAccountSetPositionMode, privatePostCopytradingAccountSetLeverage, privatePostCopytradingTradePlaceOrder, privatePostCopytradingTradeCancelOrder, privatePostCopytradingTradePlaceTpslByContract, privatePostCopytradingTradeCancelTpslByContract, privatePostCopytradingTradePlaceTpslByOrder, privatePostCopytradingTradeCancelTpslByOrder, privatePostCopytradingTradeClosePositionByOrder, privatePostCopytradingTradeClosePositionByContract)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

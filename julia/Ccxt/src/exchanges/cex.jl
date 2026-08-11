@@ -157,6 +157,7 @@ function describe(self::Cex, )
         Symbol("fetchOption") => false,
         Symbol("fetchOptionChain") => false,
         Symbol("fetchOrderBook") => true,
+        Symbol("fetchOrdersByStatus") => true,
         Symbol("fetchPosition") => false,
         Symbol("fetchPositionHistory") => false,
         Symbol("fetchPositionMode") => false,
@@ -197,39 +198,95 @@ function describe(self::Cex, )
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("get_server_time") => 1,
-                Symbol("get_pairs_info") => 1,
-                Symbol("get_currencies_info") => 1,
-                Symbol("get_processing_info") => 10,
-                Symbol("get_ticker") => 1,
-                Symbol("get_trade_history") => 1,
-                Symbol("get_order_book") => 1,
-                Symbol("get_candles") => 1
+                Symbol("get_server_time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_pairs_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_currencies_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_processing_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("get_ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_trade_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_order_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("get_my_current_fee") => 5,
-                Symbol("get_fee_strategy") => 1,
-                Symbol("get_my_volume") => 5,
-                Symbol("do_create_account") => 1,
-                Symbol("get_my_account_status_v3") => 5,
-                Symbol("get_my_wallet_balance") => 5,
-                Symbol("get_my_orders") => 5,
-                Symbol("do_my_new_order") => 1,
-                Symbol("do_cancel_my_order") => 1,
-                Symbol("do_cancel_all_orders") => 5,
-                Symbol("get_order_book") => 1,
-                Symbol("get_candles") => 1,
-                Symbol("get_trade_history") => 1,
-                Symbol("get_my_transaction_history") => 1,
-                Symbol("get_my_funding_history") => 5,
-                Symbol("do_my_internal_transfer") => 1,
-                Symbol("get_processing_info") => 10,
-                Symbol("get_deposit_address") => 5,
-                Symbol("do_deposit_funds_from_wallet") => 1,
-                Symbol("do_withdrawal_funds_to_wallet") => 1
+                Symbol("get_my_current_fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("get_fee_strategy") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_my_volume") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("do_create_account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_my_account_status_v3") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("get_my_wallet_balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("get_my_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("do_my_new_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("do_cancel_my_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("do_cancel_all_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("get_order_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_trade_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_my_transaction_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_my_funding_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("do_my_internal_transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_processing_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("get_deposit_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("do_deposit_funds_from_wallet") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("do_withdrawal_funds_to_wallet") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -346,7 +403,7 @@ function describe(self::Cex, )
             Symbol("AVALANCHEC") => "avalanche",
             Symbol("ETHPOW") => "ethereumpow",
             Symbol("NEAR") => "near",
-            Symbol("ARB") => "arbitrum",
+            Symbol("ARBITRUM") => "arbitrum",
             Symbol("DOT") => "polkadot",
             Symbol("OPT") => "optimism",
             Symbol("INJ") => "injective",
@@ -391,27 +448,29 @@ function parseCurrency(self::Cex, rawCurrency)
         networkCode = self.networkIdToCode(networkId, code);
         deposit = safeString(rawNetwork, "deposit") == "enabled";
         withdraw = safeString(rawNetwork, "withdrawal") == "enabled";
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("margin") => nothing,
-            Symbol("deposit") => deposit,
-            Symbol("withdraw") => withdraw,
-            Symbol("active") => nothing,
-            Symbol("fee") => self.safeNumber(rawNetwork, "withdrawalFee"),
-            Symbol("precision") => currencyPrecision,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(rawNetwork, "minDeposit"),
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("margin") => nothing,
+                Symbol("deposit") => deposit,
+                Symbol("withdraw") => withdraw,
+                Symbol("active") => nothing,
+                Symbol("fee") => self.safeNumber(rawNetwork, "withdrawalFee"),
+                Symbol("precision") => currencyPrecision,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(rawNetwork, "minDeposit"),
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(rawNetwork, "minWithdrawal"),
+                        Symbol("max") => nothing
+                    )
                 ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(rawNetwork, "minWithdrawal"),
-                    Symbol("max") => nothing
-                )
-            ),
-            Symbol("info") => rawNetwork
-        );
+                Symbol("info") => rawNetwork
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -682,12 +741,15 @@ function parseTradingFees(self::Cex, response, useKeyAsId=false)
             market = self.safeMarket(key);
         end
         parsed = self.parseTradingFee(get(response, Symbol(key), nothing), market);
-        result[Symbol(parsed[Symbol("symbol")])] = parsed;
+        if functions.ccxtruthy(get(parsed, Symbol("symbol"), nothing) != nothing)
+            result[Symbol(parsed[Symbol("symbol")])] = parsed;
+        end
         i += 1
     end
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(symbol, result))))
             market = self.market(symbol);
             result[Symbol(symbol)] = self.parseTradingFee(response, market);
@@ -760,7 +822,9 @@ function parseBalance(self::Cex, response)
             Symbol("used") => safeString(balance, "balanceOnHold"),
             Symbol("total") => safeString(balance, "balance")
         );
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -900,6 +964,9 @@ function createOrder(self::Cex, symbol, type_var, side, amount, price=nothing, p
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("clientOrderId") => uuid(),
         Symbol("currency1") => get(market, Symbol("baseId"), nothing),
@@ -923,7 +990,7 @@ function createOrder(self::Cex, symbol, type_var, side, amount, price=nothing, p
         request[Symbol("stopPrice")] = triggerPrice;
     end
     response = Base.fetch(self.privatePostDoMyNewOrder(extend(request, params)));
-    data = self.safeDict(response, "data");
+    data = self.safeDict(response, "data", Dict{Symbol, Any}());
     return self.parseOrder(data, market)
 
 end
@@ -1269,128 +1336,181 @@ function handleErrors(self::Cex, code, reason, url, method, headers, body, respo
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Cex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicPostGetServerTime(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_server_time", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_server_time", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function publicPostGetPairsInfo(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_pairs_info", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_pairs_info", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function publicPostGetCurrenciesInfo(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_currencies_info", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_currencies_info", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function publicPostGetProcessingInfo(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_processing_info", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "get_processing_info", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function publicPostGetTicker(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_ticker", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_ticker", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function publicPostGetTradeHistory(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_trade_history", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_trade_history", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function publicPostGetOrderBook(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_order_book", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_order_book", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function publicPostGetCandles(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_candles", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_candles", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetMyCurrentFee(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_current_fee", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "get_my_current_fee", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetFeeStrategy(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_fee_strategy", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_fee_strategy", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetMyVolume(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_volume", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "get_my_volume", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDoCreateAccount(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_create_account", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "do_create_account", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetMyAccountStatusV3(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_account_status_v3", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "get_my_account_status_v3", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetMyWalletBalance(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_wallet_balance", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "get_my_wallet_balance", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetMyOrders(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "get_my_orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDoMyNewOrder(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_my_new_order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "do_my_new_order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDoCancelMyOrder(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_cancel_my_order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "do_cancel_my_order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDoCancelAllOrders(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_cancel_all_orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "do_cancel_all_orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetOrderBook(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_order_book", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_order_book", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetCandles(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_candles", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_candles", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetTradeHistory(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_trade_history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_trade_history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetMyTransactionHistory(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_transaction_history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_my_transaction_history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetMyFundingHistory(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_my_funding_history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "get_my_funding_history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDoMyInternalTransfer(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_my_internal_transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "do_my_internal_transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetProcessingInfo(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_processing_info", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "get_processing_info", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetDepositAddress(self::Cex, params=Dict(), context=Dict())
-    return request(self, "get_deposit_address", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "get_deposit_address", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDoDepositFundsFromWallet(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_deposit_funds_from_wallet", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "do_deposit_funds_from_wallet", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDoWithdrawalFundsToWallet(self::Cex, params=Dict(), context=Dict())
-    return request(self, "do_withdrawal_funds_to_wallet", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "do_withdrawal_funds_to_wallet", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Cex(; kwargs...)
     inst = Cex(Exchange(), describe, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, fetchTime, fetchTicker, fetchTickers, parseTicker, fetchTrades, parseTrade, fetchOrderBook, fetchOHLCV, parseOHLCV, fetchTradingFees, parseTradingFees, parseTradingFee, fetchAccounts, parseAccount, fetchBalance, parseBalance, fetchOrdersByStatus, fetchClosedOrders, fetchOpenOrders, fetchOpenOrder, fetchClosedOrder, parseOrderStatus, parseOrder, createOrder, cancelOrder, cancelAllOrders, fetchLedger, parseLedgerEntry, parseLedgerEntryType, fetchDepositsWithdrawals, parseTransaction, parseTransactionStatus, transfer, transferBetweenMainAndSubAccount, transferBetweenSubAccounts, parseTransfer, fetchDepositAddress, parseDepositAddress, sign, handleErrors, publicPostGetServerTime, publicPostGetPairsInfo, publicPostGetCurrenciesInfo, publicPostGetProcessingInfo, publicPostGetTicker, publicPostGetTradeHistory, publicPostGetOrderBook, publicPostGetCandles, privatePostGetMyCurrentFee, privatePostGetFeeStrategy, privatePostGetMyVolume, privatePostDoCreateAccount, privatePostGetMyAccountStatusV3, privatePostGetMyWalletBalance, privatePostGetMyOrders, privatePostDoMyNewOrder, privatePostDoCancelMyOrder, privatePostDoCancelAllOrders, privatePostGetOrderBook, privatePostGetCandles, privatePostGetTradeHistory, privatePostGetMyTransactionHistory, privatePostGetMyFundingHistory, privatePostDoMyInternalTransfer, privatePostGetProcessingInfo, privatePostGetDepositAddress, privatePostDoDepositFundsFromWallet, privatePostDoWithdrawalFundsToWallet)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -193,13 +193,123 @@ function describe(self::Btcmarkets, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["markets", "markets/{marketId}/ticker", "markets/{marketId}/trades", "markets/{marketId}/orderbook", "markets/{marketId}/candles", "markets/tickers", "markets/orderbooks", "time"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{marketId}/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{marketId}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{marketId}/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{marketId}/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/orderbooks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("get") => ["orders", "orders/{id}", "batchorders/{ids}", "trades", "trades/{id}", "withdrawals", "withdrawals/{id}", "deposits", "deposits/{id}", "transfers", "transfers/{id}", "addresses", "withdrawal-fees", "assets", "accounts/me/trading-fees", "accounts/me/withdrawal-limits", "accounts/me/balances", "accounts/me/transactions", "reports/{id}"],
-            Symbol("post") => ["orders", "batchorders", "withdrawals", "reports"],
-            Symbol("delete") => ["orders", "orders/{id}", "batchorders/{ids}"],
-            Symbol("put") => ["orders/{id}"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("batchorders/{ids}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawals/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposits/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfers/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("addresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawal-fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts/me/trading-fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts/me/withdrawal-limits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts/me/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accounts/me/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("reports/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("batchorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("reports") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("delete") => Dict{Symbol, Any}(
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("batchorders/{ids}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("put") => Dict{Symbol, Any}(
+                Symbol("orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("timeframes") => Dict{Symbol, Any}(
@@ -331,7 +441,7 @@ function fetchTransactionsWithMethod(self::Btcmarkets, method, code=nothing, sin
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     return self.parseTransactions(response, currency, since, limit)
 
 end
@@ -446,7 +556,7 @@ function parseMarket(self::Btcmarkets, market)
     if functions.ccxtruthy(quote_var == "AUD")
         minPrice = pricePrecision;
     end
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -496,7 +606,7 @@ function parseMarket(self::Btcmarkets, market)
     ),
     Symbol("created") => nothing,
     Symbol("info") => market
-)
+))
 
 end
 function fetchTime(self::Btcmarkets, params=Dict())
@@ -516,7 +626,9 @@ function parseBalance(self::Btcmarkets, response)
         account = self.account();
         account[Symbol("used")] = safeString(balance, "locked");
         account[Symbol("total")] = safeString(balance, "balance");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -550,7 +662,7 @@ function fetchOHLCV(self::Btcmarkets, symbol, timeframe="1m", since=nothing, lim
         request[Symbol("limit")] = min(limit, 200);
     end
     response = Base.fetch(self.publicGetMarketsMarketIdCandles(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
 
 end
 function fetchOrderBook(self::Btcmarkets, symbol, limit=nothing, params=Dict())
@@ -770,7 +882,7 @@ function cancelOrder(self::Btcmarkets, id, symbol=nothing, params=Dict())
 
 end
 function calculateFee(self::Btcmarkets, symbol, type_var, side, amount, price, takerOrMaker="taker", params=Dict())
-    market = get(self.markets, Symbol(symbol), nothing);
+    market = self.market(symbol);
     currency = nothing;
     cost = nothing;
     if functions.ccxtruthy(get(market, Symbol("quote"), nothing) == "AUD")
@@ -783,13 +895,17 @@ function calculateFee(self::Btcmarkets, symbol, type_var, side, amount, price, t
         currency = get(market, Symbol("base"), nothing);
         cost = self.amountToPrecision(symbol, amount);
     end
-    rate = get(market, Symbol(takerOrMaker), nothing);
+    rate = safeValue(market, takerOrMaker);
     rateCost = stringMul(numberToString(rate), cost);
+    feeCost = self.feeToPrecision(symbol, rateCost);
+    if functions.ccxtruthy(feeCost == nothing)
+        feeCost = "0";
+    end
     return Dict{Symbol, Any}(
     Symbol("type") => takerOrMaker,
     Symbol("currency") => currency,
     Symbol("rate") => rate,
-    Symbol("cost") => ccxt_toNumber(self.feeToPrecision(symbol, rateCost))
+    Symbol("cost") => ccxt_toNumber(feeCost)
 )
 
 end
@@ -996,7 +1112,7 @@ function handleErrors(self::Btcmarkets, code, reason, url, method, headers, body
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Btcmarkets, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1143,9 +1259,62 @@ end
 
 function Btcmarkets(; kwargs...)
     inst = Btcmarkets(Exchange(), describe, fetchTransactionsWithMethod, fetchDepositsWithdrawals, fetchDeposits, fetchWithdrawals, parseTransactionStatus, parseTransactionType, parseTransaction, fetchMarkets, parseMarket, fetchTime, parseBalance, fetchBalance, parseOHLCV, fetchOHLCV, fetchOrderBook, parseTicker, fetchTicker, fetchTicker2, parseTrade, fetchTrades, createOrder, cancelOrders, cancelOrder, calculateFee, parseOrderStatus, parseOrder, fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchMyTrades, withdraw, nonce, sign, handleErrors, publicGetMarkets, publicGetMarketsMarketIdTicker, publicGetMarketsMarketIdTrades, publicGetMarketsMarketIdOrderbook, publicGetMarketsMarketIdCandles, publicGetMarketsTickers, publicGetMarketsOrderbooks, publicGetTime, privateGetOrders, privateGetOrdersId, privateGetBatchordersIds, privateGetTrades, privateGetTradesId, privateGetWithdrawals, privateGetWithdrawalsId, privateGetDeposits, privateGetDepositsId, privateGetTransfers, privateGetTransfersId, privateGetAddresses, privateGetWithdrawalFees, privateGetAssets, privateGetAccountsMeTradingFees, privateGetAccountsMeWithdrawalLimits, privateGetAccountsMeBalances, privateGetAccountsMeTransactions, privateGetReportsId, privatePostOrders, privatePostBatchorders, privatePostWithdrawals, privatePostReports, privateDeleteOrders, privateDeleteOrdersId, privateDeleteBatchordersIds, privatePutOrdersId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

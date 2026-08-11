@@ -214,7 +214,7 @@ function describe(self::Cryptocom, )
         Symbol("margin") => true,
         Symbol("swap") => true,
         Symbol("future") => true,
-        Symbol("option") => true,
+        Symbol("option") => false,
         Symbol("addMargin") => false,
         Symbol("cancelAllOrders") => true,
         Symbol("cancelOrder") => true,
@@ -339,167 +339,425 @@ function describe(self::Cryptocom, )
         Symbol("base") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v1/public/get-announcements") => 1
+                    Symbol("v1/public/get-announcements") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             )
         ),
         Symbol("v1") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("public/auth") => 10 / 3,
-                    Symbol("public/get-instruments") => 10 / 3,
-                    Symbol("public/get-book") => 1,
-                    Symbol("public/get-candlestick") => 1,
-                    Symbol("public/get-trades") => 1,
-                    Symbol("public/get-tickers") => 1,
-                    Symbol("public/get-valuations") => 1,
-                    Symbol("public/get-expired-settlement-price") => 10 / 3,
-                    Symbol("public/get-insurance") => 1,
-                    Symbol("public/get-announcements") => 1,
-                    Symbol("public/get-risk-parameters") => 1
+                    Symbol("public/auth") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("public/get-instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("public/get-book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-candlestick") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-valuations") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-expired-settlement-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("public/get-insurance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-announcements") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-risk-parameters") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("public/staking/get-conversion-rate") => 2
+                    Symbol("public/staking/get-conversion-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("private/set-cancel-on-disconnect") => 10 / 3,
-                    Symbol("private/get-cancel-on-disconnect") => 10 / 3,
-                    Symbol("private/user-balance") => 10 / 3,
-                    Symbol("private/user-balance-history") => 10 / 3,
-                    Symbol("private/get-positions") => 10 / 3,
-                    Symbol("private/create-order") => 2 / 3,
-                    Symbol("private/amend-order") => 4 / 3,
-                    Symbol("private/create-order-list") => 10 / 3,
-                    Symbol("private/cancel-order") => 2 / 3,
-                    Symbol("private/cancel-order-list") => 10 / 3,
-                    Symbol("private/cancel-all-orders") => 2 / 3,
-                    Symbol("private/close-position") => 10 / 3,
-                    Symbol("private/get-order-history") => 100,
-                    Symbol("private/get-open-orders") => 10 / 3,
-                    Symbol("private/get-order-detail") => 1 / 3,
-                    Symbol("private/get-trades") => 100,
-                    Symbol("private/change-account-leverage") => 10 / 3,
-                    Symbol("private/get-transactions") => 10 / 3,
-                    Symbol("private/create-subaccount-transfer") => 10 / 3,
-                    Symbol("private/get-subaccount-balances") => 10 / 3,
-                    Symbol("private/get-order-list") => 10 / 3,
-                    Symbol("private/create-withdrawal") => 10 / 3,
-                    Symbol("private/get-currency-networks") => 10 / 3,
-                    Symbol("private/get-deposit-address") => 10 / 3,
-                    Symbol("private/get-accounts") => 10 / 3,
-                    Symbol("private/get-withdrawal-history") => 10 / 3,
-                    Symbol("private/get-deposit-history") => 10 / 3,
-                    Symbol("private/get-fee-rate") => 2,
-                    Symbol("private/get-instrument-fee-rate") => 2,
-                    Symbol("private/fiat/fiat-deposit-info") => 10 / 3,
-                    Symbol("private/fiat/fiat-deposit-history") => 10 / 3,
-                    Symbol("private/fiat/fiat-withdraw-history") => 10 / 3,
-                    Symbol("private/fiat/fiat-create-withdraw") => 10 / 3,
-                    Symbol("private/fiat/fiat-transaction-quota") => 10 / 3,
-                    Symbol("private/fiat/fiat-transaction-limit") => 10 / 3,
-                    Symbol("private/fiat/fiat-get-bank-accounts") => 10 / 3,
-                    Symbol("private/staking/stake") => 2,
-                    Symbol("private/staking/unstake") => 2,
-                    Symbol("private/staking/get-staking-position") => 2,
-                    Symbol("private/staking/get-staking-instruments") => 2,
-                    Symbol("private/staking/get-open-stake") => 2,
-                    Symbol("private/staking/get-stake-history") => 2,
-                    Symbol("private/staking/get-reward-history") => 2,
-                    Symbol("private/staking/convert") => 2,
-                    Symbol("private/staking/get-open-convert") => 2,
-                    Symbol("private/staking/get-convert-history") => 2,
-                    Symbol("private/create-isolated-margin-transfer") => 10 / 3,
-                    Symbol("private/change-isolated-margin-leverage") => 10 / 3
+                    Symbol("private/set-cancel-on-disconnect") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-cancel-on-disconnect") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/user-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/user-balance-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/create-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                    Symbol("private/amend-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 4 / 3
+),
+                    Symbol("private/create-order-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                    Symbol("private/cancel-order-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/cancel-all-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                    Symbol("private/close-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-order-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                    Symbol("private/get-open-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-order-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 / 3
+),
+                    Symbol("private/get-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                    Symbol("private/change-account-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/create-subaccount-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-subaccount-balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-order-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/create-withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-currency-networks") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-withdrawal-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-deposit-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-fee-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/get-instrument-fee-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/fiat/fiat-deposit-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/fiat/fiat-deposit-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/fiat/fiat-withdraw-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/fiat/fiat-create-withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/fiat/fiat-transaction-quota") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/fiat/fiat-transaction-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/fiat/fiat-get-bank-accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/staking/stake") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/staking/unstake") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/staking/get-staking-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/staking/get-staking-instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/staking/get-open-stake") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/staking/get-stake-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/staking/get-reward-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/staking/convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/staking/get-open-convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/staking/get-convert-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("private/create-isolated-margin-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/change-isolated-margin-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+)
                 )
             )
         ),
         Symbol("v2") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("public/auth") => 1,
-                    Symbol("public/get-instruments") => 1,
-                    Symbol("public/get-book") => 1,
-                    Symbol("public/get-candlestick") => 1,
-                    Symbol("public/get-ticker") => 1,
-                    Symbol("public/get-trades") => 1,
-                    Symbol("public/margin/get-transfer-currencies") => 1,
-                    Symbol("public/margin/get-load-currenices") => 1,
-                    Symbol("public/respond-heartbeat") => 1
+                    Symbol("public/auth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-candlestick") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/margin/get-transfer-currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/margin/get-load-currenices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/respond-heartbeat") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("private/set-cancel-on-disconnect") => 10 / 3,
-                    Symbol("private/get-cancel-on-disconnect") => 10 / 3,
-                    Symbol("private/create-withdrawal") => 10 / 3,
-                    Symbol("private/get-withdrawal-history") => 10 / 3,
-                    Symbol("private/get-currency-networks") => 10 / 3,
-                    Symbol("private/get-deposit-history") => 10 / 3,
-                    Symbol("private/get-deposit-address") => 10 / 3,
-                    Symbol("private/export/create-export-request") => 10 / 3,
-                    Symbol("private/export/get-export-requests") => 10 / 3,
-                    Symbol("private/export/download-export-output") => 10 / 3,
-                    Symbol("private/get-account-summary") => 10 / 3,
-                    Symbol("private/create-order") => 2 / 3,
-                    Symbol("private/cancel-order") => 2 / 3,
-                    Symbol("private/cancel-all-orders") => 2 / 3,
-                    Symbol("private/create-order-list") => 10 / 3,
-                    Symbol("private/get-order-history") => 10 / 3,
-                    Symbol("private/get-open-orders") => 10 / 3,
-                    Symbol("private/get-order-detail") => 1 / 3,
-                    Symbol("private/get-trades") => 100,
-                    Symbol("private/get-accounts") => 10 / 3,
-                    Symbol("private/get-subaccount-balances") => 10 / 3,
-                    Symbol("private/create-subaccount-transfer") => 10 / 3,
-                    Symbol("private/otc/get-otc-user") => 10 / 3,
-                    Symbol("private/otc/get-instruments") => 10 / 3,
-                    Symbol("private/otc/request-quote") => 100,
-                    Symbol("private/otc/accept-quote") => 100,
-                    Symbol("private/otc/get-quote-history") => 10 / 3,
-                    Symbol("private/otc/get-trade-history") => 10 / 3,
-                    Symbol("private/otc/create-order") => 10 / 3
+                    Symbol("private/set-cancel-on-disconnect") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-cancel-on-disconnect") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/create-withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-withdrawal-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-currency-networks") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-deposit-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/export/create-export-request") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/export/get-export-requests") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/export/download-export-output") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-account-summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/create-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                    Symbol("private/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                    Symbol("private/cancel-all-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                    Symbol("private/create-order-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-order-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-open-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-order-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 / 3
+),
+                    Symbol("private/get-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                    Symbol("private/get-accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-subaccount-balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/create-subaccount-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/otc/get-otc-user") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/otc/get-instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/otc/request-quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                    Symbol("private/otc/accept-quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                    Symbol("private/otc/get-quote-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/otc/get-trade-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/otc/create-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+)
                 )
             )
         ),
         Symbol("derivatives") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("public/auth") => 10 / 3,
-                    Symbol("public/get-instruments") => 10 / 3,
-                    Symbol("public/get-book") => 1,
-                    Symbol("public/get-candlestick") => 1,
-                    Symbol("public/get-trades") => 1,
-                    Symbol("public/get-tickers") => 1,
-                    Symbol("public/get-valuations") => 1,
-                    Symbol("public/get-expired-settlement-price") => 10 / 3,
-                    Symbol("public/get-insurance") => 1
+                    Symbol("public/auth") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("public/get-instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("public/get-book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-candlestick") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-valuations") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/get-expired-settlement-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("public/get-insurance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("private/set-cancel-on-disconnect") => 10 / 3,
-                    Symbol("private/get-cancel-on-disconnect") => 10 / 3,
-                    Symbol("private/user-balance") => 10 / 3,
-                    Symbol("private/user-balance-history") => 10 / 3,
-                    Symbol("private/get-positions") => 10 / 3,
-                    Symbol("private/create-order") => 2 / 3,
-                    Symbol("private/create-order-list") => 10 / 3,
-                    Symbol("private/cancel-order") => 2 / 3,
-                    Symbol("private/cancel-order-list") => 10 / 3,
-                    Symbol("private/cancel-all-orders") => 2 / 3,
-                    Symbol("private/close-position") => 10 / 3,
-                    Symbol("private/convert-collateral") => 10 / 3,
-                    Symbol("private/get-order-history") => 100,
-                    Symbol("private/get-open-orders") => 10 / 3,
-                    Symbol("private/get-order-detail") => 1 / 3,
-                    Symbol("private/get-trades") => 100,
-                    Symbol("private/change-account-leverage") => 10 / 3,
-                    Symbol("private/get-transactions") => 10 / 3,
-                    Symbol("private/create-subaccount-transfer") => 10 / 3,
-                    Symbol("private/get-subaccount-balances") => 10 / 3,
-                    Symbol("private/get-order-list") => 10 / 3
+                    Symbol("private/set-cancel-on-disconnect") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-cancel-on-disconnect") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/user-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/user-balance-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/create-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                    Symbol("private/create-order-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                    Symbol("private/cancel-order-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/cancel-all-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                    Symbol("private/close-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/convert-collateral") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-order-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                    Symbol("private/get-open-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-order-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 / 3
+),
+                    Symbol("private/get-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                    Symbol("private/change-account-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/create-subaccount-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-subaccount-balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+),
+                    Symbol("private/get-order-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 10 / 3
+)
                 )
             )
         )
@@ -527,7 +785,8 @@ function describe(self::Cryptocom, )
         Symbol("networks") => Dict{Symbol, Any}(
             Symbol("BEP20") => "BSC",
             Symbol("ERC20") => "ETH",
-            Symbol("TRC20") => "TRON"
+            Symbol("TRC20") => "TRON",
+            Symbol("ARBITRUM") => "ARB"
         ),
         Symbol("broker") => "CCXT"
     ),
@@ -732,22 +991,24 @@ function parseCurrency(self::Cryptocom, currency)
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "network_id");
         network = self.networkIdToCode(networkId, code);
-        networks[Symbol(network)] = Dict{Symbol, Any}(
-            Symbol("info") => chain,
-            Symbol("id") => networkId,
-            Symbol("network") => network,
-            Symbol("active") => nothing,
-            Symbol("deposit") => self.safeBool(chain, "deposit_enabled", false),
-            Symbol("withdraw") => self.safeBool(chain, "withdraw_enabled", false),
-            Symbol("fee") => self.safeNumber(chain, "withdrawal_fee"),
-            Symbol("precision") => nothing,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(chain, "min_withdrawal_amount"),
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(network != nothing)
+            networks[Symbol(network)] = Dict{Symbol, Any}(
+                Symbol("info") => chain,
+                Symbol("id") => networkId,
+                Symbol("network") => network,
+                Symbol("active") => nothing,
+                Symbol("deposit") => self.safeBool(chain, "deposit_enabled", false),
+                Symbol("withdraw") => self.safeBool(chain, "withdraw_enabled", false),
+                Symbol("fee") => self.safeNumber(chain, "withdrawal_fee"),
+                Symbol("precision") => nothing,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(chain, "min_withdrawal_amount"),
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -1046,7 +1307,9 @@ function parseBalance(self::Cryptocom, response)
         account = self.account();
         account[Symbol("total")] = safeString(balance, "quantity");
         account[Symbol("used")] = safeString(balance, "reserved_qty");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1077,6 +1340,12 @@ function fetchOrder(self::Cryptocom, id, symbol=nothing, params=Dict())
 
 end
 function createOrderRequest(self::Cryptocom, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     uppercaseType = uppercase(type_var);
     request = Dict{Symbol, Any}(
@@ -1227,6 +1496,12 @@ function createOrders(self::Cryptocom, orders, params=Dict())
 
 end
 function createAdvancedOrderRequest(self::Cryptocom, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     uppercaseType = uppercase(type_var);
     request = Dict{Symbol, Any}(
@@ -1572,13 +1847,15 @@ function fetchDepositAddressesByNetwork(self::Cryptocom, code, params=Dict())
         self.checkAddress(address);
         networkId = safeString(value, "network");
         network = self.networkIdToCode(networkId, responseCode);
-        result[Symbol(network)] = Dict{Symbol, Any}(
-            Symbol("info") => value,
-            Symbol("currency") => responseCode,
-            Symbol("network") => network,
-            Symbol("address") => address,
-            Symbol("tag") => tag
-        );
+        if functions.ccxtruthy(network != nothing)
+            result[Symbol(network)] = Dict{Symbol, Any}(
+                Symbol("info") => value,
+                Symbol("currency") => responseCode,
+                Symbol("network") => network,
+                Symbol("address") => address,
+                Symbol("tag") => tag
+            );
+        end
         i += 1
     end
     return result
@@ -1587,12 +1864,13 @@ end
 function fetchDepositAddress(self::Cryptocom, code, params=Dict())
     network = safeStringUpper(params, "network");
     params = omit(params, ["network"]);
-    depositAddresses = Base.fetch(self.fetchDepositAddressesByNetwork(code, params));
+    depositAddressesRaw = Base.fetch(self.fetchDepositAddressesByNetwork(code, params));
+    depositAddresses = depositAddressesRaw;
     if functions.ccxtruthy(ccxt_in(network, depositAddresses))
-            return get(depositAddresses, network + 1, nothing)
+            return get(depositAddresses, Symbol(network), nothing)
     end
     keys_var = objectKeys(depositAddresses);
-    return get(depositAddresses, get(keys_var, 1, nothing) + 1, nothing)
+    return get(depositAddresses, Symbol(get(keys_var, 1, nothing)), nothing)
 
 end
 function fetchDeposits(self::Cryptocom, code=nothing, since=nothing, limit=nothing, params=Dict())
@@ -1653,7 +1931,6 @@ function parseTicker(self::Cryptocom, ticker, market=nothing)
     timestamp = safeInteger(ticker, "t");
     marketId = safeString(ticker, "i");
     market = self.safeMarket(marketId, market, "_");
-    quote_var = safeString(market, "quote");
     last_var = safeString(ticker, "a");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => get(market, Symbol("symbol"), nothing),
@@ -1674,7 +1951,7 @@ function parseTicker(self::Cryptocom, ticker, market=nothing)
     Symbol("percentage") => safeString(ticker, "c"),
     Symbol("average") => nothing,
     Symbol("baseVolume") => safeString(ticker, "v"),
-    Symbol("quoteVolume") => functions.ccxtruthy((quote_var == "USD")) ? safeString(ticker, "vv") : nothing,
+    Symbol("quoteVolume") => functions.ccxtruthy((get(market, Symbol("quote"), nothing) == "USD")) ? safeString(ticker, "vv") : nothing,
     Symbol("info") => ticker
 ), market)
 
@@ -1896,16 +2173,18 @@ function parseDepositWithdrawFee(self::Cryptocom, fee, currency=nothing)
             networkId = safeString(networkInfo, "network_id");
             currencyCode = safeString(currency, "code");
             networkCode = self.networkIdToCode(networkId, currencyCode);
-            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("fee") => nothing,
-                    Symbol("percentage") => nothing
-                ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("fee") => self.safeNumber(networkInfo, "withdrawal_fee"),
-                    Symbol("percentage") => false
-                )
-            );
+            if functions.ccxtruthy(networkCode != nothing)
+                result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("fee") => nothing,
+                        Symbol("percentage") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("fee") => self.safeNumber(networkInfo, "withdrawal_fee"),
+                        Symbol("percentage") => false
+                    )
+                );
+            end
             if functions.ccxtruthy(networkListLength == 1)
                 result[Symbol("withdraw")][Symbol("fee")] = self.safeNumber(networkInfo, "withdrawal_fee");
                 result[Symbol("withdraw")][Symbol("percentage")] = false;
@@ -2445,13 +2724,13 @@ function handleErrors(self::Cryptocom, code, reason, url, method, headers, body,
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Cryptocom, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function basePublicGetV1PublicGetAnnouncements(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "v1/public/get-announcements", ["base", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/public/get-announcements", ["base", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicAuth(self::Cryptocom, params=Dict(), context=Dict())
@@ -2463,23 +2742,23 @@ function v1PublicGetPublicGetInstruments(self::Cryptocom, params=Dict(), context
 end
 
 function v1PublicGetPublicGetBook(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-book", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-book", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicGetCandlestick(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-candlestick", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-candlestick", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-trades", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-trades", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicGetTickers(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-tickers", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-tickers", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicGetValuations(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-valuations", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-valuations", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicGetExpiredSettlementPrice(self::Cryptocom, params=Dict(), context=Dict())
@@ -2487,19 +2766,19 @@ function v1PublicGetPublicGetExpiredSettlementPrice(self::Cryptocom, params=Dict
 end
 
 function v1PublicGetPublicGetInsurance(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-insurance", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-insurance", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicGetAnnouncements(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-announcements", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-announcements", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicGetRiskParameters(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-risk-parameters", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-risk-parameters", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicPostPublicStakingGetConversionRate(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/staking/get-conversion-rate", ["v1", "public"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "public/staking/get-conversion-rate", ["v1", "public"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateSetCancelOnDisconnect(self::Cryptocom, params=Dict(), context=Dict())
@@ -2551,7 +2830,7 @@ function v1PrivatePostPrivateClosePosition(self::Cryptocom, params=Dict(), conte
 end
 
 function v1PrivatePostPrivateGetOrderHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-order-history", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "private/get-order-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateGetOpenOrders(self::Cryptocom, params=Dict(), context=Dict())
@@ -2563,7 +2842,7 @@ function v1PrivatePostPrivateGetOrderDetail(self::Cryptocom, params=Dict(), cont
 end
 
 function v1PrivatePostPrivateGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-trades", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "private/get-trades", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateChangeAccountLeverage(self::Cryptocom, params=Dict(), context=Dict())
@@ -2611,11 +2890,11 @@ function v1PrivatePostPrivateGetDepositHistory(self::Cryptocom, params=Dict(), c
 end
 
 function v1PrivatePostPrivateGetFeeRate(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-fee-rate", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/get-fee-rate", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateGetInstrumentFeeRate(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-instrument-fee-rate", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/get-instrument-fee-rate", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateFiatFiatDepositInfo(self::Cryptocom, params=Dict(), context=Dict())
@@ -2647,43 +2926,43 @@ function v1PrivatePostPrivateFiatFiatGetBankAccounts(self::Cryptocom, params=Dic
 end
 
 function v1PrivatePostPrivateStakingStake(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/stake", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/staking/stake", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateStakingUnstake(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/unstake", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/staking/unstake", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateStakingGetStakingPosition(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-staking-position", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/staking/get-staking-position", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateStakingGetStakingInstruments(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-staking-instruments", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/staking/get-staking-instruments", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateStakingGetOpenStake(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-open-stake", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/staking/get-open-stake", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateStakingGetStakeHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-stake-history", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/staking/get-stake-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateStakingGetRewardHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-reward-history", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/staking/get-reward-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateStakingConvert(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/convert", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/staking/convert", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateStakingGetOpenConvert(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-open-convert", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/staking/get-open-convert", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateStakingGetConvertHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/staking/get-convert-history", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "private/staking/get-convert-history", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostPrivateCreateIsolatedMarginTransfer(self::Cryptocom, params=Dict(), context=Dict())
@@ -2695,39 +2974,39 @@ function v1PrivatePostPrivateChangeIsolatedMarginLeverage(self::Cryptocom, param
 end
 
 function v2PublicGetPublicAuth(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/auth", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/auth", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPublicGetInstruments(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-instruments", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-instruments", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPublicGetBook(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-book", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-book", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPublicGetCandlestick(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-candlestick", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-candlestick", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPublicGetTicker(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-ticker", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-ticker", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPublicGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-trades", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-trades", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPublicMarginGetTransferCurrencies(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/margin/get-transfer-currencies", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/margin/get-transfer-currencies", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPublicMarginGetLoadCurrenices(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/margin/get-load-currenices", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/margin/get-load-currenices", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPublicRespondHeartbeat(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/respond-heartbeat", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/respond-heartbeat", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostPrivateSetCancelOnDisconnect(self::Cryptocom, params=Dict(), context=Dict())
@@ -2803,7 +3082,7 @@ function v2PrivatePostPrivateGetOrderDetail(self::Cryptocom, params=Dict(), cont
 end
 
 function v2PrivatePostPrivateGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-trades", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "private/get-trades", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostPrivateGetAccounts(self::Cryptocom, params=Dict(), context=Dict())
@@ -2827,11 +3106,11 @@ function v2PrivatePostPrivateOtcGetInstruments(self::Cryptocom, params=Dict(), c
 end
 
 function v2PrivatePostPrivateOtcRequestQuote(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/otc/request-quote", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "private/otc/request-quote", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostPrivateOtcAcceptQuote(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/otc/accept-quote", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "private/otc/accept-quote", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostPrivateOtcGetQuoteHistory(self::Cryptocom, params=Dict(), context=Dict())
@@ -2855,23 +3134,23 @@ function derivativesPublicGetPublicGetInstruments(self::Cryptocom, params=Dict()
 end
 
 function derivativesPublicGetPublicGetBook(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-book", ["derivatives", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-book", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function derivativesPublicGetPublicGetCandlestick(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-candlestick", ["derivatives", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-candlestick", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function derivativesPublicGetPublicGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-trades", ["derivatives", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-trades", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function derivativesPublicGetPublicGetTickers(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-tickers", ["derivatives", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-tickers", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function derivativesPublicGetPublicGetValuations(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-valuations", ["derivatives", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-valuations", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function derivativesPublicGetPublicGetExpiredSettlementPrice(self::Cryptocom, params=Dict(), context=Dict())
@@ -2879,7 +3158,7 @@ function derivativesPublicGetPublicGetExpiredSettlementPrice(self::Cryptocom, pa
 end
 
 function derivativesPublicGetPublicGetInsurance(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "public/get-insurance", ["derivatives", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/get-insurance", ["derivatives", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function derivativesPrivatePostPrivateSetCancelOnDisconnect(self::Cryptocom, params=Dict(), context=Dict())
@@ -2931,7 +3210,7 @@ function derivativesPrivatePostPrivateConvertCollateral(self::Cryptocom, params=
 end
 
 function derivativesPrivatePostPrivateGetOrderHistory(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-order-history", ["derivatives", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "private/get-order-history", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function derivativesPrivatePostPrivateGetOpenOrders(self::Cryptocom, params=Dict(), context=Dict())
@@ -2943,7 +3222,7 @@ function derivativesPrivatePostPrivateGetOrderDetail(self::Cryptocom, params=Dic
 end
 
 function derivativesPrivatePostPrivateGetTrades(self::Cryptocom, params=Dict(), context=Dict())
-    return request(self, "private/get-trades", ["derivatives", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "private/get-trades", ["derivatives", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function derivativesPrivatePostPrivateChangeAccountLeverage(self::Cryptocom, params=Dict(), context=Dict())
@@ -2968,9 +3247,62 @@ end
 
 function Cryptocom(; kwargs...)
     inst = Cryptocom(Exchange(), describe, fetchCurrencies, parseCurrency, fetchMarkets, fetchTickers, fetchTicker, fetchOrders, fetchTrades, fetchOHLCV, fetchOrderBook, parseBalance, fetchBalance, fetchOrder, createOrderRequest, createOrder, createOrders, createAdvancedOrderRequest, editOrder, editOrderRequest, cancelAllOrders, cancelOrder, cancelOrders, cancelOrdersForSymbols, fetchOpenOrders, fetchMyTrades, parseAddress, withdraw, fetchDepositAddressesByNetwork, fetchDepositAddress, fetchDeposits, fetchWithdrawals, parseTicker, parseTrade, parseOHLCV, parseOrderStatus, parseTimeInForce, parseOrder, parseDepositStatus, parseWithdrawalStatus, parseTransaction, customHandleMarginModeAndParams, parseDepositWithdrawFee, fetchDepositWithdrawFees, fetchLedger, parseLedgerEntry, parseLedgerEntryType, fetchAccounts, parseAccount, fetchSettlementHistory, parseSettlement, parseSettlements, fetchFundingRate, parseFundingRate, fetchFundingRateHistory, fetchPosition, fetchPositions, parsePosition, nonce, paramsToString, closePosition, fetchTradingFee, fetchTradingFees, parseTradingFees, parseTradingFee, sign, handleErrors, basePublicGetV1PublicGetAnnouncements, v1PublicGetPublicAuth, v1PublicGetPublicGetInstruments, v1PublicGetPublicGetBook, v1PublicGetPublicGetCandlestick, v1PublicGetPublicGetTrades, v1PublicGetPublicGetTickers, v1PublicGetPublicGetValuations, v1PublicGetPublicGetExpiredSettlementPrice, v1PublicGetPublicGetInsurance, v1PublicGetPublicGetAnnouncements, v1PublicGetPublicGetRiskParameters, v1PublicPostPublicStakingGetConversionRate, v1PrivatePostPrivateSetCancelOnDisconnect, v1PrivatePostPrivateGetCancelOnDisconnect, v1PrivatePostPrivateUserBalance, v1PrivatePostPrivateUserBalanceHistory, v1PrivatePostPrivateGetPositions, v1PrivatePostPrivateCreateOrder, v1PrivatePostPrivateAmendOrder, v1PrivatePostPrivateCreateOrderList, v1PrivatePostPrivateCancelOrder, v1PrivatePostPrivateCancelOrderList, v1PrivatePostPrivateCancelAllOrders, v1PrivatePostPrivateClosePosition, v1PrivatePostPrivateGetOrderHistory, v1PrivatePostPrivateGetOpenOrders, v1PrivatePostPrivateGetOrderDetail, v1PrivatePostPrivateGetTrades, v1PrivatePostPrivateChangeAccountLeverage, v1PrivatePostPrivateGetTransactions, v1PrivatePostPrivateCreateSubaccountTransfer, v1PrivatePostPrivateGetSubaccountBalances, v1PrivatePostPrivateGetOrderList, v1PrivatePostPrivateCreateWithdrawal, v1PrivatePostPrivateGetCurrencyNetworks, v1PrivatePostPrivateGetDepositAddress, v1PrivatePostPrivateGetAccounts, v1PrivatePostPrivateGetWithdrawalHistory, v1PrivatePostPrivateGetDepositHistory, v1PrivatePostPrivateGetFeeRate, v1PrivatePostPrivateGetInstrumentFeeRate, v1PrivatePostPrivateFiatFiatDepositInfo, v1PrivatePostPrivateFiatFiatDepositHistory, v1PrivatePostPrivateFiatFiatWithdrawHistory, v1PrivatePostPrivateFiatFiatCreateWithdraw, v1PrivatePostPrivateFiatFiatTransactionQuota, v1PrivatePostPrivateFiatFiatTransactionLimit, v1PrivatePostPrivateFiatFiatGetBankAccounts, v1PrivatePostPrivateStakingStake, v1PrivatePostPrivateStakingUnstake, v1PrivatePostPrivateStakingGetStakingPosition, v1PrivatePostPrivateStakingGetStakingInstruments, v1PrivatePostPrivateStakingGetOpenStake, v1PrivatePostPrivateStakingGetStakeHistory, v1PrivatePostPrivateStakingGetRewardHistory, v1PrivatePostPrivateStakingConvert, v1PrivatePostPrivateStakingGetOpenConvert, v1PrivatePostPrivateStakingGetConvertHistory, v1PrivatePostPrivateCreateIsolatedMarginTransfer, v1PrivatePostPrivateChangeIsolatedMarginLeverage, v2PublicGetPublicAuth, v2PublicGetPublicGetInstruments, v2PublicGetPublicGetBook, v2PublicGetPublicGetCandlestick, v2PublicGetPublicGetTicker, v2PublicGetPublicGetTrades, v2PublicGetPublicMarginGetTransferCurrencies, v2PublicGetPublicMarginGetLoadCurrenices, v2PublicGetPublicRespondHeartbeat, v2PrivatePostPrivateSetCancelOnDisconnect, v2PrivatePostPrivateGetCancelOnDisconnect, v2PrivatePostPrivateCreateWithdrawal, v2PrivatePostPrivateGetWithdrawalHistory, v2PrivatePostPrivateGetCurrencyNetworks, v2PrivatePostPrivateGetDepositHistory, v2PrivatePostPrivateGetDepositAddress, v2PrivatePostPrivateExportCreateExportRequest, v2PrivatePostPrivateExportGetExportRequests, v2PrivatePostPrivateExportDownloadExportOutput, v2PrivatePostPrivateGetAccountSummary, v2PrivatePostPrivateCreateOrder, v2PrivatePostPrivateCancelOrder, v2PrivatePostPrivateCancelAllOrders, v2PrivatePostPrivateCreateOrderList, v2PrivatePostPrivateGetOrderHistory, v2PrivatePostPrivateGetOpenOrders, v2PrivatePostPrivateGetOrderDetail, v2PrivatePostPrivateGetTrades, v2PrivatePostPrivateGetAccounts, v2PrivatePostPrivateGetSubaccountBalances, v2PrivatePostPrivateCreateSubaccountTransfer, v2PrivatePostPrivateOtcGetOtcUser, v2PrivatePostPrivateOtcGetInstruments, v2PrivatePostPrivateOtcRequestQuote, v2PrivatePostPrivateOtcAcceptQuote, v2PrivatePostPrivateOtcGetQuoteHistory, v2PrivatePostPrivateOtcGetTradeHistory, v2PrivatePostPrivateOtcCreateOrder, derivativesPublicGetPublicAuth, derivativesPublicGetPublicGetInstruments, derivativesPublicGetPublicGetBook, derivativesPublicGetPublicGetCandlestick, derivativesPublicGetPublicGetTrades, derivativesPublicGetPublicGetTickers, derivativesPublicGetPublicGetValuations, derivativesPublicGetPublicGetExpiredSettlementPrice, derivativesPublicGetPublicGetInsurance, derivativesPrivatePostPrivateSetCancelOnDisconnect, derivativesPrivatePostPrivateGetCancelOnDisconnect, derivativesPrivatePostPrivateUserBalance, derivativesPrivatePostPrivateUserBalanceHistory, derivativesPrivatePostPrivateGetPositions, derivativesPrivatePostPrivateCreateOrder, derivativesPrivatePostPrivateCreateOrderList, derivativesPrivatePostPrivateCancelOrder, derivativesPrivatePostPrivateCancelOrderList, derivativesPrivatePostPrivateCancelAllOrders, derivativesPrivatePostPrivateClosePosition, derivativesPrivatePostPrivateConvertCollateral, derivativesPrivatePostPrivateGetOrderHistory, derivativesPrivatePostPrivateGetOpenOrders, derivativesPrivatePostPrivateGetOrderDetail, derivativesPrivatePostPrivateGetTrades, derivativesPrivatePostPrivateChangeAccountLeverage, derivativesPrivatePostPrivateGetTransactions, derivativesPrivatePostPrivateCreateSubaccountTransfer, derivativesPrivatePostPrivateGetSubaccountBalances, derivativesPrivatePostPrivateGetOrderList)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

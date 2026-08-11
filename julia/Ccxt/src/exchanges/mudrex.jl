@@ -148,8 +148,12 @@ function describe(self::Mudrex, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("market") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("price/kline") => 1,
-                Symbol("price/mark-kline") => 1
+                Symbol("price/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("price/mark-kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("public") => Dict{Symbol, Any}(
@@ -157,36 +161,84 @@ function describe(self::Mudrex, )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("futures") => 1,
-                Symbol("futures/{asset_id}") => 1,
-                Symbol("wallet/funds") => 5,
-                Symbol("futures/funds") => 5,
-                Symbol("futures/orders") => 1,
-                Symbol("futures/orders/history") => 1,
-                Symbol("futures/orders/{order_id}") => 1,
-                Symbol("futures/positions") => 1,
-                Symbol("futures/positions/history") => 1,
-                Symbol("futures/fee/history") => 1,
-                Symbol("futures/{asset_id}/leverage") => 2,
-                Symbol("futures/positions/{position_id}/liq-price") => 1
+                Symbol("futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/{asset_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet/funds") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("futures/funds") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("futures/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/positions/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/fee/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/{asset_id}/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("futures/positions/{position_id}/liq-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("wallet/futures/transfer") => 5,
-                Symbol("futures/transfers/inr") => 5,
-                Symbol("futures/{asset_id}/order") => 2,
-                Symbol("futures/positions/{position_id}/close") => 2,
-                Symbol("futures/positions/{position_id}/close/partial") => 2,
-                Symbol("futures/positions/{position_id}/reverse") => 2,
-                Symbol("futures/positions/{position_id}/add-margin") => 2,
-                Symbol("futures/positions/{position_id}/riskorder") => 2,
-                Symbol("futures/{asset_id}/leverage") => 2
+                Symbol("wallet/futures/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("futures/transfers/inr") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("futures/{asset_id}/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("futures/positions/{position_id}/close") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("futures/positions/{position_id}/close/partial") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("futures/positions/{position_id}/reverse") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("futures/positions/{position_id}/add-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("futures/positions/{position_id}/riskorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("futures/{asset_id}/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
             ),
             Symbol("patch") => Dict{Symbol, Any}(
-                Symbol("futures/orders/{order_id}") => 1,
-                Symbol("futures/positions/{position_id}/riskorder") => 2
+                Symbol("futures/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/positions/{position_id}/riskorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("futures/orders/{order_id}") => 2
+                Symbol("futures/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
             )
         )
     ),
@@ -236,17 +288,20 @@ function sign(self::Mudrex, path, api="public", method="GET", params=Dict(), hea
     end
     url = string(base, "/", self.implodeParams(path, params));
     query = omit(params, self.extractParams(path));
-    headers = functions.ccxtruthy((headers != nothing)) ? extend(Dict{Symbol, Any}(), headers) : Dict{Symbol, Any}();
+    requestHeaders = Dict{Symbol, Any}();
+    if functions.ccxtruthy(headers != nothing)
+        requestHeaders = extend(Dict{Symbol, Any}(), headers);
+    end
     brokerId = safeString(self.options, "broker");
     if functions.ccxtruthy(brokerId != nothing)
-        headers[Symbol("Partner-Id")] = brokerId;
+        requestHeaders[Symbol("Partner-Id")] = brokerId;
     end
     methodUpper = uppercase(method);
     if functions.ccxtruthy(api == "private")
         self.checkRequiredCredentials();
-        headers[Symbol("X-Authentication")] = self.secret;
+        requestHeaders[Symbol("X-Authentication")] = self.secret;
         if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(methodUpper == "POST", methodUpper == "PATCH"), methodUpper == "DELETE"))
-            headers[Symbol("Content-Type")] = "application/json";
+            requestHeaders[Symbol("Content-Type")] = "application/json";
             isSymbol = safeString(query, "is_symbol");
             if functions.ccxtruthy(isSymbol != nothing)
                 query = omit(query, "is_symbol");
@@ -259,7 +314,7 @@ function sign(self::Mudrex, path, api="public", method="GET", params=Dict(), hea
     Symbol("url") => url,
     Symbol("method") => methodUpper,
     Symbol("body") => nothing,
-    Symbol("headers") => headers
+    Symbol("headers") => requestHeaders
 )
             end
             bodyStr = json(query);
@@ -267,7 +322,7 @@ function sign(self::Mudrex, path, api="public", method="GET", params=Dict(), hea
     Symbol("url") => url,
     Symbol("method") => methodUpper,
     Symbol("body") => bodyStr,
-    Symbol("headers") => headers
+    Symbol("headers") => requestHeaders
 )
         end
     end
@@ -278,7 +333,7 @@ function sign(self::Mudrex, path, api="public", method="GET", params=Dict(), hea
     Symbol("url") => url,
     Symbol("method") => methodUpper,
     Symbol("body") => nothing,
-    Symbol("headers") => headers
+    Symbol("headers") => requestHeaders
 )
 
 end
@@ -341,6 +396,9 @@ function fetchOHLCV(self::Mudrex, symbol, timeframe="1m", since=nothing, limit=n
         startTime = self.parseToInt(since / 1000);
     else
         startTime = now - duration * requestLimit;
+    end
+    if functions.ccxtruthy(startTime == nothing)
+        throw(ExchangeError(string(self.id, " fetchOHLCV() missing startTime")));
     end
     endTime = startTime + duration * requestLimit;
     until = safeInteger(params, "until");
@@ -456,28 +514,31 @@ function fetchMarkets(self::Mudrex, params=Dict())
         items = [];
         if functions.ccxtruthy(@functions.ccxt_and(isa(data, Dict), !functions.ccxtruthy(functions.ccxt_isArray(data))))
             items = self.safeList(data, "items", []);
-            if functions.ccxtruthy(!functions.ccxtruthy(length(items)))
+            itemsLength = length(items);
+            if functions.ccxtruthy(!functions.ccxtruthy(itemsLength))
                 items = self.safeList(data, "results", []);
+                itemsLength = length(items);
             end
-            if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(length(items)), (ccxt_in("symbol", data))))
+            if functions.ccxtruthy(@functions.ccxt_and(!functions.ccxtruthy(itemsLength), (ccxt_in("symbol", data))))
                 items = [data];
             end
         else
             items = toArray(data);
         end
-        if functions.ccxtruthy(!functions.ccxtruthy(length(items)))
+        numItems = length(items);
+        if functions.ccxtruthy(!functions.ccxtruthy(numItems))
             paging = false;
             break
         end
         i = 0
-        while functions.ccxtruthy(functions.ccxt_lt(i, length(items)))
+        while functions.ccxtruthy(functions.ccxt_lt(i, numItems))
             push!(aggregated, get(items, i + 1, nothing));
             i += 1
         end
-        if functions.ccxtruthy(functions.ccxt_lt(length(items), pageLimit))
+        if functions.ccxtruthy(functions.ccxt_lt(numItems, pageLimit))
             paging = false;
         else
-            offset += pageLimit;
+            offset = self.sum(offset, pageLimit);
         end
     end
     result = [];
@@ -493,7 +554,7 @@ function parseMarket(self::Mudrex, asset)
     ms = safeString(asset, "symbol");
     base = ms;
     if functions.ccxtruthy(@functions.ccxt_and(ms != nothing, endswith(ms, "USDT")))
-        base = ms[0 + 1:-4];
+        base = functions.ccxt_slice(ms, 0, -4);
     end
     quote_var = "USDT";
     settle = "USDT";
@@ -503,7 +564,7 @@ function parseMarket(self::Mudrex, asset)
     end
     priceStep = safeString(asset, "price_step", "0.01");
     qtyStep = safeString(asset, "quantity_step", "0.001");
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => ms,
     Symbol("lowercaseId") => nothing,
     Symbol("symbol") => symbol,
@@ -550,7 +611,7 @@ function parseMarket(self::Mudrex, asset)
     ),
     Symbol("info") => asset,
     Symbol("created") => nothing
-)
+))
 
 end
 function fetchBalance(self::Mudrex, params=Dict())
@@ -577,6 +638,9 @@ function fetchBalance(self::Mudrex, params=Dict())
     currency = requested;
     if functions.ccxtruthy(currency == nothing)
         currency = "USDT";
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " fetchBalance() returned empty response")));
     end
     response[Symbol("currency")] = currency;
     return self.parseBalance(response)
@@ -999,10 +1063,12 @@ function closePosition(self::Mudrex, symbol, side=nothing, params=Dict())
             request[Symbol("limit_price")] = lp;
         end
         params = omit(params, ["order_type", "limit_price", "amount", "position_id"]);
-            return Base.fetch(self.privatePostFuturesPositionsPositionIdClosePartial(extend(request, params)))
+        partialResponse = Base.fetch(self.privatePostFuturesPositionsPositionIdClosePartial(extend(request, params)));
+            return partialResponse
     end
     params = omit(params, ["position_id"]);
-    return Base.fetch(self.privatePostFuturesPositionsPositionIdClose(extend(request, params)))
+    response = Base.fetch(self.privatePostFuturesPositionsPositionIdClose(extend(request, params)));
+    return response
 
 end
 function addMargin(self::Mudrex, symbol, amount, params=Dict())
@@ -1031,7 +1097,8 @@ function addMargin(self::Mudrex, symbol, amount, params=Dict())
         Symbol("margin") => self.costToPrecision(symbol, amount)
     );
     params = omit(params, ["position_id"]);
-    return Base.fetch(self.privatePostFuturesPositionsPositionIdAddMargin(extend(request, params)))
+    response = Base.fetch(self.privatePostFuturesPositionsPositionIdAddMargin(extend(request, params)));
+    return response
 
 end
 function reduceMargin(self::Mudrex, symbol, amount, params=Dict())
@@ -1148,120 +1215,173 @@ function transfer(self::Mudrex, code, amount, fromAccount, toAccount, params=Dic
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Mudrex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function marketGetPriceKline(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "price/kline", "market", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "price/kline", "market", "GET", params, nothing, nothing, Dict())
 end
 
 function marketGetPriceMarkKline(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "price/mark-kline", "market", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "price/mark-kline", "market", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFutures(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesAssetId(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/{asset_id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/{asset_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletFunds(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "wallet/funds", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "wallet/funds", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesFunds(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/funds", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "futures/funds", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesOrders(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesOrdersHistory(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/orders/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/orders/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesOrdersOrderId(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/orders/{order_id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/orders/{order_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesPositions(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesPositionsHistory(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/positions/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesFeeHistory(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/fee/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/fee/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesAssetIdLeverage(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/{asset_id}/leverage", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "futures/{asset_id}/leverage", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesPositionsPositionIdLiqPrice(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/liq-price", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/positions/{position_id}/liq-price", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletFuturesTransfer(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "wallet/futures/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "wallet/futures/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesTransfersInr(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/transfers/inr", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "futures/transfers/inr", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesAssetIdOrder(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/{asset_id}/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "futures/{asset_id}/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesPositionsPositionIdClose(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/close", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "futures/positions/{position_id}/close", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesPositionsPositionIdClosePartial(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/close/partial", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "futures/positions/{position_id}/close/partial", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesPositionsPositionIdReverse(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/reverse", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "futures/positions/{position_id}/reverse", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesPositionsPositionIdAddMargin(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/add-margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "futures/positions/{position_id}/add-margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesPositionsPositionIdRiskorder(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/riskorder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "futures/positions/{position_id}/riskorder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesAssetIdLeverage(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/{asset_id}/leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "futures/{asset_id}/leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePatchFuturesOrdersOrderId(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/orders/{order_id}", "private", "PATCH", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/orders/{order_id}", "private", "PATCH", params, nothing, nothing, Dict())
 end
 
 function privatePatchFuturesPositionsPositionIdRiskorder(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/positions/{position_id}/riskorder", "private", "PATCH", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "futures/positions/{position_id}/riskorder", "private", "PATCH", params, nothing, nothing, Dict())
 end
 
 function privateDeleteFuturesOrdersOrderId(self::Mudrex, params=Dict(), context=Dict())
-    return request(self, "futures/orders/{order_id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "futures/orders/{order_id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Mudrex(; kwargs...)
     inst = Mudrex(Exchange(), describe, sign, handleErrors, parseOHLCV, fetchOHLCV, fetchMarkOHLCV, fetchTicker, fetchTickers, parseTicker, fetchMarkets, parseMarket, fetchBalance, parseBalance, fetchLeverage, setLeverage, createOrder, editOrder, parseOrderStatus, parseOrder, cancelOrder, fetchOrder, fetchOrdersByState, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchPositions, fetchPositionsHistory, parsePosition, closePosition, addMargin, reduceMargin, fetchMyTrades, parseTrade, transfer, marketGetPriceKline, marketGetPriceMarkKline, privateGetFutures, privateGetFuturesAssetId, privateGetWalletFunds, privateGetFuturesFunds, privateGetFuturesOrders, privateGetFuturesOrdersHistory, privateGetFuturesOrdersOrderId, privateGetFuturesPositions, privateGetFuturesPositionsHistory, privateGetFuturesFeeHistory, privateGetFuturesAssetIdLeverage, privateGetFuturesPositionsPositionIdLiqPrice, privatePostWalletFuturesTransfer, privatePostFuturesTransfersInr, privatePostFuturesAssetIdOrder, privatePostFuturesPositionsPositionIdClose, privatePostFuturesPositionsPositionIdClosePartial, privatePostFuturesPositionsPositionIdReverse, privatePostFuturesPositionsPositionIdAddMargin, privatePostFuturesPositionsPositionIdRiskorder, privatePostFuturesAssetIdLeverage, privatePatchFuturesOrdersOrderId, privatePatchFuturesPositionsPositionIdRiskorder, privateDeleteFuturesOrdersOrderId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

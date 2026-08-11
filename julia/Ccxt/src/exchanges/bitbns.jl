@@ -134,14 +134,126 @@ function describe(self::Bitbns, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("www") => Dict{Symbol, Any}(
-            Symbol("get") => ["order/fetchMarkets", "order/fetchTickers", "order/fetchOrderbook", "order/getTickerWithVolume", "exchangeData/ohlc", "exchangeData/orderBook", "exchangeData/tradedetails"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("order/fetchMarkets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/fetchTickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/fetchOrderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/getTickerWithVolume") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchangeData/ohlc") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchangeData/orderBook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchangeData/tradedetails") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("v1") => Dict{Symbol, Any}(
-            Symbol("get") => ["platform/status", "tickers", "orderbook/sell/{symbol}", "orderbook/buy/{symbol}"],
-            Symbol("post") => ["currentCoinBalance/EVERYTHING", "getApiUsageStatus/USAGE", "getOrderSocketToken/USAGE", "currentCoinBalance/{symbol}", "orderStatus/{symbol}", "depositHistory/{symbol}", "withdrawHistory/{symbol}", "withdrawHistoryAll/{symbol}", "depositHistoryAll/{symbol}", "listOpenOrders/{symbol}", "listOpenStopOrders/{symbol}", "getCoinAddress/{symbol}", "placeSellOrder/{symbol}", "placeBuyOrder/{symbol}", "buyStopLoss/{symbol}", "sellStopLoss/{symbol}", "cancelOrder/{symbol}", "cancelStopLossOrder/{symbol}", "listExecutedOrders/{symbol}", "placeMarketOrder/{symbol}", "placeMarketOrderQnty/{symbol}"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("platform/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook/sell/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook/buy/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("currentCoinBalance/EVERYTHING") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getApiUsageStatus/USAGE") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getOrderSocketToken/USAGE") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currentCoinBalance/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderStatus/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("depositHistory/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawHistory/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawHistoryAll/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("depositHistoryAll/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("listOpenOrders/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("listOpenStopOrders/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getCoinAddress/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("placeSellOrder/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("placeBuyOrder/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("buyStopLoss/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sellStopLoss/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelOrder/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelStopLossOrder/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("listExecutedOrders/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("placeMarketOrder/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("placeMarketOrderQnty/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("v2") => Dict{Symbol, Any}(
-            Symbol("post") => ["orders", "cancel", "getordersnew", "marginOrders"]
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getordersnew") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("marginOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(
@@ -244,9 +356,10 @@ end
 function fetchMarkets(self::Bitbns, params=Dict())
     response = Base.fetch(self.wwwGetOrderFetchMarkets(params));
     result = [];
+    rawMarkets = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        market = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawMarkets)))
+        market = get(rawMarkets, i + 1, nothing);
         id = safeString(market, "id");
         baseId = safeString(market, "base");
         quoteId = safeString(market, "quote");
@@ -390,7 +503,9 @@ function parseBalance(self::Bitbns, response)
                 currencyId = "INR";
             end
             code = self.safeCurrencyCode(currencyId);
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
         end
         i += 1
     end
@@ -469,6 +584,9 @@ function createOrder(self::Bitbns, symbol, type_var, side, amount, price=nothing
     targetRate = safeString(params, "target_rate");
     trailRate = safeString(params, "trail_rate");
     params = omit(params, ["triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"]);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("side") => uppercase(side),
         Symbol("symbol") => get(market, Symbol("uppercaseId"), nothing),
@@ -490,8 +608,9 @@ function createOrder(self::Bitbns, symbol, type_var, side, amount, price=nothing
     if functions.ccxtruthy(trailRate != nothing)
         request[Symbol("trail_rate")] = self.priceToPrecision(symbol, trailRate);
     end
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
-    return self.parseOrder(response, market)
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
+    parsed = functions.ccxtruthy((response == nothing)) ? Dict{Symbol, Any}() : response;
+    return self.parseOrder(parsed, market)
 
 end
 function cancelOrder(self::Bitbns, id, symbol=nothing, params=Dict())
@@ -514,7 +633,8 @@ function cancelOrder(self::Bitbns, id, symbol=nothing, params=Dict())
     quoteSide += tail;
     request[Symbol("side")] = quoteSide;
     response = Base.fetch(self.v2PostCancel(extend(request, params)));
-    return self.parseOrder(response, market)
+    parsed = functions.ccxtruthy((response == nothing)) ? Dict{Symbol, Any}() : response;
+    return self.parseOrder(parsed, market)
 
 end
 function fetchOrder(self::Bitbns, id, symbol=nothing, params=Dict())
@@ -535,7 +655,7 @@ function fetchOrder(self::Bitbns, id, symbol=nothing, params=Dict())
     end
     response = Base.fetch(self.v1PostOrderStatusSymbol(extend(request, params)));
     data = self.safeList(response, "data", []);
-    first_var = self.safeDict(data, 0);
+    first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
     return self.parseOrder(first_var, market)
 
 end
@@ -836,7 +956,7 @@ function handleErrors(self::Bitbns, httpCode, reason, url, method, headers, body
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitbns, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -987,9 +1107,62 @@ end
 
 function Bitbns(; kwargs...)
     inst = Bitbns(Exchange(), describe, fetchStatus, fetchMarkets, fetchOrderBook, parseTicker, fetchTickers, parseBalance, fetchBalance, parseStatus, parseOrder, createOrder, cancelOrder, fetchOrder, fetchOpenOrders, parseTrade, fetchMyTrades, fetchTrades, fetchDeposits, fetchWithdrawals, parseTransactionStatusByType, parseTransaction, fetchDepositAddress, nonce, sign, handleErrors, wwwGetOrderFetchMarkets, wwwGetOrderFetchTickers, wwwGetOrderFetchOrderbook, wwwGetOrderGetTickerWithVolume, wwwGetExchangeDataOhlc, wwwGetExchangeDataOrderBook, wwwGetExchangeDataTradedetails, v1GetPlatformStatus, v1GetTickers, v1GetOrderbookSellSymbol, v1GetOrderbookBuySymbol, v1PostCurrentCoinBalanceEVERYTHING, v1PostGetApiUsageStatusUSAGE, v1PostGetOrderSocketTokenUSAGE, v1PostCurrentCoinBalanceSymbol, v1PostOrderStatusSymbol, v1PostDepositHistorySymbol, v1PostWithdrawHistorySymbol, v1PostWithdrawHistoryAllSymbol, v1PostDepositHistoryAllSymbol, v1PostListOpenOrdersSymbol, v1PostListOpenStopOrdersSymbol, v1PostGetCoinAddressSymbol, v1PostPlaceSellOrderSymbol, v1PostPlaceBuyOrderSymbol, v1PostBuyStopLossSymbol, v1PostSellStopLossSymbol, v1PostCancelOrderSymbol, v1PostCancelStopLossOrderSymbol, v1PostListExecutedOrdersSymbol, v1PostPlaceMarketOrderSymbol, v1PostPlaceMarketOrderQntySymbol, v2PostOrders, v2PostCancel, v2PostGetordersnew, v2PostMarginOrders)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

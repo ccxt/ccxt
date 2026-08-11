@@ -681,7 +681,7 @@ function describe(self::Htx, )
         Symbol("fetchPositionsRisk") => false,
         Symbol("fetchPremiumIndexOHLCV") => true,
         Symbol("fetchSettlementHistory") => true,
-        Symbol("fetchStatus") => false,
+        Symbol("fetchStatus") => true,
         Symbol("fetchTicker") => true,
         Symbol("fetchTickers") => true,
         Symbol("fetchTime") => true,
@@ -756,154 +756,368 @@ function describe(self::Htx, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("v2Public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("reference/currencies") => 1,
-                Symbol("market-status") => 1
+                Symbol("reference/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("v2Private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("account/ledger") => 1,
-                Symbol("account/withdraw/quota") => 1,
-                Symbol("account/withdraw/address") => 1,
-                Symbol("account/deposit/address") => 1,
-                Symbol("account/repayment") => 5,
-                Symbol("reference/transact-fee-rate") => 1,
-                Symbol("account/asset-valuation") => 0.2,
-                Symbol("point/account") => 5,
-                Symbol("sub-user/user-list") => 1,
-                Symbol("sub-user/user-state") => 1,
-                Symbol("sub-user/account-list") => 1,
-                Symbol("sub-user/deposit-address") => 1,
-                Symbol("sub-user/query-deposit") => 1,
-                Symbol("user/api-key") => 1,
-                Symbol("user/uid") => 1,
-                Symbol("algo-orders/opening") => 1,
-                Symbol("algo-orders/history") => 1,
-                Symbol("algo-orders/specific") => 1,
-                Symbol("c2c/offers") => 1,
-                Symbol("c2c/offer") => 1,
-                Symbol("c2c/transactions") => 1,
-                Symbol("c2c/repayment") => 1,
-                Symbol("c2c/account") => 1,
-                Symbol("etp/reference") => 1,
-                Symbol("etp/transactions") => 5,
-                Symbol("etp/transaction") => 5,
-                Symbol("etp/rebalance") => 1,
-                Symbol("etp/limit") => 1
+                Symbol("account/ledger") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/withdraw/quota") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/withdraw/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("reference/transact-fee-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/asset-valuation") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("point/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("sub-user/user-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/user-state") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/account-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/query-deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/api-key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/uid") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders/opening") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders/specific") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/offers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/offer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("etp/reference") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("etp/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("etp/transaction") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("etp/rebalance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("etp/limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("account/transfer") => 1,
-                Symbol("account/repayment") => 5,
-                Symbol("point/transfer") => 5,
-                Symbol("sub-user/management") => 1,
-                Symbol("sub-user/creation") => 1,
-                Symbol("sub-user/tradable-market") => 1,
-                Symbol("sub-user/transferability") => 1,
-                Symbol("sub-user/api-key-generation") => 1,
-                Symbol("sub-user/api-key-modification") => 1,
-                Symbol("sub-user/api-key-deletion") => 1,
-                Symbol("sub-user/deduct-mode") => 1,
-                Symbol("algo-orders") => 1,
-                Symbol("algo-orders/cancel-all-after") => 1,
-                Symbol("algo-orders/cancellation") => 1,
-                Symbol("c2c/offer") => 1,
-                Symbol("c2c/cancellation") => 1,
-                Symbol("c2c/cancel-all") => 1,
-                Symbol("c2c/repayment") => 1,
-                Symbol("c2c/transfer") => 1,
-                Symbol("etp/creation") => 5,
-                Symbol("etp/redemption") => 5,
-                Symbol("etp/{transactId}/cancel") => 10,
-                Symbol("etp/batch-cancel") => 50
+                Symbol("account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("point/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("sub-user/management") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/creation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/tradable-market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/transferability") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/api-key-generation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/api-key-modification") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/api-key-deletion") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sub-user/deduct-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders/cancel-all-after") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo-orders/cancellation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/offer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/cancellation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/cancel-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("c2c/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("etp/creation") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("etp/redemption") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("etp/{transactId}/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("etp/batch-cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+)
             )
         ),
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("common/symbols") => 1,
-                Symbol("common/currencys") => 1,
-                Symbol("common/timestamp") => 1,
-                Symbol("common/exchange") => 1,
-                Symbol("settings/currencys") => 1
+                Symbol("common/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("common/currencys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("common/timestamp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("common/exchange") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("settings/currencys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("account/accounts") => 0.2,
-                Symbol("account/accounts/{id}/balance") => 0.2,
-                Symbol("account/accounts/{sub-uid}") => 1,
-                Symbol("account/history") => 4,
-                Symbol("cross-margin/loan-info") => 1,
-                Symbol("margin/loan-info") => 1,
-                Symbol("fee/fee-rate/get") => 1,
-                Symbol("order/openOrders") => 0.4,
-                Symbol("order/orders") => 0.4,
-                Symbol("order/orders/{id}") => 0.4,
-                Symbol("order/orders/{id}/matchresults") => 0.4,
-                Symbol("order/orders/getClientOrder") => 0.4,
-                Symbol("order/history") => 1,
-                Symbol("order/matchresults") => 1,
-                Symbol("query/deposit-withdraw") => 1,
-                Symbol("margin/loan-orders") => 0.2,
-                Symbol("margin/accounts/balance") => 0.2,
-                Symbol("cross-margin/loan-orders") => 1,
-                Symbol("cross-margin/accounts/balance") => 1,
-                Symbol("points/actions") => 1,
-                Symbol("points/orders") => 1,
-                Symbol("subuser/aggregate-balance") => 10,
-                Symbol("stable-coin/exchange_rate") => 1,
-                Symbol("stable-coin/quote") => 1
+                Symbol("account/accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("account/accounts/{id}/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("account/accounts/{sub-uid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("cross-margin/loan-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/loan-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fee/fee-rate/get") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders/{id}/matchresults") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders/getClientOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/matchresults") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("query/deposit-withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/loan-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("margin/accounts/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("cross-margin/loan-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cross-margin/accounts/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("points/actions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("points/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("subuser/aggregate-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("stable-coin/exchange_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("stable-coin/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("account/transfer") => 1,
-                Symbol("futures/transfer") => 1,
-                Symbol("order/batch-orders") => 0.4,
-                Symbol("order/orders/place") => 0.2,
-                Symbol("order/orders/submitCancelClientOrder") => 0.2,
-                Symbol("order/orders/batchCancelOpenOrders") => 0.4,
-                Symbol("order/orders/{id}/submitcancel") => 0.2,
-                Symbol("order/orders/batchcancel") => 0.4,
-                Symbol("dw/withdraw/api/create") => 1,
-                Symbol("dw/withdraw-virtual/{id}/cancel") => 1,
-                Symbol("dw/transfer-in/margin") => 10,
-                Symbol("dw/transfer-out/margin") => 10,
-                Symbol("margin/orders") => 10,
-                Symbol("margin/orders/{id}/repay") => 10,
-                Symbol("cross-margin/transfer-in") => 1,
-                Symbol("cross-margin/transfer-out") => 1,
-                Symbol("cross-margin/orders") => 1,
-                Symbol("cross-margin/orders/{id}/repay") => 1,
-                Symbol("stable-coin/exchange") => 1,
-                Symbol("subuser/transfer") => 10
+                Symbol("account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/batch-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders/place") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("order/orders/submitCancelClientOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("order/orders/batchCancelOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("order/orders/{id}/submitcancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                Symbol("order/orders/batchcancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                Symbol("dw/withdraw/api/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dw/withdraw-virtual/{id}/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dw/transfer-in/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("dw/transfer-out/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("margin/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("margin/orders/{id}/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("cross-margin/transfer-in") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cross-margin/transfer-out") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cross-margin/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cross-margin/orders/{id}/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("stable-coin/exchange") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("subuser/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
             )
         ),
         Symbol("status") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("spot") => Dict{Symbol, Any}(
                     Symbol("get") => Dict{Symbol, Any}(
-                        Symbol("api/v2/summary.json") => 1
+                        Symbol("api/v2/summary.json") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                     )
                 ),
                 Symbol("future") => Dict{Symbol, Any}(
                     Symbol("inverse") => Dict{Symbol, Any}(
                         Symbol("get") => Dict{Symbol, Any}(
-                            Symbol("api/v2/summary.json") => 1
+                            Symbol("api/v2/summary.json") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                         )
                     ),
                     Symbol("linear") => Dict{Symbol, Any}(
                         Symbol("get") => Dict{Symbol, Any}(
-                            Symbol("api/v2/summary.json") => 1
+                            Symbol("api/v2/summary.json") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                         )
                     )
                 ),
                 Symbol("swap") => Dict{Symbol, Any}(
                     Symbol("inverse") => Dict{Symbol, Any}(
                         Symbol("get") => Dict{Symbol, Any}(
-                            Symbol("api/v2/summary.json") => 1
+                            Symbol("api/v2/summary.json") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                         )
                     ),
                     Symbol("linear") => Dict{Symbol, Any}(
                         Symbol("get") => Dict{Symbol, Any}(
-                            Symbol("api/v2/summary.json") => 1
+                            Symbol("api/v2/summary.json") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                         )
                     )
                 )
@@ -912,382 +1126,1098 @@ function describe(self::Htx, )
         Symbol("spot") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v2/market-status") => 1,
-                    Symbol("v1/common/symbols") => 1,
-                    Symbol("v1/common/currencys") => 1,
-                    Symbol("v2/settings/common/currencies") => 1,
-                    Symbol("v2/reference/currencies") => 1,
-                    Symbol("v1/common/timestamp") => 1,
-                    Symbol("v1/common/exchange") => 1,
-                    Symbol("v1/settings/common/chains") => 1,
-                    Symbol("v1/settings/common/currencys") => 1,
-                    Symbol("v1/settings/common/symbols") => 1,
-                    Symbol("v2/settings/common/symbols") => 1,
-                    Symbol("v1/settings/common/market-symbols") => 1,
-                    Symbol("market/history/candles") => 1,
-                    Symbol("market/history/kline") => 1,
-                    Symbol("market/detail/merged") => 1,
-                    Symbol("market/tickers") => 1,
-                    Symbol("market/detail") => 1,
-                    Symbol("market/depth") => 1,
-                    Symbol("market/trade") => 1,
-                    Symbol("market/history/trade") => 1,
-                    Symbol("market/etp") => 1,
-                    Symbol("v2/etp/reference") => 1,
-                    Symbol("v2/etp/rebalance") => 1
+                    Symbol("v2/market-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/common/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/common/currencys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/settings/common/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/reference/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/common/timestamp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/common/exchange") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/settings/common/chains") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/settings/common/currencys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/settings/common/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/settings/common/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/settings/common/market-symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/history/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/history/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/detail/merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/history/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/etp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/etp/reference") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/etp/rebalance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v1/account/accounts") => 0.2,
-                    Symbol("v1/account/accounts/{account-id}/balance") => 0.2,
-                    Symbol("v2/account/valuation") => 1,
-                    Symbol("v2/account/asset-valuation") => 0.2,
-                    Symbol("v1/account/history") => 4,
-                    Symbol("v2/account/ledger") => 1,
-                    Symbol("v2/point/account") => 5,
-                    Symbol("v2/account/deposit/address") => 1,
-                    Symbol("v2/account/withdraw/quota") => 1,
-                    Symbol("v2/account/withdraw/address") => 1,
-                    Symbol("v2/reference/currencies") => 1,
-                    Symbol("v1/query/deposit-withdraw") => 1,
-                    Symbol("v1/query/withdraw/client-order-id") => 1,
-                    Symbol("v2/user/api-key") => 1,
-                    Symbol("v2/user/uid") => 1,
-                    Symbol("v2/sub-user/user-list") => 1,
-                    Symbol("v2/sub-user/user-state") => 1,
-                    Symbol("v2/sub-user/account-list") => 1,
-                    Symbol("v2/sub-user/deposit-address") => 1,
-                    Symbol("v2/sub-user/query-deposit") => 1,
-                    Symbol("v1/subuser/aggregate-balance") => 10,
-                    Symbol("v1/account/accounts/{sub-uid}") => 1,
-                    Symbol("v1/order/openOrders") => 0.4,
-                    Symbol("v1/order/orders/{order-id}") => 0.4,
-                    Symbol("v1/order/orders/getClientOrder") => 0.4,
-                    Symbol("v1/order/orders/{order-id}/matchresult") => 0.4,
-                    Symbol("v1/order/orders/{order-id}/matchresults") => 0.4,
-                    Symbol("v1/order/orders") => 0.4,
-                    Symbol("v1/order/history") => 1,
-                    Symbol("v1/order/matchresults") => 1,
-                    Symbol("v2/reference/transact-fee-rate") => 1,
-                    Symbol("v2/algo-orders/opening") => 1,
-                    Symbol("v2/algo-orders/history") => 1,
-                    Symbol("v2/algo-orders/specific") => 1,
-                    Symbol("v1/margin/loan-info") => 1,
-                    Symbol("v1/margin/loan-orders") => 0.2,
-                    Symbol("v1/margin/accounts/balance") => 0.2,
-                    Symbol("v1/cross-margin/loan-info") => 1,
-                    Symbol("v1/cross-margin/loan-orders") => 1,
-                    Symbol("v1/cross-margin/accounts/balance") => 1,
-                    Symbol("v2/account/repayment") => 5,
-                    Symbol("v5/account/universal_transfer_records") => 4,
-                    Symbol("v1/stable-coin/quote") => 1,
-                    Symbol("v1/stable_coin/exchange_rate") => 1,
-                    Symbol("v2/etp/transactions") => 5,
-                    Symbol("v2/etp/transaction") => 5,
-                    Symbol("v2/etp/limit") => 1
+                    Symbol("v1/account/accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                    Symbol("v1/account/accounts/{account-id}/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                    Symbol("v2/account/valuation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/account/asset-valuation") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                    Symbol("v1/account/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v2/account/ledger") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/point/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                    Symbol("v2/account/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/account/withdraw/quota") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/account/withdraw/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/reference/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/query/deposit-withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/query/withdraw/client-order-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/user/api-key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/user/uid") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/user-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/user-state") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/account-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/query-deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/subuser/aggregate-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/account/accounts/{sub-uid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/order/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("v1/order/orders/{order-id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("v1/order/orders/getClientOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("v1/order/orders/{order-id}/matchresult") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("v1/order/orders/{order-id}/matchresults") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("v1/order/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("v1/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/order/matchresults") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/reference/transact-fee-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/algo-orders/opening") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/algo-orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/algo-orders/specific") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/margin/loan-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/margin/loan-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                    Symbol("v1/margin/accounts/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                    Symbol("v1/cross-margin/loan-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/cross-margin/loan-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/cross-margin/accounts/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/account/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                    Symbol("v5/account/universal_transfer_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                    Symbol("v1/stable-coin/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/stable_coin/exchange_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/etp/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                    Symbol("v2/etp/transaction") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                    Symbol("v2/etp/limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("v1/account/transfer") => 1,
-                    Symbol("v1/futures/transfer") => 1,
-                    Symbol("v2/point/transfer") => 5,
-                    Symbol("v2/account/transfer") => 1,
-                    Symbol("v1/dw/withdraw/api/create") => 1,
-                    Symbol("v1/dw/withdraw-virtual/{withdraw-id}/cancel") => 1,
-                    Symbol("v2/sub-user/deduct-mode") => 1,
-                    Symbol("v2/sub-user/creation") => 1,
-                    Symbol("v2/sub-user/management") => 1,
-                    Symbol("v2/sub-user/tradable-market") => 1,
-                    Symbol("v2/sub-user/transferability") => 1,
-                    Symbol("v2/sub-user/api-key-generation") => 1,
-                    Symbol("v2/sub-user/api-key-modification") => 1,
-                    Symbol("v2/sub-user/api-key-deletion") => 1,
-                    Symbol("v1/subuser/transfer") => 10,
-                    Symbol("v1/trust/user/active/credit") => 10,
-                    Symbol("v1/order/orders/place") => 0.2,
-                    Symbol("v1/order/batch-orders") => 0.4,
-                    Symbol("v1/order/auto/place") => 0.2,
-                    Symbol("v1/order/orders/{order-id}/submitcancel") => 0.2,
-                    Symbol("v1/order/orders/submitCancelClientOrder") => 0.2,
-                    Symbol("v1/order/orders/batchCancelOpenOrders") => 0.4,
-                    Symbol("v1/order/orders/batchcancel") => 0.4,
-                    Symbol("v2/algo-orders/cancel-all-after") => 1,
-                    Symbol("v2/algo-orders") => 1,
-                    Symbol("v2/algo-orders/cancellation") => 1,
-                    Symbol("v2/account/repayment") => 5,
-                    Symbol("v1/dw/transfer-in/margin") => 10,
-                    Symbol("v1/dw/transfer-out/margin") => 10,
-                    Symbol("v1/margin/orders") => 10,
-                    Symbol("v1/margin/orders/{order-id}/repay") => 10,
-                    Symbol("v1/cross-margin/transfer-in") => 1,
-                    Symbol("v1/cross-margin/transfer-out") => 1,
-                    Symbol("v1/cross-margin/orders") => 1,
-                    Symbol("v1/cross-margin/orders/{order-id}/repay") => 1,
-                    Symbol("v1/stable-coin/exchange") => 1,
-                    Symbol("v2/etp/creation") => 5,
-                    Symbol("v2/etp/redemption") => 5,
-                    Symbol("v2/etp/{transactId}/cancel") => 10,
-                    Symbol("v2/etp/batch-cancel") => 50
+                    Symbol("v1/account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/futures/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/point/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                    Symbol("v2/account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/dw/withdraw/api/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/dw/withdraw-virtual/{withdraw-id}/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/deduct-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/creation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/management") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/tradable-market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/transferability") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/api-key-generation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/api-key-modification") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/sub-user/api-key-deletion") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/subuser/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trust/user/active/credit") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/order/orders/place") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                    Symbol("v1/order/batch-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("v1/order/auto/place") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                    Symbol("v1/order/orders/{order-id}/submitcancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                    Symbol("v1/order/orders/submitCancelClientOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                    Symbol("v1/order/orders/batchCancelOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("v1/order/orders/batchcancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.4
+),
+                    Symbol("v2/algo-orders/cancel-all-after") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/algo-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/algo-orders/cancellation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/account/repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                    Symbol("v1/dw/transfer-in/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/dw/transfer-out/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/margin/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/margin/orders/{order-id}/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/cross-margin/transfer-in") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/cross-margin/transfer-out") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/cross-margin/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/cross-margin/orders/{order-id}/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v1/stable-coin/exchange") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/etp/creation") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                    Symbol("v2/etp/redemption") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                    Symbol("v2/etp/{transactId}/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/etp/batch-cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+)
                 )
             )
         ),
         Symbol("contract") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("api/v1/timestamp") => 1,
-                    Symbol("heartbeat/") => 1,
-                    Symbol("api/v1/contract_contract_info") => 1,
-                    Symbol("api/v1/contract_index") => 1,
-                    Symbol("api/v1/contract_query_elements") => 1,
-                    Symbol("api/v1/contract_price_limit") => 1,
-                    Symbol("api/v1/contract_open_interest") => 1,
-                    Symbol("api/v1/contract_delivery_price") => 1,
-                    Symbol("market/depth") => 1,
-                    Symbol("market/bbo") => 1,
-                    Symbol("market/history/kline") => 1,
-                    Symbol("index/market/history/mark_price_kline") => 1,
-                    Symbol("market/detail/merged") => 1,
-                    Symbol("market/detail/batch_merged") => 1,
-                    Symbol("v2/market/detail/batch_merged") => 1,
-                    Symbol("market/trade") => 1,
-                    Symbol("market/history/trade") => 1,
-                    Symbol("api/v1/contract_risk_info") => 1,
-                    Symbol("api/v1/contract_insurance_fund") => 1,
-                    Symbol("api/v1/contract_adjustfactor") => 1,
-                    Symbol("api/v1/contract_his_open_interest") => 1,
-                    Symbol("api/v1/contract_ladder_margin") => 1,
-                    Symbol("api/v1/contract_api_state") => 1,
-                    Symbol("api/v1/contract_elite_account_ratio") => 1,
-                    Symbol("api/v1/contract_elite_position_ratio") => 1,
-                    Symbol("api/v1/contract_liquidation_orders") => 1,
-                    Symbol("api/v1/contract_settlement_records") => 1,
-                    Symbol("index/market/history/index") => 1,
-                    Symbol("index/market/history/basis") => 1,
-                    Symbol("api/v1/contract_estimated_settlement_price") => 1,
-                    Symbol("api/v3/contract_liquidation_orders") => 1,
-                    Symbol("swap-api/v1/swap_contract_info") => 1,
-                    Symbol("swap-api/v1/swap_index") => 1,
-                    Symbol("swap-api/v1/swap_query_elements") => 1,
-                    Symbol("swap-api/v1/swap_price_limit") => 1,
-                    Symbol("swap-api/v1/swap_open_interest") => 1,
-                    Symbol("swap-ex/market/depth") => 1,
-                    Symbol("swap-ex/market/bbo") => 1,
-                    Symbol("swap-ex/market/history/kline") => 1,
-                    Symbol("index/market/history/swap_mark_price_kline") => 1,
-                    Symbol("swap-ex/market/detail/merged") => 1,
-                    Symbol("v2/swap-ex/market/detail/batch_merged") => 1,
-                    Symbol("index/market/history/swap_premium_index_kline") => 1,
-                    Symbol("swap-ex/market/detail/batch_merged") => 1,
-                    Symbol("swap-ex/market/trade") => 1,
-                    Symbol("swap-ex/market/history/trade") => 1,
-                    Symbol("swap-api/v1/swap_risk_info") => 1,
-                    Symbol("swap-api/v1/swap_insurance_fund") => 1,
-                    Symbol("swap-api/v1/swap_adjustfactor") => 1,
-                    Symbol("swap-api/v1/swap_his_open_interest") => 1,
-                    Symbol("swap-api/v1/swap_ladder_margin") => 1,
-                    Symbol("swap-api/v1/swap_api_state") => 1,
-                    Symbol("swap-api/v1/swap_elite_account_ratio") => 1,
-                    Symbol("swap-api/v1/swap_elite_position_ratio") => 1,
-                    Symbol("swap-api/v1/swap_estimated_settlement_price") => 1,
-                    Symbol("swap-api/v1/swap_liquidation_orders") => 1,
-                    Symbol("swap-api/v1/swap_settlement_records") => 1,
-                    Symbol("swap-api/v1/swap_funding_rate") => 1,
-                    Symbol("swap-api/v1/swap_batch_funding_rate") => 1,
-                    Symbol("swap-api/v1/swap_historical_funding_rate") => 1,
-                    Symbol("swap-api/v3/swap_liquidation_orders") => 1,
-                    Symbol("index/market/history/swap_estimated_rate_kline") => 1,
-                    Symbol("index/market/history/swap_basis") => 1,
-                    Symbol("linear-swap-api/v1/swap_contract_info") => 1,
-                    Symbol("linear-swap-api/v1/swap_index") => 1,
-                    Symbol("linear-swap-api/v1/swap_query_elements") => 1,
-                    Symbol("linear-swap-api/v1/swap_price_limit") => 1,
-                    Symbol("linear-swap-ex/market/depth") => 1,
-                    Symbol("linear-swap-ex/market/bbo") => 1,
-                    Symbol("linear-swap-ex/market/history/kline") => 1,
-                    Symbol("index/market/history/linear_swap_mark_price_kline") => 1,
-                    Symbol("linear-swap-ex/market/detail/merged") => 1,
-                    Symbol("linear-swap-ex/market/detail/batch_merged") => 1,
-                    Symbol("v2/linear-swap-ex/market/detail/batch_merged") => 1,
-                    Symbol("linear-swap-ex/market/trade") => 1,
-                    Symbol("linear-swap-ex/market/history/trade") => 1,
-                    Symbol("swap-api/v1/linear-swap-api/v1/swap_insurance_fund") => 1,
-                    Symbol("linear-swap-api/v1/swap_adjustfactor") => 1,
-                    Symbol("linear-swap-api/v1/swap_cross_adjustfactor") => 1,
-                    Symbol("linear-swap-api/v1/swap_his_open_interest") => 1,
-                    Symbol("linear-swap-api/v1/swap_ladder_margin") => 1,
-                    Symbol("linear-swap-api/v1/swap_cross_ladder_margin") => 1,
-                    Symbol("linear-swap-api/v1/swap_api_state") => 1,
-                    Symbol("linear-swap-api/v1/swap_elite_account_ratio") => 1,
-                    Symbol("linear-swap-api/v1/swap_elite_position_ratio") => 1,
-                    Symbol("linear-swap-api/v1/swap_settlement_records") => 1,
-                    Symbol("linear-swap-api/v3/swap_liquidation_orders") => 1,
-                    Symbol("index/market/history/linear_swap_premium_index_kline") => 1,
-                    Symbol("index/market/history/linear_swap_estimated_rate_kline") => 1,
-                    Symbol("index/market/history/linear_swap_basis") => 1,
-                    Symbol("linear-swap-api/v1/swap_estimated_settlement_price") => 1,
-                    Symbol("v5/market/funding_rate") => 0.125,
-                    Symbol("v5/market/funding_rate_history") => 0.125,
-                    Symbol("v5/market/open_interest") => 0.125,
-                    Symbol("v5/market/liquidation_orders") => 0.125,
-                    Symbol("v5/market/settlement_history") => 0.125,
-                    Symbol("v5/market/elite_account_ratio") => 0.125,
-                    Symbol("v5/market/elite_position_ratio") => 0.125,
-                    Symbol("v5/market/estimated_settlement_price") => 0.125,
-                    Symbol("v5/market/price_limit") => 0.125
+                    Symbol("api/v1/timestamp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("heartbeat/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_contract_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_query_elements") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_price_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_open_interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_delivery_price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/bbo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/history/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("index/market/history/mark_price_kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/detail/merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/detail/batch_merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/market/detail/batch_merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/history/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_risk_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_insurance_fund") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_adjustfactor") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_his_open_interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_ladder_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_api_state") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_elite_account_ratio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_elite_position_ratio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_liquidation_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_settlement_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("index/market/history/index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("index/market/history/basis") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_estimated_settlement_price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v3/contract_liquidation_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_contract_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_query_elements") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_price_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_open_interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-ex/market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-ex/market/bbo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-ex/market/history/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("index/market/history/swap_mark_price_kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-ex/market/detail/merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/swap-ex/market/detail/batch_merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("index/market/history/swap_premium_index_kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-ex/market/detail/batch_merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-ex/market/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-ex/market/history/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_risk_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_insurance_fund") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_adjustfactor") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_his_open_interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_ladder_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_api_state") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_elite_account_ratio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_elite_position_ratio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_estimated_settlement_price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_liquidation_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_settlement_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_funding_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_batch_funding_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_historical_funding_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v3/swap_liquidation_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("index/market/history/swap_estimated_rate_kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("index/market/history/swap_basis") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_contract_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_query_elements") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_price_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-ex/market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-ex/market/bbo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-ex/market/history/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("index/market/history/linear_swap_mark_price_kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-ex/market/detail/merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-ex/market/detail/batch_merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v2/linear-swap-ex/market/detail/batch_merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-ex/market/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-ex/market/history/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/linear-swap-api/v1/swap_insurance_fund") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_adjustfactor") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_cross_adjustfactor") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_his_open_interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_ladder_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_cross_ladder_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_api_state") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_elite_account_ratio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_elite_position_ratio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_settlement_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v3/swap_liquidation_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("index/market/history/linear_swap_premium_index_kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("index/market/history/linear_swap_estimated_rate_kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("index/market/history/linear_swap_basis") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("linear-swap-api/v1/swap_estimated_settlement_price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v5/market/funding_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+),
+                    Symbol("v5/market/funding_rate_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+),
+                    Symbol("v5/market/open_interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+),
+                    Symbol("v5/market/liquidation_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+),
+                    Symbol("v5/market/settlement_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+),
+                    Symbol("v5/market/elite_account_ratio") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+),
+                    Symbol("v5/market/elite_position_ratio") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+),
+                    Symbol("v5/market/estimated_settlement_price") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+),
+                    Symbol("v5/market/price_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("api/v1/contract_sub_auth_list") => 1,
-                    Symbol("api/v1/contract_api_trading_status") => 1,
-                    Symbol("swap-api/v1/swap_sub_auth_list") => 1,
-                    Symbol("swap-api/v1/swap_api_trading_status") => 1,
-                    Symbol("v5/account/asset_mode") => 0.20834,
-                    Symbol("v5/account/balance") => 0.20834,
-                    Symbol("v5/account/bills") => 0.20834,
-                    Symbol("v5/account/fee_deduction_currency") => 0.20834,
-                    Symbol("v5/trade/position/opens") => 0.41679,
-                    Symbol("v5/trade/order/opens") => 0.41679,
-                    Symbol("v5/trade/order/details") => 0.41679,
-                    Symbol("v5/trade/order/history") => 0.41679,
-                    Symbol("v5/trade/order") => 0.41679,
-                    Symbol("v5/position/lever") => 0.20834,
-                    Symbol("v5/position/mode") => 0.20834,
-                    Symbol("v5/position/risk/limit") => 0.20834,
-                    Symbol("v5/position/risk/limit_tier") => 0.20834,
-                    Symbol("v5/market/risk/limit") => 0.125,
-                    Symbol("v5/market/assets_deduction_currency") => 0.125,
-                    Symbol("v5/market/multi_assets_margin") => 0.125,
-                    Symbol("v5/algo/order/opens") => 0.41679,
-                    Symbol("v5/algo/order") => 0.41679,
-                    Symbol("v5/algo/order/history") => 0.41679
+                    Symbol("api/v1/contract_sub_auth_list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_api_trading_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_sub_auth_list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_api_trading_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v5/account/asset_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/account/bills") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/account/fee_deduction_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/trade/position/opens") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/trade/order/opens") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/trade/order/details") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/trade/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/position/lever") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/position/mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/position/risk/limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/position/risk/limit_tier") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/market/risk/limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+),
+                    Symbol("v5/market/assets_deduction_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+),
+                    Symbol("v5/market/multi_assets_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.125
+),
+                    Symbol("v5/algo/order/opens") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/algo/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/algo/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("api/v1/contract_balance_valuation") => 1,
-                    Symbol("api/v1/contract_account_info") => 1,
-                    Symbol("api/v1/contract_position_info") => 1,
-                    Symbol("api/v1/contract_sub_auth") => 1,
-                    Symbol("api/v1/contract_sub_account_list") => 1,
-                    Symbol("api/v1/contract_sub_account_info_list") => 1,
-                    Symbol("api/v1/contract_sub_account_info") => 1,
-                    Symbol("api/v1/contract_sub_position_info") => 1,
-                    Symbol("api/v1/contract_financial_record") => 1,
-                    Symbol("api/v1/contract_financial_record_exact") => 1,
-                    Symbol("api/v1/contract_user_settlement_records") => 1,
-                    Symbol("api/v1/contract_order_limit") => 1,
-                    Symbol("api/v1/contract_fee") => 1,
-                    Symbol("api/v1/contract_transfer_limit") => 1,
-                    Symbol("api/v1/contract_position_limit") => 1,
-                    Symbol("api/v1/contract_account_position_info") => 1,
-                    Symbol("api/v1/contract_master_sub_transfer") => 1,
-                    Symbol("api/v1/contract_master_sub_transfer_record") => 1,
-                    Symbol("api/v1/contract_available_level_rate") => 1,
-                    Symbol("api/v3/contract_financial_record") => 1,
-                    Symbol("api/v3/contract_financial_record_exact") => 1,
-                    Symbol("api/v1/contract-cancel-after") => 1,
-                    Symbol("api/v1/contract_order") => 1,
-                    Symbol("api/v1/contract_batchorder") => 1,
-                    Symbol("api/v1/contract_cancel") => 1,
-                    Symbol("api/v1/contract_cancelall") => 1,
-                    Symbol("api/v1/contract_switch_lever_rate") => 30,
-                    Symbol("api/v1/lightning_close_position") => 1,
-                    Symbol("api/v1/contract_order_info") => 1,
-                    Symbol("api/v1/contract_order_detail") => 1,
-                    Symbol("api/v1/contract_openorders") => 1,
-                    Symbol("api/v1/contract_hisorders") => 1,
-                    Symbol("api/v1/contract_hisorders_exact") => 1,
-                    Symbol("api/v1/contract_matchresults") => 1,
-                    Symbol("api/v1/contract_matchresults_exact") => 1,
-                    Symbol("api/v3/contract_hisorders") => 1,
-                    Symbol("api/v3/contract_hisorders_exact") => 1,
-                    Symbol("api/v3/contract_matchresults") => 1,
-                    Symbol("api/v3/contract_matchresults_exact") => 1,
-                    Symbol("api/v1/contract_trigger_order") => 1,
-                    Symbol("api/v1/contract_trigger_cancel") => 1,
-                    Symbol("api/v1/contract_trigger_cancelall") => 1,
-                    Symbol("api/v1/contract_trigger_openorders") => 1,
-                    Symbol("api/v1/contract_trigger_hisorders") => 1,
-                    Symbol("api/v1/contract_tpsl_order") => 1,
-                    Symbol("api/v1/contract_tpsl_cancel") => 1,
-                    Symbol("api/v1/contract_tpsl_cancelall") => 1,
-                    Symbol("api/v1/contract_tpsl_openorders") => 1,
-                    Symbol("api/v1/contract_tpsl_hisorders") => 1,
-                    Symbol("api/v1/contract_relation_tpsl_order") => 1,
-                    Symbol("api/v1/contract_track_order") => 1,
-                    Symbol("api/v1/contract_track_cancel") => 1,
-                    Symbol("api/v1/contract_track_cancelall") => 1,
-                    Symbol("api/v1/contract_track_openorders") => 1,
-                    Symbol("api/v1/contract_track_hisorders") => 1,
-                    Symbol("swap-api/v1/swap_balance_valuation") => 1,
-                    Symbol("swap-api/v1/swap_account_info") => 1,
-                    Symbol("swap-api/v1/swap_position_info") => 1,
-                    Symbol("swap-api/v1/swap_account_position_info") => 1,
-                    Symbol("swap-api/v1/swap_sub_auth") => 1,
-                    Symbol("swap-api/v1/swap_sub_account_list") => 1,
-                    Symbol("swap-api/v1/swap_sub_account_info_list") => 1,
-                    Symbol("swap-api/v1/swap_sub_account_info") => 1,
-                    Symbol("swap-api/v1/swap_sub_position_info") => 1,
-                    Symbol("swap-api/v1/swap_financial_record") => 1,
-                    Symbol("swap-api/v1/swap_financial_record_exact") => 1,
-                    Symbol("swap-api/v1/swap_user_settlement_records") => 1,
-                    Symbol("swap-api/v1/swap_available_level_rate") => 1,
-                    Symbol("swap-api/v1/swap_order_limit") => 1,
-                    Symbol("swap-api/v1/swap_fee") => 1,
-                    Symbol("swap-api/v1/swap_transfer_limit") => 1,
-                    Symbol("swap-api/v1/swap_position_limit") => 1,
-                    Symbol("swap-api/v1/swap_master_sub_transfer") => 1,
-                    Symbol("swap-api/v1/swap_master_sub_transfer_record") => 1,
-                    Symbol("swap-api/v3/swap_financial_record") => 1,
-                    Symbol("swap-api/v3/swap_financial_record_exact") => 1,
-                    Symbol("swap-api/v1/swap-cancel-after") => 1,
-                    Symbol("swap-api/v1/swap_order") => 1,
-                    Symbol("swap-api/v1/swap_batchorder") => 1,
-                    Symbol("swap-api/v1/swap_cancel") => 1,
-                    Symbol("swap-api/v1/swap_cancelall") => 1,
-                    Symbol("swap-api/v1/swap_lightning_close_position") => 1,
-                    Symbol("swap-api/v1/swap_switch_lever_rate") => 30,
-                    Symbol("swap-api/v1/swap_order_info") => 1,
-                    Symbol("swap-api/v1/swap_order_detail") => 1,
-                    Symbol("swap-api/v1/swap_openorders") => 1,
-                    Symbol("swap-api/v1/swap_hisorders") => 1,
-                    Symbol("swap-api/v1/swap_hisorders_exact") => 1,
-                    Symbol("swap-api/v1/swap_matchresults") => 1,
-                    Symbol("swap-api/v1/swap_matchresults_exact") => 1,
-                    Symbol("swap-api/v3/swap_matchresults") => 1,
-                    Symbol("swap-api/v3/swap_matchresults_exact") => 1,
-                    Symbol("swap-api/v3/swap_hisorders") => 1,
-                    Symbol("swap-api/v3/swap_hisorders_exact") => 1,
-                    Symbol("swap-api/v1/swap_trigger_order") => 1,
-                    Symbol("swap-api/v1/swap_trigger_cancel") => 1,
-                    Symbol("swap-api/v1/swap_trigger_cancelall") => 1,
-                    Symbol("swap-api/v1/swap_trigger_openorders") => 1,
-                    Symbol("swap-api/v1/swap_trigger_hisorders") => 1,
-                    Symbol("swap-api/v1/swap_tpsl_order") => 1,
-                    Symbol("swap-api/v1/swap_tpsl_cancel") => 1,
-                    Symbol("swap-api/v1/swap_tpsl_cancelall") => 1,
-                    Symbol("swap-api/v1/swap_tpsl_openorders") => 1,
-                    Symbol("swap-api/v1/swap_tpsl_hisorders") => 1,
-                    Symbol("swap-api/v1/swap_relation_tpsl_order") => 1,
-                    Symbol("swap-api/v1/swap_track_order") => 1,
-                    Symbol("swap-api/v1/swap_track_cancel") => 1,
-                    Symbol("swap-api/v1/swap_track_cancelall") => 1,
-                    Symbol("swap-api/v1/swap_track_openorders") => 1,
-                    Symbol("swap-api/v1/swap_track_hisorders") => 1,
-                    Symbol("v5/account/asset_mode") => 100,
-                    Symbol("v5/trade/order") => 0.41679,
-                    Symbol("v5/trade/batch_orders") => 0.41679,
-                    Symbol("v5/trade/cancel_order") => 0.41679,
-                    Symbol("v5/trade/cancel_batch_orders") => 0.41679,
-                    Symbol("v5/trade/cancel_all_orders") => 0.41679,
-                    Symbol("v5/trade/cancel-after") => 0.41679,
-                    Symbol("v5/trade/position") => 0.41679,
-                    Symbol("v5/trade/position_all") => 0.41679,
-                    Symbol("v5/position/lever") => 0.20834,
-                    Symbol("v5/position/mode") => 0.20834,
-                    Symbol("v5/position/margin") => 0.20834,
-                    Symbol("v5/account/fee_deduction_currency") => 0.20834,
-                    Symbol("v5/algo/order") => 0.41679,
-                    Symbol("v5/algo/cancel_orders") => 0.41679
+                    Symbol("api/v1/contract_balance_valuation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_account_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_position_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_sub_auth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_sub_account_list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_sub_account_info_list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_sub_account_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_sub_position_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_financial_record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_financial_record_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_user_settlement_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_order_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_transfer_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_position_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_account_position_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_master_sub_transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_master_sub_transfer_record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_available_level_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v3/contract_financial_record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v3/contract_financial_record_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract-cancel-after") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_batchorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_cancelall") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_switch_lever_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                    Symbol("api/v1/lightning_close_position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_order_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_order_detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_openorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_hisorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_hisorders_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_matchresults") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_matchresults_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v3/contract_hisorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v3/contract_hisorders_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v3/contract_matchresults") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v3/contract_matchresults_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_trigger_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_trigger_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_trigger_cancelall") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_trigger_openorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_trigger_hisorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_tpsl_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_tpsl_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_tpsl_cancelall") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_tpsl_openorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_tpsl_hisorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_relation_tpsl_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_track_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_track_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_track_cancelall") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_track_openorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("api/v1/contract_track_hisorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_balance_valuation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_account_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_position_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_account_position_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_sub_auth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_sub_account_list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_sub_account_info_list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_sub_account_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_sub_position_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_financial_record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_financial_record_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_user_settlement_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_available_level_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_order_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_transfer_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_position_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_master_sub_transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_master_sub_transfer_record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v3/swap_financial_record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v3/swap_financial_record_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap-cancel-after") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_batchorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_cancelall") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_lightning_close_position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_switch_lever_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                    Symbol("swap-api/v1/swap_order_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_order_detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_openorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_hisorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_hisorders_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_matchresults") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_matchresults_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v3/swap_matchresults") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v3/swap_matchresults_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v3/swap_hisorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v3/swap_hisorders_exact") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_trigger_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_trigger_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_trigger_cancelall") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_trigger_openorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_trigger_hisorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_tpsl_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_tpsl_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_tpsl_cancelall") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_tpsl_openorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_tpsl_hisorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_relation_tpsl_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_track_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_track_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_track_cancelall") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_track_openorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("swap-api/v1/swap_track_hisorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("v5/account/asset_mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                    Symbol("v5/trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/trade/batch_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/trade/cancel_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/trade/cancel_batch_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/trade/cancel_all_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/trade/cancel-after") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/trade/position") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/trade/position_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/position/lever") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/position/mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/position/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/account/fee_deduction_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.20834
+),
+                    Symbol("v5/algo/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+),
+                    Symbol("v5/algo/cancel_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.41679
+)
                 )
             )
         )
@@ -1822,7 +2752,7 @@ function fetchStatus(self::Htx, params=Dict())
         else
             status = functions.ccxtruthy((statusRaw == "ok")) ? "ok" : "maintenance";
         end
-        updated = safeString(response, "ts");
+        updated = safeInteger(response, "ts");
     else
         statusData = safeValue(response, "status", Dict{Symbol, Any}());
         statusRaw = safeString(statusData, "indicator");
@@ -1888,6 +2818,9 @@ function fetchTradingLimits(self::Htx, symbols=nothing, params=Dict())
     if functions.ccxtruthy(symbols == nothing)
         symbols = self.symbols;
     end
+    if functions.ccxtruthy(symbols == nothing)
+        throw(ExchangeError(string(self.id, " markets not loaded")));
+    end
     result = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
@@ -1919,7 +2852,7 @@ function parseTradingLimits(self::Htx, limits, symbol=nothing, params=Dict())
 
 end
 function costToPrecision(self::Htx, symbol, cost)
-    return decimalToPrecision(cost, TRUNCATE, get(get(get(self.markets, Symbol(symbol), nothing), Symbol("precision"), nothing), Symbol("cost"), nothing), self.precisionMode)
+    return decimalToPrecision(cost, TRUNCATE, get(get(self.market(symbol), Symbol("precision"), nothing), Symbol("cost"), nothing), self.precisionMode)
 
 end
 function fetchMarkets(self::Htx, params=Dict())
@@ -1998,6 +2931,9 @@ function fetchMarketsByTypeAndSubType(self::Htx, type_var, subType, params=Dict(
         inverse = nothing;
         if functions.ccxtruthy(contract)
             id = safeString(market, "contract_code");
+            if functions.ccxtruthy(id == nothing)
+                throw(ExchangeError(string(self.id, " method() missing id")));
+            end
             lowercaseId = lowercase(id);
             delivery_date = safeString(market, "delivery_date");
             business_type = safeString(market, "business_type");
@@ -2007,6 +2943,9 @@ function fetchMarketsByTypeAndSubType(self::Htx, type_var, subType, params=Dict(
             inverse = !functions.ccxtruthy(linear);
             if functions.ccxtruthy(swap)
                 type_var = "swap";
+                if functions.ccxtruthy(id == nothing)
+                    throw(ExchangeError(string(self.id, " method() missing id")));
+                end
                 parts = split(id, "-");
                 baseId = safeStringLower(market, "symbol");
                 quoteId = safeStringLower(parts, 1);
@@ -2019,6 +2958,9 @@ function fetchMarketsByTypeAndSubType(self::Htx, type_var, subType, params=Dict(
                     settleId = baseId;
                 else
                     pair = safeString(market, "pair");
+                    if functions.ccxtruthy(pair == nothing)
+                        throw(ExchangeError(string(self.id, " method() missing pair")));
+                    end
                     parts = split(pair, "-");
                     quoteId = safeStringLower(parts, 1);
                     settleId = quoteId;
@@ -2028,6 +2970,12 @@ function fetchMarketsByTypeAndSubType(self::Htx, type_var, subType, params=Dict(
             type_var = "spot";
             baseId = safeString(market, "base-currency");
             quoteId = safeString(market, "quote-currency");
+            if functions.ccxtruthy(quoteId == nothing)
+                throw(ExchangeError(string(self.id, " method() missing quoteId")));
+            end
+            if functions.ccxtruthy(baseId == nothing)
+                throw(ExchangeError(string(self.id, " method() missing baseId")));
+            end
             id = string(baseId, quoteId);
             lowercaseId = lowercase(id);
         end
@@ -2150,7 +3098,7 @@ function fetchMarketsByTypeAndSubType(self::Htx, type_var, subType, params=Dict(
 
 end
 function tryGetSymbolFromFutureMarkets(self::Htx, symbolOrMarketId)
-    if functions.ccxtruthy(ccxt_in(symbolOrMarketId, self.markets))
+    if functions.ccxtruthy(@functions.ccxt_and((self.markets != nothing), (ccxt_in(symbolOrMarketId, self.markets))))
             return symbolOrMarketId
     end
     if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in("futureMarketIdsForSymbols", self.options))))
@@ -2172,7 +3120,7 @@ function tryGetSymbolFromFutureMarkets(self::Htx, symbolOrMarketId)
         market = get(futureMarkets, i + 1, nothing);
         info = safeValue(market, "info", Dict{Symbol, Any}());
         contractType = safeString(info, "contract_type");
-        contractSuffix = get(futuresCharsMaps, Symbol(contractType), nothing);
+        contractSuffix = safeValue(futuresCharsMaps, contractType);
         constructedId = functions.ccxtruthy(get(market, Symbol("linear"), nothing)) ? string(get(market, Symbol("base"), nothing), "-", get(market, Symbol("quote"), nothing), "-", contractSuffix) : string(get(market, Symbol("base"), nothing), "_", contractSuffix);
         if functions.ccxtruthy(constructedId == symbolOrMarketId)
             symbol = get(market, Symbol("symbol"), nothing);
@@ -2396,6 +3344,9 @@ function fetchOrderBook(self::Htx, symbol, limit=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.spotPublicGetMarketDepth(extend(request, params)));
     end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " fetchOrderBook() returned empty response")));
+    end
     if functions.ccxtruthy(ccxt_in("tick", response))
         if functions.ccxtruthy(!functions.ccxtruthy(get(response, Symbol("tick"), nothing)))
             throw(BadSymbol(string(self.id, " fetchOrderBook() returned empty response: ", json(response))));
@@ -2495,7 +3446,8 @@ function fetchSpotOrderTrades(self::Htx, id, symbol=nothing, since=nothing, limi
         Symbol("order-id") => id
     );
     response = Base.fetch(self.spotPrivateGetV1OrderOrdersOrderIdMatchresults(extend(request, params)));
-    return self.parseTrades(get(response, Symbol("data"), nothing), nothing, since, limit)
+    data = self.safeList(response, "data", []);
+    return self.parseTrades(data, nothing, since, limit)
 
 end
 function fetchMyTrades(self::Htx, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -2628,7 +3580,7 @@ function fetchOHLCV(self::Htx, symbol, timeframe="1m", since=nothing, limit=noth
     request = Dict{Symbol, Any}(
         Symbol("period") => safeString(self.timeframes, timeframe, timeframe)
     );
-    priceType = safeStringN(params, ["priceType", "price"]);
+    priceType = safeString2(params, "priceType", "price");
     params = omit(params, ["priceType", "price"]);
     until = nothing;
     (until, params) = self.handleParamInteger(params, "until");
@@ -2816,7 +3768,9 @@ function parseCurrency(self::Htx, rawCurrency)
     code = self.safeCurrencyCode(currencyId);
     assetType = safeString(rawCurrency, "assetType");
     type_var = functions.ccxtruthy((assetType == "1")) ? "crypto" : "fiat";
-    self.options[Symbol("networkChainIdsByNames")][Symbol(code)] = Dict{Symbol, Any}();
+    if functions.ccxtruthy(code != nothing)
+        self.options[Symbol("networkChainIdsByNames")][Symbol(code)] = Dict{Symbol, Any}();
+    end
     chains = self.safeList(rawCurrency, "chains", []);
     networks = Dict{Symbol, Any}();
     j = 0
@@ -2824,29 +3778,35 @@ function parseCurrency(self::Htx, rawCurrency)
         chainEntry = get(chains, j + 1, nothing);
         uniqueChainId = safeString(chainEntry, "chain");
         title = safeString2(chainEntry, "baseChain", "displayName");
-        self.options[Symbol("networkChainIdsByNames")][Symbol(code)][Symbol(title)] = uniqueChainId;
-        self.options[Symbol("networkNamesByChainIds")][Symbol(uniqueChainId)] = title;
+        if functions.ccxtruthy(@functions.ccxt_and(code != nothing, title != nothing))
+            self.options[Symbol("networkChainIdsByNames")][Symbol(code)][Symbol(title)] = uniqueChainId;
+        end
+        if functions.ccxtruthy(uniqueChainId != nothing)
+            self.options[Symbol("networkNamesByChainIds")][Symbol(uniqueChainId)] = title;
+        end
         networkCode = self.networkIdToCode(uniqueChainId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => chainEntry,
-            Symbol("id") => uniqueChainId,
-            Symbol("network") => networkCode,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(chainEntry, "minDepositAmt"),
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => chainEntry,
+                Symbol("id") => uniqueChainId,
+                Symbol("network") => networkCode,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(chainEntry, "minDepositAmt"),
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(chainEntry, "minWithdrawAmt"),
+                        Symbol("max") => self.safeNumber(chainEntry, "maxWithdrawAmt")
+                    )
                 ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(chainEntry, "minWithdrawAmt"),
-                    Symbol("max") => self.safeNumber(chainEntry, "maxWithdrawAmt")
-                )
-            ),
-            Symbol("active") => nothing,
-            Symbol("deposit") => safeString(chainEntry, "depositStatus") == "allowed",
-            Symbol("withdraw") => safeString(chainEntry, "withdrawStatus") == "allowed",
-            Symbol("fee") => self.safeNumber(chainEntry, "transactFeeWithdraw"),
-            Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chainEntry, "withdrawPrecision")))
-        );
+                Symbol("active") => nothing,
+                Symbol("deposit") => safeString(chainEntry, "depositStatus") == "allowed",
+                Symbol("withdraw") => safeString(chainEntry, "withdrawStatus") == "allowed",
+                Symbol("fee") => self.safeNumber(chainEntry, "transactFeeWithdraw"),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chainEntry, "withdrawPrecision")))
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -2922,7 +3882,10 @@ function fetchBalance(self::Htx, params=Dict())
     (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
     subType = nothing;
     isMultiAssetMode = nothing;
-    (subType, params) = self.handleOptionAndParams2(params, "fetchBalance", "defaultSubType", "subType", "linear");
+    (subType, params) = self.handleOptionAndParams2(params, "fetchBalance", "defaultSubType", "subType");
+    if functions.ccxtruthy(subType == nothing)
+        subType = "linear";
+    end
     (isMultiAssetMode, params) = self.handleOptionAndParams(params, "fetchBalance", "multiAssetMode", false);
     request = Dict{Symbol, Any}();
     spot = (type_var == "spot");
@@ -2976,7 +3939,9 @@ function fetchBalance(self::Htx, params=Dict())
             account = self.account();
             account[Symbol("free")] = safeString(balance, "available_margin");
             account[Symbol("total")] = safeString(balance, "equity");
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
             i += 1
         end
 
@@ -2994,7 +3959,9 @@ function fetchBalance(self::Htx, params=Dict())
                     balance = get(balances, j + 1, nothing);
                     currencyId = safeString(balance, "currency");
                     code = self.safeCurrencyCode(currencyId);
-                    subResult[Symbol(code)] = self.parseMarginBalanceHelper(balance, code, subResult);
+                    if functions.ccxtruthy(code != nothing)
+                        subResult[Symbol(code)] = self.parseMarginBalanceHelper(balance, code, subResult);
+                    end
                     j += 1
                 end
                 result[Symbol(symbol)] = self.safeBalance(subResult);
@@ -3008,7 +3975,9 @@ function fetchBalance(self::Htx, params=Dict())
                 balance = get(balances, i + 1, nothing);
                 currencyId = safeString(balance, "currency");
                 code = self.safeCurrencyCode(currencyId);
-                result[Symbol(code)] = self.parseMarginBalanceHelper(balance, code, result);
+                if functions.ccxtruthy(code != nothing)
+                    result[Symbol(code)] = self.parseMarginBalanceHelper(balance, code, result);
+                end
                 i += 1
             end
             result = self.safeBalance(result);
@@ -3023,7 +3992,9 @@ function fetchBalance(self::Htx, params=Dict())
                 account = self.account();
                 account[Symbol("free")] = safeString(balance, "margin_available");
                 account[Symbol("used")] = safeString(balance, "margin_frozen");
-                result[Symbol(code)] = account;
+                if functions.ccxtruthy(code != nothing)
+                    result[Symbol(code)] = account;
+                end
                 i += 1
             end
 
@@ -3134,8 +4105,14 @@ function parseMarginBalanceHelper(self::Htx, balance, code, result)
     else
         account = self.account();
     end
+    if functions.ccxtruthy(account == nothing)
+        throw(ExchangeError(string(self.id, " parseMarginBalanceHelper() could not resolve account")));
+    end
     if functions.ccxtruthy(get(balance, Symbol("type"), nothing) == "trade")
         account[Symbol("free")] = safeString(balance, "balance");
+    end
+    if functions.ccxtruthy(account == nothing)
+        throw(ExchangeError(string(self.id, " parseMarginBalanceHelper() could not resolve account")));
     end
     if functions.ccxtruthy(get(balance, Symbol("type"), nothing) == "frozen")
         account[Symbol("used")] = safeString(balance, "balance");
@@ -3550,7 +4527,7 @@ function parseOrder(self::Htx, order, market=nothing)
     if functions.ccxtruthy(isLinearOrder)
         type_var = safeString(order, "type");
         if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((type_var == nothing), (type_var == "tp")), (type_var == "sl")), (type_var == "tpsl")))
-            type_var = safeStringN(order, ["tp_type", "sl_type"]);
+            type_var = safeString2(order, "tp_type", "sl_type");
         end
         if functions.ccxtruthy(type_var == "0")
             type_var = nothing;
@@ -3660,6 +4637,12 @@ function createTrailingPercentOrder(self::Htx, symbol, type_var, side, amount, p
 
 end
 function createSpotOrderRequest(self::Htx, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -3754,6 +4737,12 @@ function createSpotOrderRequest(self::Htx, symbol, type_var, side, amount, price
 
 end
 function createContractOrderRequest(self::Htx, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("contract_code") => get(market, Symbol("id"), nothing),
@@ -4013,6 +5002,9 @@ function createOrder(self::Htx, symbol, type_var, side, amount, price=nothing, p
         else
             result = self.safeDict(response, "data", Dict{Symbol, Any}());
         end
+        if functions.ccxtruthy(result == nothing)
+            throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
+        end
         return extend(self.parseOrder(result, market), Dict{Symbol, Any}(
     Symbol("type") => type_var,
     Symbol("side") => side,
@@ -4030,6 +5022,9 @@ function createOrder(self::Htx, symbol, type_var, side, amount, price=nothing, p
             result = safeValue(response, "data", Dict{Symbol, Any}());
         end
 
+    end
+    if functions.ccxtruthy(result == nothing)
+        throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
     return self.parseOrder(result, market)
 
@@ -4219,6 +5214,9 @@ function cancelOrder(self::Htx, id, symbol=nothing, params=Dict())
         end
     else
         result = response;
+    end
+    if functions.ccxtruthy(result == nothing)
+        throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
     end
     return extend(self.parseOrder(result, market), Dict{Symbol, Any}(
     Symbol("id") => id,
@@ -4442,6 +5440,9 @@ function cancelAllOrdersAfter(self::Htx, timeout, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
+    if functions.ccxtruthy(timeout == nothing)
+        throw(ExchangeError(string(self.id, " cancelAllOrdersAfter() missing timeout")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("timeout") => functions.ccxtruthy((functions.ccxt_gt(timeout, 0))) ? self.parseToInt(timeout / 1000) : 0
     );
@@ -4490,7 +5491,7 @@ function fetchDepositAddress(self::Htx, code, params=Dict())
     (networkCode, paramsOmited) = self.handleNetworkCodeAndParams(params);
     indexedAddresses = Base.fetch(self.fetchDepositAddressesByNetwork(code, paramsOmited));
     selectedNetworkCode = self.selectNetworkCodeFromUnifiedNetworks(get(currency, Symbol("code"), nothing), networkCode, indexedAddresses);
-    return get(indexedAddresses, selectedNetworkCode + 1, nothing)
+    return safeValue(indexedAddresses, selectedNetworkCode)
 
 end
 function fetchWithdrawAddresses(self::Htx, code, note=nothing, networkCode=nothing, params=Dict())
@@ -4541,7 +5542,8 @@ function fetchDeposits(self::Htx, code=nothing, since=nothing, limit=nothing, pa
         request[Symbol("size")] = limit;
     end
     response = Base.fetch(self.spotPrivateGetV1QueryDepositWithdraw(extend(request, params)));
-    return self.parseTransactions(get(response, Symbol("data"), nothing), currency, since, limit)
+    data = self.safeList(response, "data", []);
+    return self.parseTransactions(data, currency, since, limit)
 
 end
 function fetchWithdrawals(self::Htx, code=nothing, since=nothing, limit=nothing, params=Dict())
@@ -4567,7 +5569,8 @@ function fetchWithdrawals(self::Htx, code=nothing, since=nothing, limit=nothing,
         request[Symbol("size")] = limit;
     end
     response = Base.fetch(self.spotPrivateGetV1QueryDepositWithdraw(extend(request, params)));
-    return self.parseTransactions(get(response, Symbol("data"), nothing), currency, since, limit)
+    data = self.safeList(response, "data", []);
+    return self.parseTransactions(data, currency, since, limit)
 
 end
 function parseTransaction(self::Htx, transaction, currency=nothing)
@@ -4583,6 +5586,9 @@ function parseTransaction(self::Htx, transaction, currency=nothing)
     end
     networkId = safeString(transaction, "chain");
     txHash = safeString(transaction, "tx-hash");
+    if functions.ccxtruthy(txHash == nothing)
+        throw(ExchangeError(string(self.id, " parseTransaction() missing txHash")));
+    end
     if functions.ccxtruthy(@functions.ccxt_and(networkId == "ETH", findfirst("0x", txHash) === nothing))
         txHash = string("0x", txHash);
     end
@@ -4657,7 +5663,11 @@ function withdraw(self::Htx, code, amount, address, tag=nothing, params=Dict())
     if functions.ccxtruthy(networkCode != nothing)
         request[Symbol("chain")] = self.networkCodeToId(networkCode, code);
     end
-    amount = ccxt_toNumber(self.currencyToPrecision(code, amount, networkCode));
+    amountPrecision = self.currencyToPrecision(code, amount, networkCode);
+    if functions.ccxtruthy(amountPrecision == nothing)
+        amountPrecision = "0";
+    end
+    amount = ccxt_toNumber(amountPrecision);
     withdrawOptions = safeValue(self.options, "withdraw", Dict{Symbol, Any}());
     if functions.ccxtruthy(self.safeBool(withdrawOptions, "includeFee", false))
         fee = self.safeNumber(params, "fee");
@@ -4674,9 +5684,21 @@ function withdraw(self::Htx, code, amount, address, tag=nothing, params=Dict())
         params = omit(params, "fee");
         amountString = numberToString(amount);
         amountSubtractedString = stringSub(amountString, feeString);
-        amountSubtracted = ccxt_toNumber(amountSubtractedString);
-        request[Symbol("fee")] = ccxt_toNumber(feeString);
-        amount = ccxt_toNumber(self.currencyToPrecision(code, amountSubtracted, networkCode));
+        amountSubtractedParsed = amountSubtractedString;
+        if functions.ccxtruthy(amountSubtractedParsed == nothing)
+            amountSubtractedParsed = "0";
+        end
+        amountSubtracted = ccxt_toNumber(amountSubtractedParsed);
+        feeParsed = feeString;
+        if functions.ccxtruthy(feeParsed == nothing)
+            feeParsed = "0";
+        end
+        request[Symbol("fee")] = ccxt_toNumber(feeParsed);
+        amountAfterFee = self.currencyToPrecision(code, amountSubtracted, networkCode);
+        if functions.ccxtruthy(amountAfterFee == nothing)
+            amountAfterFee = "0";
+        end
+        amount = ccxt_toNumber(amountAfterFee);
     end
     request[Symbol("amount")] = amount;
     response = Base.fetch(self.spotPrivatePostV1DwWithdrawApiCreate(extend(request, params)));
@@ -4724,9 +5746,13 @@ function transfer(self::Htx, code, amount, fromAccount, toAccount, params=Dict()
         Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
+    transferAmount = self.currencyToPrecision(code, amount);
+    if functions.ccxtruthy(transferAmount == nothing)
+        transferAmount = "0";
+    end
     request = Dict{Symbol, Any}(
         Symbol("currency") => get(currency, Symbol("id"), nothing),
-        Symbol("amount") => ccxt_toNumber(self.currencyToPrecision(code, amount))
+        Symbol("amount") => ccxt_toNumber(transferAmount)
     );
     subType = nothing;
     (subType, params) = self.handleSubTypeAndParams("transfer", nothing, params);
@@ -4734,8 +5760,8 @@ function transfer(self::Htx, code, amount, fromAccount, toAccount, params=Dict()
     toAccountId = self.convertTypeToAccount(toAccount);
     toCross = toAccountId == "cross";
     fromCross = fromAccountId == "cross";
-    toIsolated = inArray(toAccountId, self.ids);
-    fromIsolated = inArray(fromAccountId, self.ids);
+    toIsolated = (@functions.ccxt_and((self.ids != nothing), inArray(toAccountId, self.ids)));
+    fromIsolated = (@functions.ccxt_and((self.ids != nothing), inArray(fromAccountId, self.ids)));
     fromSpot = fromAccountId == "pro";
     toSpot = toAccountId == "pro";
     if functions.ccxtruthy(@functions.ccxt_and(fromSpot, toSpot))
@@ -4783,6 +5809,9 @@ function transfer(self::Htx, code, amount, fromAccount, toAccount, params=Dict()
 
         end
 
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseTransfer() returned empty response")));
     end
     return self.parseTransfer(response, currency)
 
@@ -4861,7 +5890,7 @@ function fetchFundingRateHistory(self::Htx, symbol=nothing, since=nothing, limit
     );
     if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
         if functions.ccxtruthy(limit != nothing)
-            request[Symbol("limit")] = limit;
+            request[Symbol("limit")] = min(limit, 100);
         end
         if functions.ccxtruthy(since != nothing)
             request[Symbol("start_time")] = since;
@@ -4997,7 +6026,7 @@ function fetchFundingRates(self::Htx, symbols=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols);
-    defaultSubType = safeString(self.options, "defaultSubType", "linear");
+    defaultSubType = "linear";
     subType = nothing;
     (subType, params) = self.handleOptionAndParams(params, "fetchFundingRates", "subType", defaultSubType);
     if functions.ccxtruthy(symbols != nothing)
@@ -5130,7 +6159,7 @@ function sign(self::Htx, path, api="public", method="GET", params=Dict(), header
                 );
             end
         else
-            if functions.ccxtruthy(length(objectKeys(query)))
+            if functions.ccxtruthy(@functions.ccxt_and((query != nothing), length(objectKeys(query))))
                 url += string("?", self.urlencode(query));
             end
         end
@@ -5153,7 +6182,7 @@ function sign(self::Htx, path, api="public", method="GET", params=Dict(), header
         hostname = hostnames;
         url += self.implodeParams(path, params);
         if functions.ccxtruthy(access == "public")
-            if functions.ccxtruthy(length(objectKeys(query)))
+            if functions.ccxtruthy(@functions.ccxt_and((query != nothing), length(objectKeys(query))))
                 url += string("?", self.urlencode(query));
             end
         elseif functions.ccxtruthy(access == "private")
@@ -5336,6 +6365,9 @@ function setLeverage(self::Htx, leverage, symbol=nothing, params=Dict())
         else
             throw(NotSupported(string(self.id, " setLeverage() not support this market type")));
         end
+    end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " setLeverage() returned empty response")));
     end
     return response
 
@@ -5959,13 +6991,15 @@ function parseDepositWithdrawFee(self::Htx, fee, currency=nothing)
                 Symbol("percentage") => true
             );
         end
-        result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("withdraw") => withdrawResult,
-            Symbol("deposit") => Dict{Symbol, Any}(
-                Symbol("fee") => nothing,
-                Symbol("percentage") => nothing
-            )
-        );
+        if functions.ccxtruthy(networkCode != nothing)
+            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("withdraw") => withdrawResult,
+                Symbol("deposit") => Dict{Symbol, Any}(
+                    Symbol("fee") => nothing,
+                    Symbol("percentage") => nothing
+                )
+            );
+        end
         result = self.assignDefaultDepositWithdrawFees(result, currency);
         j += 1
     end
@@ -6109,6 +7143,9 @@ function closePosition(self::Htx, symbol, side=nothing, params=Dict())
         data = self.safeDict(response, "data", Dict{Symbol, Any}());
             return self.parseOrder(data, market)
     end
+    if functions.ccxtruthy(response == nothing)
+        throw(NullResponse(string(self.id, " parseOrder() returned empty response")));
+    end
     return self.parseOrder(response, market)
 
 end
@@ -6182,1876 +7219,1929 @@ function parseADLRank(self::Htx, info, market=nothing)
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Htx, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v2PublicGetReferenceCurrencies(self::Htx, params=Dict(), context=Dict())
-    return request(self, "reference/currencies", "v2Public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "reference/currencies", "v2Public", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetMarketStatus(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market-status", "v2Public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market-status", "v2Public", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountLedger(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/ledger", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/ledger", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountWithdrawQuota(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/withdraw/quota", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/withdraw/quota", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountWithdrawAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/withdraw/address", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/withdraw/address", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountDepositAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/deposit/address", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/deposit/address", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/repayment", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "account/repayment", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetReferenceTransactFeeRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "reference/transact-fee-rate", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "reference/transact-fee-rate", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountAssetValuation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/asset-valuation", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "account/asset-valuation", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetPointAccount(self::Htx, params=Dict(), context=Dict())
-    return request(self, "point/account", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "point/account", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSubUserUserList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/user-list", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/user-list", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSubUserUserState(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/user-state", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/user-state", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSubUserAccountList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/account-list", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/account-list", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSubUserDepositAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/deposit-address", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/deposit-address", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSubUserQueryDeposit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/query-deposit", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/query-deposit", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetUserApiKey(self::Htx, params=Dict(), context=Dict())
-    return request(self, "user/api-key", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/api-key", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetUserUid(self::Htx, params=Dict(), context=Dict())
-    return request(self, "user/uid", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/uid", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAlgoOrdersOpening(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders/opening", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders/opening", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAlgoOrdersHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders/history", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders/history", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAlgoOrdersSpecific(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders/specific", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders/specific", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetC2cOffers(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/offers", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/offers", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetC2cOffer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/offer", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/offer", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetC2cTransactions(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/transactions", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/transactions", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetC2cRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/repayment", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/repayment", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetC2cAccount(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/account", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/account", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetEtpReference(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/reference", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "etp/reference", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetEtpTransactions(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/transactions", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "etp/transactions", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetEtpTransaction(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/transaction", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "etp/transaction", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetEtpRebalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/rebalance", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "etp/rebalance", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetEtpLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/limit", "v2Private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "etp/limit", "v2Private", "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/transfer", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/repayment", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "account/repayment", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostPointTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "point/transfer", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "point/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserManagement(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/management", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/management", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserCreation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/creation", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/creation", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserTradableMarket(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/tradable-market", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/tradable-market", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserTransferability(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/transferability", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/transferability", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserApiKeyGeneration(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-generation", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/api-key-generation", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserApiKeyModification(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-modification", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/api-key-modification", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserApiKeyDeletion(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/api-key-deletion", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/api-key-deletion", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSubUserDeductMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "sub-user/deduct-mode", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub-user/deduct-mode", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAlgoOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAlgoOrdersCancelAllAfter(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders/cancel-all-after", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders/cancel-all-after", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAlgoOrdersCancellation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "algo-orders/cancellation", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo-orders/cancellation", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostC2cOffer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/offer", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/offer", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostC2cCancellation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/cancellation", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/cancellation", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostC2cCancelAll(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/cancel-all", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/cancel-all", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostC2cRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/repayment", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/repayment", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostC2cTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "c2c/transfer", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "c2c/transfer", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostEtpCreation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/creation", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "etp/creation", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostEtpRedemption(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/redemption", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "etp/redemption", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostEtpTransactIdCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/{transactId}/cancel", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "etp/{transactId}/cancel", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostEtpBatchCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "etp/batch-cancel", "v2Private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "etp/batch-cancel", "v2Private", "POST", params, nothing, nothing, Dict())
 end
 
 function publicGetCommonSymbols(self::Htx, params=Dict(), context=Dict())
-    return request(self, "common/symbols", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/symbols", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCommonCurrencys(self::Htx, params=Dict(), context=Dict())
-    return request(self, "common/currencys", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/currencys", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCommonTimestamp(self::Htx, params=Dict(), context=Dict())
-    return request(self, "common/timestamp", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/timestamp", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCommonExchange(self::Htx, params=Dict(), context=Dict())
-    return request(self, "common/exchange", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/exchange", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSettingsCurrencys(self::Htx, params=Dict(), context=Dict())
-    return request(self, "settings/currencys", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "settings/currencys", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountAccounts(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/accounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "account/accounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountAccountsIdBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/accounts/{id}/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "account/accounts/{id}/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountAccountsSubUid(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/accounts/{sub-uid}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/accounts/{sub-uid}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "account/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCrossMarginLoanInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/loan-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/loan-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginLoanInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "margin/loan-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/loan-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFeeFeeRateGet(self::Htx, params=Dict(), context=Dict())
-    return request(self, "fee/fee-rate/get", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fee/fee-rate/get", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderOpenOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/openOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/openOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderOrdersId(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderOrdersIdMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}/matchresults", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders/{id}/matchresults", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderOrdersGetClientOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/getClientOrder", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders/getClientOrder", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrderMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/matchresults", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/matchresults", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetQueryDepositWithdraw(self::Htx, params=Dict(), context=Dict())
-    return request(self, "query/deposit-withdraw", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "query/deposit-withdraw", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginLoanOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "margin/loan-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "margin/loan-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginAccountsBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCrossMarginLoanOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/loan-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/loan-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCrossMarginAccountsBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/accounts/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPointsActions(self::Htx, params=Dict(), context=Dict())
-    return request(self, "points/actions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "points/actions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPointsOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "points/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "points/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubuserAggregateBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "subuser/aggregate-balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "subuser/aggregate-balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetStableCoinExchangeRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "stable-coin/exchange_rate", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "stable-coin/exchange_rate", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetStableCoinQuote(self::Htx, params=Dict(), context=Dict())
-    return request(self, "stable-coin/quote", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "stable-coin/quote", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "account/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "futures/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderBatchOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/batch-orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/batch-orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderOrdersPlace(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/place", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order/orders/place", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderOrdersSubmitCancelClientOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/submitCancelClientOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order/orders/submitCancelClientOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderOrdersBatchCancelOpenOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/batchCancelOpenOrders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders/batchCancelOpenOrders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderOrdersIdSubmitcancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/{id}/submitcancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order/orders/{id}/submitcancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderOrdersBatchcancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "order/orders/batchcancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "order/orders/batchcancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDwWithdrawApiCreate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "dw/withdraw/api/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dw/withdraw/api/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDwWithdrawVirtualIdCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "dw/withdraw-virtual/{id}/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dw/withdraw-virtual/{id}/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDwTransferInMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "dw/transfer-in/margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "dw/transfer-in/margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDwTransferOutMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "dw/transfer-out/margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "dw/transfer-out/margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMarginOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "margin/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "margin/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMarginOrdersIdRepay(self::Htx, params=Dict(), context=Dict())
-    return request(self, "margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCrossMarginTransferIn(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/transfer-in", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/transfer-in", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCrossMarginTransferOut(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/transfer-out", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/transfer-out", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCrossMarginOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCrossMarginOrdersIdRepay(self::Htx, params=Dict(), context=Dict())
-    return request(self, "cross-margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cross-margin/orders/{id}/repay", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostStableCoinExchange(self::Htx, params=Dict(), context=Dict())
-    return request(self, "stable-coin/exchange", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "stable-coin/exchange", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubuserTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "subuser/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "subuser/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function statusPublicSpotGetApiV2SummaryJson(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v2/summary.json", ["status", "public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v2/summary.json", ["status", "public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function statusPublicFutureInverseGetApiV2SummaryJson(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v2/summary.json", ["status", "public", "future", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v2/summary.json", ["status", "public", "future", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function statusPublicFutureLinearGetApiV2SummaryJson(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v2/summary.json", ["status", "public", "future", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v2/summary.json", ["status", "public", "future", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function statusPublicSwapInverseGetApiV2SummaryJson(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v2/summary.json", ["status", "public", "swap", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v2/summary.json", ["status", "public", "swap", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function statusPublicSwapLinearGetApiV2SummaryJson(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v2/summary.json", ["status", "public", "swap", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v2/summary.json", ["status", "public", "swap", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV2MarketStatus(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/market-status", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/market-status", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV1CommonSymbols(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/common/symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/common/symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV1CommonCurrencys(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/common/currencys", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/common/currencys", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV2SettingsCommonCurrencies(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/settings/common/currencies", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/settings/common/currencies", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV2ReferenceCurrencies(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/reference/currencies", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/reference/currencies", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV1CommonTimestamp(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/common/timestamp", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/common/timestamp", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV1CommonExchange(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/common/exchange", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/common/exchange", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV1SettingsCommonChains(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/settings/common/chains", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/settings/common/chains", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV1SettingsCommonCurrencys(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/settings/common/currencys", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/settings/common/currencys", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV1SettingsCommonSymbols(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/settings/common/symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/settings/common/symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV2SettingsCommonSymbols(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/settings/common/symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/settings/common/symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV1SettingsCommonMarketSymbols(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/settings/common/market-symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/settings/common/market-symbols", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetMarketHistoryCandles(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/history/candles", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/history/candles", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetMarketHistoryKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/history/kline", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/history/kline", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetMarketDetailMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/detail/merged", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/detail/merged", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetMarketTickers(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/tickers", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/tickers", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetMarketDetail(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/detail", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/detail", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetMarketDepth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/depth", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/depth", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetMarketTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/trade", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/trade", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetMarketHistoryTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/history/trade", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/history/trade", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetMarketEtp(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/etp", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/etp", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV2EtpReference(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/reference", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/etp/reference", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPublicGetV2EtpRebalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/rebalance", ["spot", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/etp/rebalance", ["spot", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1AccountAccounts(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/account/accounts", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "v1/account/accounts", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1AccountAccountsAccountIdBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/account/accounts/{account-id}/balance", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "v1/account/accounts/{account-id}/balance", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2AccountValuation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/valuation", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/account/valuation", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2AccountAssetValuation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/asset-valuation", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "v2/account/asset-valuation", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1AccountHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/account/history", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v1/account/history", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2AccountLedger(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/ledger", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/account/ledger", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2PointAccount(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/point/account", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/point/account", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2AccountDepositAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/deposit/address", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/account/deposit/address", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2AccountWithdrawQuota(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/withdraw/quota", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/account/withdraw/quota", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2AccountWithdrawAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/withdraw/address", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/account/withdraw/address", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2ReferenceCurrencies(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/reference/currencies", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/reference/currencies", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1QueryDepositWithdraw(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/query/deposit-withdraw", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/query/deposit-withdraw", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1QueryWithdrawClientOrderId(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/query/withdraw/client-order-id", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/query/withdraw/client-order-id", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2UserApiKey(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/user/api-key", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user/api-key", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2UserUid(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/user/uid", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user/uid", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2SubUserUserList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/user-list", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/user-list", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2SubUserUserState(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/user-state", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/user-state", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2SubUserAccountList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/account-list", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/account-list", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2SubUserDepositAddress(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/deposit-address", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/deposit-address", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2SubUserQueryDeposit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/query-deposit", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/query-deposit", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1SubuserAggregateBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/subuser/aggregate-balance", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/subuser/aggregate-balance", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1AccountAccountsSubUid(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/account/accounts/{sub-uid}", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/account/accounts/{sub-uid}", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1OrderOpenOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/openOrders", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "v1/order/openOrders", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1OrderOrdersOrderId(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/{order-id}", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "v1/order/orders/{order-id}", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1OrderOrdersGetClientOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/getClientOrder", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "v1/order/orders/getClientOrder", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1OrderOrdersOrderIdMatchresult(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/{order-id}/matchresult", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "v1/order/orders/{order-id}/matchresult", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1OrderOrdersOrderIdMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/{order-id}/matchresults", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "v1/order/orders/{order-id}/matchresults", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1OrderOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "v1/order/orders", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1OrderHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/history", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order/history", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1OrderMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/matchresults", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/order/matchresults", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2ReferenceTransactFeeRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/reference/transact-fee-rate", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/reference/transact-fee-rate", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2AlgoOrdersOpening(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders/opening", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/algo-orders/opening", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2AlgoOrdersHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders/history", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/algo-orders/history", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2AlgoOrdersSpecific(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders/specific", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/algo-orders/specific", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1MarginLoanInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/margin/loan-info", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/margin/loan-info", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1MarginLoanOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/margin/loan-orders", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "v1/margin/loan-orders", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1MarginAccountsBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/margin/accounts/balance", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "v1/margin/accounts/balance", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1CrossMarginLoanInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/loan-info", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/cross-margin/loan-info", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1CrossMarginLoanOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/loan-orders", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/cross-margin/loan-orders", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1CrossMarginAccountsBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/accounts/balance", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/cross-margin/accounts/balance", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2AccountRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/repayment", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/account/repayment", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV5AccountUniversalTransferRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/universal_transfer_records", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v5/account/universal_transfer_records", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1StableCoinQuote(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/stable-coin/quote", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/stable-coin/quote", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV1StableCoinExchangeRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/stable_coin/exchange_rate", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/stable_coin/exchange_rate", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2EtpTransactions(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/transactions", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/etp/transactions", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2EtpTransaction(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/transaction", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/etp/transaction", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivateGetV2EtpLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/limit", ["spot", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/etp/limit", ["spot", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1AccountTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/account/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/account/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1FuturesTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/futures/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/futures/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2PointTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/point/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/point/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2AccountTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/account/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1DwWithdrawApiCreate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/dw/withdraw/api/create", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/dw/withdraw/api/create", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/dw/withdraw-virtual/{withdraw-id}/cancel", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/dw/withdraw-virtual/{withdraw-id}/cancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2SubUserDeductMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/deduct-mode", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/deduct-mode", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2SubUserCreation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/creation", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/creation", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2SubUserManagement(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/management", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/management", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2SubUserTradableMarket(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/tradable-market", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/tradable-market", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2SubUserTransferability(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/transferability", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/transferability", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2SubUserApiKeyGeneration(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/api-key-generation", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/api-key-generation", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2SubUserApiKeyModification(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/api-key-modification", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/api-key-modification", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2SubUserApiKeyDeletion(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/sub-user/api-key-deletion", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/sub-user/api-key-deletion", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1SubuserTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/subuser/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/subuser/transfer", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1TrustUserActiveCredit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/trust/user/active/credit", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trust/user/active/credit", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1OrderOrdersPlace(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/place", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "v1/order/orders/place", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1OrderBatchOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/batch-orders", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "v1/order/batch-orders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1OrderAutoPlace(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/auto/place", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "v1/order/auto/place", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1OrderOrdersOrderIdSubmitcancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/{order-id}/submitcancel", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "v1/order/orders/{order-id}/submitcancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1OrderOrdersSubmitCancelClientOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/submitCancelClientOrder", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "v1/order/orders/submitCancelClientOrder", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/batchCancelOpenOrders", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "v1/order/orders/batchCancelOpenOrders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1OrderOrdersBatchcancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/order/orders/batchcancel", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.4))
+    return request(self, "v1/order/orders/batchcancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2AlgoOrdersCancelAllAfter(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders/cancel-all-after", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/algo-orders/cancel-all-after", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2AlgoOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/algo-orders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2AlgoOrdersCancellation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/algo-orders/cancellation", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/algo-orders/cancellation", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2AccountRepayment(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/account/repayment", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/account/repayment", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1DwTransferInMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/dw/transfer-in/margin", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/dw/transfer-in/margin", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1DwTransferOutMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/dw/transfer-out/margin", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/dw/transfer-out/margin", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1MarginOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/margin/orders", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/margin/orders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1MarginOrdersOrderIdRepay(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/margin/orders/{order-id}/repay", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/margin/orders/{order-id}/repay", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1CrossMarginTransferIn(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/transfer-in", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/cross-margin/transfer-in", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1CrossMarginTransferOut(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/transfer-out", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/cross-margin/transfer-out", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1CrossMarginOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/orders", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/cross-margin/orders", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1CrossMarginOrdersOrderIdRepay(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/cross-margin/orders/{order-id}/repay", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/cross-margin/orders/{order-id}/repay", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV1StableCoinExchange(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v1/stable-coin/exchange", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/stable-coin/exchange", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2EtpCreation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/creation", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/etp/creation", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2EtpRedemption(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/redemption", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v2/etp/redemption", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2EtpTransactIdCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/{transactId}/cancel", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/etp/{transactId}/cancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotPrivatePostV2EtpBatchCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/etp/batch-cancel", ["spot", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v2/etp/batch-cancel", ["spot", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1Timestamp(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/timestamp", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/timestamp", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetHeartbeat(self::Htx, params=Dict(), context=Dict())
-    return request(self, "heartbeat/", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "heartbeat/", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractContractInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_contract_info", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_contract_info", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractIndex(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_index", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_index", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractQueryElements(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_query_elements", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_query_elements", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractPriceLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractDeliveryPrice(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_delivery_price", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_delivery_price", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetMarketDepth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/depth", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/depth", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetMarketBbo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/bbo", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/bbo", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetMarketHistoryKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/history/kline", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/history/kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetIndexMarketHistoryMarkPriceKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/mark_price_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index/market/history/mark_price_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetMarketDetailMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/detail/merged", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/detail/merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetMarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV2MarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetMarketTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetMarketHistoryTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "market/history/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/history/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractRiskInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_risk_info", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_risk_info", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractInsuranceFund(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_insurance_fund", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_insurance_fund", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractAdjustfactor(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractHisOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_his_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_his_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractLadderMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractApiState(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_api_state", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_api_state", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractEliteAccountRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractElitePositionRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractSettlementRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_settlement_records", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_settlement_records", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetIndexMarketHistoryIndex(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/index", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index/market/history/index", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetIndexMarketHistoryBasis(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/basis", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index/market/history/basis", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV1ContractEstimatedSettlementPrice(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetApiV3ContractLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v3/contract_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapContractInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_contract_info", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_contract_info", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapIndex(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_index", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_index", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapQueryElements(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_query_elements", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_query_elements", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapPriceLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapExMarketDepth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/depth", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-ex/market/depth", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapExMarketBbo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/bbo", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-ex/market/bbo", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapExMarketHistoryKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/history/kline", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-ex/market/history/kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetIndexMarketHistorySwapMarkPriceKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/swap_mark_price_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index/market/history/swap_mark_price_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapExMarketDetailMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/detail/merged", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-ex/market/detail/merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV2SwapExMarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetIndexMarketHistorySwapPremiumIndexKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/swap_premium_index_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index/market/history/swap_premium_index_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapExMarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapExMarketTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-ex/market/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapExMarketHistoryTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-ex/market/history/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-ex/market/history/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapRiskInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_risk_info", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_risk_info", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapInsuranceFund(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_insurance_fund", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_insurance_fund", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapAdjustfactor(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapHisOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_his_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_his_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapLadderMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapApiState(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_api_state", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_api_state", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapEliteAccountRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapElitePositionRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapEstimatedSettlementPrice(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapSettlementRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_settlement_records", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_settlement_records", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapFundingRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapBatchFundingRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_batch_funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_batch_funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1SwapHistoricalFundingRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_historical_funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_historical_funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV3SwapLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v3/swap_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetIndexMarketHistorySwapEstimatedRateKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/swap_estimated_rate_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index/market/history/swap_estimated_rate_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetIndexMarketHistorySwapBasis(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/swap_basis", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index/market/history/swap_basis", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapContractInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_contract_info", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_contract_info", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapIndex(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_index", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_index", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapQueryElements(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_query_elements", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_query_elements", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapPriceLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapExMarketDepth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/depth", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-ex/market/depth", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapExMarketBbo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/bbo", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-ex/market/bbo", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapExMarketHistoryKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/history/kline", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-ex/market/history/kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/linear_swap_mark_price_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index/market/history/linear_swap_mark_price_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapExMarketDetailMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/detail/merged", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-ex/market/detail/merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapExMarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV2LinearSwapExMarketDetailBatchMerged(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v2/linear-swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/linear-swap-ex/market/detail/batch_merged", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapExMarketTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-ex/market/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapExMarketHistoryTrade(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-ex/market/history/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-ex/market/history/trade", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/linear-swap-api/v1/swap_insurance_fund", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/linear-swap-api/v1/swap_insurance_fund", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapAdjustfactor(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapCrossAdjustfactor(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_cross_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_cross_adjustfactor", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapHisOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_his_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_his_open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapLadderMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapCrossLadderMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_cross_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_cross_ladder_margin", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapApiState(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_api_state", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_api_state", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapEliteAccountRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapElitePositionRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapSettlementRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_settlement_records", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_settlement_records", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV3SwapLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v3/swap_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v3/swap_liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/linear_swap_premium_index_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index/market/history/linear_swap_premium_index_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/linear_swap_estimated_rate_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index/market/history/linear_swap_estimated_rate_kline", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetIndexMarketHistoryLinearSwapBasis(self::Htx, params=Dict(), context=Dict())
-    return request(self, "index/market/history/linear_swap_basis", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "index/market/history/linear_swap_basis", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice(self::Htx, params=Dict(), context=Dict())
-    return request(self, "linear-swap-api/v1/swap_estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "linear-swap-api/v1/swap_estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV5MarketFundingRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/funding_rate", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV5MarketFundingRateHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/funding_rate_history", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/funding_rate_history", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV5MarketOpenInterest(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/open_interest", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV5MarketLiquidationOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/liquidation_orders", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV5MarketSettlementHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/settlement_history", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/settlement_history", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV5MarketEliteAccountRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/elite_account_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV5MarketElitePositionRatio(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/elite_position_ratio", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV5MarketEstimatedSettlementPrice(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/estimated_settlement_price", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPublicGetV5MarketPriceLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/price_limit", ["contract", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetApiV1ContractSubAuthList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_auth_list", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_sub_auth_list", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetApiV1ContractApiTradingStatus(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_api_trading_status", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_api_trading_status", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetSwapApiV1SwapSubAuthList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_auth_list", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_sub_auth_list", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetSwapApiV1SwapApiTradingStatus(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_api_trading_status", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_api_trading_status", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5AccountAssetMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/asset_mode", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/account/asset_mode", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5AccountBalance(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/balance", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/account/balance", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5AccountBills(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/bills", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/account/bills", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5AccountFeeDeductionCurrency(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/fee_deduction_currency", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/account/fee_deduction_currency", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5TradePositionOpens(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/position/opens", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/position/opens", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5TradeOrderOpens(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/order/opens", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/order/opens", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5TradeOrderDetails(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/order/details", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/order/details", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5TradeOrderHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/order/history", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/order/history", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5TradeOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/order", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/order", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5PositionLever(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/lever", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/position/lever", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5PositionMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/mode", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/position/mode", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5PositionRiskLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/risk/limit", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/position/risk/limit", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5PositionRiskLimitTier(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/risk/limit_tier", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/position/risk/limit_tier", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5MarketRiskLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/risk/limit", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/risk/limit", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5MarketAssetsDeductionCurrency(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/assets_deduction_currency", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/assets_deduction_currency", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5MarketMultiAssetsMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/market/multi_assets_margin", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.125))
+    return request(self, "v5/market/multi_assets_margin", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5AlgoOrderOpens(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/algo/order/opens", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/algo/order/opens", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5AlgoOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/algo/order", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/algo/order", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivateGetV5AlgoOrderHistory(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/algo/order/history", ["contract", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/algo/order/history", ["contract", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractBalanceValuation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_balance_valuation", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_balance_valuation", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractAccountInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractSubAuth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_auth", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_sub_auth", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractSubAccountList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_account_list", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_sub_account_list", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractSubAccountInfoList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_account_info_list", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_sub_account_info_list", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractSubAccountInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_sub_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractSubPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_sub_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_sub_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractFinancialRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractFinancialRecordExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractUserSettlementRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_user_settlement_records", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_user_settlement_records", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractOrderLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_order_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_order_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractFee(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_fee", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_fee", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTransferLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_transfer_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_transfer_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractPositionLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_position_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_position_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractAccountPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_account_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_account_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractMasterSubTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_master_sub_transfer", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_master_sub_transfer", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractMasterSubTransferRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_master_sub_transfer_record", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_master_sub_transfer_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractAvailableLevelRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_available_level_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_available_level_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV3ContractFinancialRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v3/contract_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV3ContractFinancialRecordExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v3/contract_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractCancelAfter(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract-cancel-after", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract-cancel-after", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractBatchorder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_batchorder", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_batchorder", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractSwitchLeverRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_switch_lever_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "api/v1/contract_switch_lever_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1LightningClosePosition(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/lightning_close_position", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/lightning_close_position", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractOrderInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_order_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_order_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractOrderDetail(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_order_detail", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_order_detail", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractHisordersExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractMatchresultsExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV3ContractHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v3/contract_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV3ContractHisordersExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v3/contract_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV3ContractMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v3/contract_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV3ContractMatchresultsExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v3/contract_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v3/contract_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTriggerOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_trigger_order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_trigger_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTriggerCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_trigger_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_trigger_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTriggerCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_trigger_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_trigger_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTriggerOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_trigger_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_trigger_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTriggerHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_trigger_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_trigger_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTpslOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTpslCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_tpsl_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_tpsl_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTpslCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_tpsl_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_tpsl_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTpslOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_tpsl_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_tpsl_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTpslHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_tpsl_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_tpsl_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractRelationTpslOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_relation_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_relation_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTrackOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_track_order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_track_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTrackCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_track_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_track_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTrackCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_track_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_track_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTrackOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_track_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_track_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostApiV1ContractTrackHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "api/v1/contract_track_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/contract_track_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapBalanceValuation(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_balance_valuation", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_balance_valuation", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapAccountInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapAccountPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_account_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_account_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSubAuth(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_auth", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_sub_auth", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSubAccountList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_account_list", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_sub_account_list", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSubAccountInfoList(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_account_info_list", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_sub_account_info_list", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSubAccountInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_sub_account_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSubPositionInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_sub_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_sub_position_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapFinancialRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapFinancialRecordExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapUserSettlementRecords(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_user_settlement_records", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_user_settlement_records", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapAvailableLevelRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_available_level_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_available_level_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapOrderLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_order_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_order_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapFee(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_fee", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_fee", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTransferLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_transfer_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_transfer_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapPositionLimit(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_position_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_position_limit", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapMasterSubTransfer(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_master_sub_transfer", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_master_sub_transfer", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapMasterSubTransferRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_master_sub_transfer_record", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_master_sub_transfer_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapFinancialRecord(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v3/swap_financial_record", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapFinancialRecordExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v3/swap_financial_record_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapCancelAfter(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap-cancel-after", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap-cancel-after", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapBatchorder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_batchorder", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_batchorder", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapLightningClosePosition(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_lightning_close_position", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_lightning_close_position", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapSwitchLeverRate(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_switch_lever_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "swap-api/v1/swap_switch_lever_rate", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapOrderInfo(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_order_info", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_order_info", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapOrderDetail(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_order_detail", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_order_detail", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapHisordersExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapMatchresultsExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapMatchresults(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v3/swap_matchresults", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapMatchresultsExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v3/swap_matchresults_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v3/swap_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV3SwapHisordersExact(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v3/swap_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v3/swap_hisorders_exact", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTriggerOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_trigger_order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_trigger_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTriggerCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_trigger_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_trigger_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTriggerCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_trigger_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_trigger_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTriggerOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_trigger_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_trigger_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTriggerHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_trigger_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_trigger_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTpslOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTpslCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_tpsl_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_tpsl_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTpslCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_tpsl_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_tpsl_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTpslOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_tpsl_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_tpsl_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTpslHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_tpsl_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_tpsl_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapRelationTpslOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_relation_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_relation_tpsl_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTrackOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_track_order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_track_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTrackCancel(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_track_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_track_cancel", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTrackCancelall(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_track_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_track_cancelall", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTrackOpenorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_track_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_track_openorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostSwapApiV1SwapTrackHisorders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "swap-api/v1/swap_track_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "swap-api/v1/swap_track_hisorders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5AccountAssetMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/asset_mode", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "v5/account/asset_mode", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5TradeOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5TradeBatchOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/batch_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/batch_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5TradeCancelOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/cancel_order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/cancel_order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5TradeCancelBatchOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/cancel_batch_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/cancel_batch_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5TradeCancelAllOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/cancel_all_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/cancel_all_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5TradeCancelAfter(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/cancel-after", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/cancel-after", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5TradePosition(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/position", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/position", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5TradePositionAll(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/trade/position_all", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/trade/position_all", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5PositionLever(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/lever", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/position/lever", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5PositionMode(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/mode", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/position/mode", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5PositionMargin(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/position/margin", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/position/margin", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5AccountFeeDeductionCurrency(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/account/fee_deduction_currency", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.20834))
+    return request(self, "v5/account/fee_deduction_currency", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5AlgoOrder(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/algo/order", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/algo/order", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function contractPrivatePostV5AlgoCancelOrders(self::Htx, params=Dict(), context=Dict())
-    return request(self, "v5/algo/cancel_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.41679))
+    return request(self, "v5/algo/cancel_orders", ["contract", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function Htx(; kwargs...)
     inst = Htx(Exchange(), describe, fetchStatus, fetchTime, parseTradingFee, fetchTradingFee, fetchTradingLimits, fetchTradingLimitsById, parseTradingLimits, costToPrecision, fetchMarkets, fetchMarketsByTypeAndSubType, tryGetSymbolFromFutureMarkets, parseTicker, fetchTicker, fetchTickers, fetchLastPrices, parseLastPrice, fetchOrderBook, parseTrade, fetchOrderTrades, fetchSpotOrderTrades, fetchMyTrades, fetchTrades, parseOHLCV, fetchOHLCV, fetchAccounts, parseAccount, fetchAccountIdByType, fetchCurrencies, parseCurrency, networkIdToCode, networkCodeToId, fetchBalance, fetchOrder, parseMarginBalanceHelper, fetchSpotOrdersByStates, fetchSpotOrders, fetchClosedSpotOrders, fetchContractOrders, fetchClosedContractOrders, fetchOrders, fetchCanceledOrders, fetchClosedOrders, fetchOpenOrders, parseOrderStatus, parseOrder, createMarketBuyOrderWithCost, createTrailingPercentOrder, createSpotOrderRequest, createContractOrderRequest, createOrder, createOrders, cancelOrder, cancelOrders, parseCancelOrders, cancelAllOrders, cancelAllOrdersAfter, parseDepositAddress, fetchDepositAddressesByNetwork, fetchDepositAddress, fetchWithdrawAddresses, fetchDeposits, fetchWithdrawals, parseTransaction, parseTransactionStatus, withdraw, parseTransfer, transfer, fetchTransfers, fetchIsolatedBorrowRates, parseIsolatedBorrowRate, fetchFundingRateHistory, parseFundingRate, parseFundingInterval, fetchFundingRate, fetchFundingRates, fetchBorrowInterest, parseBorrowInterest, nonce, sign, handleErrors, fetchFundingHistory, setLeverage, parseIncome, parsePosition, fetchPositions, fetchPosition, parseLedgerEntryType, parseLedgerEntry, fetchLedger, fetchLeverageTiers, parseMarketLeverageTiers, fetchOpenInterestHistory, fetchOpenInterests, fetchOpenInterest, parseOpenInterest, borrowIsolatedMargin, borrowCrossMargin, repayIsolatedMargin, repayCrossMargin, parseMarginLoan, fetchSettlementHistory, fetchDepositWithdrawFees, parseDepositWithdrawFee, parseSettlements, parseSettlement, fetchLiquidations, parseLiquidation, closePosition, setPositionMode, fetchPositionsADLRank, parseADLRank, v2PublicGetReferenceCurrencies, v2PublicGetMarketStatus, v2PrivateGetAccountLedger, v2PrivateGetAccountWithdrawQuota, v2PrivateGetAccountWithdrawAddress, v2PrivateGetAccountDepositAddress, v2PrivateGetAccountRepayment, v2PrivateGetReferenceTransactFeeRate, v2PrivateGetAccountAssetValuation, v2PrivateGetPointAccount, v2PrivateGetSubUserUserList, v2PrivateGetSubUserUserState, v2PrivateGetSubUserAccountList, v2PrivateGetSubUserDepositAddress, v2PrivateGetSubUserQueryDeposit, v2PrivateGetUserApiKey, v2PrivateGetUserUid, v2PrivateGetAlgoOrdersOpening, v2PrivateGetAlgoOrdersHistory, v2PrivateGetAlgoOrdersSpecific, v2PrivateGetC2cOffers, v2PrivateGetC2cOffer, v2PrivateGetC2cTransactions, v2PrivateGetC2cRepayment, v2PrivateGetC2cAccount, v2PrivateGetEtpReference, v2PrivateGetEtpTransactions, v2PrivateGetEtpTransaction, v2PrivateGetEtpRebalance, v2PrivateGetEtpLimit, v2PrivatePostAccountTransfer, v2PrivatePostAccountRepayment, v2PrivatePostPointTransfer, v2PrivatePostSubUserManagement, v2PrivatePostSubUserCreation, v2PrivatePostSubUserTradableMarket, v2PrivatePostSubUserTransferability, v2PrivatePostSubUserApiKeyGeneration, v2PrivatePostSubUserApiKeyModification, v2PrivatePostSubUserApiKeyDeletion, v2PrivatePostSubUserDeductMode, v2PrivatePostAlgoOrders, v2PrivatePostAlgoOrdersCancelAllAfter, v2PrivatePostAlgoOrdersCancellation, v2PrivatePostC2cOffer, v2PrivatePostC2cCancellation, v2PrivatePostC2cCancelAll, v2PrivatePostC2cRepayment, v2PrivatePostC2cTransfer, v2PrivatePostEtpCreation, v2PrivatePostEtpRedemption, v2PrivatePostEtpTransactIdCancel, v2PrivatePostEtpBatchCancel, publicGetCommonSymbols, publicGetCommonCurrencys, publicGetCommonTimestamp, publicGetCommonExchange, publicGetSettingsCurrencys, privateGetAccountAccounts, privateGetAccountAccountsIdBalance, privateGetAccountAccountsSubUid, privateGetAccountHistory, privateGetCrossMarginLoanInfo, privateGetMarginLoanInfo, privateGetFeeFeeRateGet, privateGetOrderOpenOrders, privateGetOrderOrders, privateGetOrderOrdersId, privateGetOrderOrdersIdMatchresults, privateGetOrderOrdersGetClientOrder, privateGetOrderHistory, privateGetOrderMatchresults, privateGetQueryDepositWithdraw, privateGetMarginLoanOrders, privateGetMarginAccountsBalance, privateGetCrossMarginLoanOrders, privateGetCrossMarginAccountsBalance, privateGetPointsActions, privateGetPointsOrders, privateGetSubuserAggregateBalance, privateGetStableCoinExchangeRate, privateGetStableCoinQuote, privatePostAccountTransfer, privatePostFuturesTransfer, privatePostOrderBatchOrders, privatePostOrderOrdersPlace, privatePostOrderOrdersSubmitCancelClientOrder, privatePostOrderOrdersBatchCancelOpenOrders, privatePostOrderOrdersIdSubmitcancel, privatePostOrderOrdersBatchcancel, privatePostDwWithdrawApiCreate, privatePostDwWithdrawVirtualIdCancel, privatePostDwTransferInMargin, privatePostDwTransferOutMargin, privatePostMarginOrders, privatePostMarginOrdersIdRepay, privatePostCrossMarginTransferIn, privatePostCrossMarginTransferOut, privatePostCrossMarginOrders, privatePostCrossMarginOrdersIdRepay, privatePostStableCoinExchange, privatePostSubuserTransfer, statusPublicSpotGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicSwapLinearGetApiV2SummaryJson, spotPublicGetV2MarketStatus, spotPublicGetV1CommonSymbols, spotPublicGetV1CommonCurrencys, spotPublicGetV2SettingsCommonCurrencies, spotPublicGetV2ReferenceCurrencies, spotPublicGetV1CommonTimestamp, spotPublicGetV1CommonExchange, spotPublicGetV1SettingsCommonChains, spotPublicGetV1SettingsCommonCurrencys, spotPublicGetV1SettingsCommonSymbols, spotPublicGetV2SettingsCommonSymbols, spotPublicGetV1SettingsCommonMarketSymbols, spotPublicGetMarketHistoryCandles, spotPublicGetMarketHistoryKline, spotPublicGetMarketDetailMerged, spotPublicGetMarketTickers, spotPublicGetMarketDetail, spotPublicGetMarketDepth, spotPublicGetMarketTrade, spotPublicGetMarketHistoryTrade, spotPublicGetMarketEtp, spotPublicGetV2EtpReference, spotPublicGetV2EtpRebalance, spotPrivateGetV1AccountAccounts, spotPrivateGetV1AccountAccountsAccountIdBalance, spotPrivateGetV2AccountValuation, spotPrivateGetV2AccountAssetValuation, spotPrivateGetV1AccountHistory, spotPrivateGetV2AccountLedger, spotPrivateGetV2PointAccount, spotPrivateGetV2AccountDepositAddress, spotPrivateGetV2AccountWithdrawQuota, spotPrivateGetV2AccountWithdrawAddress, spotPrivateGetV2ReferenceCurrencies, spotPrivateGetV1QueryDepositWithdraw, spotPrivateGetV1QueryWithdrawClientOrderId, spotPrivateGetV2UserApiKey, spotPrivateGetV2UserUid, spotPrivateGetV2SubUserUserList, spotPrivateGetV2SubUserUserState, spotPrivateGetV2SubUserAccountList, spotPrivateGetV2SubUserDepositAddress, spotPrivateGetV2SubUserQueryDeposit, spotPrivateGetV1SubuserAggregateBalance, spotPrivateGetV1AccountAccountsSubUid, spotPrivateGetV1OrderOpenOrders, spotPrivateGetV1OrderOrdersOrderId, spotPrivateGetV1OrderOrdersGetClientOrder, spotPrivateGetV1OrderOrdersOrderIdMatchresult, spotPrivateGetV1OrderOrdersOrderIdMatchresults, spotPrivateGetV1OrderOrders, spotPrivateGetV1OrderHistory, spotPrivateGetV1OrderMatchresults, spotPrivateGetV2ReferenceTransactFeeRate, spotPrivateGetV2AlgoOrdersOpening, spotPrivateGetV2AlgoOrdersHistory, spotPrivateGetV2AlgoOrdersSpecific, spotPrivateGetV1MarginLoanInfo, spotPrivateGetV1MarginLoanOrders, spotPrivateGetV1MarginAccountsBalance, spotPrivateGetV1CrossMarginLoanInfo, spotPrivateGetV1CrossMarginLoanOrders, spotPrivateGetV1CrossMarginAccountsBalance, spotPrivateGetV2AccountRepayment, spotPrivateGetV5AccountUniversalTransferRecords, spotPrivateGetV1StableCoinQuote, spotPrivateGetV1StableCoinExchangeRate, spotPrivateGetV2EtpTransactions, spotPrivateGetV2EtpTransaction, spotPrivateGetV2EtpLimit, spotPrivatePostV1AccountTransfer, spotPrivatePostV1FuturesTransfer, spotPrivatePostV2PointTransfer, spotPrivatePostV2AccountTransfer, spotPrivatePostV1DwWithdrawApiCreate, spotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel, spotPrivatePostV2SubUserDeductMode, spotPrivatePostV2SubUserCreation, spotPrivatePostV2SubUserManagement, spotPrivatePostV2SubUserTradableMarket, spotPrivatePostV2SubUserTransferability, spotPrivatePostV2SubUserApiKeyGeneration, spotPrivatePostV2SubUserApiKeyModification, spotPrivatePostV2SubUserApiKeyDeletion, spotPrivatePostV1SubuserTransfer, spotPrivatePostV1TrustUserActiveCredit, spotPrivatePostV1OrderOrdersPlace, spotPrivatePostV1OrderBatchOrders, spotPrivatePostV1OrderAutoPlace, spotPrivatePostV1OrderOrdersOrderIdSubmitcancel, spotPrivatePostV1OrderOrdersSubmitCancelClientOrder, spotPrivatePostV1OrderOrdersBatchCancelOpenOrders, spotPrivatePostV1OrderOrdersBatchcancel, spotPrivatePostV2AlgoOrdersCancelAllAfter, spotPrivatePostV2AlgoOrders, spotPrivatePostV2AlgoOrdersCancellation, spotPrivatePostV2AccountRepayment, spotPrivatePostV1DwTransferInMargin, spotPrivatePostV1DwTransferOutMargin, spotPrivatePostV1MarginOrders, spotPrivatePostV1MarginOrdersOrderIdRepay, spotPrivatePostV1CrossMarginTransferIn, spotPrivatePostV1CrossMarginTransferOut, spotPrivatePostV1CrossMarginOrders, spotPrivatePostV1CrossMarginOrdersOrderIdRepay, spotPrivatePostV1StableCoinExchange, spotPrivatePostV2EtpCreation, spotPrivatePostV2EtpRedemption, spotPrivatePostV2EtpTransactIdCancel, spotPrivatePostV2EtpBatchCancel, contractPublicGetApiV1Timestamp, contractPublicGetHeartbeat, contractPublicGetApiV1ContractContractInfo, contractPublicGetApiV1ContractIndex, contractPublicGetApiV1ContractQueryElements, contractPublicGetApiV1ContractPriceLimit, contractPublicGetApiV1ContractOpenInterest, contractPublicGetApiV1ContractDeliveryPrice, contractPublicGetMarketDepth, contractPublicGetMarketBbo, contractPublicGetMarketHistoryKline, contractPublicGetIndexMarketHistoryMarkPriceKline, contractPublicGetMarketDetailMerged, contractPublicGetMarketDetailBatchMerged, contractPublicGetV2MarketDetailBatchMerged, contractPublicGetMarketTrade, contractPublicGetMarketHistoryTrade, contractPublicGetApiV1ContractRiskInfo, contractPublicGetApiV1ContractInsuranceFund, contractPublicGetApiV1ContractAdjustfactor, contractPublicGetApiV1ContractHisOpenInterest, contractPublicGetApiV1ContractLadderMargin, contractPublicGetApiV1ContractApiState, contractPublicGetApiV1ContractEliteAccountRatio, contractPublicGetApiV1ContractElitePositionRatio, contractPublicGetApiV1ContractLiquidationOrders, contractPublicGetApiV1ContractSettlementRecords, contractPublicGetIndexMarketHistoryIndex, contractPublicGetIndexMarketHistoryBasis, contractPublicGetApiV1ContractEstimatedSettlementPrice, contractPublicGetApiV3ContractLiquidationOrders, contractPublicGetSwapApiV1SwapContractInfo, contractPublicGetSwapApiV1SwapIndex, contractPublicGetSwapApiV1SwapQueryElements, contractPublicGetSwapApiV1SwapPriceLimit, contractPublicGetSwapApiV1SwapOpenInterest, contractPublicGetSwapExMarketDepth, contractPublicGetSwapExMarketBbo, contractPublicGetSwapExMarketHistoryKline, contractPublicGetIndexMarketHistorySwapMarkPriceKline, contractPublicGetSwapExMarketDetailMerged, contractPublicGetV2SwapExMarketDetailBatchMerged, contractPublicGetIndexMarketHistorySwapPremiumIndexKline, contractPublicGetSwapExMarketDetailBatchMerged, contractPublicGetSwapExMarketTrade, contractPublicGetSwapExMarketHistoryTrade, contractPublicGetSwapApiV1SwapRiskInfo, contractPublicGetSwapApiV1SwapInsuranceFund, contractPublicGetSwapApiV1SwapAdjustfactor, contractPublicGetSwapApiV1SwapHisOpenInterest, contractPublicGetSwapApiV1SwapLadderMargin, contractPublicGetSwapApiV1SwapApiState, contractPublicGetSwapApiV1SwapEliteAccountRatio, contractPublicGetSwapApiV1SwapElitePositionRatio, contractPublicGetSwapApiV1SwapEstimatedSettlementPrice, contractPublicGetSwapApiV1SwapLiquidationOrders, contractPublicGetSwapApiV1SwapSettlementRecords, contractPublicGetSwapApiV1SwapFundingRate, contractPublicGetSwapApiV1SwapBatchFundingRate, contractPublicGetSwapApiV1SwapHistoricalFundingRate, contractPublicGetSwapApiV3SwapLiquidationOrders, contractPublicGetIndexMarketHistorySwapEstimatedRateKline, contractPublicGetIndexMarketHistorySwapBasis, contractPublicGetLinearSwapApiV1SwapContractInfo, contractPublicGetLinearSwapApiV1SwapIndex, contractPublicGetLinearSwapApiV1SwapQueryElements, contractPublicGetLinearSwapApiV1SwapPriceLimit, contractPublicGetLinearSwapExMarketDepth, contractPublicGetLinearSwapExMarketBbo, contractPublicGetLinearSwapExMarketHistoryKline, contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline, contractPublicGetLinearSwapExMarketDetailMerged, contractPublicGetLinearSwapExMarketDetailBatchMerged, contractPublicGetV2LinearSwapExMarketDetailBatchMerged, contractPublicGetLinearSwapExMarketTrade, contractPublicGetLinearSwapExMarketHistoryTrade, contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund, contractPublicGetLinearSwapApiV1SwapAdjustfactor, contractPublicGetLinearSwapApiV1SwapCrossAdjustfactor, contractPublicGetLinearSwapApiV1SwapHisOpenInterest, contractPublicGetLinearSwapApiV1SwapLadderMargin, contractPublicGetLinearSwapApiV1SwapCrossLadderMargin, contractPublicGetLinearSwapApiV1SwapApiState, contractPublicGetLinearSwapApiV1SwapEliteAccountRatio, contractPublicGetLinearSwapApiV1SwapElitePositionRatio, contractPublicGetLinearSwapApiV1SwapSettlementRecords, contractPublicGetLinearSwapApiV3SwapLiquidationOrders, contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline, contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline, contractPublicGetIndexMarketHistoryLinearSwapBasis, contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice, contractPublicGetV5MarketFundingRate, contractPublicGetV5MarketFundingRateHistory, contractPublicGetV5MarketOpenInterest, contractPublicGetV5MarketLiquidationOrders, contractPublicGetV5MarketSettlementHistory, contractPublicGetV5MarketEliteAccountRatio, contractPublicGetV5MarketElitePositionRatio, contractPublicGetV5MarketEstimatedSettlementPrice, contractPublicGetV5MarketPriceLimit, contractPrivateGetApiV1ContractSubAuthList, contractPrivateGetApiV1ContractApiTradingStatus, contractPrivateGetSwapApiV1SwapSubAuthList, contractPrivateGetSwapApiV1SwapApiTradingStatus, contractPrivateGetV5AccountAssetMode, contractPrivateGetV5AccountBalance, contractPrivateGetV5AccountBills, contractPrivateGetV5AccountFeeDeductionCurrency, contractPrivateGetV5TradePositionOpens, contractPrivateGetV5TradeOrderOpens, contractPrivateGetV5TradeOrderDetails, contractPrivateGetV5TradeOrderHistory, contractPrivateGetV5TradeOrder, contractPrivateGetV5PositionLever, contractPrivateGetV5PositionMode, contractPrivateGetV5PositionRiskLimit, contractPrivateGetV5PositionRiskLimitTier, contractPrivateGetV5MarketRiskLimit, contractPrivateGetV5MarketAssetsDeductionCurrency, contractPrivateGetV5MarketMultiAssetsMargin, contractPrivateGetV5AlgoOrderOpens, contractPrivateGetV5AlgoOrder, contractPrivateGetV5AlgoOrderHistory, contractPrivatePostApiV1ContractBalanceValuation, contractPrivatePostApiV1ContractAccountInfo, contractPrivatePostApiV1ContractPositionInfo, contractPrivatePostApiV1ContractSubAuth, contractPrivatePostApiV1ContractSubAccountList, contractPrivatePostApiV1ContractSubAccountInfoList, contractPrivatePostApiV1ContractSubAccountInfo, contractPrivatePostApiV1ContractSubPositionInfo, contractPrivatePostApiV1ContractFinancialRecord, contractPrivatePostApiV1ContractFinancialRecordExact, contractPrivatePostApiV1ContractUserSettlementRecords, contractPrivatePostApiV1ContractOrderLimit, contractPrivatePostApiV1ContractFee, contractPrivatePostApiV1ContractTransferLimit, contractPrivatePostApiV1ContractPositionLimit, contractPrivatePostApiV1ContractAccountPositionInfo, contractPrivatePostApiV1ContractMasterSubTransfer, contractPrivatePostApiV1ContractMasterSubTransferRecord, contractPrivatePostApiV1ContractAvailableLevelRate, contractPrivatePostApiV3ContractFinancialRecord, contractPrivatePostApiV3ContractFinancialRecordExact, contractPrivatePostApiV1ContractCancelAfter, contractPrivatePostApiV1ContractOrder, contractPrivatePostApiV1ContractBatchorder, contractPrivatePostApiV1ContractCancel, contractPrivatePostApiV1ContractCancelall, contractPrivatePostApiV1ContractSwitchLeverRate, contractPrivatePostApiV1LightningClosePosition, contractPrivatePostApiV1ContractOrderInfo, contractPrivatePostApiV1ContractOrderDetail, contractPrivatePostApiV1ContractOpenorders, contractPrivatePostApiV1ContractHisorders, contractPrivatePostApiV1ContractHisordersExact, contractPrivatePostApiV1ContractMatchresults, contractPrivatePostApiV1ContractMatchresultsExact, contractPrivatePostApiV3ContractHisorders, contractPrivatePostApiV3ContractHisordersExact, contractPrivatePostApiV3ContractMatchresults, contractPrivatePostApiV3ContractMatchresultsExact, contractPrivatePostApiV1ContractTriggerOrder, contractPrivatePostApiV1ContractTriggerCancel, contractPrivatePostApiV1ContractTriggerCancelall, contractPrivatePostApiV1ContractTriggerOpenorders, contractPrivatePostApiV1ContractTriggerHisorders, contractPrivatePostApiV1ContractTpslOrder, contractPrivatePostApiV1ContractTpslCancel, contractPrivatePostApiV1ContractTpslCancelall, contractPrivatePostApiV1ContractTpslOpenorders, contractPrivatePostApiV1ContractTpslHisorders, contractPrivatePostApiV1ContractRelationTpslOrder, contractPrivatePostApiV1ContractTrackOrder, contractPrivatePostApiV1ContractTrackCancel, contractPrivatePostApiV1ContractTrackCancelall, contractPrivatePostApiV1ContractTrackOpenorders, contractPrivatePostApiV1ContractTrackHisorders, contractPrivatePostSwapApiV1SwapBalanceValuation, contractPrivatePostSwapApiV1SwapAccountInfo, contractPrivatePostSwapApiV1SwapPositionInfo, contractPrivatePostSwapApiV1SwapAccountPositionInfo, contractPrivatePostSwapApiV1SwapSubAuth, contractPrivatePostSwapApiV1SwapSubAccountList, contractPrivatePostSwapApiV1SwapSubAccountInfoList, contractPrivatePostSwapApiV1SwapSubAccountInfo, contractPrivatePostSwapApiV1SwapSubPositionInfo, contractPrivatePostSwapApiV1SwapFinancialRecord, contractPrivatePostSwapApiV1SwapFinancialRecordExact, contractPrivatePostSwapApiV1SwapUserSettlementRecords, contractPrivatePostSwapApiV1SwapAvailableLevelRate, contractPrivatePostSwapApiV1SwapOrderLimit, contractPrivatePostSwapApiV1SwapFee, contractPrivatePostSwapApiV1SwapTransferLimit, contractPrivatePostSwapApiV1SwapPositionLimit, contractPrivatePostSwapApiV1SwapMasterSubTransfer, contractPrivatePostSwapApiV1SwapMasterSubTransferRecord, contractPrivatePostSwapApiV3SwapFinancialRecord, contractPrivatePostSwapApiV3SwapFinancialRecordExact, contractPrivatePostSwapApiV1SwapCancelAfter, contractPrivatePostSwapApiV1SwapOrder, contractPrivatePostSwapApiV1SwapBatchorder, contractPrivatePostSwapApiV1SwapCancel, contractPrivatePostSwapApiV1SwapCancelall, contractPrivatePostSwapApiV1SwapLightningClosePosition, contractPrivatePostSwapApiV1SwapSwitchLeverRate, contractPrivatePostSwapApiV1SwapOrderInfo, contractPrivatePostSwapApiV1SwapOrderDetail, contractPrivatePostSwapApiV1SwapOpenorders, contractPrivatePostSwapApiV1SwapHisorders, contractPrivatePostSwapApiV1SwapHisordersExact, contractPrivatePostSwapApiV1SwapMatchresults, contractPrivatePostSwapApiV1SwapMatchresultsExact, contractPrivatePostSwapApiV3SwapMatchresults, contractPrivatePostSwapApiV3SwapMatchresultsExact, contractPrivatePostSwapApiV3SwapHisorders, contractPrivatePostSwapApiV3SwapHisordersExact, contractPrivatePostSwapApiV1SwapTriggerOrder, contractPrivatePostSwapApiV1SwapTriggerCancel, contractPrivatePostSwapApiV1SwapTriggerCancelall, contractPrivatePostSwapApiV1SwapTriggerOpenorders, contractPrivatePostSwapApiV1SwapTriggerHisorders, contractPrivatePostSwapApiV1SwapTpslOrder, contractPrivatePostSwapApiV1SwapTpslCancel, contractPrivatePostSwapApiV1SwapTpslCancelall, contractPrivatePostSwapApiV1SwapTpslOpenorders, contractPrivatePostSwapApiV1SwapTpslHisorders, contractPrivatePostSwapApiV1SwapRelationTpslOrder, contractPrivatePostSwapApiV1SwapTrackOrder, contractPrivatePostSwapApiV1SwapTrackCancel, contractPrivatePostSwapApiV1SwapTrackCancelall, contractPrivatePostSwapApiV1SwapTrackOpenorders, contractPrivatePostSwapApiV1SwapTrackHisorders, contractPrivatePostV5AccountAssetMode, contractPrivatePostV5TradeOrder, contractPrivatePostV5TradeBatchOrders, contractPrivatePostV5TradeCancelOrder, contractPrivatePostV5TradeCancelBatchOrders, contractPrivatePostV5TradeCancelAllOrders, contractPrivatePostV5TradeCancelAfter, contractPrivatePostV5TradePosition, contractPrivatePostV5TradePositionAll, contractPrivatePostV5PositionLever, contractPrivatePostV5PositionMode, contractPrivatePostV5PositionMargin, contractPrivatePostV5AccountFeeDeductionCurrency, contractPrivatePostV5AlgoOrder, contractPrivatePostV5AlgoCancelOrders)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

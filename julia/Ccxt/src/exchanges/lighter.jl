@@ -271,64 +271,156 @@ function describe(self::Lighter, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("root") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("") => 1,
-                Symbol("info") => 1
+                Symbol("") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("account") => 1,
-                Symbol("accountsByL1Address") => 1,
-                Symbol("apikeys") => 1,
-                Symbol("exchangeStats") => 1,
-                Symbol("assetDetails") => 1,
-                Symbol("orderBookDetails") => 1,
-                Symbol("orderBookOrders") => 1,
-                Symbol("orderBooks") => 1,
-                Symbol("recentTrades") => 1,
-                Symbol("blockTxs") => 1,
-                Symbol("nextNonce") => 1,
-                Symbol("tx") => 1,
-                Symbol("txFromL1TxHash") => 1,
-                Symbol("txs") => 1,
-                Symbol("announcement") => 1,
-                Symbol("block") => 1,
-                Symbol("blocks") => 1,
-                Symbol("currentHeight") => 1,
-                Symbol("candles") => 1,
-                Symbol("fundings") => 1,
-                Symbol("fastbridge/info") => 1,
-                Symbol("funding-rates") => 1,
-                Symbol("withdrawalDelay") => 1
+                Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accountsByL1Address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("apikeys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchangeStats") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("assetDetails") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderBookDetails") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderBookOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderBooks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("recentTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("blockTxs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("nextNonce") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tx") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("txFromL1TxHash") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("txs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("announcement") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("block") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("blocks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currentHeight") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fundings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fastbridge/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("funding-rates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawalDelay") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("sendTx") => 1,
-                Symbol("sendTxBatch") => 1
+                Symbol("sendTx") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sendTxBatch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("accountLimits") => 1,
-                Symbol("accountMetadata") => 1,
-                Symbol("pnl") => 1,
-                Symbol("l1Metadata") => 1,
-                Symbol("liquidations") => 1,
-                Symbol("positionFunding") => 1,
-                Symbol("publicPoolsMetadata") => 1,
-                Symbol("accountActiveOrders") => 1,
-                Symbol("accountInactiveOrders") => 1,
-                Symbol("export") => 1,
-                Symbol("trades") => 1,
-                Symbol("accountTxs") => 1,
-                Symbol("deposit/history") => 1,
-                Symbol("transfer/history") => 1,
-                Symbol("withdraw/history") => 1,
-                Symbol("referral/points") => 1,
-                Symbol("transferFeeInfo") => 1
+                Symbol("accountLimits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accountMetadata") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("l1Metadata") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("liquidations") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positionFunding") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("publicPoolsMetadata") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accountActiveOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accountInactiveOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("export") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("accountTxs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposit/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfer/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraw/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("referral/points") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transferFeeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("changeAccountTier") => 1,
-                Symbol("notification/ack") => 1
+                Symbol("changeAccountTier") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("notification/ack") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -672,7 +764,7 @@ function hashMessage(self::Lighter, message)
 end
 function signHash(self::Lighter, hash, privateKey)
     self.checkRequiredCredentials();
-    signature = ecdsa(hash[-64 + 1:end], privateKey[-64 + 1:end], secp256k1, nothing);
+    signature = ecdsa(functions.ccxt_slice(hash, -64), functions.ccxt_slice(privateKey, -64), secp256k1, nothing);
     r = get(signature, Symbol("r"), nothing);
     s = get(signature, Symbol("s"), nothing);
     v = self.intToBase16(self.sum(27, get(signature, Symbol("v"), nothing)));
@@ -775,6 +867,12 @@ function setSandboxMode(self::Lighter, enable)
 
 end
 function createOrderRequest(self::Lighter, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     if functions.ccxtruthy(price == nothing)
         throw(ArgumentsRequired(string(self.id, " createOrder() requires a price argument")));
     end
@@ -888,12 +986,12 @@ function createOrderRequest(self::Lighter, symbol, type_var, side, amount, price
         else
             triggerOrderSide = "buy";
         end
-        stopLossOrderTriggerPrice = self.safeNumberN(stopLoss, ["triggerPrice", "stopPrice"]);
+        stopLossOrderTriggerPrice = self.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
         stopLossOrderType = safeString(stopLoss, "type", "limit");
-        stopLossOrderLimitPrice = self.safeNumberN(stopLoss, ["price", "stopLossPrice"], stopLossOrderTriggerPrice);
-        takeProfitOrderTriggerPrice = self.safeNumberN(takeProfit, ["triggerPrice", "stopPrice"]);
+        stopLossOrderLimitPrice = self.safeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
+        takeProfitOrderTriggerPrice = self.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
         takeProfitOrderType = safeString(takeProfit, "type", "limit");
-        takeProfitOrderLimitPrice = self.safeNumberN(takeProfit, ["price", "takeProfitPrice"], takeProfitOrderTriggerPrice);
+        takeProfitOrderLimitPrice = self.safeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
         if functions.ccxtruthy(stopLoss != nothing)
             orderObj = get(self.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, extend(params, Dict{Symbol, Any}(
                 Symbol("stopLossPrice") => stopLossOrderTriggerPrice,
@@ -1395,7 +1493,9 @@ function fetchBalance(self::Lighter, params=Dict())
                 balance = self.safeDict(result, code, self.account());
                 balance[Symbol("total")] = stringAdd(get(balance, Symbol("total"), nothing), safeString(asset, "balance"));
                 balance[Symbol("used")] = stringAdd(get(balance, Symbol("used"), nothing), safeString(asset, "locked_balance"));
-                result[Symbol(code)] = balance;
+                if functions.ccxtruthy(code != nothing)
+                    result[Symbol(code)] = balance;
+                end
                 j += 1
             end
 
@@ -2082,7 +2182,7 @@ function setMarginMode(self::Lighter, marginMode, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires an marginMode parameter")));
     end
     leverage = nothing;
-    (leverage, params) = self.handleOptionAndParams(params, "setMarginMode", "leverage", "leverage");
+    (leverage, params) = self.handleOptionAndParams(params, "setMarginMode", "leverage");
     if functions.ccxtruthy(leverage == nothing)
         throw(ArgumentsRequired(string(self.id, " setMarginMode() requires an leverage parameter")));
     end
@@ -2339,200 +2439,253 @@ function handleErrors(self::Lighter, httpCode, reason, url, method, headers, bod
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Lighter, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function rootGet(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "", "root", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "", "root", "GET", params, nothing, nothing, Dict())
 end
 
 function rootGetInfo(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "info", "root", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "info", "root", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAccount(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "account", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAccountsByL1Address(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountsByL1Address", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accountsByL1Address", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApikeys(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "apikeys", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "apikeys", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetExchangeStats(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "exchangeStats", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "exchangeStats", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAssetDetails(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "assetDetails", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assetDetails", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderBookDetails(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "orderBookDetails", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderBookDetails", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderBookOrders(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "orderBookOrders", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderBookOrders", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderBooks(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "orderBooks", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderBooks", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetRecentTrades(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "recentTrades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "recentTrades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBlockTxs(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "blockTxs", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "blockTxs", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetNextNonce(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "nextNonce", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "nextNonce", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTx(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "tx", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tx", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTxFromL1TxHash(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "txFromL1TxHash", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "txFromL1TxHash", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTxs(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "txs", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "txs", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAnnouncement(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "announcement", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "announcement", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBlock(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "block", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "block", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBlocks(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "blocks", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "blocks", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrentHeight(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "currentHeight", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "currentHeight", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandles(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "candles", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "candles", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetFundings(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "fundings", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fundings", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetFastbridgeInfo(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "fastbridge/info", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fastbridge/info", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetFundingRates(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "funding-rates", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "funding-rates", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetWithdrawalDelay(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "withdrawalDelay", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawalDelay", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicPostSendTx(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "sendTx", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sendTx", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function publicPostSendTxBatch(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "sendTxBatch", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sendTxBatch", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountLimits(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountLimits", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accountLimits", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountMetadata(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountMetadata", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accountMetadata", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPnl(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "pnl", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pnl", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetL1Metadata(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "l1Metadata", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "l1Metadata", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetLiquidations(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "liquidations", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "liquidations", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPositionFunding(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "positionFunding", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positionFunding", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPublicPoolsMetadata(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "publicPoolsMetadata", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "publicPoolsMetadata", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountActiveOrders(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountActiveOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accountActiveOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountInactiveOrders(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountInactiveOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accountInactiveOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExport(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "export", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "export", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTrades(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountTxs(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "accountTxs", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accountTxs", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDepositHistory(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "deposit/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deposit/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTransferHistory(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "transfer/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transfer/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWithdrawHistory(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "withdraw/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdraw/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetReferralPoints(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "referral/points", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "referral/points", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTransferFeeInfo(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "transferFeeInfo", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transferFeeInfo", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostChangeAccountTier(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "changeAccountTier", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "changeAccountTier", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostNotificationAck(self::Lighter, params=Dict(), context=Dict())
-    return request(self, "notification/ack", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "notification/ack", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Lighter(; kwargs...)
     inst = Lighter(Exchange(), describe, loadAccount, initAuthObject, getLighterPrivateKey, preLoadLighterLibrary, handleApiKeyIndex, handleAccountIndex, createSubAccount, createAuth, pow, hashMessage, signHash, signL1AndPrepareTxInfo, handleBuilderFeeApproval, approveBuilderFee, changeApiKey, setSandboxMode, createOrderRequest, fetchNonce, createOrder, editOrder, fetchStatus, fetchTime, fetchMarkets, fetchCurrencies, parseCurrency, fetchOrderBook, parseTicker, fetchTicker, fetchTickers, parseOHLCV, fetchOHLCV, parseFundingRate, fetchFundingRates, fetchBalance, fetchPosition, fetchPositions, parsePosition, fetchAccounts, parseAccount, fetchOpenOrders, fetchClosedOrders, parseOrder, parseOrderStatus, parseOrderType, parseOrderTypeInteger, parseOrderTimeInForce, parseOrderTimeInForceInteger, transfer, fetchTransfers, parseTransfer, fetchDeposits, fetchWithdrawals, parseTransaction, parseTransactionStatus, withdraw, fetchMyTrades, parseTrade, setLeverage, setMarginMode, modifyLeverageAndMarginMode, cancelOrder, cancelAllOrders, cancelAllOrdersAfter, addMargin, reduceMargin, setMargin, parseMarginModification, sign, handleErrors, rootGet, rootGetInfo, publicGetAccount, publicGetAccountsByL1Address, publicGetApikeys, publicGetExchangeStats, publicGetAssetDetails, publicGetOrderBookDetails, publicGetOrderBookOrders, publicGetOrderBooks, publicGetRecentTrades, publicGetBlockTxs, publicGetNextNonce, publicGetTx, publicGetTxFromL1TxHash, publicGetTxs, publicGetAnnouncement, publicGetBlock, publicGetBlocks, publicGetCurrentHeight, publicGetCandles, publicGetFundings, publicGetFastbridgeInfo, publicGetFundingRates, publicGetWithdrawalDelay, publicPostSendTx, publicPostSendTxBatch, privateGetAccountLimits, privateGetAccountMetadata, privateGetPnl, privateGetL1Metadata, privateGetLiquidations, privateGetPositionFunding, privateGetPublicPoolsMetadata, privateGetAccountActiveOrders, privateGetAccountInactiveOrders, privateGetExport, privateGetTrades, privateGetAccountTxs, privateGetDepositHistory, privateGetTransferHistory, privateGetWithdrawHistory, privateGetReferralPoints, privateGetTransferFeeInfo, privatePostChangeAccountTier, privatePostNotificationAck)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -228,7 +228,7 @@ function describe(self::Bydfi, )
         Symbol("fetchOpenInterest") => false,
         Symbol("fetchOpenInterestHistory") => false,
         Symbol("fetchOpenInterests") => false,
-        Symbol("fetchOpenOrder") => false,
+        Symbol("fetchOpenOrder") => true,
         Symbol("fetchOpenOrders") => true,
         Symbol("fetchOption") => false,
         Symbol("fetchOptionChain") => false,
@@ -294,57 +294,147 @@ function describe(self::Bydfi, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v1/public/api_limits") => 1,
-                Symbol("v1/fapi/market/exchange_info") => 1,
-                Symbol("v1/fapi/market/depth") => 1,
-                Symbol("v1/fapi/market/trades") => 1,
-                Symbol("v1/fapi/market/klines") => 1,
-                Symbol("v1/fapi/market/ticker/24hr") => 1,
-                Symbol("v1/fapi/market/ticker/price") => 1,
-                Symbol("v1/fapi/market/mark_price") => 1,
-                Symbol("v1/fapi/market/funding_rate") => 1,
-                Symbol("v1/fapi/market/funding_rate_history") => 1,
-                Symbol("v1/fapi/market/risk_limit") => 1
+                Symbol("v1/public/api_limits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/market/exchange_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/market/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/market/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/market/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/market/ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/market/mark_price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/market/funding_rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/market/funding_rate_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/market/risk_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v1/account/assets") => 1,
-                Symbol("v1/account/transfer_records") => 1,
-                Symbol("v1/spot/deposit_records") => 1,
-                Symbol("v1/spot/withdraw_records") => 1,
-                Symbol("v1/fapi/trade/open_order") => 1,
-                Symbol("v1/fapi/trade/plan_order") => 1,
-                Symbol("v1/fapi/trade/leverage") => 1,
-                Symbol("v1/fapi/trade/history_order") => 1,
-                Symbol("v1/fapi/trade/history_trade") => 1,
-                Symbol("v1/fapi/trade/position_history") => 1,
-                Symbol("v1/fapi/trade/positions") => 1,
-                Symbol("v1/fapi/account/balance") => 1,
-                Symbol("v1/fapi/user_data/assets_margin") => 1,
-                Symbol("v1/fapi/user_data/position_side/dual") => 1,
-                Symbol("v1/agent/teams") => 1,
-                Symbol("v1/agent/agent_links") => 1,
-                Symbol("v1/agent/regular_overview") => 1,
-                Symbol("v1/agent/agent_sub_overview") => 1,
-                Symbol("v1/agent/partener_user_deposit") => 1,
-                Symbol("v1/agent/partener_users_data") => 1,
-                Symbol("v1/agent/affiliate_uids") => 1,
-                Symbol("v1/agent/affiliate_commission") => 1,
-                Symbol("v1/agent/internal_withdrawal_status") => 1
+                Symbol("v1/account/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/account/transfer_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/spot/deposit_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/spot/withdraw_records") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/open_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/plan_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/history_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/history_trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/position_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/user_data/assets_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/user_data/position_side/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/agent/teams") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/agent/agent_links") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/agent/regular_overview") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/agent/agent_sub_overview") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/agent/partener_user_deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/agent/partener_users_data") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/agent/affiliate_uids") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/agent/affiliate_commission") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/agent/internal_withdrawal_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("v1/account/transfer") => 1,
-                Symbol("v1/fapi/trade/place_order") => 1,
-                Symbol("v1/fapi/trade/batch_place_order") => 1,
-                Symbol("v1/fapi/trade/edit_order") => 1,
-                Symbol("v1/fapi/trade/batch_edit_order") => 1,
-                Symbol("v1/fapi/trade/cancel_all_order") => 1,
-                Symbol("v1/fapi/trade/leverage") => 1,
-                Symbol("v1/fapi/trade/batch_leverage_margin") => 1,
-                Symbol("v1/fapi/user_data/margin_type") => 1,
-                Symbol("v1/fapi/user_data/position_side/dual") => 1,
-                Symbol("v1/agent/internal_withdrawal") => 1
+                Symbol("v1/account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/place_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/batch_place_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/edit_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/batch_edit_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/cancel_all_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/trade/batch_leverage_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/user_data/margin_type") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/fapi/user_data/position_side/dual") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/agent/internal_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -598,6 +688,9 @@ function getClosestLimit(self::Bydfi, limit)
     result = 1000;
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(limits)))
+        if functions.ccxtruthy(limit == nothing)
+            throw(ArgumentsRequired(string(self.id, " getClosestLimit() requires a limit argument")));
+        end
         if functions.ccxtruthy(functions.ccxt_le(limit, get(limits, i + 1, nothing)))
             result = get(limits, i + 1, nothing);
             break
@@ -727,6 +820,9 @@ function fetchOHLCV(self::Bydfi, symbol, timeframe="1m", since=nothing, limit=no
         startTime = now - timeDelta;
         until = now;
     elseif functions.ccxtruthy(until == nothing)
+        if functions.ccxtruthy(startTime == nothing)
+            throw(ArgumentsRequired(string(self.id, " fetchOHLCV() requires a since or until argument")));
+        end
         until = startTime + timeDelta;
         if functions.ccxtruthy(functions.ccxt_gt(until, now))
             until = now;
@@ -902,7 +998,16 @@ function createOrder(self::Bydfi, symbol, type_var, side, amount, price=nothing,
 
 end
 function createOrderRequest(self::Bydfi, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrderRequest() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("side") => uppercase(side)
@@ -1475,7 +1580,7 @@ function fetchPositionHistory(self::Bydfi, symbol, since=nothing, limit=nothing,
     end
     market = self.market(symbol);
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "fetchPositionsHistory", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "fetchPositionHistory", "contractType", contractType);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("contractType") => contractType
@@ -1550,9 +1655,9 @@ function setMarginMode(self::Bydfi, marginMode, symbol=nothing, params=Dict())
     end
     market = self.market(symbol);
     contractType = "FUTURE";
-    (contractType, params) = self.handleOptionAndParams(params, "fetchMarginMode", "contractType", contractType);
+    (contractType, params) = self.handleOptionAndParams(params, "setMarginMode", "contractType", contractType);
     wallet = "W001";
-    (wallet, params) = self.handleOptionAndParams(params, "fetchMarginMode", "wallet", wallet);
+    (wallet, params) = self.handleOptionAndParams(params, "setMarginMode", "wallet", wallet);
     request = Dict{Symbol, Any}(
         Symbol("contractType") => contractType,
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -1651,7 +1756,9 @@ function parseBalance(self::Bydfi, response)
         account = self.account();
         account[Symbol("total")] = safeString2(balance, "total", "balance");
         account[Symbol("free")] = safeString2(balance, "available", "availableBalance");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1931,196 +2038,249 @@ function handleErrors(self::Bydfi, httpCode, reason, url, method, headers, body,
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bydfi, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetV1PublicApiLimits(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/public/api_limits", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/public/api_limits", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FapiMarketExchangeInfo(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/exchange_info", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/market/exchange_info", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FapiMarketDepth(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/depth", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/market/depth", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FapiMarketTrades(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/market/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FapiMarketKlines(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/klines", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/market/klines", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FapiMarketTicker24hr(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/ticker/24hr", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/market/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FapiMarketTickerPrice(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/ticker/price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/market/ticker/price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FapiMarketMarkPrice(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/mark_price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/market/mark_price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FapiMarketFundingRate(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/funding_rate", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/market/funding_rate", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FapiMarketFundingRateHistory(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/funding_rate_history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/market/funding_rate_history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1FapiMarketRiskLimit(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/market/risk_limit", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/market/risk_limit", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AccountAssets(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/account/assets", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/account/assets", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AccountTransferRecords(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/account/transfer_records", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/account/transfer_records", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1SpotDepositRecords(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/spot/deposit_records", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/spot/deposit_records", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1SpotWithdrawRecords(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/spot/withdraw_records", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/spot/withdraw_records", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1FapiTradeOpenOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/open_order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/open_order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1FapiTradePlanOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/plan_order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/plan_order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1FapiTradeLeverage(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/leverage", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/leverage", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1FapiTradeHistoryOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/history_order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/history_order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1FapiTradeHistoryTrade(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/history_trade", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/history_trade", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1FapiTradePositionHistory(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/position_history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/position_history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1FapiTradePositions(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1FapiAccountBalance(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/account/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/account/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1FapiUserDataAssetsMargin(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/user_data/assets_margin", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/user_data/assets_margin", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1FapiUserDataPositionSideDual(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/user_data/position_side/dual", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/user_data/position_side/dual", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AgentTeams(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/teams", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/agent/teams", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AgentAgentLinks(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/agent_links", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/agent/agent_links", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AgentRegularOverview(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/regular_overview", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/agent/regular_overview", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AgentAgentSubOverview(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/agent_sub_overview", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/agent/agent_sub_overview", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AgentPartenerUserDeposit(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/partener_user_deposit", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/agent/partener_user_deposit", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AgentPartenerUsersData(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/partener_users_data", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/agent/partener_users_data", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AgentAffiliateUids(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/affiliate_uids", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/agent/affiliate_uids", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AgentAffiliateCommission(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/affiliate_commission", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/agent/affiliate_commission", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV1AgentInternalWithdrawalStatus(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/internal_withdrawal_status", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/agent/internal_withdrawal_status", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostV1AccountTransfer(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/account/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/account/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1FapiTradePlaceOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/place_order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/place_order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1FapiTradeBatchPlaceOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/batch_place_order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/batch_place_order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1FapiTradeEditOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/edit_order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/edit_order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1FapiTradeBatchEditOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/batch_edit_order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/batch_edit_order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1FapiTradeCancelAllOrder(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/cancel_all_order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/cancel_all_order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1FapiTradeLeverage(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1FapiTradeBatchLeverageMargin(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/trade/batch_leverage_margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/trade/batch_leverage_margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1FapiUserDataMarginType(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/user_data/margin_type", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/user_data/margin_type", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1FapiUserDataPositionSideDual(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/fapi/user_data/position_side/dual", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/fapi/user_data/position_side/dual", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV1AgentInternalWithdrawal(self::Bydfi, params=Dict(), context=Dict())
-    return request(self, "v1/agent/internal_withdrawal", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/agent/internal_withdrawal", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Bydfi(; kwargs...)
     inst = Bydfi(Exchange(), describe, fetchMarkets, parseMarket, fetchOrderBook, getClosestLimit, fetchTrades, fetchMyTrades, parseTrade, parseTradeType, fetchOHLCV, parseOHLCV, fetchTickers, fetchTicker, parseTicker, fetchFundingRate, parseFundingRate, fetchFundingRateHistory, parseFundingRateHistory, createOrder, createOrderRequest, encodeWorkingType, createOrders, editOrder, editOrders, createEditOrderRequest, cancelAllOrders, fetchOpenOrders, fetchOpenOrder, fetchCanceledAndClosedOrders, handleSinceAndUntil, parseOrder, parseOrderType, parseOrderTimeInForce, parseOrderStatus, setLeverage, fetchLeverage, parseLeverage, fetchPositions, fetchPositionsForSymbol, parsePosition, parsePositionSide, fetchPositionHistory, fetchPositionsHistory, fetchMarginMode, parseMarginMode, setMarginMode, setPositionMode, fetchPositionMode, fetchBalance, parseBalance, transfer, fetchTransfers, parseTransfer, paraseTransferStatus, fetchDeposits, fetchWithdrawals, fetchTransactionsHelper, parseTransaction, parseTransactionStatus, sign, handleErrors, publicGetV1PublicApiLimits, publicGetV1FapiMarketExchangeInfo, publicGetV1FapiMarketDepth, publicGetV1FapiMarketTrades, publicGetV1FapiMarketKlines, publicGetV1FapiMarketTicker24hr, publicGetV1FapiMarketTickerPrice, publicGetV1FapiMarketMarkPrice, publicGetV1FapiMarketFundingRate, publicGetV1FapiMarketFundingRateHistory, publicGetV1FapiMarketRiskLimit, privateGetV1AccountAssets, privateGetV1AccountTransferRecords, privateGetV1SpotDepositRecords, privateGetV1SpotWithdrawRecords, privateGetV1FapiTradeOpenOrder, privateGetV1FapiTradePlanOrder, privateGetV1FapiTradeLeverage, privateGetV1FapiTradeHistoryOrder, privateGetV1FapiTradeHistoryTrade, privateGetV1FapiTradePositionHistory, privateGetV1FapiTradePositions, privateGetV1FapiAccountBalance, privateGetV1FapiUserDataAssetsMargin, privateGetV1FapiUserDataPositionSideDual, privateGetV1AgentTeams, privateGetV1AgentAgentLinks, privateGetV1AgentRegularOverview, privateGetV1AgentAgentSubOverview, privateGetV1AgentPartenerUserDeposit, privateGetV1AgentPartenerUsersData, privateGetV1AgentAffiliateUids, privateGetV1AgentAffiliateCommission, privateGetV1AgentInternalWithdrawalStatus, privatePostV1AccountTransfer, privatePostV1FapiTradePlaceOrder, privatePostV1FapiTradeBatchPlaceOrder, privatePostV1FapiTradeEditOrder, privatePostV1FapiTradeBatchEditOrder, privatePostV1FapiTradeCancelAllOrder, privatePostV1FapiTradeLeverage, privatePostV1FapiTradeBatchLeverageMargin, privatePostV1FapiUserDataMarginType, privatePostV1FapiUserDataPositionSideDual, privatePostV1AgentInternalWithdrawal)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

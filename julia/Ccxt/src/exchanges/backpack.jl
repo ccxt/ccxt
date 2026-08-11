@@ -253,72 +253,184 @@ function describe(self::Backpack, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("api/v1/assets") => 1,
-                Symbol("api/v1/collateral") => 1,
-                Symbol("api/v1/borrowLend/markets") => 1,
-                Symbol("api/v1/borrowLend/markets/history") => 1,
-                Symbol("api/v1/markets") => 1,
-                Symbol("api/v1/market") => 1,
-                Symbol("api/v1/ticker") => 1,
-                Symbol("api/v1/tickers") => 1,
-                Symbol("api/v1/depth") => 1,
-                Symbol("api/v1/klines") => 1,
-                Symbol("api/v1/markPrices") => 1,
-                Symbol("api/v1/openInterest") => 1,
-                Symbol("api/v1/fundingRates") => 1,
-                Symbol("api/v1/status") => 1,
-                Symbol("api/v1/ping") => 1,
-                Symbol("api/v1/time") => 1,
-                Symbol("api/v1/wallets") => 1,
-                Symbol("api/v1/trades") => 1,
-                Symbol("api/v1/trades/history") => 1
+                Symbol("api/v1/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/collateral") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/borrowLend/markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/borrowLend/markets/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/markPrices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/openInterest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/fundingRates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/wallets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/trades/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("api/v1/account") => 1,
-                Symbol("api/v1/account/limits/borrow") => 1,
-                Symbol("api/v1/account/limits/order") => 1,
-                Symbol("api/v1/account/limits/withdrawal") => 1,
-                Symbol("api/v1/borrowLend/positions") => 1,
-                Symbol("api/v1/capital") => 1,
-                Symbol("api/v1/capital/collateral") => 1,
-                Symbol("wapi/v1/capital/deposits") => 1,
-                Symbol("wapi/v1/capital/deposit/address") => 1,
-                Symbol("wapi/v1/capital/withdrawals") => 1,
-                Symbol("api/v1/position") => 1,
-                Symbol("wapi/v1/history/borrowLend") => 1,
-                Symbol("wapi/v1/history/interest") => 1,
-                Symbol("wapi/v1/history/borrowLend/positions") => 1,
-                Symbol("wapi/v1/history/dust") => 1,
-                Symbol("wapi/v1/history/fills") => 1,
-                Symbol("wapi/v1/history/funding") => 1,
-                Symbol("wapi/v1/history/orders") => 1,
-                Symbol("wapi/v1/history/rfq") => 1,
-                Symbol("wapi/v1/history/quote") => 1,
-                Symbol("wapi/v1/history/settlement") => 1,
-                Symbol("wapi/v1/history/strategies") => 1,
-                Symbol("api/v1/order") => 1,
-                Symbol("api/v1/orders") => 1
+                Symbol("api/v1/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/limits/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/limits/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/limits/withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/borrowLend/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/capital") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/capital/collateral") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/capital/deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/capital/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/capital/withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/history/borrowLend") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/history/interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/history/borrowLend/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/history/dust") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/history/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/history/funding") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/history/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/history/rfq") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/history/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/history/settlement") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/history/strategies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("api/v1/account/convertDust") => 1,
-                Symbol("api/v1/borrowLend") => 1,
-                Symbol("wapi/v1/capital/withdrawals") => 1,
-                Symbol("api/v1/order") => 1,
-                Symbol("api/v1/orders") => 1,
-                Symbol("api/v1/rfq") => 1,
-                Symbol("api/v1/rfq/accept") => 1,
-                Symbol("api/v1/rfq/refresh") => 1,
-                Symbol("api/v1/rfq/cancel") => 1,
-                Symbol("api/v1/rfq/quote") => 1
+                Symbol("api/v1/account/convertDust") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/borrowLend") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wapi/v1/capital/withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/rfq") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/rfq/accept") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/rfq/refresh") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/rfq/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/rfq/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("api/v1/order") => 1,
-                Symbol("api/v1/orders") => 1
+                Symbol("api/v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("patch") => Dict{Symbol, Any}(
-                Symbol("api/v1/account") => 1
+                Symbol("api/v1/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -501,7 +613,7 @@ function describe(self::Backpack, )
         Symbol("adjustForTimeDifference") => false,
         Symbol("networks") => Dict{Symbol, Any}(
             Symbol("APT") => "Aptos",
-            Symbol("ARB") => "Arbitrum",
+            Symbol("ARBITRUM") => "Arbitrum",
             Symbol("AVAX") => "Avalanche",
             Symbol("BASE") => "Base",
             Symbol("BERA") => "Berachain",
@@ -526,7 +638,7 @@ function describe(self::Backpack, )
         ),
         Symbol("networksById") => Dict{Symbol, Any}(
             Symbol("aptos") => "APT",
-            Symbol("arbitrum") => "ARB",
+            Symbol("arbitrum") => "ARBITRUM",
             Symbol("avalanche") => "AVAX",
             Symbol("base") => "BASE",
             Symbol("berachain") => "BERA",
@@ -608,26 +720,28 @@ function parseCurrency(self::Backpack, rawCurrency)
         networkId = safeString(network, "blockchain");
         networkIdLowerCase = safeStringLower(network, "blockchain");
         networkCode = self.networkIdToCode(networkIdLowerCase, code);
-        parsedNetworks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(network, "minimumWithdrawal"),
-                    Symbol("max") => self.parseNumber(omitZero(safeString(network, "maximumWithdrawal")))
+        if functions.ccxtruthy(networkCode != nothing)
+            parsedNetworks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(network, "minimumWithdrawal"),
+                        Symbol("max") => self.parseNumber(omitZero(safeString(network, "maximumWithdrawal")))
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(network, "minimumDeposit"),
+                        Symbol("max") => nothing
+                    )
                 ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(network, "minimumDeposit"),
-                    Symbol("max") => nothing
-                )
-            ),
-            Symbol("active") => nothing,
-            Symbol("deposit") => self.safeBool(network, "depositEnabled"),
-            Symbol("withdraw") => self.safeBool(network, "withdrawEnabled"),
-            Symbol("fee") => self.safeNumber(network, "withdrawalFee"),
-            Symbol("precision") => nothing,
-            Symbol("info") => network
-        );
+                Symbol("active") => nothing,
+                Symbol("deposit") => self.safeBool(network, "depositEnabled"),
+                Symbol("withdraw") => self.safeBool(network, "withdrawEnabled"),
+                Symbol("fee") => self.safeNumber(network, "withdrawalFee"),
+                Symbol("precision") => nothing,
+                Symbol("info") => network
+            );
+        end
         j += 1
     end
     active = nothing;
@@ -842,6 +956,9 @@ function fetchOrderBook(self::Backpack, symbol, limit=nothing, params=Dict())
     );
     response = Base.fetch(self.publicGetApiV1Depth(extend(request, params)));
     microseconds = safeInteger(response, "timestamp");
+    if functions.ccxtruthy(microseconds == nothing)
+        throw(ExchangeError(string(self.id, " fetchOrderBook() missing microseconds")));
+    end
     timestamp = self.parseToInt(microseconds / 1000);
     orderbook = self.parseOrderBook(response, symbol, timestamp);
     orderbook[Symbol("nonce")] = safeInteger(response, "lastUpdateId");
@@ -881,7 +998,8 @@ function fetchOHLCV(self::Backpack, symbol, timeframe="1m", since=nothing, limit
         params = omit(params, "price");
     end
     response = Base.fetch(self.publicGetApiV1Klines(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    ohlcvs = toArray(response);
+    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
 
 end
 function parseOHLCV(self::Backpack, ohlcv, market=nothing)
@@ -976,9 +1094,10 @@ function fetchFundingRateHistory(self::Backpack, symbol=nothing, since=nothing, 
     end
     response = Base.fetch(self.publicGetApiV1FundingRates(extend(request, params)));
     rates = [];
+    rawRates = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        rate = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawRates)))
+        rate = get(rawRates, i + 1, nothing);
         datetime = safeString(rate, "intervalEndTimestamp");
         timestamp = self.parse8601(datetime);
         push!(rates, Dict{Symbol, Any}(
@@ -1012,7 +1131,8 @@ function fetchTrades(self::Backpack, symbol, since=nothing, limit=nothing, param
     else
         response = Base.fetch(self.publicGetApiV1Trades(extend(request, params)));
     end
-    return self.parseTrades(response, market, since, limit)
+    responseList = toArray(response);
+    return self.parseTrades(responseList, market, since, limit)
 
 end
 function fetchMyTrades(self::Backpack, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -1041,7 +1161,8 @@ function fetchMyTrades(self::Backpack, symbol=nothing, since=nothing, limit=noth
         request[Symbol("fillType")] = "User";
     end
     response = Base.fetch(self.privateGetWapiV1HistoryFills(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    responseList = toArray(response);
+    return self.parseTrades(responseList, market, since, limit)
 
 end
 function parseTrade(self::Backpack, trade, market=nothing)
@@ -1096,6 +1217,9 @@ end
 function fetchStatus(self::Backpack, params=Dict())
     response = Base.fetch(self.publicGetApiV1Status(params));
     status = safeString(response, "status");
+    if functions.ccxtruthy(status == nothing)
+        throw(ExchangeError(string(self.id, " fetchStatus() missing status")));
+    end
     return Dict{Symbol, Any}(
     Symbol("status") => lowercase(status),
     Symbol("updated") => nothing,
@@ -1132,7 +1256,9 @@ function parseBalance(self::Backpack, response)
         used = stringAdd(locked, staked);
         account[Symbol("free")] = safeString(balance, "available");
         account[Symbol("used")] = used;
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1333,6 +1459,12 @@ function createOrders(self::Backpack, orders, params=Dict())
 
 end
 function createOrderRequest(self::Backpack, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -1755,240 +1887,293 @@ function handleErrors(self::Backpack, code, reason, url, method, headers, body, 
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Backpack, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetApiV1Assets(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/assets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/assets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Collateral(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/collateral", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/collateral", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1BorrowLendMarkets(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/borrowLend/markets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/borrowLend/markets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1BorrowLendMarketsHistory(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/borrowLend/markets/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/borrowLend/markets/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Markets(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/markets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/markets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Market(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/market", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/market", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Ticker(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Tickers(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Depth(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/depth", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/depth", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Klines(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/klines", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/klines", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1MarkPrices(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/markPrices", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/markPrices", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1OpenInterest(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/openInterest", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/openInterest", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1FundingRates(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/fundingRates", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/fundingRates", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Status(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/status", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/status", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Ping(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/ping", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/ping", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Time(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Wallets(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/wallets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/wallets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Trades(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1TradesHistory(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/trades/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/trades/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1Account(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountLimitsBorrow(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/limits/borrow", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/limits/borrow", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountLimitsOrder(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/limits/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/limits/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountLimitsWithdrawal(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/limits/withdrawal", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/limits/withdrawal", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1BorrowLendPositions(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/borrowLend/positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/borrowLend/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1Capital(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/capital", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/capital", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1CapitalCollateral(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/capital/collateral", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/capital/collateral", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1CapitalDeposits(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/capital/deposits", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/capital/deposits", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1CapitalDepositAddress(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/capital/deposit/address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/capital/deposit/address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1CapitalWithdrawals(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/capital/withdrawals", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/capital/withdrawals", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1Position(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/position", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/position", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1HistoryBorrowLend(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/borrowLend", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/history/borrowLend", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1HistoryInterest(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/interest", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/history/interest", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1HistoryBorrowLendPositions(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/borrowLend/positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/history/borrowLend/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1HistoryDust(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/dust", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/history/dust", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1HistoryFills(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/fills", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/history/fills", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1HistoryFunding(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/funding", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/history/funding", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1HistoryOrders(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/history/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1HistoryRfq(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/rfq", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/history/rfq", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1HistoryQuote(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/quote", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/history/quote", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1HistorySettlement(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/settlement", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/history/settlement", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWapiV1HistoryStrategies(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/history/strategies", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/history/strategies", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1Order(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1Orders(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1AccountConvertDust(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/convertDust", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/convertDust", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1BorrowLend(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/borrowLend", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/borrowLend", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWapiV1CapitalWithdrawals(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "wapi/v1/capital/withdrawals", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wapi/v1/capital/withdrawals", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1Order(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1Orders(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1Rfq(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/rfq", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/rfq", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1RfqAccept(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/rfq/accept", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/rfq/accept", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1RfqRefresh(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/rfq/refresh", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/rfq/refresh", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1RfqCancel(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/rfq/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/rfq/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1RfqQuote(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/rfq/quote", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/rfq/quote", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV1Order(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV1Orders(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/orders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/orders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privatePatchApiV1Account(self::Backpack, params=Dict(), context=Dict())
-    return request(self, "api/v1/account", "private", "PATCH", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account", "private", "PATCH", params, nothing, nothing, Dict())
 end
 
 function Backpack(; kwargs...)
     inst = Backpack(Exchange(), describe, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, parseMarketType, fetchTickers, fetchTicker, parseTicker, fetchOrderBook, fetchOHLCV, parseOHLCV, fetchFundingRate, parseFundingRate, fetchOpenInterest, parseOpenInterest, fetchFundingRateHistory, fetchTrades, fetchMyTrades, parseTrade, fetchStatus, fetchTime, fetchBalance, parseBalance, fetchDeposits, fetchWithdrawals, withdraw, parseTransaction, parseTransactionStatus, fetchDepositAddress, parseDepositAddress, createOrder, createOrders, createOrderRequest, encodeOrderSide, fetchOpenOrders, fetchOpenOrder, cancelOrder, cancelAllOrders, fetchOrders, parseOrder, parseOrderStatus, parseOrderSide, fetchPositions, parsePosition, fetchFundingHistory, parseIncome, nonce, sign, generateBatchPayload, handleErrors, publicGetApiV1Assets, publicGetApiV1Collateral, publicGetApiV1BorrowLendMarkets, publicGetApiV1BorrowLendMarketsHistory, publicGetApiV1Markets, publicGetApiV1Market, publicGetApiV1Ticker, publicGetApiV1Tickers, publicGetApiV1Depth, publicGetApiV1Klines, publicGetApiV1MarkPrices, publicGetApiV1OpenInterest, publicGetApiV1FundingRates, publicGetApiV1Status, publicGetApiV1Ping, publicGetApiV1Time, publicGetApiV1Wallets, publicGetApiV1Trades, publicGetApiV1TradesHistory, privateGetApiV1Account, privateGetApiV1AccountLimitsBorrow, privateGetApiV1AccountLimitsOrder, privateGetApiV1AccountLimitsWithdrawal, privateGetApiV1BorrowLendPositions, privateGetApiV1Capital, privateGetApiV1CapitalCollateral, privateGetWapiV1CapitalDeposits, privateGetWapiV1CapitalDepositAddress, privateGetWapiV1CapitalWithdrawals, privateGetApiV1Position, privateGetWapiV1HistoryBorrowLend, privateGetWapiV1HistoryInterest, privateGetWapiV1HistoryBorrowLendPositions, privateGetWapiV1HistoryDust, privateGetWapiV1HistoryFills, privateGetWapiV1HistoryFunding, privateGetWapiV1HistoryOrders, privateGetWapiV1HistoryRfq, privateGetWapiV1HistoryQuote, privateGetWapiV1HistorySettlement, privateGetWapiV1HistoryStrategies, privateGetApiV1Order, privateGetApiV1Orders, privatePostApiV1AccountConvertDust, privatePostApiV1BorrowLend, privatePostWapiV1CapitalWithdrawals, privatePostApiV1Order, privatePostApiV1Orders, privatePostApiV1Rfq, privatePostApiV1RfqAccept, privatePostApiV1RfqRefresh, privatePostApiV1RfqCancel, privatePostApiV1RfqQuote, privateDeleteApiV1Order, privateDeleteApiV1Orders, privatePatchApiV1Account)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

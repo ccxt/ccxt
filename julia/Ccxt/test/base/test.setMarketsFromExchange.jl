@@ -26,7 +26,7 @@ function testSetMarketsFromExchange()
     exchange2 = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
         Symbol("id") => "primaryEx"
     ));
-    @test functions.ccxtruthy(functions.ccxt_gt(length(objectKeys(get(exchange1, Symbol("markets"), nothing))), 0))
+    @test functions.ccxtruthy(@functions.ccxt_and((get(exchange1, Symbol("markets"), nothing) != nothing), (functions.ccxt_gt(length(objectKeys(get(exchange1, Symbol("markets"), nothing))), 0))))
     differentExchange = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
         Symbol("id") => "secondaryEx"
     ));

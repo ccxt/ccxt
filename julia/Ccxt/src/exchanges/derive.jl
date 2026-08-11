@@ -13,6 +13,7 @@
     fetchTicker::Function = fetchTicker
     parseTicker::Function = parseTicker
     fetchTrades::Function = fetchTrades
+    parseTrades::Function = parseTrades
     parseTrade::Function = parseTrade
     fetchFundingRateHistory::Function = fetchFundingRateHistory
     fetchFundingRate::Function = fetchFundingRate
@@ -179,11 +180,11 @@ function describe(self::Derive, )
     Symbol("dex") => true,
     Symbol("has") => Dict{Symbol, Any}(
         Symbol("CORS") => nothing,
-        Symbol("spot") => false,
+        Symbol("spot") => true,
         Symbol("margin") => false,
-        Symbol("swap") => false,
+        Symbol("swap") => true,
         Symbol("future") => false,
-        Symbol("option") => false,
+        Symbol("option") => true,
         Symbol("addMargin") => false,
         Symbol("borrowCrossMargin") => false,
         Symbol("borrowIsolatedMargin") => false,
@@ -303,11 +304,353 @@ function describe(self::Derive, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["get_all_currencies"],
-            Symbol("post") => ["build_register_session_key_tx", "register_session_key", "deregister_session_key", "login", "statistics", "get_all_currencies", "get_currency", "get_instrument", "get_all_instruments", "get_instruments", "get_ticker", "get_latest_signed_feeds", "get_option_settlement_prices", "get_spot_feed_history", "get_spot_feed_history_candles", "get_funding_rate_history", "get_trade_history", "get_option_settlement_history", "get_liquidation_history", "get_interest_rate_history", "get_transaction", "get_margin", "margin_watch", "validate_invite_code", "get_points", "get_all_points", "get_points_leaderboard", "get_descendant_tree", "get_tree_roots", "get_swell_percent_points", "get_vault_assets", "get_etherfi_effective_balances", "get_kelp_effective_balances", "get_bridge_balances", "get_ethena_participants", "get_vault_share", "get_vault_statistics", "get_vault_balances", "estimate_integrator_points", "create_subaccount_debug", "deposit_debug", "withdraw_debug", "send_quote_debug", "execute_quote_debug", "get_invite_code", "register_invite", "get_time", "get_live_incidents", "get_maker_programs", "get_maker_program_scores"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("get_all_currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("build_register_session_key_tx") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("register_session_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deregister_session_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("login") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("statistics") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_all_currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_all_instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_latest_signed_feeds") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_option_settlement_prices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_spot_feed_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_spot_feed_history_candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_funding_rate_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_trade_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_option_settlement_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_liquidation_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_interest_rate_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_transaction") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin_watch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("validate_invite_code") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_points") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_all_points") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_points_leaderboard") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_descendant_tree") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_tree_roots") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_swell_percent_points") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_vault_assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_etherfi_effective_balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_kelp_effective_balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_bridge_balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_ethena_participants") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_vault_share") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_vault_statistics") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_vault_balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("estimate_integrator_points") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("create_subaccount_debug") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposit_debug") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraw_debug") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("send_quote_debug") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("execute_quote_debug") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_invite_code") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("register_invite") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_live_incidents") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_maker_programs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_maker_program_scores") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("post") => ["get_account", "create_subaccount", "get_subaccount", "get_subaccounts", "get_all_portfolios", "change_subaccount_label", "get_notificationsv", "update_notifications", "deposit", "withdraw", "transfer_erc20", "transfer_position", "transfer_positions", "order", "replace", "order_debug", "get_order", "get_orders", "get_open_orders", "cancel", "cancel_by_label", "cancel_by_nonce", "cancel_by_instrument", "cancel_all", "cancel_trigger_order", "get_order_history", "get_trade_history", "get_deposit_history", "get_withdrawal_history", "send_rfq", "cancel_rfq", "cancel_batch_rfqs", "get_rfqs", "poll_rfqs", "send_quote", "cancel_quote", "cancel_batch_quotes", "get_quotes", "poll_quotes", "execute_quote", "rfq_get_best_quote", "get_margin", "get_collaterals", "get_positions", "get_option_settlement_history", "get_subaccount_value_history", "expired_and_cancelled_history", "get_funding_history", "get_interest_history", "get_erc20_transfer_history", "get_liquidation_history", "liquidate", "get_liquidator_history", "session_keys", "edit_session_key", "register_scoped_session_key", "get_mmp_config", "set_mmp_config", "reset_mmp", "set_cancel_on_disconnect", "get_invite_code", "register_invite"]
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("get_account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("create_subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_subaccounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_all_portfolios") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("change_subaccount_label") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_notificationsv") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("update_notifications") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfer_erc20") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfer_position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfer_positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("replace") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order_debug") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_open_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_by_label") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_by_nonce") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_by_instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_trigger_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_order_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_trade_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_deposit_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_withdrawal_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("send_rfq") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_rfq") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_batch_rfqs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_rfqs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("poll_rfqs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("send_quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_batch_quotes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_quotes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("poll_quotes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("execute_quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rfq_get_best_quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_collaterals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_option_settlement_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_subaccount_value_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("expired_and_cancelled_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_funding_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_interest_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_erc20_transfer_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_liquidation_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("liquidate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_liquidator_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("session_keys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("edit_session_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("register_scoped_session_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_mmp_config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("set_mmp_config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("reset_mmp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("set_cancel_on_disconnect") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_invite_code") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("register_invite") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(),
@@ -724,6 +1067,27 @@ function fetchTrades(self::Derive, symbol, since=nothing, limit=nothing, params=
     return self.parseTrades(data, market, since, limit)
 
 end
+function parseTrades(self::Derive, trades, market=nothing, since=nothing, limit=nothing, params=Dict())
+    tradesArray = toArray(trades);
+    result = [];
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(tradesArray)))
+        rawTrade = get(tradesArray, i + 1, nothing);
+        isFetchTrades = !functions.ccxtruthy((ccxt_in("order_id", rawTrade)));
+        liquidityRole = safeString(rawTrade, "liquidity_role");
+        if functions.ccxtruthy(@functions.ccxt_and(isFetchTrades, (liquidityRole == "maker")))
+            i += 1; continue
+        end
+        parsed = self.parseTrade(rawTrade, market);
+        trade = extend(parsed, params);
+        push!(result, trade);
+        i += 1
+    end
+    result = sortBy2(result, "timestamp", "id");
+    symbol = safeString(market, "symbol");
+    return self.filterBySymbolSinceLimit(result, symbol, since, limit)
+
+end
 function parseTrade(self::Derive, trade, market=nothing)
     marketId = safeString(trade, "instrument_name");
     symbol = self.safeSymbol(marketId, market);
@@ -828,7 +1192,7 @@ function hashOrderMessage(self::Derive, order)
 end
 function signOrder(self::Derive, order, privateKey)
     hashOrder = self.hashOrderMessage(order);
-    return self.signHash(hashOrder[-64 + 1:end], privateKey[-64 + 1:end])
+    return self.signHash(functions.ccxt_slice(hashOrder, -64), functions.ccxt_slice(privateKey, -64))
 
 end
 function hashMessage(self::Derive, message)
@@ -842,7 +1206,7 @@ function hashMessage(self::Derive, message)
 end
 function signHash(self::Derive, hash, privateKey)
     self.checkRequiredCredentials();
-    signature = ecdsa(hash[-64 + 1:end], privateKey[-64 + 1:end], secp256k1, nothing);
+    signature = ecdsa(functions.ccxt_slice(hash, -64), functions.ccxt_slice(privateKey, -64), secp256k1, nothing);
     r = get(signature, Symbol("r"), nothing);
     s = get(signature, Symbol("s"), nothing);
     v = self.intToBase16(self.sum(27, get(signature, Symbol("v"), nothing)));
@@ -850,7 +1214,7 @@ function signHash(self::Derive, hash, privateKey)
 
 end
 function signMessage(self::Derive, message, privateKey)
-    return self.signHash(self.hashMessage(message), privateKey[-64 + 1:end])
+    return self.signHash(self.hashMessage(message), functions.ccxt_slice(privateKey, -64))
 
 end
 function parseUnits(self::Derive, num, dec="1000000000000000000")
@@ -1466,7 +1830,9 @@ function parseBalance(self::Derive, response)
                 amount = safeString(balance, "amount");
                 account[Symbol("total")] = stringAdd(get(account, Symbol("total"), nothing), amount);
             end
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
             j += 1
         end
         i += 1
@@ -1618,7 +1984,7 @@ function sign(self::Derive, path, api="public", method="GET", params=Dict(), hea
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Derive, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -2076,10 +2442,63 @@ function privatePostRegisterInvite(self::Derive, params=Dict(), context=Dict())
 end
 
 function Derive(; kwargs...)
-    inst = Derive(Exchange(), describe, setSandboxMode, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, fetchSpotMarkets, fetchSwapMarkets, fetchOptionMarkets, parseMarket, fetchTicker, parseTicker, fetchTrades, parseTrade, fetchFundingRateHistory, fetchFundingRate, parseFundingRate, hashOrderMessage, signOrder, hashMessage, signHash, signMessage, parseUnits, createOrder, editOrder, cancelOrder, cancelAllOrders, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, parseTimeInForce, parseOrderStatus, parseOrder, fetchOrderTrades, fetchMyTrades, fetchPositions, parsePosition, fetchFundingHistory, parseIncome, fetchBalance, parseBalance, fetchDeposits, fetchWithdrawals, parseTransaction, parseTransactionStatus, handleDeriveSubaccountId, handleDeriveWalletAddress, handleErrors, sign, publicGetGetAllCurrencies, publicPostBuildRegisterSessionKeyTx, publicPostRegisterSessionKey, publicPostDeregisterSessionKey, publicPostLogin, publicPostStatistics, publicPostGetAllCurrencies, publicPostGetCurrency, publicPostGetInstrument, publicPostGetAllInstruments, publicPostGetInstruments, publicPostGetTicker, publicPostGetLatestSignedFeeds, publicPostGetOptionSettlementPrices, publicPostGetSpotFeedHistory, publicPostGetSpotFeedHistoryCandles, publicPostGetFundingRateHistory, publicPostGetTradeHistory, publicPostGetOptionSettlementHistory, publicPostGetLiquidationHistory, publicPostGetInterestRateHistory, publicPostGetTransaction, publicPostGetMargin, publicPostMarginWatch, publicPostValidateInviteCode, publicPostGetPoints, publicPostGetAllPoints, publicPostGetPointsLeaderboard, publicPostGetDescendantTree, publicPostGetTreeRoots, publicPostGetSwellPercentPoints, publicPostGetVaultAssets, publicPostGetEtherfiEffectiveBalances, publicPostGetKelpEffectiveBalances, publicPostGetBridgeBalances, publicPostGetEthenaParticipants, publicPostGetVaultShare, publicPostGetVaultStatistics, publicPostGetVaultBalances, publicPostEstimateIntegratorPoints, publicPostCreateSubaccountDebug, publicPostDepositDebug, publicPostWithdrawDebug, publicPostSendQuoteDebug, publicPostExecuteQuoteDebug, publicPostGetInviteCode, publicPostRegisterInvite, publicPostGetTime, publicPostGetLiveIncidents, publicPostGetMakerPrograms, publicPostGetMakerProgramScores, privatePostGetAccount, privatePostCreateSubaccount, privatePostGetSubaccount, privatePostGetSubaccounts, privatePostGetAllPortfolios, privatePostChangeSubaccountLabel, privatePostGetNotificationsv, privatePostUpdateNotifications, privatePostDeposit, privatePostWithdraw, privatePostTransferErc20, privatePostTransferPosition, privatePostTransferPositions, privatePostOrder, privatePostReplace, privatePostOrderDebug, privatePostGetOrder, privatePostGetOrders, privatePostGetOpenOrders, privatePostCancel, privatePostCancelByLabel, privatePostCancelByNonce, privatePostCancelByInstrument, privatePostCancelAll, privatePostCancelTriggerOrder, privatePostGetOrderHistory, privatePostGetTradeHistory, privatePostGetDepositHistory, privatePostGetWithdrawalHistory, privatePostSendRfq, privatePostCancelRfq, privatePostCancelBatchRfqs, privatePostGetRfqs, privatePostPollRfqs, privatePostSendQuote, privatePostCancelQuote, privatePostCancelBatchQuotes, privatePostGetQuotes, privatePostPollQuotes, privatePostExecuteQuote, privatePostRfqGetBestQuote, privatePostGetMargin, privatePostGetCollaterals, privatePostGetPositions, privatePostGetOptionSettlementHistory, privatePostGetSubaccountValueHistory, privatePostExpiredAndCancelledHistory, privatePostGetFundingHistory, privatePostGetInterestHistory, privatePostGetErc20TransferHistory, privatePostGetLiquidationHistory, privatePostLiquidate, privatePostGetLiquidatorHistory, privatePostSessionKeys, privatePostEditSessionKey, privatePostRegisterScopedSessionKey, privatePostGetMmpConfig, privatePostSetMmpConfig, privatePostResetMmp, privatePostSetCancelOnDisconnect, privatePostGetInviteCode, privatePostRegisterInvite)
+    inst = Derive(Exchange(), describe, setSandboxMode, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, fetchSpotMarkets, fetchSwapMarkets, fetchOptionMarkets, parseMarket, fetchTicker, parseTicker, fetchTrades, parseTrades, parseTrade, fetchFundingRateHistory, fetchFundingRate, parseFundingRate, hashOrderMessage, signOrder, hashMessage, signHash, signMessage, parseUnits, createOrder, editOrder, cancelOrder, cancelAllOrders, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, parseTimeInForce, parseOrderStatus, parseOrder, fetchOrderTrades, fetchMyTrades, fetchPositions, parsePosition, fetchFundingHistory, parseIncome, fetchBalance, parseBalance, fetchDeposits, fetchWithdrawals, parseTransaction, parseTransactionStatus, handleDeriveSubaccountId, handleDeriveWalletAddress, handleErrors, sign, publicGetGetAllCurrencies, publicPostBuildRegisterSessionKeyTx, publicPostRegisterSessionKey, publicPostDeregisterSessionKey, publicPostLogin, publicPostStatistics, publicPostGetAllCurrencies, publicPostGetCurrency, publicPostGetInstrument, publicPostGetAllInstruments, publicPostGetInstruments, publicPostGetTicker, publicPostGetLatestSignedFeeds, publicPostGetOptionSettlementPrices, publicPostGetSpotFeedHistory, publicPostGetSpotFeedHistoryCandles, publicPostGetFundingRateHistory, publicPostGetTradeHistory, publicPostGetOptionSettlementHistory, publicPostGetLiquidationHistory, publicPostGetInterestRateHistory, publicPostGetTransaction, publicPostGetMargin, publicPostMarginWatch, publicPostValidateInviteCode, publicPostGetPoints, publicPostGetAllPoints, publicPostGetPointsLeaderboard, publicPostGetDescendantTree, publicPostGetTreeRoots, publicPostGetSwellPercentPoints, publicPostGetVaultAssets, publicPostGetEtherfiEffectiveBalances, publicPostGetKelpEffectiveBalances, publicPostGetBridgeBalances, publicPostGetEthenaParticipants, publicPostGetVaultShare, publicPostGetVaultStatistics, publicPostGetVaultBalances, publicPostEstimateIntegratorPoints, publicPostCreateSubaccountDebug, publicPostDepositDebug, publicPostWithdrawDebug, publicPostSendQuoteDebug, publicPostExecuteQuoteDebug, publicPostGetInviteCode, publicPostRegisterInvite, publicPostGetTime, publicPostGetLiveIncidents, publicPostGetMakerPrograms, publicPostGetMakerProgramScores, privatePostGetAccount, privatePostCreateSubaccount, privatePostGetSubaccount, privatePostGetSubaccounts, privatePostGetAllPortfolios, privatePostChangeSubaccountLabel, privatePostGetNotificationsv, privatePostUpdateNotifications, privatePostDeposit, privatePostWithdraw, privatePostTransferErc20, privatePostTransferPosition, privatePostTransferPositions, privatePostOrder, privatePostReplace, privatePostOrderDebug, privatePostGetOrder, privatePostGetOrders, privatePostGetOpenOrders, privatePostCancel, privatePostCancelByLabel, privatePostCancelByNonce, privatePostCancelByInstrument, privatePostCancelAll, privatePostCancelTriggerOrder, privatePostGetOrderHistory, privatePostGetTradeHistory, privatePostGetDepositHistory, privatePostGetWithdrawalHistory, privatePostSendRfq, privatePostCancelRfq, privatePostCancelBatchRfqs, privatePostGetRfqs, privatePostPollRfqs, privatePostSendQuote, privatePostCancelQuote, privatePostCancelBatchQuotes, privatePostGetQuotes, privatePostPollQuotes, privatePostExecuteQuote, privatePostRfqGetBestQuote, privatePostGetMargin, privatePostGetCollaterals, privatePostGetPositions, privatePostGetOptionSettlementHistory, privatePostGetSubaccountValueHistory, privatePostExpiredAndCancelledHistory, privatePostGetFundingHistory, privatePostGetInterestHistory, privatePostGetErc20TransferHistory, privatePostGetLiquidationHistory, privatePostLiquidate, privatePostGetLiquidatorHistory, privatePostSessionKeys, privatePostEditSessionKey, privatePostRegisterScopedSessionKey, privatePostGetMmpConfig, privatePostSetMmpConfig, privatePostResetMmp, privatePostSetCancelOnDisconnect, privatePostGetInviteCode, privatePostRegisterInvite)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

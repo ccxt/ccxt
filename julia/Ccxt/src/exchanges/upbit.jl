@@ -192,67 +192,173 @@ function describe(self::Upbit, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("market/all") => 2,
-                Symbol("candles/{timeframe}") => 2,
-                Symbol("candles/{timeframe}/{unit}") => 2,
-                Symbol("candles/seconds") => 2,
-                Symbol("candles/minutes/{unit}") => 2,
-                Symbol("candles/minutes/1") => 2,
-                Symbol("candles/minutes/3") => 2,
-                Symbol("candles/minutes/5") => 2,
-                Symbol("candles/minutes/10") => 2,
-                Symbol("candles/minutes/15") => 2,
-                Symbol("candles/minutes/30") => 2,
-                Symbol("candles/minutes/60") => 2,
-                Symbol("candles/minutes/240") => 2,
-                Symbol("candles/days") => 2,
-                Symbol("candles/weeks") => 2,
-                Symbol("candles/months") => 2,
-                Symbol("candles/years") => 2,
-                Symbol("trades/ticks") => 2,
-                Symbol("ticker") => 2,
-                Symbol("ticker/all") => 2,
-                Symbol("orderbook") => 2,
-                Symbol("orderbook/instruments") => 2
+                Symbol("market/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/{timeframe}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/{timeframe}/{unit}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/seconds") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/minutes/{unit}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/minutes/1") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/minutes/3") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/minutes/5") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/minutes/10") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/minutes/15") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/minutes/30") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/minutes/60") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/minutes/240") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/days") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/weeks") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/months") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("candles/years") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("trades/ticks") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("ticker/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("orderbook/instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("accounts") => 0.67,
-                Symbol("orders/chance") => 0.67,
-                Symbol("order") => 0.67,
-                Symbol("orders/closed") => 0.67,
-                Symbol("orders/open") => 0.67,
-                Symbol("orders/uuids") => 0.67,
-                Symbol("withdraws") => 0.67,
-                Symbol("withdraw") => 0.67,
-                Symbol("withdraws/chance") => 0.67,
-                Symbol("withdraws/coin_addresses") => 0.67,
-                Symbol("deposits") => 0.67,
-                Symbol("deposits/chance/coin") => 0.67,
-                Symbol("deposit") => 0.67,
-                Symbol("deposits/coin_addresses") => 0.67,
-                Symbol("deposits/coin_address") => 0.67,
-                Symbol("travel_rule/vasps") => 0.67,
-                Symbol("status/wallet") => 0.67,
-                Symbol("api_keys") => 0.67
+                Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("orders/chance") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("orders/closed") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("orders/open") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("orders/uuids") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("withdraws") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("withdraws/chance") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("withdraws/coin_addresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("deposits/chance/coin") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("deposits/coin_addresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("deposits/coin_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("travel_rule/vasps") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("status/wallet") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("api_keys") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("orders") => 2.5,
-                Symbol("orders/test") => 2.5,
-                Symbol("orders/cancel_and_new") => 2.5,
-                Symbol("withdraws/coin") => 0.67,
-                Symbol("withdraws/krw") => 0.67,
-                Symbol("deposits/krw") => 0.67,
-                Symbol("deposits/generate_coin_address") => 0.67,
-                Symbol("travel_rule/deposit/uuid") => 0.67,
-                Symbol("travel_rule/deposit/txid") => 0.67
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("orders/test") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("orders/cancel_and_new") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("withdraws/coin") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("withdraws/krw") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("deposits/krw") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("deposits/generate_coin_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("travel_rule/deposit/uuid") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("travel_rule/deposit/txid") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("order") => 0.67,
-                Symbol("orders/open") => 40,
-                Symbol("orders/uuids") => 0.67,
-                Symbol("withdraws/coin") => 0.67
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("orders/open") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("orders/uuids") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+),
+                Symbol("withdraws/coin") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.67
+)
             )
         )
     ),
@@ -511,6 +617,9 @@ function fetchMarkets(self::Upbit, params=Dict())
 end
 function parseMarket(self::Upbit, market)
     id = safeString(market, "market");
+    if functions.ccxtruthy(id == nothing)
+        throw(ExchangeError(string(self.id, " parseMarket() missing id")));
+    end
     (quoteId, baseId) = split(id, "-");
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
@@ -581,7 +690,9 @@ function parseBalance(self::Upbit, response)
         account = self.account();
         account[Symbol("free")] = safeString(balance, "balance");
         account[Symbol("used")] = safeString(balance, "locked");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -617,9 +728,10 @@ function fetchOrderBooks(self::Upbit, symbols=nothing, limit=nothing, params=Dic
     end
     response = Base.fetch(self.publicGetOrderbook(extend(request, params)));
     result = Dict{Symbol, Any}();
+    orderbooks = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        orderbook = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(orderbooks)))
+        orderbook = get(orderbooks, i + 1, nothing);
         marketId = safeString(orderbook, "market");
         symbol = self.safeSymbol(marketId, nothing, "-");
         timestamp = safeInteger(orderbook, "timestamp");
@@ -692,6 +804,9 @@ function fetchTickers(self::Upbit, symbols=nothing, params=Dict())
 
 end
 function idsQueryStrings(self::Upbit, ids, maxQueryLength)
+    if functions.ccxtruthy(ids == nothing)
+            return []
+    end
     idsString = "";
     queries = [];
     i = 0
@@ -818,7 +933,10 @@ function fetchTradingFees(self::Upbit, params=Dict())
         element[Symbol("percentage")] = true;
         element[Symbol("tierBased")] = false;
         element[Symbol("info")] = get(fetchMarketResponse, i + 1, nothing);
-        response[Symbol(safeString(fetchMarketResponse[i + 1], "symbol"))] = element;
+        feeSymbol = safeString(get(fetchMarketResponse, i + 1, nothing), "symbol");
+        if functions.ccxtruthy(feeSymbol != nothing)
+            response[Symbol(feeSymbol)] = element;
+        end
         i += 1
     end
     return response
@@ -853,7 +971,8 @@ function fetchOHLCV(self::Upbit, symbol, timeframe="1m", since=nothing, limit=no
     else
         response = Base.fetch(self.publicGetCandlesTimeframe(extend(request, params)));
     end
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    ohlcvs = toArray(response);
+    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
 
 end
 function calcOrderPrice(self::Upbit, symbol, amount, price=nothing, params=Dict())
@@ -875,6 +994,9 @@ function calcOrderPrice(self::Upbit, symbol, amount, price=nothing, params=Dict(
             throw(ArgumentsRequired(string(self.id, " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")));
         end
         quoteAmount = self.costToPrecision(symbol, amount);
+    end
+    if functions.ccxtruthy(quoteAmount == nothing)
+        throw(ArgumentsRequired(string(self.id, " calcOrderPrice() could not determine quote amount")));
     end
     return quoteAmount
 
@@ -1508,228 +1630,281 @@ function handleErrors(self::Upbit, httpCode, reason, url, method, headers, body,
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Upbit, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarketAll(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "market/all", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "market/all", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesTimeframe(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/{timeframe}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/{timeframe}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesTimeframeUnit(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/{timeframe}/{unit}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/{timeframe}/{unit}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesSeconds(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/seconds", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/seconds", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesMinutesUnit(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/{unit}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/minutes/{unit}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesMinutes1(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/1", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/minutes/1", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesMinutes3(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/3", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/minutes/3", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesMinutes5(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/5", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/minutes/5", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesMinutes10(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/10", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/minutes/10", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesMinutes15(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/15", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/minutes/15", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesMinutes30(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/30", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/minutes/30", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesMinutes60(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/60", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/minutes/60", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesMinutes240(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/minutes/240", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/minutes/240", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesDays(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/days", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/days", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesWeeks(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/weeks", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/weeks", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesMonths(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/months", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/months", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesYears(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "candles/years", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "candles/years", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradesTicks(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "trades/ticks", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "trades/ticks", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickerAll(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "ticker/all", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "ticker/all", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderbook(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderbookInstruments(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orderbook/instruments", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "orderbook/instruments", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccounts(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersChance(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/chance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "orders/chance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrder(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersClosed(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/closed", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "orders/closed", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersOpen(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/open", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "orders/open", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersUuids(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/uuids", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "orders/uuids", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWithdraws(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "withdraws", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWithdraw(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraw", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "withdraw", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWithdrawsChance(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws/chance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "withdraws/chance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWithdrawsCoinAddresses(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws/coin_addresses", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "withdraws/coin_addresses", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeposits(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "deposits", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDepositsChanceCoin(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits/chance/coin", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "deposits/chance/coin", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDeposit(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposit", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "deposit", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDepositsCoinAddresses(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits/coin_addresses", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "deposits/coin_addresses", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDepositsCoinAddress(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits/coin_address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "deposits/coin_address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTravelRuleVasps(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "travel_rule/vasps", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "travel_rule/vasps", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetStatusWallet(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "status/wallet", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "status/wallet", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiKeys(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "api_keys", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "api_keys", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostOrders(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersTest(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/test", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "orders/test", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersCancelAndNew(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/cancel_and_new", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "orders/cancel_and_new", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawsCoin(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws/coin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "withdraws/coin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawsKrw(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws/krw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "withdraws/krw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDepositsKrw(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits/krw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "deposits/krw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDepositsGenerateCoinAddress(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "deposits/generate_coin_address", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "deposits/generate_coin_address", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTravelRuleDepositUuid(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "travel_rule/deposit/uuid", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "travel_rule/deposit/uuid", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTravelRuleDepositTxid(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "travel_rule/deposit/txid", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "travel_rule/deposit/txid", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrder(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersOpen(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/open", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "orders/open", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersUuids(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "orders/uuids", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "orders/uuids", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteWithdrawsCoin(self::Upbit, params=Dict(), context=Dict())
-    return request(self, "withdraws/coin", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 0.67))
+    return request(self, "withdraws/coin", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Upbit(; kwargs...)
     inst = Upbit(Exchange(), describe, fetchCurrency, fetchCurrencyById, fetchMarket, fetchMarketById, fetchMarkets, parseMarket, parseBalance, fetchBalance, fetchOrderBooks, fetchOrderBook, parseTicker, fetchTickers, idsQueryStrings, fetchTicker, parseTrade, fetchTrades, fetchTradingFee, fetchTradingFees, parseOHLCV, fetchOHLCV, calcOrderPrice, createOrder, cancelOrder, editOrder, fetchDeposits, fetchDeposit, fetchWithdrawals, fetchWithdrawal, parseTransactionStatus, parseTransaction, parseOrderStatus, parseOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrder, fetchDepositAddresses, parseDepositAddress, fetchDepositAddress, createDepositAddress, withdraw, nonce, sign, handleErrors, publicGetMarketAll, publicGetCandlesTimeframe, publicGetCandlesTimeframeUnit, publicGetCandlesSeconds, publicGetCandlesMinutesUnit, publicGetCandlesMinutes1, publicGetCandlesMinutes3, publicGetCandlesMinutes5, publicGetCandlesMinutes10, publicGetCandlesMinutes15, publicGetCandlesMinutes30, publicGetCandlesMinutes60, publicGetCandlesMinutes240, publicGetCandlesDays, publicGetCandlesWeeks, publicGetCandlesMonths, publicGetCandlesYears, publicGetTradesTicks, publicGetTicker, publicGetTickerAll, publicGetOrderbook, publicGetOrderbookInstruments, privateGetAccounts, privateGetOrdersChance, privateGetOrder, privateGetOrdersClosed, privateGetOrdersOpen, privateGetOrdersUuids, privateGetWithdraws, privateGetWithdraw, privateGetWithdrawsChance, privateGetWithdrawsCoinAddresses, privateGetDeposits, privateGetDepositsChanceCoin, privateGetDeposit, privateGetDepositsCoinAddresses, privateGetDepositsCoinAddress, privateGetTravelRuleVasps, privateGetStatusWallet, privateGetApiKeys, privatePostOrders, privatePostOrdersTest, privatePostOrdersCancelAndNew, privatePostWithdrawsCoin, privatePostWithdrawsKrw, privatePostDepositsKrw, privatePostDepositsGenerateCoinAddress, privatePostTravelRuleDepositUuid, privatePostTravelRuleDepositTxid, privateDeleteOrder, privateDeleteOrdersOpen, privateDeleteOrdersUuids, privateDeleteWithdrawsCoin)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

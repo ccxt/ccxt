@@ -134,10 +134,13 @@ function describe(self::Zebpay, )
         Symbol("fetchOrderBook") => true,
         Symbol("fetchOrderTrades") => true,
         Symbol("fetchPositions") => true,
+        Symbol("fetchStatus") => true,
         Symbol("fetchTicker") => true,
         Symbol("fetchTickers") => true,
+        Symbol("fetchTime") => true,
         Symbol("fetchTrades") => true,
         Symbol("fetchTradingFee") => true,
+        Symbol("fetchTradingFees") => true,
         Symbol("reduceMargin") => true,
         Symbol("repayCrossMargin") => false,
         Symbol("repayIsolatedMargin") => false,
@@ -173,72 +176,156 @@ function describe(self::Zebpay, )
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("spot") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v2/system/time") => 10,
-                    Symbol("v2/system/status") => 10,
-                    Symbol("v2/market/orderbook") => 10,
-                    Symbol("v2/market/trades") => 10,
-                    Symbol("v2/market/ticker") => 10,
-                    Symbol("v2/market/allTickers") => 10,
-                    Symbol("v2/ex/exchangeInfo") => 10,
-                    Symbol("v2/ex/currencies") => 10,
-                    Symbol("v2/market/klines") => 10,
-                    Symbol("v2/ex/tradefees") => 10
+                    Symbol("v2/system/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/system/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/market/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/market/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/market/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/market/allTickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/ex/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/ex/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/market/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/ex/tradefees") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 )
             ),
             Symbol("swap") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v1/system/time") => 10,
-                    Symbol("v1/system/status") => 10,
-                    Symbol("v1/exchange/tradefee") => 10,
-                    Symbol("v1/exchange/tradefees") => 10,
-                    Symbol("v1/market/orderBook") => 10,
-                    Symbol("v1/market/ticker24Hr") => 10,
-                    Symbol("v1/market/markets") => 10,
-                    Symbol("v1/market/aggTrade") => 10
+                    Symbol("v1/system/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/system/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/exchange/tradefee") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/exchange/tradefees") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/market/orderBook") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/market/ticker24Hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/market/markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/market/aggTrade") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("v1/market/klines") => 10
+                    Symbol("v1/market/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 )
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("spot") => Dict{Symbol, Any}(
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("v2/ex/orders") => 10
+                    Symbol("v2/ex/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 ),
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v2/ex/orders") => 10,
-                    Symbol("v2/account/balance") => 10,
-                    Symbol("v2/ex/tradefee") => 10,
-                    Symbol("v2/ex/order") => 10,
-                    Symbol("v2/ex/order/fills") => 10
+                    Symbol("v2/ex/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/ex/tradefee") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/ex/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/ex/order/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("v2/ex/order") => 10,
-                    Symbol("v2/ex/orders") => 10,
-                    Symbol("v2/ex/orders/cancelAll") => 10
+                    Symbol("v2/ex/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/ex/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v2/ex/orders/cancelAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 )
             ),
             Symbol("swap") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("v1/wallet/balance") => 10,
-                    Symbol("v1/trade/order") => 10,
-                    Symbol("v1/trade/order/open-orders") => 10,
-                    Symbol("v1/trade/userLeverages") => 10,
-                    Symbol("v1/trade/userLeverage") => 10,
-                    Symbol("v1/trade/positions") => 10,
-                    Symbol("v1/trade/history") => 10
+                    Symbol("v1/wallet/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trade/order/open-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trade/userLeverages") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trade/userLeverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trade/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trade/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("v1/trade/order") => 10,
-                    Symbol("v1/trade/order/addTPSL") => 10,
-                    Symbol("v1/trade/addMargin") => 10,
-                    Symbol("v1/trade/reduceMargin") => 10,
-                    Symbol("v1/trade/position/close") => 10,
-                    Symbol("v1/trade/update/userLeverage") => 10
+                    Symbol("v1/trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trade/order/addTPSL") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trade/addMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trade/reduceMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trade/position/close") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("v1/trade/update/userLeverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("v1/trade/order") => 10
+                    Symbol("v1/trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 )
             )
         )
@@ -390,26 +477,28 @@ function parseCurrency(self::Zebpay, rawCurrency)
         if functions.ccxtruthy(minNetworkDepositString != nothing)
             minDepositString = functions.ccxtruthy((minDepositString == nothing)) ? minNetworkDepositString : stringMin(minNetworkDepositString, minDepositString);
         end
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => chain,
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("active") => @functions.ccxt_and(depositAllowed, withdrawAllowed),
-            Symbol("deposit") => depositAllowed,
-            Symbol("withdraw") => withdrawAllowed,
-            Symbol("fee") => self.parseNumber(withdrawFeeString),
-            Symbol("precision") => precision,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.parseNumber(minNetworkWithdrawString),
-                    Symbol("max") => nothing
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.parseNumber(minNetworkDepositString),
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => chain,
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("active") => @functions.ccxt_and(depositAllowed, withdrawAllowed),
+                Symbol("deposit") => depositAllowed,
+                Symbol("withdraw") => withdrawAllowed,
+                Symbol("fee") => self.parseNumber(withdrawFeeString),
+                Symbol("precision") => precision,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.parseNumber(minNetworkWithdrawString),
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.parseNumber(minNetworkDepositString),
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -455,7 +544,7 @@ function fetchTradingFee(self::Zebpay, symbol, params=Dict())
     else
         response = Base.fetch(self.publicSwapGetV1ExchangeTradefee(extend(request, params)));
         responseData = self.safeList(response, "data", []);
-        data = self.safeDict(responseData, 0);
+        data = self.safeDict(responseData, 0, Dict{Symbol, Any}());
     end
     return self.parseTradingFee(data, market)
 
@@ -475,7 +564,9 @@ function fetchTradingFees(self::Zebpay, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fees)))
         fee = self.parseTradingFee(get(fees, i + 1, nothing));
         symbol = get(fee, Symbol("symbol"), nothing);
-        result[Symbol(symbol)] = fee;
+        if functions.ccxtruthy(symbol != nothing)
+            result[Symbol(symbol)] = fee;
+        end
         i += 1
     end
     return result
@@ -693,6 +784,9 @@ function createOrder(self::Zebpay, symbol, type_var, side, amount, price=nothing
     takeProfitPrice = safeString(params, "takeProfitPrice");
     stopLossPrice = safeString(params, "stopLossPrice");
     params = omit(params, ["marginAsset", "takeProfitPrice", "takeProfitPrice"]);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("side") => uppercase(side)
@@ -734,7 +828,7 @@ function createOrder(self::Zebpay, symbol, type_var, side, amount, price=nothing
 end
 function orderRequest(self::Zebpay, symbol, type_var, amount, request, price=nothing, params=Dict())
     upperCaseType = uppercase(type_var);
-    triggerPrice = safeString(params, "stopLossPrice", nothing);
+    triggerPrice = safeString(params, "stopLossPrice");
     quoteOrderQty = safeString2(params, "quoteOrderQty", "cost", nothing);
     timeInForce = safeString(params, "timeInForce", "GTC");
     clientOrderId = safeString(params, "clientOrderId", uuid());
@@ -776,7 +870,7 @@ function cancelOrder(self::Zebpay, id, symbol=nothing, params=Dict())
         request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         response = Base.fetch(self.privateSwapDeleteV1TradeOrder(extend(request, params)));
     end
-    return self.parseOrder(self.safeDict(response, "data"))
+    return self.parseOrder(self.safeDict(response, "data", Dict{Symbol, Any}()))
 
 end
 function cancelAllOrders(self::Zebpay, symbol=nothing, params=Dict())
@@ -857,7 +951,7 @@ function parseOrder(self::Zebpay, order, market=nothing)
     clientOrderId = safeString(order, "clientOrderId");
     timeInForce = safeString(order, "timeInForce");
     status = safeStringLower(order, "status");
-    orderId = safeString(order, "orderId", nothing);
+    orderId = safeString(order, "orderId");
     parsedOrder = self.safeOrder(Dict{Symbol, Any}(
         Symbol("id") => orderId,
         Symbol("clientOrderId") => clientOrderId,
@@ -1111,7 +1205,9 @@ function parseBalance(self::Zebpay, response)
         account[Symbol("used")] = safeString(entry, "used");
         currencyId = safeString(entry, "currency");
         code = self.safeCurrencyCode(currencyId);
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1244,7 +1340,7 @@ function sign(self::Zebpay, path, api="public", method="GET", params=Dict(), hea
                 url += string("?", self.urlencode(query));
             end
         else
-            body = JSON3.json(params);
+            body = functions.json(params);
             headers = Dict{Symbol, Any}(
                 Symbol("Referrer") => "ccxt",
                 Symbol("Content-Type") => "application/json"
@@ -1292,184 +1388,237 @@ function handleErrors(self::Zebpay, code, reason, url, method, headers, body, re
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Zebpay, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicSpotGetV2SystemTime(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/system/time", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/system/time", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2SystemStatus(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/system/status", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/system/status", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2MarketOrderbook(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/market/orderbook", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/market/orderbook", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2MarketTrades(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/market/trades", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/market/trades", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2MarketTicker(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/market/ticker", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/market/ticker", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2MarketAllTickers(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/market/allTickers", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/market/allTickers", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2ExExchangeInfo(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/exchangeInfo", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/ex/exchangeInfo", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2ExCurrencies(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/currencies", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/ex/currencies", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2MarketKlines(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/market/klines", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/market/klines", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetV2ExTradefees(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/tradefees", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/ex/tradefees", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSwapGetV1SystemTime(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/system/time", ["public", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/system/time", ["public", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSwapGetV1SystemStatus(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/system/status", ["public", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/system/status", ["public", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSwapGetV1ExchangeTradefee(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/tradefee", ["public", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/exchange/tradefee", ["public", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSwapGetV1ExchangeTradefees(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/tradefees", ["public", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/exchange/tradefees", ["public", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSwapGetV1MarketOrderBook(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/market/orderBook", ["public", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/market/orderBook", ["public", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSwapGetV1MarketTicker24Hr(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/market/ticker24Hr", ["public", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/market/ticker24Hr", ["public", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSwapGetV1MarketMarkets(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/market/markets", ["public", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/market/markets", ["public", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSwapGetV1MarketAggTrade(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/market/aggTrade", ["public", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/market/aggTrade", ["public", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSwapPostV1MarketKlines(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/market/klines", ["public", "swap"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/market/klines", ["public", "swap"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostV2ExOrders(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/orders", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/ex/orders", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2ExOrders(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/orders", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/ex/orders", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2AccountBalance(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/account/balance", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/account/balance", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2ExTradefee(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/tradefee", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/ex/tradefee", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2ExOrder(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/order", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/ex/order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetV2ExOrderFills(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/order/fills", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/ex/order/fills", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotDeleteV2ExOrder(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/order", ["private", "spot"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/ex/order", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateSpotDeleteV2ExOrders(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/orders", ["private", "spot"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/ex/orders", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateSpotDeleteV2ExOrdersCancelAll(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v2/ex/orders/cancelAll", ["private", "spot"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v2/ex/orders/cancelAll", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateSwapGetV1WalletBalance(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/wallet/balance", ["private", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/wallet/balance", ["private", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSwapGetV1TradeOrder(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/order", ["private", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/order", ["private", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSwapGetV1TradeOrderOpenOrders(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/order/open-orders", ["private", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/order/open-orders", ["private", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSwapGetV1TradeUserLeverages(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/userLeverages", ["private", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/userLeverages", ["private", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSwapGetV1TradeUserLeverage(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/userLeverage", ["private", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/userLeverage", ["private", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSwapGetV1TradePositions(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/positions", ["private", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/positions", ["private", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSwapGetV1TradeHistory(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/history", ["private", "swap"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/history", ["private", "swap"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSwapPostV1TradeOrder(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/order", ["private", "swap"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/order", ["private", "swap"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSwapPostV1TradeOrderAddTPSL(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/order/addTPSL", ["private", "swap"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/order/addTPSL", ["private", "swap"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSwapPostV1TradeAddMargin(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/addMargin", ["private", "swap"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/addMargin", ["private", "swap"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSwapPostV1TradeReduceMargin(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/reduceMargin", ["private", "swap"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/reduceMargin", ["private", "swap"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSwapPostV1TradePositionClose(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/position/close", ["private", "swap"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/position/close", ["private", "swap"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSwapPostV1TradeUpdateUserLeverage(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/update/userLeverage", ["private", "swap"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/update/userLeverage", ["private", "swap"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSwapDeleteV1TradeOrder(self::Zebpay, params=Dict(), context=Dict())
-    return request(self, "v1/trade/order", ["private", "swap"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v1/trade/order", ["private", "swap"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function Zebpay(; kwargs...)
     inst = Zebpay(Exchange(), describe, fetchStatus, fetchTime, fetchMarkets, fetchCurrencies, parseCurrency, fetchTradingFee, fetchTradingFees, fetchOrderBook, fetchTicker, fetchTickers, fetchOHLCV, fetchTrades, fetchMyTrades, fetchOrderTrades, parseTrade, fetchBalance, createOrder, orderRequest, cancelOrder, cancelAllOrders, fetchOpenOrders, fetchOrder, parseOrder, closePosition, fetchLeverages, fetchLeverage, setLeverage, fetchPositions, addMargin, reduceMargin, fetchSpotMarkets, fetchSwapMarkets, parseBalance, parsePosition, parseLeverage, parseTradingFee, parseTicker, parseMarginModification, sign, handleErrors, publicSpotGetV2SystemTime, publicSpotGetV2SystemStatus, publicSpotGetV2MarketOrderbook, publicSpotGetV2MarketTrades, publicSpotGetV2MarketTicker, publicSpotGetV2MarketAllTickers, publicSpotGetV2ExExchangeInfo, publicSpotGetV2ExCurrencies, publicSpotGetV2MarketKlines, publicSpotGetV2ExTradefees, publicSwapGetV1SystemTime, publicSwapGetV1SystemStatus, publicSwapGetV1ExchangeTradefee, publicSwapGetV1ExchangeTradefees, publicSwapGetV1MarketOrderBook, publicSwapGetV1MarketTicker24Hr, publicSwapGetV1MarketMarkets, publicSwapGetV1MarketAggTrade, publicSwapPostV1MarketKlines, privateSpotPostV2ExOrders, privateSpotGetV2ExOrders, privateSpotGetV2AccountBalance, privateSpotGetV2ExTradefee, privateSpotGetV2ExOrder, privateSpotGetV2ExOrderFills, privateSpotDeleteV2ExOrder, privateSpotDeleteV2ExOrders, privateSpotDeleteV2ExOrdersCancelAll, privateSwapGetV1WalletBalance, privateSwapGetV1TradeOrder, privateSwapGetV1TradeOrderOpenOrders, privateSwapGetV1TradeUserLeverages, privateSwapGetV1TradeUserLeverage, privateSwapGetV1TradePositions, privateSwapGetV1TradeHistory, privateSwapPostV1TradeOrder, privateSwapPostV1TradeOrderAddTPSL, privateSwapPostV1TradeAddMargin, privateSwapPostV1TradeReduceMargin, privateSwapPostV1TradePositionClose, privateSwapPostV1TradeUpdateUserLeverage, privateSwapDeleteV1TradeOrder)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

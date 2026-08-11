@@ -48,9 +48,10 @@
     privateGetAccountFees::Function = privateGetAccountFees
     privateGetAccountOrders::Function = privateGetAccountOrders
     privateGetAccountOrdersOrderId::Function = privateGetAccountOrdersOrderId
+    privateGetAccountOrdersClientClientId::Function = privateGetAccountOrdersClientClientId
     privateGetAccountOrdersOrderIdTrades::Function = privateGetAccountOrdersOrderIdTrades
     privateGetAccountTrades::Function = privateGetAccountTrades
-    privateGetAccountTradesTradeId::Function = privateGetAccountTradesTradeId
+    privateGetAccountTradeTradeId::Function = privateGetAccountTradeTradeId
     privatePostAccountOrders::Function = privatePostAccountOrders
     privateDeleteAccountOrders::Function = privateDeleteAccountOrders
     privateDeleteAccountOrdersOrderId::Function = privateDeleteAccountOrdersOrderId
@@ -69,7 +70,7 @@ function describe(self::Onetrading, )
         Symbol("CORS") => nothing,
         Symbol("spot") => true,
         Symbol("margin") => false,
-        Symbol("swap") => false,
+        Symbol("swap") => true,
         Symbol("future") => false,
         Symbol("option") => false,
         Symbol("addMargin") => false,
@@ -203,12 +204,76 @@ function describe(self::Onetrading, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["currencies", "candlesticks/{instrument_code}", "fees", "instruments", "order-book/{instrument_code}", "market-ticker", "market-ticker/{instrument_code}", "time"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("candlesticks/{instrument_code}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order-book/{instrument_code}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market-ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market-ticker/{instrument_code}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("get") => ["account/balances", "account/fees", "account/orders", "account/orders/{order_id}", "account/orders/{order_id}/trades", "account/trades", "account/trades/{trade_id}"],
-            Symbol("post") => ["account/orders"],
-            Symbol("delete") => ["account/orders", "account/orders/{order_id}", "account/orders/client/{client_id}"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("account/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/orders/client/{client_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/orders/{order_id}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/trade/{trade_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("account/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("delete") => Dict{Symbol, Any}(
+                Symbol("account/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/orders/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/orders/client/{client_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(
@@ -452,7 +517,7 @@ function parseMarket(self::Onetrading, market)
     if functions.ccxtruthy(isPerp)
         symbol = string(symbol, ":", quote_var);
     end
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -500,7 +565,7 @@ function parseMarket(self::Onetrading, market)
     ),
     Symbol("created") => nothing,
     Symbol("info") => market
-)
+))
 
 end
 function fetchTradingFees(self::Onetrading, params=Dict())
@@ -533,9 +598,10 @@ function fetchPublicTradingFees(self::Onetrading, params=Dict())
     firstSpotTier = self.safeDict(spotTiers, 0, Dict{Symbol, Any}());
     firstFuturesTier = self.safeDict(futuresTiers, 0, Dict{Symbol, Any}());
     result = Dict{Symbol, Any}();
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         market = self.market(symbol);
         tierObject = functions.ccxtruthy((get(market, Symbol("spot"), nothing))) ? firstSpotTier : firstFuturesTier;
         result[Symbol(symbol)] = Dict{Symbol, Any}(
@@ -569,9 +635,10 @@ function fetchPrivateTradingFees(self::Onetrading, params=Dict())
     futuresMakerFee = stringDiv(futuresMakerFee, "100");
     futuresTakerFee = stringDiv(futuresTakerFee, "100");
     result = Dict{Symbol, Any}();
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         market = self.market(symbol);
         makerFee = functions.ccxtruthy((get(market, Symbol("spot"), nothing))) ? spotMakerFee : futuresMakerFee;
         takerFee = functions.ccxtruthy((get(market, Symbol("spot"), nothing))) ? spotTakerFee : futuresTakerFee;
@@ -662,11 +729,14 @@ function fetchTickers(self::Onetrading, symbols=nothing, params=Dict())
     symbols = self.marketSymbols(symbols);
     response = Base.fetch(self.publicGetMarketTicker(params));
     result = Dict{Symbol, Any}();
+    rawTickers = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        ticker = self.parseTicker(get(response, i + 1, nothing));
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawTickers)))
+        ticker = self.parseTicker(get(rawTickers, i + 1, nothing));
         symbol = get(ticker, Symbol("symbol"), nothing);
-        result[Symbol(symbol)] = ticker;
+        if functions.ccxtruthy(symbol != nothing)
+            result[Symbol(symbol)] = ticker;
+        end
         i += 1
     end
     return self.filterByArrayTickers(result, "symbol", symbols)
@@ -700,10 +770,16 @@ function parseOHLCV(self::Onetrading, ohlcv, market=nothing)
         Symbol("MONTHS") => "M"
     );
     lowercaseUnit = safeString(units, unit);
+    if functions.ccxtruthy(@functions.ccxt_or((period == nothing), (lowercaseUnit == nothing)))
+        throw(ExchangeError(string(self.id, " parseOHLCV() missing period/unit")));
+    end
     timeframe = string(period, lowercaseUnit);
     durationInSeconds = self.parseTimeframe(timeframe);
     duration = durationInSeconds * 1000;
     timestamp = self.parse8601(safeString(ohlcv, "time"));
+    if functions.ccxtruthy(timestamp == nothing)
+        throw(ExchangeError(string(self.id, " parseOHLCV() missing timestamp")));
+    end
     alignedTimestamp = duration * self.parseToInt(timestamp / duration);
     options = safeValue(self.options, "fetchOHLCV", Dict{Symbol, Any}());
     volumeField = safeString(options, "volume", "total_amount");
@@ -716,6 +792,9 @@ function fetchOHLCV(self::Onetrading, symbol, timeframe="1m", since=nothing, lim
     end
     market = self.market(symbol);
     periodUnit = safeString(self.timeframes, timeframe);
+    if functions.ccxtruthy(periodUnit == nothing)
+        throw(ExchangeError(string(self.id, " fetchOHLCV() missing periodUnit")));
+    end
     (period, unit) = split(periodUnit, "/");
     durationInSeconds = self.parseTimeframe(timeframe);
     duration = durationInSeconds * 1000;
@@ -797,7 +876,9 @@ function parseBalance(self::Onetrading, response)
         account = self.account();
         account[Symbol("free")] = safeString(balance, "available");
         account[Symbol("used")] = safeString(balance, "locked");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -891,6 +972,9 @@ function createOrder(self::Onetrading, symbol, type_var, side, amount, price=not
     end
     market = self.market(symbol);
     uppercaseType = uppercase(type_var);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("instrument_code") => get(market, Symbol("id"), nothing),
         Symbol("type") => uppercaseType,
@@ -1111,7 +1195,7 @@ function handleErrors(self::Onetrading, code, reason, url, method, headers, body
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Onetrading, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1164,6 +1248,10 @@ function privateGetAccountOrdersOrderId(self::Onetrading, params=Dict(), context
     return request(self, "account/orders/{order_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
+function privateGetAccountOrdersClientClientId(self::Onetrading, params=Dict(), context=Dict())
+    return request(self, "account/orders/client/{client_id}", "private", "GET", params, nothing, nothing, Dict())
+end
+
 function privateGetAccountOrdersOrderIdTrades(self::Onetrading, params=Dict(), context=Dict())
     return request(self, "account/orders/{order_id}/trades", "private", "GET", params, nothing, nothing, Dict())
 end
@@ -1172,8 +1260,8 @@ function privateGetAccountTrades(self::Onetrading, params=Dict(), context=Dict()
     return request(self, "account/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
-function privateGetAccountTradesTradeId(self::Onetrading, params=Dict(), context=Dict())
-    return request(self, "account/trades/{trade_id}", "private", "GET", params, nothing, nothing, Dict())
+function privateGetAccountTradeTradeId(self::Onetrading, params=Dict(), context=Dict())
+    return request(self, "account/trade/{trade_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountOrders(self::Onetrading, params=Dict(), context=Dict())
@@ -1193,10 +1281,63 @@ function privateDeleteAccountOrdersClientClientId(self::Onetrading, params=Dict(
 end
 
 function Onetrading(; kwargs...)
-    inst = Onetrading(Exchange(), describe, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, fetchTradingFees, fetchPublicTradingFees, fetchPrivateTradingFees, parseFeeTiers, parseTicker, fetchTicker, fetchTickers, fetchOrderBook, parseOHLCV, fetchOHLCV, parseTrade, parseBalance, fetchBalance, parseOrderStatus, parseOrder, parseOrderType, parseTimeInForce, createOrder, cancelOrder, cancelAllOrders, cancelOrders, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchOrderTrades, fetchMyTrades, sign, handleErrors, publicGetCurrencies, publicGetCandlesticksInstrumentCode, publicGetFees, publicGetInstruments, publicGetOrderBookInstrumentCode, publicGetMarketTicker, publicGetMarketTickerInstrumentCode, publicGetTime, privateGetAccountBalances, privateGetAccountFees, privateGetAccountOrders, privateGetAccountOrdersOrderId, privateGetAccountOrdersOrderIdTrades, privateGetAccountTrades, privateGetAccountTradesTradeId, privatePostAccountOrders, privateDeleteAccountOrders, privateDeleteAccountOrdersOrderId, privateDeleteAccountOrdersClientClientId)
+    inst = Onetrading(Exchange(), describe, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, fetchTradingFees, fetchPublicTradingFees, fetchPrivateTradingFees, parseFeeTiers, parseTicker, fetchTicker, fetchTickers, fetchOrderBook, parseOHLCV, fetchOHLCV, parseTrade, parseBalance, fetchBalance, parseOrderStatus, parseOrder, parseOrderType, parseTimeInForce, createOrder, cancelOrder, cancelAllOrders, cancelOrders, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchOrderTrades, fetchMyTrades, sign, handleErrors, publicGetCurrencies, publicGetCandlesticksInstrumentCode, publicGetFees, publicGetInstruments, publicGetOrderBookInstrumentCode, publicGetMarketTicker, publicGetMarketTickerInstrumentCode, publicGetTime, privateGetAccountBalances, privateGetAccountFees, privateGetAccountOrders, privateGetAccountOrdersOrderId, privateGetAccountOrdersClientClientId, privateGetAccountOrdersOrderIdTrades, privateGetAccountTrades, privateGetAccountTradeTradeId, privatePostAccountOrders, privateDeleteAccountOrders, privateDeleteAccountOrdersOrderId, privateDeleteAccountOrdersClientClientId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

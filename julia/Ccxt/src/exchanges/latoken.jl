@@ -215,64 +215,168 @@ function describe(self::Latoken, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("book/{currency}/{quote}") => 1,
-                Symbol("chart/week") => 1,
-                Symbol("chart/week/{currency}/{quote}") => 1,
-                Symbol("currency") => 1,
-                Symbol("currency/available") => 1,
-                Symbol("currency/quotes") => 1,
-                Symbol("currency/{currency}") => 1,
-                Symbol("pair") => 1,
-                Symbol("pair/available") => 1,
-                Symbol("ticker") => 1,
-                Symbol("ticker/{base}/{quote}") => 1,
-                Symbol("time") => 1,
-                Symbol("trade/history/{currency}/{quote}") => 1,
-                Symbol("trade/fee/{currency}/{quote}") => 1,
-                Symbol("trade/feeLevels") => 1,
-                Symbol("transaction/bindings") => 1
+                Symbol("book/{currency}/{quote}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("chart/week") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("chart/week/{currency}/{quote}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currency/available") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currency/quotes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currency/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pair") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pair/available") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker/{base}/{quote}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/history/{currency}/{quote}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/fee/{currency}/{quote}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/feeLevels") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transaction/bindings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("auth/account") => 1,
-                Symbol("auth/account/currency/{currency}/{type}") => 1,
-                Symbol("auth/order") => 1,
-                Symbol("auth/order/getOrder/{id}") => 1,
-                Symbol("auth/order/pair/{currency}/{quote}") => 1,
-                Symbol("auth/order/pair/{currency}/{quote}/active") => 1,
-                Symbol("auth/stopOrder") => 1,
-                Symbol("auth/stopOrder/getOrder/{id}") => 1,
-                Symbol("auth/stopOrder/pair/{currency}/{quote}") => 1,
-                Symbol("auth/stopOrder/pair/{currency}/{quote}/active") => 1,
-                Symbol("auth/trade") => 1,
-                Symbol("auth/trade/pair/{currency}/{quote}") => 1,
-                Symbol("auth/trade/fee/{currency}/{quote}") => 1,
-                Symbol("auth/transaction") => 1,
-                Symbol("auth/transaction/bindings") => 1,
-                Symbol("auth/transaction/bindings/{currency}") => 1,
-                Symbol("auth/transaction/{id}") => 1,
-                Symbol("auth/transfer") => 1
+                Symbol("auth/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/account/currency/{currency}/{type}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/order/getOrder/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/order/pair/{currency}/{quote}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/order/pair/{currency}/{quote}/active") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/stopOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/stopOrder/getOrder/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/stopOrder/pair/{currency}/{quote}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/stopOrder/pair/{currency}/{quote}/active") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/trade/pair/{currency}/{quote}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/trade/fee/{currency}/{quote}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transaction") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transaction/bindings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transaction/bindings/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transaction/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("auth/order/cancel") => 1,
-                Symbol("auth/order/cancelAll") => 1,
-                Symbol("auth/order/cancelAll/{currency}/{quote}") => 1,
-                Symbol("auth/order/place") => 1,
-                Symbol("auth/spot/deposit") => 1,
-                Symbol("auth/spot/withdraw") => 1,
-                Symbol("auth/stopOrder/cancel") => 1,
-                Symbol("auth/stopOrder/cancelAll") => 1,
-                Symbol("auth/stopOrder/cancelAll/{currency}/{quote}") => 1,
-                Symbol("auth/stopOrder/place") => 1,
-                Symbol("auth/transaction/depositAddress") => 1,
-                Symbol("auth/transaction/withdraw") => 1,
-                Symbol("auth/transaction/withdraw/cancel") => 1,
-                Symbol("auth/transaction/withdraw/confirm") => 1,
-                Symbol("auth/transaction/withdraw/resendCode") => 1,
-                Symbol("auth/transfer/email") => 1,
-                Symbol("auth/transfer/id") => 1,
-                Symbol("auth/transfer/phone") => 1
+                Symbol("auth/order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/order/cancelAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/order/cancelAll/{currency}/{quote}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/order/place") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/spot/deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/spot/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/stopOrder/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/stopOrder/cancelAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/stopOrder/cancelAll/{currency}/{quote}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/stopOrder/place") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transaction/depositAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transaction/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transaction/withdraw/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transaction/withdraw/confirm") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transaction/withdraw/resendCode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transfer/email") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transfer/id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("auth/transfer/phone") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -445,9 +549,10 @@ function fetchMarkets(self::Latoken, params=Dict())
     currencies = self.safeDict(self.options, "cachedCurrencies", Dict{Symbol, Any}());
     currenciesById = indexBy(currencies, "id");
     result = [];
+    rawMarkets = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        market = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawMarkets)))
+        market = get(rawMarkets, i + 1, nothing);
         id = safeString(market, "id");
         baseId = safeString(market, "baseCurrency");
         quoteId = safeString(market, "quoteCurrency");
@@ -458,6 +563,9 @@ function fetchMarkets(self::Latoken, params=Dict())
         if functions.ccxtruthy(@functions.ccxt_and(baseCurrencyInfo != nothing, quoteCurrencyInfo != nothing))
             base = self.safeCurrencyCode(safeString(baseCurrencyInfo, "tag"));
             quote_var = self.safeCurrencyCode(safeString(quoteCurrencyInfo, "tag"));
+            if functions.ccxtruthy(@functions.ccxt_or((base == nothing), (quote_var == nothing)))
+                i += 1; continue
+            end
             lowercaseQuote = lowercase(quote_var);
             capitalizedQuote = capitalize(lowercaseQuote);
             status = safeString(market, "status");
@@ -585,7 +693,9 @@ function fetchBalance(self::Latoken, params=Dict())
         account = self.account();
         account[Symbol("free")] = safeString(balance, "available");
         account[Symbol("used")] = safeString(balance, "blocked");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     result[Symbol("timestamp")] = maxTimestamp;
@@ -682,7 +792,7 @@ function parseTrade(self::Latoken, trade, market=nothing)
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
     symbol = string(base, "/", quote_var);
-    if functions.ccxtruthy(ccxt_in(symbol, self.markets))
+    if functions.ccxtruthy(@functions.ccxt_and((self.markets != nothing), (ccxt_in(symbol, self.markets))))
         market = self.market(symbol);
     end
     id = safeString(trade, "id");
@@ -791,6 +901,7 @@ function fetchMyTrades(self::Latoken, symbol=nothing, since=nothing, limit=nothi
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
+    response = [];
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
         request[Symbol("currency")] = get(market, Symbol("baseId"), nothing);
@@ -838,7 +949,7 @@ function parseOrder(self::Latoken, order, market=nothing)
     symbol = nothing;
     if functions.ccxtruthy(@functions.ccxt_and((base != nothing), (quote_var != nothing)))
         symbol = string(base, "/", quote_var);
-        if functions.ccxtruthy(ccxt_in(symbol, self.markets))
+        if functions.ccxtruthy(@functions.ccxt_and((self.markets != nothing), (ccxt_in(symbol, self.markets))))
             market = self.market(symbol);
         end
     end
@@ -965,6 +1076,9 @@ function createOrder(self::Latoken, symbol, type_var, side, amount, price=nothin
     end
     market = self.market(symbol);
     uppercaseType = uppercase(type_var);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("baseCurrency") => get(market, Symbol("baseId"), nothing),
         Symbol("quoteCurrency") => get(market, Symbol("quoteId"), nothing),
@@ -1227,224 +1341,277 @@ function handleErrors(self::Latoken, code, reason, url, method, headers, body, r
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Latoken, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetBookCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "book/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "book/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetChartWeek(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "chart/week", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "chart/week", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetChartWeekCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "chart/week/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "chart/week/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrency(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "currency", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "currency", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrencyAvailable(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "currency/available", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "currency/available", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrencyQuotes(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "currency/quotes", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "currency/quotes", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrencyCurrency(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "currency/{currency}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "currency/{currency}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPair(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "pair", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pair", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPairAvailable(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "pair/available", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pair/available", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickerBaseQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "ticker/{base}/{quote}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker/{base}/{quote}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTime(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeHistoryCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "trade/history/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/history/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeFeeCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "trade/fee/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/fee/{currency}/{quote}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradeFeeLevels(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "trade/feeLevels", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/feeLevels", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTransactionBindings(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "transaction/bindings", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transaction/bindings", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthAccount(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthAccountCurrencyCurrencyType(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/account/currency/{currency}/{type}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/account/currency/{currency}/{type}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthOrder(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthOrderGetOrderId(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/getOrder/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/order/getOrder/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthOrderPairCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/pair/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/order/pair/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthOrderPairCurrencyQuoteActive(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/pair/{currency}/{quote}/active", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/order/pair/{currency}/{quote}/active", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthStopOrder(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/stopOrder", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthStopOrderGetOrderId(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/getOrder/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/stopOrder/getOrder/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthStopOrderPairCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/pair/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/stopOrder/pair/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthStopOrderPairCurrencyQuoteActive(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/pair/{currency}/{quote}/active", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/stopOrder/pair/{currency}/{quote}/active", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthTrade(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/trade", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/trade", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthTradePairCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/trade/pair/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/trade/pair/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthTradeFeeCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/trade/fee/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/trade/fee/{currency}/{quote}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthTransaction(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transaction", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthTransactionBindings(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/bindings", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transaction/bindings", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthTransactionBindingsCurrency(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/bindings/{currency}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transaction/bindings/{currency}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthTransactionId(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transaction/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAuthTransfer(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transfer", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transfer", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthOrderCancel(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/order/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthOrderCancelAll(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/cancelAll", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/order/cancelAll", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthOrderCancelAllCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/cancelAll/{currency}/{quote}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/order/cancelAll/{currency}/{quote}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthOrderPlace(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/order/place", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/order/place", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthSpotDeposit(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/spot/deposit", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/spot/deposit", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthSpotWithdraw(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/spot/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/spot/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthStopOrderCancel(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/stopOrder/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthStopOrderCancelAll(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/cancelAll", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/stopOrder/cancelAll", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthStopOrderCancelAllCurrencyQuote(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/cancelAll/{currency}/{quote}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/stopOrder/cancelAll/{currency}/{quote}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthStopOrderPlace(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/stopOrder/place", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/stopOrder/place", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthTransactionDepositAddress(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/depositAddress", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transaction/depositAddress", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthTransactionWithdraw(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transaction/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthTransactionWithdrawCancel(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/withdraw/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transaction/withdraw/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthTransactionWithdrawConfirm(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/withdraw/confirm", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transaction/withdraw/confirm", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthTransactionWithdrawResendCode(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transaction/withdraw/resendCode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transaction/withdraw/resendCode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthTransferEmail(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transfer/email", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transfer/email", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthTransferId(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transfer/id", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transfer/id", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthTransferPhone(self::Latoken, params=Dict(), context=Dict())
-    return request(self, "auth/transfer/phone", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth/transfer/phone", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Latoken(; kwargs...)
     inst = Latoken(Exchange(), describe, nonce, fetchTime, fetchMarkets, fetchCurrencies, parseCurrency, fetchBalance, fetchOrderBook, parseTicker, fetchTicker, fetchTickers, parseTrade, fetchTrades, fetchTradingFee, fetchPublicTradingFee, fetchPrivateTradingFee, fetchMyTrades, parseOrderStatus, parseOrderType, parseTimeInForce, parseOrder, fetchOpenOrders, fetchOrders, fetchOrder, createOrder, cancelOrder, cancelAllOrders, fetchTransactions, parseTransaction, parseTransactionStatus, parseTransactionType, fetchTransfers, transfer, parseTransfer, parseTransferStatus, sign, handleErrors, publicGetBookCurrencyQuote, publicGetChartWeek, publicGetChartWeekCurrencyQuote, publicGetCurrency, publicGetCurrencyAvailable, publicGetCurrencyQuotes, publicGetCurrencyCurrency, publicGetPair, publicGetPairAvailable, publicGetTicker, publicGetTickerBaseQuote, publicGetTime, publicGetTradeHistoryCurrencyQuote, publicGetTradeFeeCurrencyQuote, publicGetTradeFeeLevels, publicGetTransactionBindings, privateGetAuthAccount, privateGetAuthAccountCurrencyCurrencyType, privateGetAuthOrder, privateGetAuthOrderGetOrderId, privateGetAuthOrderPairCurrencyQuote, privateGetAuthOrderPairCurrencyQuoteActive, privateGetAuthStopOrder, privateGetAuthStopOrderGetOrderId, privateGetAuthStopOrderPairCurrencyQuote, privateGetAuthStopOrderPairCurrencyQuoteActive, privateGetAuthTrade, privateGetAuthTradePairCurrencyQuote, privateGetAuthTradeFeeCurrencyQuote, privateGetAuthTransaction, privateGetAuthTransactionBindings, privateGetAuthTransactionBindingsCurrency, privateGetAuthTransactionId, privateGetAuthTransfer, privatePostAuthOrderCancel, privatePostAuthOrderCancelAll, privatePostAuthOrderCancelAllCurrencyQuote, privatePostAuthOrderPlace, privatePostAuthSpotDeposit, privatePostAuthSpotWithdraw, privatePostAuthStopOrderCancel, privatePostAuthStopOrderCancelAll, privatePostAuthStopOrderCancelAllCurrencyQuote, privatePostAuthStopOrderPlace, privatePostAuthTransactionDepositAddress, privatePostAuthTransactionWithdraw, privatePostAuthTransactionWithdrawCancel, privatePostAuthTransactionWithdrawConfirm, privatePostAuthTransactionWithdrawResendCode, privatePostAuthTransferEmail, privatePostAuthTransferId, privatePostAuthTransferPhone)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

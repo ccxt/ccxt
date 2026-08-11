@@ -355,6 +355,7 @@ function describe(self::Bitstamp, )
         Symbol("createStopLimitOrder") => false,
         Symbol("createStopMarketOrder") => false,
         Symbol("createStopOrder") => false,
+        Symbol("editOrder") => true,
         Symbol("fetchBalance") => true,
         Symbol("fetchBorrowInterest") => false,
         Symbol("fetchBorrowRate") => false,
@@ -374,8 +375,8 @@ function describe(self::Bitstamp, )
         Symbol("fetchFundingHistory") => false,
         Symbol("fetchFundingInterval") => false,
         Symbol("fetchFundingIntervals") => false,
-        Symbol("fetchFundingRate") => false,
-        Symbol("fetchFundingRateHistory") => false,
+        Symbol("fetchFundingRate") => true,
+        Symbol("fetchFundingRateHistory") => true,
         Symbol("fetchFundingRates") => false,
         Symbol("fetchGreeks") => false,
         Symbol("fetchIndexOHLCV") => false,
@@ -466,275 +467,801 @@ function describe(self::Bitstamp, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("ohlc/{pair}/") => 1,
-                Symbol("order_book/{pair}/") => 1,
-                Symbol("ticker/") => 1,
-                Symbol("ticker_hour/{pair}/") => 1,
-                Symbol("ticker/{pair}/") => 1,
-                Symbol("transactions/{pair}/") => 1,
-                Symbol("trading-pairs-info/") => 1,
-                Symbol("markets/") => 1,
-                Symbol("currencies/") => 1,
-                Symbol("eur_usd/") => 1,
-                Symbol("travel_rule/vasps/") => 1,
-                Symbol("funding_rate/{market_symbol}/") => 1,
-                Symbol("funding_rate_history/{pair}/") => 1
+                Symbol("ohlc/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order_book/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker_hour/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transactions/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trading-pairs-info/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currencies/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("eur_usd/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("travel_rule/vasps/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("funding_rate/{market_symbol}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("funding_rate_history/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("travel_rule/contacts/") => 1,
-                Symbol("contacts/{contact_uuid}/") => 1,
-                Symbol("earn/subscriptions/") => 1,
-                Symbol("earn/transactions/") => 1,
-                Symbol("trade_history/") => 1,
-                Symbol("trade_history/{pair}") => 1
+                Symbol("travel_rule/contacts/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contacts/{contact_uuid}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("earn/subscriptions/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("earn/transactions/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade_history/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade_history/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("account_balances/") => 1,
-                Symbol("account_balances/{currency}/") => 1,
-                Symbol("balance/") => 1,
-                Symbol("balance/{pair}/") => 1,
-                Symbol("bch_withdrawal/") => 1,
-                Symbol("bch_address/") => 1,
-                Symbol("user_transactions/") => 1,
-                Symbol("user_transactions/{pair}/") => 1,
-                Symbol("crypto-transactions/") => 1,
-                Symbol("open_order") => 1,
-                Symbol("open_orders/all/") => 1,
-                Symbol("open_orders/{pair}/") => 1,
-                Symbol("replace_order/") => 1,
-                Symbol("order_status/") => 1,
-                Symbol("cancel_order/") => 1,
-                Symbol("cancel_all_orders/") => 1,
-                Symbol("cancel_all_orders/{pair}/") => 1,
-                Symbol("buy/{pair}/") => 1,
-                Symbol("buy/market/{pair}/") => 1,
-                Symbol("buy/instant/{pair}/") => 1,
-                Symbol("sell/{pair}/") => 1,
-                Symbol("sell/market/{pair}/") => 1,
-                Symbol("sell/instant/{pair}/") => 1,
-                Symbol("transfer-to-main/") => 1,
-                Symbol("transfer-from-main/") => 1,
-                Symbol("my_trading_pairs/") => 1,
-                Symbol("fees/trading/") => 1,
-                Symbol("fees/trading/{market_symbol}") => 1,
-                Symbol("fees/withdrawal/") => 1,
-                Symbol("fees/withdrawal/{currency}/") => 1,
-                Symbol("withdrawal-requests/") => 1,
-                Symbol("withdrawal/open/") => 1,
-                Symbol("withdrawal/status/") => 1,
-                Symbol("withdrawal/cancel/") => 1,
-                Symbol("liquidation_address/new/") => 1,
-                Symbol("liquidation_address/info/") => 1,
-                Symbol("btc_unconfirmed/") => 1,
-                Symbol("websockets_token/") => 1,
-                Symbol("revoke_all_api_keys/") => 1,
-                Symbol("get_max_order_amount/") => 1,
-                Symbol("btc_withdrawal/") => 1,
-                Symbol("btc_address/") => 1,
-                Symbol("ripple_withdrawal/") => 1,
-                Symbol("ripple_address/") => 1,
-                Symbol("ltc_withdrawal/") => 1,
-                Symbol("ltc_address/") => 1,
-                Symbol("eth_withdrawal/") => 1,
-                Symbol("eth_address/") => 1,
-                Symbol("xrp_withdrawal/") => 1,
-                Symbol("xrp_address/") => 1,
-                Symbol("xlm_withdrawal/") => 1,
-                Symbol("xlm_address/") => 1,
-                Symbol("pax_withdrawal/") => 1,
-                Symbol("pax_address/") => 1,
-                Symbol("link_withdrawal/") => 1,
-                Symbol("link_address/") => 1,
-                Symbol("usdc_withdrawal/") => 1,
-                Symbol("usdc_address/") => 1,
-                Symbol("omg_withdrawal/") => 1,
-                Symbol("omg_address/") => 1,
-                Symbol("dai_withdrawal/") => 1,
-                Symbol("dai_address/") => 1,
-                Symbol("knc_withdrawal/") => 1,
-                Symbol("knc_address/") => 1,
-                Symbol("mkr_withdrawal/") => 1,
-                Symbol("mkr_address/") => 1,
-                Symbol("zrx_withdrawal/") => 1,
-                Symbol("zrx_address/") => 1,
-                Symbol("gusd_withdrawal/") => 1,
-                Symbol("gusd_address/") => 1,
-                Symbol("aave_withdrawal/") => 1,
-                Symbol("aave_address/") => 1,
-                Symbol("bat_withdrawal/") => 1,
-                Symbol("bat_address/") => 1,
-                Symbol("uma_withdrawal/") => 1,
-                Symbol("uma_address/") => 1,
-                Symbol("snx_withdrawal/") => 1,
-                Symbol("snx_address/") => 1,
-                Symbol("uni_withdrawal/") => 1,
-                Symbol("uni_address/") => 1,
-                Symbol("yfi_withdrawal/") => 1,
-                Symbol("yfi_address/") => 1,
-                Symbol("audio_withdrawal/") => 1,
-                Symbol("audio_address/") => 1,
-                Symbol("crv_withdrawal/") => 1,
-                Symbol("crv_address/") => 1,
-                Symbol("algo_withdrawal/") => 1,
-                Symbol("algo_address/") => 1,
-                Symbol("comp_withdrawal/") => 1,
-                Symbol("comp_address/") => 1,
-                Symbol("grt_withdrawal/") => 1,
-                Symbol("grt_address/") => 1,
-                Symbol("usdt_withdrawal/") => 1,
-                Symbol("usdt_address/") => 1,
-                Symbol("eurt_withdrawal/") => 1,
-                Symbol("eurt_address/") => 1,
-                Symbol("matic_withdrawal/") => 1,
-                Symbol("matic_address/") => 1,
-                Symbol("sushi_withdrawal/") => 1,
-                Symbol("sushi_address/") => 1,
-                Symbol("chz_withdrawal/") => 1,
-                Symbol("chz_address/") => 1,
-                Symbol("enj_withdrawal/") => 1,
-                Symbol("enj_address/") => 1,
-                Symbol("alpha_withdrawal/") => 1,
-                Symbol("alpha_address/") => 1,
-                Symbol("ftt_withdrawal/") => 1,
-                Symbol("ftt_address/") => 1,
-                Symbol("storj_withdrawal/") => 1,
-                Symbol("storj_address/") => 1,
-                Symbol("axs_withdrawal/") => 1,
-                Symbol("axs_address/") => 1,
-                Symbol("sand_withdrawal/") => 1,
-                Symbol("sand_address/") => 1,
-                Symbol("hbar_withdrawal/") => 1,
-                Symbol("hbar_address/") => 1,
-                Symbol("rgt_withdrawal/") => 1,
-                Symbol("rgt_address/") => 1,
-                Symbol("fet_withdrawal/") => 1,
-                Symbol("fet_address/") => 1,
-                Symbol("skl_withdrawal/") => 1,
-                Symbol("skl_address/") => 1,
-                Symbol("cel_withdrawal/") => 1,
-                Symbol("cel_address/") => 1,
-                Symbol("sxp_withdrawal/") => 1,
-                Symbol("sxp_address/") => 1,
-                Symbol("ada_withdrawal/") => 1,
-                Symbol("ada_address/") => 1,
-                Symbol("slp_withdrawal/") => 1,
-                Symbol("slp_address/") => 1,
-                Symbol("ftm_withdrawal/") => 1,
-                Symbol("ftm_address/") => 1,
-                Symbol("perp_withdrawal/") => 1,
-                Symbol("perp_address/") => 1,
-                Symbol("dydx_withdrawal/") => 1,
-                Symbol("dydx_address/") => 1,
-                Symbol("gala_withdrawal/") => 1,
-                Symbol("gala_address/") => 1,
-                Symbol("shib_withdrawal/") => 1,
-                Symbol("shib_address/") => 1,
-                Symbol("amp_withdrawal/") => 1,
-                Symbol("amp_address/") => 1,
-                Symbol("sgb_withdrawal/") => 1,
-                Symbol("sgb_address/") => 1,
-                Symbol("avax_withdrawal/") => 1,
-                Symbol("avax_address/") => 1,
-                Symbol("wbtc_withdrawal/") => 1,
-                Symbol("wbtc_address/") => 1,
-                Symbol("ctsi_withdrawal/") => 1,
-                Symbol("ctsi_address/") => 1,
-                Symbol("cvx_withdrawal/") => 1,
-                Symbol("cvx_address/") => 1,
-                Symbol("imx_withdrawal/") => 1,
-                Symbol("imx_address/") => 1,
-                Symbol("nexo_withdrawal/") => 1,
-                Symbol("nexo_address/") => 1,
-                Symbol("ust_withdrawal/") => 1,
-                Symbol("ust_address/") => 1,
-                Symbol("ant_withdrawal/") => 1,
-                Symbol("ant_address/") => 1,
-                Symbol("gods_withdrawal/") => 1,
-                Symbol("gods_address/") => 1,
-                Symbol("rad_withdrawal/") => 1,
-                Symbol("rad_address/") => 1,
-                Symbol("band_withdrawal/") => 1,
-                Symbol("band_address/") => 1,
-                Symbol("inj_withdrawal/") => 1,
-                Symbol("inj_address/") => 1,
-                Symbol("rly_withdrawal/") => 1,
-                Symbol("rly_address/") => 1,
-                Symbol("rndr_withdrawal/") => 1,
-                Symbol("rndr_address/") => 1,
-                Symbol("vega_withdrawal/") => 1,
-                Symbol("vega_address/") => 1,
-                Symbol("1inch_withdrawal/") => 1,
-                Symbol("1inch_address/") => 1,
-                Symbol("ens_withdrawal/") => 1,
-                Symbol("ens_address/") => 1,
-                Symbol("mana_withdrawal/") => 1,
-                Symbol("mana_address/") => 1,
-                Symbol("lrc_withdrawal/") => 1,
-                Symbol("lrc_address/") => 1,
-                Symbol("ape_withdrawal/") => 1,
-                Symbol("ape_address/") => 1,
-                Symbol("mpl_withdrawal/") => 1,
-                Symbol("mpl_address/") => 1,
-                Symbol("euroc_withdrawal/") => 1,
-                Symbol("euroc_address/") => 1,
-                Symbol("sol_withdrawal/") => 1,
-                Symbol("sol_address/") => 1,
-                Symbol("dot_withdrawal/") => 1,
-                Symbol("dot_address/") => 1,
-                Symbol("near_withdrawal/") => 1,
-                Symbol("near_address/") => 1,
-                Symbol("doge_withdrawal/") => 1,
-                Symbol("doge_address/") => 1,
-                Symbol("flr_withdrawal/") => 1,
-                Symbol("flr_address/") => 1,
-                Symbol("dgld_withdrawal/") => 1,
-                Symbol("dgld_address/") => 1,
-                Symbol("ldo_withdrawal/") => 1,
-                Symbol("ldo_address/") => 1,
-                Symbol("travel_rule/contacts/") => 1,
-                Symbol("earn/subscribe/") => 1,
-                Symbol("earn/subscriptions/setting/") => 1,
-                Symbol("earn/unsubscribe") => 1,
-                Symbol("wecan_withdrawal/") => 1,
-                Symbol("wecan_address/") => 1,
-                Symbol("trac_withdrawal/") => 1,
-                Symbol("trac_address/") => 1,
-                Symbol("eurcv_withdrawal/") => 1,
-                Symbol("eurcv_address/") => 1,
-                Symbol("pyusd_withdrawal/") => 1,
-                Symbol("pyusd_address/") => 1,
-                Symbol("lmwr_withdrawal/") => 1,
-                Symbol("lmwr_address/") => 1,
-                Symbol("pepe_withdrawal/") => 1,
-                Symbol("pepe_address/") => 1,
-                Symbol("blur_withdrawal/") => 1,
-                Symbol("blur_address/") => 1,
-                Symbol("vext_withdrawal/") => 1,
-                Symbol("vext_address/") => 1,
-                Symbol("cspr_withdrawal/") => 1,
-                Symbol("cspr_address/") => 1,
-                Symbol("vchf_withdrawal/") => 1,
-                Symbol("vchf_address/") => 1,
-                Symbol("veur_withdrawal/") => 1,
-                Symbol("veur_address/") => 1,
-                Symbol("truf_withdrawal/") => 1,
-                Symbol("truf_address/") => 1,
-                Symbol("wif_withdrawal/") => 1,
-                Symbol("wif_address/") => 1,
-                Symbol("smt_withdrawal/") => 1,
-                Symbol("smt_address/") => 1,
-                Symbol("sui_withdrawal/") => 1,
-                Symbol("sui_address/") => 1,
-                Symbol("jup_withdrawal/") => 1,
-                Symbol("jup_address/") => 1,
-                Symbol("ondo_withdrawal/") => 1,
-                Symbol("ondo_address/") => 1,
-                Symbol("boba_withdrawal/") => 1,
-                Symbol("boba_address/") => 1,
-                Symbol("pyth_withdrawal/") => 1,
-                Symbol("pyth_address/") => 1
+                Symbol("account_balances/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account_balances/{currency}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("balance/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("balance/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bch_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bch_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user_transactions/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user_transactions/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("crypto-transactions/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open_orders/all/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("open_orders/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("replace_order/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order_status/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_order/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_all_orders/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_all_orders/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("buy/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("buy/market/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("buy/instant/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sell/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sell/market/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sell/instant/{pair}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfer-to-main/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfer-from-main/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("my_trading_pairs/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fees/trading/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fees/trading/{market_symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fees/withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fees/withdrawal/{currency}/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawal-requests/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawal/open/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawal/status/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawal/cancel/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("liquidation_address/new/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("liquidation_address/info/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("btc_unconfirmed/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("websockets_token/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("revoke_all_api_keys/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_max_order_amount/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("btc_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("btc_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ripple_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ripple_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ltc_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ltc_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("eth_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("eth_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("xrp_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("xrp_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("xlm_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("xlm_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pax_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pax_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("link_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("link_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("usdc_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("usdc_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("omg_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("omg_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dai_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dai_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("knc_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("knc_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("mkr_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("mkr_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("zrx_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("zrx_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("gusd_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("gusd_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("aave_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("aave_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bat_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bat_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("uma_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("uma_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("snx_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("snx_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("uni_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("uni_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("yfi_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("yfi_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("audio_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("audio_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("crv_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("crv_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("algo_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("comp_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("comp_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("grt_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("grt_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("usdt_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("usdt_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("eurt_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("eurt_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("matic_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("matic_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sushi_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sushi_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("chz_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("chz_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("enj_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("enj_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("alpha_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("alpha_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ftt_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ftt_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("storj_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("storj_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("axs_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("axs_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sand_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sand_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("hbar_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("hbar_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rgt_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rgt_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fet_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fet_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("skl_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("skl_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cel_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cel_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sxp_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sxp_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ada_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ada_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("slp_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("slp_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ftm_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ftm_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("perp_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("perp_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dydx_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dydx_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("gala_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("gala_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("shib_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("shib_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("amp_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("amp_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sgb_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sgb_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("avax_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("avax_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wbtc_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wbtc_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ctsi_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ctsi_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cvx_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cvx_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("imx_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("imx_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("nexo_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("nexo_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ust_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ust_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ant_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ant_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("gods_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("gods_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rad_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rad_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("band_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("band_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("inj_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("inj_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rly_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rly_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rndr_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rndr_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vega_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vega_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("1inch_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("1inch_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ens_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ens_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("mana_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("mana_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lrc_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lrc_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ape_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ape_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("mpl_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("mpl_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("euroc_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("euroc_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sol_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sol_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dot_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dot_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("near_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("near_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("doge_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("doge_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("flr_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("flr_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dgld_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dgld_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ldo_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ldo_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("travel_rule/contacts/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("earn/subscribe/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("earn/subscriptions/setting/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("earn/unsubscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wecan_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wecan_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trac_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trac_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("eurcv_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("eurcv_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pyusd_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pyusd_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lmwr_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lmwr_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pepe_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pepe_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("blur_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("blur_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vext_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vext_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cspr_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cspr_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vchf_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("vchf_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("veur_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("veur_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("truf_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("truf_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wif_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wif_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("smt_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("smt_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sui_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sui_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("jup_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("jup_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ondo_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ondo_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("boba_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("boba_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pyth_withdrawal/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pyth_address/") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -1028,6 +1555,7 @@ function fetchCurrencies(self::Bitstamp, params=Dict())
     self.options[Symbol("_temp_currencies_result")] = Dict{Symbol, Any}();
     result = self.parseCurrencies(response);
     finalResult = deepExtend(result, get(self.options, Symbol("_temp_currencies_result"), nothing));
+    delete!(self.options, :_temp_currencies_result);
     return finalResult
 
 end
@@ -1038,19 +1566,29 @@ function parseCurrency(self::Bitstamp, rawCurrency)
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
     description = safeString(market, "description");
+    if functions.ccxtruthy(description == nothing)
+        throw(ExchangeError(string(self.id, " parseCurrency() missing description")));
+    end
     (baseDescription, quoteDescription) = split(description, " / ");
     minimumOrder = safeString(market, "minimum_order_value");
+    if functions.ccxtruthy(minimumOrder == nothing)
+        throw(ExchangeError(string(self.id, " parseCurrency() missing minimumOrder")));
+    end
     parts = split(minimumOrder, " ");
     cost = get(parts, 1, nothing);
-    if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(base, existing))))
+    if functions.ccxtruthy(@functions.ccxt_or((base == nothing), !functions.ccxtruthy((ccxt_in(base, existing)))))
         baseDecimals = safeInteger(market, "base_decimals");
-        self.options[Symbol("_temp_currencies_result")][Symbol(base)] = self.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, nothing, market);
+        if functions.ccxtruthy(base != nothing)
+            self.options[Symbol("_temp_currencies_result")][Symbol(base)] = self.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, nothing, market);
+        end
     end
-    if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(quote_var, existing))))
+    if functions.ccxtruthy(@functions.ccxt_or((quote_var == nothing), !functions.ccxtruthy((ccxt_in(quote_var, existing)))))
         counterDecimals = safeInteger(market, "counter_decimals");
-        self.options[Symbol("_temp_currencies_result")][Symbol(quote_var)] = self.constructCurrencyObject(quoteId, quote_var, quoteDescription, counterDecimals, self.parseNumber(cost), market);
+        if functions.ccxtruthy(quote_var != nothing)
+            self.options[Symbol("_temp_currencies_result")][Symbol(quote_var)] = self.constructCurrencyObject(quoteId, quote_var, quoteDescription, counterDecimals, self.parseNumber(cost), market);
+        end
     end
-    return get(get(self.options, Symbol("_temp_currencies_result"), nothing), Symbol(quote_var), nothing)
+    return safeValue(get(self.options, Symbol("_temp_currencies_result"), nothing), quote_var)
 
 end
 function fetchOrderBook(self::Bitstamp, symbol, limit=nothing, params=Dict())
@@ -1063,6 +1601,9 @@ function fetchOrderBook(self::Bitstamp, symbol, limit=nothing, params=Dict())
     );
     response = Base.fetch(self.publicGetOrderBookPair(extend(request, params)));
     microtimestamp = safeInteger(response, "microtimestamp");
+    if functions.ccxtruthy(microtimestamp == nothing)
+        throw(ExchangeError(string(self.id, " fetchOrderBook() missing microtimestamp")));
+    end
     timestamp = self.parseToInt(microtimestamp / 1000);
     orderbook = self.parseOrderBook(response, get(market, Symbol("symbol"), nothing), timestamp);
     orderbook[Symbol("nonce")] = microtimestamp;
@@ -1151,11 +1692,11 @@ function getMarketFromTrade(self::Bitstamp, trade)
     end
     if functions.ccxtruthy(numCurrencyIds == 2)
         marketId = string(get(currencyIds, 1, nothing), get(currencyIds, 2, nothing));
-        if functions.ccxtruthy(ccxt_in(marketId, self.markets_by_id))
+        if functions.ccxtruthy(@functions.ccxt_and((self.markets_by_id != nothing), (ccxt_in(marketId, self.markets_by_id))))
                 return self.safeMarket(marketId)
         end
         marketId = string(get(currencyIds, 2, nothing), get(currencyIds, 1, nothing));
-        if functions.ccxtruthy(ccxt_in(marketId, self.markets_by_id))
+        if functions.ccxtruthy(@functions.ccxt_and((self.markets_by_id != nothing), (ccxt_in(marketId, self.markets_by_id))))
                 return self.safeMarket(marketId)
         end
     end
@@ -1334,7 +1875,9 @@ function parseBalance(self::Bitstamp, response)
         account[Symbol("free")] = safeString(currencyBalance, "available");
         account[Symbol("used")] = safeString(currencyBalance, "reserved");
         account[Symbol("total")] = safeString(currencyBalance, "total");
-        result[Symbol(currencyCode)] = account;
+        if functions.ccxtruthy(currencyCode != nothing)
+            result[Symbol(currencyCode)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1359,6 +1902,9 @@ function fetchTradingFee(self::Bitstamp, symbol, params=Dict())
     response = Base.fetch(self.privatePostFeesTrading(extend(request, params)));
     tradingFeesByMarketId = indexBy(response, "currency_pair");
     tradingFee = self.safeDict(tradingFeesByMarketId, get(market, Symbol("id"), nothing));
+    if functions.ccxtruthy(tradingFee == nothing)
+        tradingFee = Dict{Symbol, Any}();
+    end
     return self.parseTradingFee(tradingFee, market)
 
 end
@@ -1383,7 +1929,9 @@ function parseTradingFees(self::Bitstamp, fees)
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fees)))
         fee = self.parseTradingFee(get(fees, i + 1, nothing));
         symbol = get(fee, Symbol("symbol"), nothing);
-        result[Symbol(symbol)] = fee;
+        if functions.ccxtruthy(symbol != nothing)
+            result[Symbol(symbol)] = fee;
+        end
         i += 1
     end
     return result
@@ -1417,11 +1965,13 @@ function parseTransactionFees(self::Bitstamp, response, codes=nothing)
         if functions.ccxtruthy(@functions.ccxt_and((codes != nothing), !functions.ccxtruthy(inArray(code, codes))))
             i += 1; continue
         end
-        result[Symbol(code)] = Dict{Symbol, Any}(
-            Symbol("withdraw_fee") => self.safeNumber(fees, "fee"),
-            Symbol("deposit") => Dict{Symbol, Any}(),
-            Symbol("info") => self.safeDict(currencies, id)
-        );
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = Dict{Symbol, Any}(
+                Symbol("withdraw_fee") => self.safeNumber(fees, "fee"),
+                Symbol("deposit") => Dict{Symbol, Any}(),
+                Symbol("info") => self.safeDict(currencies, id)
+            );
+        end
         i += 1
     end
     return result
@@ -1449,16 +1999,18 @@ function parseDepositWithdrawFee(self::Bitstamp, fee, currency=nothing)
             Symbol("fee") => withdrawFee,
             Symbol("percentage") => nothing
         );
-        result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("withdraw") => Dict{Symbol, Any}(
-                Symbol("fee") => withdrawFee,
-                Symbol("percentage") => nothing
-            ),
-            Symbol("deposit") => Dict{Symbol, Any}(
-                Symbol("fee") => nothing,
-                Symbol("percentage") => nothing
-            )
-        );
+        if functions.ccxtruthy(networkCode != nothing)
+            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("withdraw") => Dict{Symbol, Any}(
+                    Symbol("fee") => withdrawFee,
+                    Symbol("percentage") => nothing
+                ),
+                Symbol("deposit") => Dict{Symbol, Any}(
+                    Symbol("fee") => nothing,
+                    Symbol("percentage") => nothing
+                )
+            );
+        end
         j += 1
     end
     return result
@@ -1500,7 +2052,8 @@ function createOrder(self::Bitstamp, symbol, type_var, side, amount, price=nothi
             response = Base.fetch(self.privatePostSellPair(extend(request, params)));
         end
     end
-    order = self.parseOrder(response, market);
+    orderResponse = functions.ccxtruthy((response == nothing)) ? Dict{Symbol, Any}() : response;
+    order = self.parseOrder(orderResponse, market);
     order[Symbol("type")] = type_var;
     return order
 
@@ -1618,7 +2171,7 @@ function fetchMyTrades(self::Bitstamp, symbol=nothing, since=nothing, limit=noth
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     result = filterBy(response, "type", "2");
     return self.parseTrades(result, market, since, limit)
 
@@ -1986,7 +2539,7 @@ function fetchDepositAddress(self::Bitstamp, code, params=Dict())
     end
     name = self.getCurrencyName(code);
     method = string("privatePost", capitalize(name), "Address");
-    response = Base.fetch(getproperty(self, Symbol(method))(self, params));
+    response = Base.fetch(getproperty(self, Symbol(method))(params));
     address = safeString(response, "address");
     tag = safeString2(response, "memo_id", "destination_tag");
     self.checkAddress(address);
@@ -2029,7 +2582,7 @@ function withdraw(self::Bitstamp, code, amount, address, tag=nothing, params=Dic
         request[Symbol("iban")] = address;
         request[Symbol("account_currency")] = get(currency, Symbol("id"), nothing);
     end
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     return self.parseTransaction(response, currency)
 
 end
@@ -2050,7 +2603,7 @@ function transfer(self::Bitstamp, code, amount, fromAccount, toAccount, params=D
         request[Symbol("subAccount")] = fromAccount;
         response = Base.fetch(self.privatePostTransferToMain(extend(request, params)));
     else
-        throw(BadRequest(string(self.id, " transfer() only supports from or to main")));
+        throw(BadRequest(string(self.id, " Ccxt.transfer() only supports from or to main")));
     end
     transfer = self.parseTransfer(response, currency);
     transfer[Symbol("amount")] = amount;
@@ -2061,17 +2614,21 @@ function transfer(self::Bitstamp, code, amount, fromAccount, toAccount, params=D
 end
 function parseTransfer(self::Bitstamp, transfer, currency=nothing)
     status = safeString(transfer, "status");
-    return Dict{Symbol, Any}(
-    Symbol("info") => transfer,
-    Symbol("id") => nothing,
-    Symbol("timestamp") => nothing,
-    Symbol("datetime") => nothing,
-    Symbol("currency") => get(currency, Symbol("code"), nothing),
-    Symbol("amount") => nothing,
-    Symbol("fromAccount") => nothing,
-    Symbol("toAccount") => nothing,
-    Symbol("status") => self.parseTransferStatus(status)
-)
+    if functions.ccxtruthy(currency == nothing)
+        throw(ExchangeError(string(self.id, " parseTransfer() could not resolve currency")));
+    end
+    result = Dict{Symbol, Any}(
+        Symbol("info") => transfer,
+        Symbol("id") => nothing,
+        Symbol("timestamp") => nothing,
+        Symbol("datetime") => nothing,
+        Symbol("currency") => get(currency, Symbol("code"), nothing),
+        Symbol("amount") => nothing,
+        Symbol("fromAccount") => nothing,
+        Symbol("toAccount") => nothing,
+        Symbol("status") => self.parseTransferStatus(status)
+    );
+    return result
 
 end
 function parseTransferStatus(self::Bitstamp, status)
@@ -2188,1068 +2745,1121 @@ function handleErrors(self::Bitstamp, httpCode, reason, url, method, headers, bo
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitstamp, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetOhlcPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ohlc/{pair}/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ohlc/{pair}/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderBookPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "order_book/{pair}/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order_book/{pair}/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ticker/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickerHourPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ticker_hour/{pair}/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker_hour/{pair}/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickerPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ticker/{pair}/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker/{pair}/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTransactionsPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "transactions/{pair}/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transactions/{pair}/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradingPairsInfo(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "trading-pairs-info/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trading-pairs-info/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarkets(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "markets/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrencies(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "currencies/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "currencies/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetEurUsd(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eur_usd/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "eur_usd/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTravelRuleVasps(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "travel_rule/vasps/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "travel_rule/vasps/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetFundingRateMarketSymbol(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "funding_rate/{market_symbol}/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "funding_rate/{market_symbol}/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetFundingRateHistoryPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "funding_rate_history/{pair}/", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "funding_rate_history/{pair}/", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTravelRuleContacts(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "travel_rule/contacts/", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "travel_rule/contacts/", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContactsContactUuid(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "contacts/{contact_uuid}/", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contacts/{contact_uuid}/", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetEarnSubscriptions(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "earn/subscriptions/", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "earn/subscriptions/", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetEarnTransactions(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "earn/transactions/", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "earn/transactions/", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeHistory(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "trade_history/", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade_history/", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeHistoryPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "trade_history/{pair}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade_history/{pair}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountBalances(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "account_balances/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account_balances/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountBalancesCurrency(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "account_balances/{currency}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account_balances/{currency}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBalance(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "balance/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "balance/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBalancePair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "balance/{pair}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "balance/{pair}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBchWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "bch_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "bch_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBchAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "bch_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "bch_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserTransactions(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "user_transactions/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user_transactions/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserTransactionsPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "user_transactions/{pair}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user_transactions/{pair}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCryptoTransactions(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "crypto-transactions/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "crypto-transactions/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenOrder(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "open_order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "open_order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenOrdersAll(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "open_orders/all/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "open_orders/all/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenOrdersPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "open_orders/{pair}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "open_orders/{pair}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostReplaceOrder(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "replace_order/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "replace_order/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderStatus(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "order_status/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order_status/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelOrder(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cancel_order/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cancel_order/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelAllOrders(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cancel_all_orders/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cancel_all_orders/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelAllOrdersPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cancel_all_orders/{pair}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cancel_all_orders/{pair}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBuyPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "buy/{pair}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "buy/{pair}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBuyMarketPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "buy/market/{pair}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "buy/market/{pair}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBuyInstantPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "buy/instant/{pair}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "buy/instant/{pair}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSellPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sell/{pair}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sell/{pair}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSellMarketPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sell/market/{pair}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sell/market/{pair}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSellInstantPair(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sell/instant/{pair}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sell/instant/{pair}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTransferToMain(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "transfer-to-main/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transfer-to-main/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTransferFromMain(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "transfer-from-main/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "transfer-from-main/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMyTradingPairs(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "my_trading_pairs/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "my_trading_pairs/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFeesTrading(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fees/trading/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fees/trading/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFeesTradingMarketSymbol(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fees/trading/{market_symbol}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fees/trading/{market_symbol}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFeesWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fees/withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fees/withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFeesWithdrawalCurrency(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fees/withdrawal/{currency}/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fees/withdrawal/{currency}/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawalRequests(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "withdrawal-requests/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawal-requests/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawalOpen(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "withdrawal/open/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawal/open/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawalStatus(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "withdrawal/status/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawal/status/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawalCancel(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "withdrawal/cancel/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdrawal/cancel/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLiquidationAddressNew(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "liquidation_address/new/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "liquidation_address/new/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLiquidationAddressInfo(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "liquidation_address/info/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "liquidation_address/info/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBtcUnconfirmed(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "btc_unconfirmed/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "btc_unconfirmed/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWebsocketsToken(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "websockets_token/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "websockets_token/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRevokeAllApiKeys(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "revoke_all_api_keys/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "revoke_all_api_keys/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetMaxOrderAmount(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "get_max_order_amount/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_max_order_amount/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBtcWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "btc_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "btc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBtcAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "btc_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "btc_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRippleWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ripple_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ripple_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRippleAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ripple_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ripple_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLtcWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ltc_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ltc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLtcAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ltc_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ltc_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEthWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eth_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "eth_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEthAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eth_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "eth_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostXrpWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "xrp_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "xrp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostXrpAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "xrp_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "xrp_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostXlmWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "xlm_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "xlm_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostXlmAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "xlm_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "xlm_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPaxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pax_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pax_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPaxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pax_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pax_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLinkWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "link_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "link_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLinkAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "link_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "link_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUsdcWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "usdc_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "usdc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUsdcAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "usdc_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "usdc_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOmgWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "omg_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "omg_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOmgAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "omg_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "omg_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDaiWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dai_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dai_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDaiAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dai_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dai_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostKncWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "knc_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "knc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostKncAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "knc_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "knc_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMkrWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mkr_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mkr_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMkrAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mkr_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mkr_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostZrxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "zrx_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "zrx_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostZrxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "zrx_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "zrx_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGusdWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gusd_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "gusd_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGusdAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gusd_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "gusd_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAaveWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "aave_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "aave_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAaveAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "aave_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "aave_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBatWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "bat_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "bat_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBatAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "bat_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "bat_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUmaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "uma_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "uma_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUmaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "uma_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "uma_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSnxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "snx_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "snx_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSnxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "snx_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "snx_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUniWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "uni_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "uni_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUniAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "uni_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "uni_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostYfiWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "yfi_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "yfi_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostYfiAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "yfi_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "yfi_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAudioWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "audio_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "audio_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAudioAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "audio_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "audio_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCrvWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "crv_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "crv_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCrvAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "crv_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "crv_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAlgoWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "algo_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAlgoAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "algo_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCompWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "comp_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "comp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCompAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "comp_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "comp_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGrtWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "grt_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "grt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGrtAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "grt_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "grt_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUsdtWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "usdt_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "usdt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUsdtAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "usdt_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "usdt_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEurtWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eurt_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "eurt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEurtAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eurt_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "eurt_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMaticWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "matic_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "matic_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMaticAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "matic_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "matic_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSushiWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sushi_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sushi_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSushiAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sushi_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sushi_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostChzWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "chz_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "chz_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostChzAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "chz_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "chz_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEnjWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "enj_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "enj_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEnjAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "enj_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "enj_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAlphaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "alpha_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "alpha_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAlphaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "alpha_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "alpha_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFttWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ftt_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ftt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFttAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ftt_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ftt_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostStorjWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "storj_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "storj_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostStorjAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "storj_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "storj_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAxsWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "axs_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "axs_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAxsAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "axs_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "axs_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSandWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sand_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sand_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSandAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sand_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sand_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostHbarWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "hbar_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "hbar_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostHbarAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "hbar_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "hbar_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRgtWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rgt_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "rgt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRgtAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rgt_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "rgt_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFetWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fet_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fet_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFetAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "fet_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fet_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSklWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "skl_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "skl_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSklAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "skl_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "skl_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCelWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cel_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cel_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCelAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cel_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cel_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSxpWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sxp_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sxp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSxpAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sxp_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sxp_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAdaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ada_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ada_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAdaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ada_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ada_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSlpWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "slp_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "slp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSlpAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "slp_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "slp_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFtmWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ftm_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ftm_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFtmAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ftm_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ftm_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPerpWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "perp_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "perp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPerpAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "perp_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "perp_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDydxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dydx_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dydx_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDydxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dydx_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dydx_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGalaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gala_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "gala_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGalaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gala_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "gala_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostShibWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "shib_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "shib_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostShibAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "shib_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "shib_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAmpWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "amp_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "amp_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAmpAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "amp_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "amp_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSgbWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sgb_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sgb_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSgbAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sgb_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sgb_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAvaxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "avax_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "avax_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAvaxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "avax_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "avax_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWbtcWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wbtc_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wbtc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWbtcAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wbtc_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wbtc_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCtsiWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ctsi_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ctsi_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCtsiAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ctsi_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ctsi_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCvxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cvx_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cvx_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCvxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cvx_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cvx_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostImxWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "imx_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "imx_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostImxAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "imx_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "imx_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostNexoWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "nexo_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "nexo_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostNexoAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "nexo_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "nexo_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUstWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ust_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ust_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUstAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ust_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ust_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAntWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ant_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ant_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAntAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ant_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ant_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGodsWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gods_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "gods_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGodsAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "gods_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "gods_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRadWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rad_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "rad_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRadAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rad_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "rad_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBandWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "band_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "band_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBandAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "band_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "band_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostInjWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "inj_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "inj_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostInjAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "inj_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "inj_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRlyWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rly_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "rly_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRlyAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rly_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "rly_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRndrWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rndr_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "rndr_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRndrAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "rndr_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "rndr_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostVegaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vega_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vega_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostVegaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vega_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vega_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePost1inchWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "1inch_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "1inch_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePost1inchAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "1inch_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "1inch_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEnsWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ens_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ens_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEnsAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ens_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ens_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostManaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mana_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mana_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostManaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mana_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mana_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLrcWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "lrc_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "lrc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLrcAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "lrc_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "lrc_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApeWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ape_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ape_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApeAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ape_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ape_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMplWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mpl_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mpl_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMplAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "mpl_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "mpl_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEurocWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "euroc_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "euroc_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEurocAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "euroc_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "euroc_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSolWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sol_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sol_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSolAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sol_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sol_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDotWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dot_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dot_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDotAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dot_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dot_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostNearWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "near_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "near_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostNearAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "near_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "near_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDogeWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "doge_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "doge_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDogeAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "doge_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "doge_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFlrWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "flr_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "flr_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFlrAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "flr_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "flr_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDgldWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dgld_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dgld_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDgldAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "dgld_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "dgld_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLdoWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ldo_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ldo_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLdoAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ldo_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ldo_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTravelRuleContacts(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "travel_rule/contacts/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "travel_rule/contacts/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEarnSubscribe(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "earn/subscribe/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "earn/subscribe/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEarnSubscriptionsSetting(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "earn/subscriptions/setting/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "earn/subscriptions/setting/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEarnUnsubscribe(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "earn/unsubscribe", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "earn/unsubscribe", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWecanWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wecan_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wecan_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWecanAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wecan_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wecan_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTracWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "trac_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trac_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTracAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "trac_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trac_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEurcvWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eurcv_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "eurcv_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEurcvAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "eurcv_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "eurcv_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPyusdWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pyusd_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pyusd_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPyusdAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pyusd_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pyusd_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLmwrWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "lmwr_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "lmwr_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLmwrAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "lmwr_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "lmwr_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPepeWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pepe_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pepe_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPepeAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pepe_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pepe_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBlurWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "blur_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "blur_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBlurAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "blur_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "blur_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostVextWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vext_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vext_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostVextAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vext_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vext_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCsprWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cspr_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cspr_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCsprAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "cspr_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cspr_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostVchfWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vchf_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vchf_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostVchfAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "vchf_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "vchf_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostVeurWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "veur_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "veur_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostVeurAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "veur_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "veur_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTrufWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "truf_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "truf_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTrufAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "truf_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "truf_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWifWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wif_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wif_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWifAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "wif_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wif_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSmtWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "smt_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "smt_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSmtAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "smt_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "smt_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSuiWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sui_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sui_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSuiAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "sui_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sui_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostJupWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "jup_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "jup_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostJupAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "jup_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "jup_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOndoWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ondo_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ondo_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOndoAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "ondo_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ondo_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBobaWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "boba_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "boba_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBobaAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "boba_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "boba_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPythWithdrawal(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pyth_withdrawal/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pyth_withdrawal/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPythAddress(self::Bitstamp, params=Dict(), context=Dict())
-    return request(self, "pyth_address/", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pyth_address/", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Bitstamp(; kwargs...)
     inst = Bitstamp(Exchange(), describe, fetchMarkets, constructCurrencyObject, fetchMarketsFromCache, fetchCurrencies, parseCurrency, fetchOrderBook, parseTicker, fetchTicker, fetchTickers, getCurrencyIdFromTransaction, getMarketFromTrade, parseTrade, fetchTrades, parseOHLCV, fetchOHLCV, parseBalance, fetchBalance, fetchTradingFee, parseTradingFee, parseTradingFees, fetchTradingFees, fetchTransactionFees, parseTransactionFees, fetchDepositWithdrawFees, parseDepositWithdrawFee, createOrder, editOrder, cancelOrder, cancelAllOrders, parseOrderStatus, fetchOrderStatus, fetchOrder, fetchMyTrades, fetchFundingRateHistory, parseFundingRateHistory, fetchDepositsWithdrawals, fetchWithdrawals, parseTransaction, parseTransactionStatus, parseOrder, parseLedgerEntryType, parseLedgerEntry, fetchLedger, fetchFundingRate, parseFundingRate, fetchOpenOrders, getCurrencyName, isFiat, fetchDepositAddress, withdraw, transfer, parseTransfer, parseTransferStatus, nonce, sign, handleErrors, publicGetOhlcPair, publicGetOrderBookPair, publicGetTicker, publicGetTickerHourPair, publicGetTickerPair, publicGetTransactionsPair, publicGetTradingPairsInfo, publicGetMarkets, publicGetCurrencies, publicGetEurUsd, publicGetTravelRuleVasps, publicGetFundingRateMarketSymbol, publicGetFundingRateHistoryPair, privateGetTravelRuleContacts, privateGetContactsContactUuid, privateGetEarnSubscriptions, privateGetEarnTransactions, privateGetTradeHistory, privateGetTradeHistoryPair, privatePostAccountBalances, privatePostAccountBalancesCurrency, privatePostBalance, privatePostBalancePair, privatePostBchWithdrawal, privatePostBchAddress, privatePostUserTransactions, privatePostUserTransactionsPair, privatePostCryptoTransactions, privatePostOpenOrder, privatePostOpenOrdersAll, privatePostOpenOrdersPair, privatePostReplaceOrder, privatePostOrderStatus, privatePostCancelOrder, privatePostCancelAllOrders, privatePostCancelAllOrdersPair, privatePostBuyPair, privatePostBuyMarketPair, privatePostBuyInstantPair, privatePostSellPair, privatePostSellMarketPair, privatePostSellInstantPair, privatePostTransferToMain, privatePostTransferFromMain, privatePostMyTradingPairs, privatePostFeesTrading, privatePostFeesTradingMarketSymbol, privatePostFeesWithdrawal, privatePostFeesWithdrawalCurrency, privatePostWithdrawalRequests, privatePostWithdrawalOpen, privatePostWithdrawalStatus, privatePostWithdrawalCancel, privatePostLiquidationAddressNew, privatePostLiquidationAddressInfo, privatePostBtcUnconfirmed, privatePostWebsocketsToken, privatePostRevokeAllApiKeys, privatePostGetMaxOrderAmount, privatePostBtcWithdrawal, privatePostBtcAddress, privatePostRippleWithdrawal, privatePostRippleAddress, privatePostLtcWithdrawal, privatePostLtcAddress, privatePostEthWithdrawal, privatePostEthAddress, privatePostXrpWithdrawal, privatePostXrpAddress, privatePostXlmWithdrawal, privatePostXlmAddress, privatePostPaxWithdrawal, privatePostPaxAddress, privatePostLinkWithdrawal, privatePostLinkAddress, privatePostUsdcWithdrawal, privatePostUsdcAddress, privatePostOmgWithdrawal, privatePostOmgAddress, privatePostDaiWithdrawal, privatePostDaiAddress, privatePostKncWithdrawal, privatePostKncAddress, privatePostMkrWithdrawal, privatePostMkrAddress, privatePostZrxWithdrawal, privatePostZrxAddress, privatePostGusdWithdrawal, privatePostGusdAddress, privatePostAaveWithdrawal, privatePostAaveAddress, privatePostBatWithdrawal, privatePostBatAddress, privatePostUmaWithdrawal, privatePostUmaAddress, privatePostSnxWithdrawal, privatePostSnxAddress, privatePostUniWithdrawal, privatePostUniAddress, privatePostYfiWithdrawal, privatePostYfiAddress, privatePostAudioWithdrawal, privatePostAudioAddress, privatePostCrvWithdrawal, privatePostCrvAddress, privatePostAlgoWithdrawal, privatePostAlgoAddress, privatePostCompWithdrawal, privatePostCompAddress, privatePostGrtWithdrawal, privatePostGrtAddress, privatePostUsdtWithdrawal, privatePostUsdtAddress, privatePostEurtWithdrawal, privatePostEurtAddress, privatePostMaticWithdrawal, privatePostMaticAddress, privatePostSushiWithdrawal, privatePostSushiAddress, privatePostChzWithdrawal, privatePostChzAddress, privatePostEnjWithdrawal, privatePostEnjAddress, privatePostAlphaWithdrawal, privatePostAlphaAddress, privatePostFttWithdrawal, privatePostFttAddress, privatePostStorjWithdrawal, privatePostStorjAddress, privatePostAxsWithdrawal, privatePostAxsAddress, privatePostSandWithdrawal, privatePostSandAddress, privatePostHbarWithdrawal, privatePostHbarAddress, privatePostRgtWithdrawal, privatePostRgtAddress, privatePostFetWithdrawal, privatePostFetAddress, privatePostSklWithdrawal, privatePostSklAddress, privatePostCelWithdrawal, privatePostCelAddress, privatePostSxpWithdrawal, privatePostSxpAddress, privatePostAdaWithdrawal, privatePostAdaAddress, privatePostSlpWithdrawal, privatePostSlpAddress, privatePostFtmWithdrawal, privatePostFtmAddress, privatePostPerpWithdrawal, privatePostPerpAddress, privatePostDydxWithdrawal, privatePostDydxAddress, privatePostGalaWithdrawal, privatePostGalaAddress, privatePostShibWithdrawal, privatePostShibAddress, privatePostAmpWithdrawal, privatePostAmpAddress, privatePostSgbWithdrawal, privatePostSgbAddress, privatePostAvaxWithdrawal, privatePostAvaxAddress, privatePostWbtcWithdrawal, privatePostWbtcAddress, privatePostCtsiWithdrawal, privatePostCtsiAddress, privatePostCvxWithdrawal, privatePostCvxAddress, privatePostImxWithdrawal, privatePostImxAddress, privatePostNexoWithdrawal, privatePostNexoAddress, privatePostUstWithdrawal, privatePostUstAddress, privatePostAntWithdrawal, privatePostAntAddress, privatePostGodsWithdrawal, privatePostGodsAddress, privatePostRadWithdrawal, privatePostRadAddress, privatePostBandWithdrawal, privatePostBandAddress, privatePostInjWithdrawal, privatePostInjAddress, privatePostRlyWithdrawal, privatePostRlyAddress, privatePostRndrWithdrawal, privatePostRndrAddress, privatePostVegaWithdrawal, privatePostVegaAddress, privatePost1inchWithdrawal, privatePost1inchAddress, privatePostEnsWithdrawal, privatePostEnsAddress, privatePostManaWithdrawal, privatePostManaAddress, privatePostLrcWithdrawal, privatePostLrcAddress, privatePostApeWithdrawal, privatePostApeAddress, privatePostMplWithdrawal, privatePostMplAddress, privatePostEurocWithdrawal, privatePostEurocAddress, privatePostSolWithdrawal, privatePostSolAddress, privatePostDotWithdrawal, privatePostDotAddress, privatePostNearWithdrawal, privatePostNearAddress, privatePostDogeWithdrawal, privatePostDogeAddress, privatePostFlrWithdrawal, privatePostFlrAddress, privatePostDgldWithdrawal, privatePostDgldAddress, privatePostLdoWithdrawal, privatePostLdoAddress, privatePostTravelRuleContacts, privatePostEarnSubscribe, privatePostEarnSubscriptionsSetting, privatePostEarnUnsubscribe, privatePostWecanWithdrawal, privatePostWecanAddress, privatePostTracWithdrawal, privatePostTracAddress, privatePostEurcvWithdrawal, privatePostEurcvAddress, privatePostPyusdWithdrawal, privatePostPyusdAddress, privatePostLmwrWithdrawal, privatePostLmwrAddress, privatePostPepeWithdrawal, privatePostPepeAddress, privatePostBlurWithdrawal, privatePostBlurAddress, privatePostVextWithdrawal, privatePostVextAddress, privatePostCsprWithdrawal, privatePostCsprAddress, privatePostVchfWithdrawal, privatePostVchfAddress, privatePostVeurWithdrawal, privatePostVeurAddress, privatePostTrufWithdrawal, privatePostTrufAddress, privatePostWifWithdrawal, privatePostWifAddress, privatePostSmtWithdrawal, privatePostSmtAddress, privatePostSuiWithdrawal, privatePostSuiAddress, privatePostJupWithdrawal, privatePostJupAddress, privatePostOndoWithdrawal, privatePostOndoAddress, privatePostBobaWithdrawal, privatePostBobaAddress, privatePostPythWithdrawal, privatePostPythAddress)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -215,6 +215,7 @@ function describe(self::Modetrade, )
         Symbol("createMarketOrderWithCost") => false,
         Symbol("createMarketSellOrderWithCost") => false,
         Symbol("createOrder") => true,
+        Symbol("createOrders") => true,
         Symbol("createOrderWithTakeProfitAndStopLoss") => true,
         Symbol("createReduceOnlyOrder") => true,
         Symbol("createStopLimitOrder") => true,
@@ -225,6 +226,7 @@ function describe(self::Modetrade, )
         Symbol("createTrailingAmountOrder") => false,
         Symbol("createTrailingPercentOrder") => false,
         Symbol("createTriggerOrder") => true,
+        Symbol("editOrder") => true,
         Symbol("fetchAccounts") => false,
         Symbol("fetchBalance") => true,
         Symbol("fetchCanceledOrders") => false,
@@ -312,133 +314,363 @@ function describe(self::Modetrade, )
         Symbol("v1") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("public/volume/stats") => 1,
-                    Symbol("public/broker/name") => 1,
-                    Symbol("public/chain_info/{broker_id}") => 1,
-                    Symbol("public/system_info") => 1,
-                    Symbol("public/vault_balance") => 1,
-                    Symbol("public/insurancefund") => 1,
-                    Symbol("public/chain_info") => 1,
-                    Symbol("faucet/usdc") => 1,
-                    Symbol("public/account") => 1,
-                    Symbol("get_account") => 1,
-                    Symbol("registration_nonce") => 1,
-                    Symbol("get_orderly_key") => 1,
-                    Symbol("public/liquidation") => 1,
-                    Symbol("public/liquidated_positions") => 1,
-                    Symbol("public/config") => 1,
-                    Symbol("public/campaign/ranking") => 10,
-                    Symbol("public/campaign/stats") => 10,
-                    Symbol("public/campaign/user") => 10,
-                    Symbol("public/campaign/stats/details") => 10,
-                    Symbol("public/campaigns") => 10,
-                    Symbol("public/points/leaderboard") => 1,
-                    Symbol("client/points") => 1,
-                    Symbol("public/points/epoch") => 1,
-                    Symbol("public/points/epoch_dates") => 1,
-                    Symbol("public/referral/check_ref_code") => 1,
-                    Symbol("public/referral/verify_ref_code") => 1,
-                    Symbol("referral/admin_info") => 1,
-                    Symbol("referral/info") => 1,
-                    Symbol("referral/referee_info") => 1,
-                    Symbol("referral/referee_rebate_summary") => 1,
-                    Symbol("referral/referee_history") => 1,
-                    Symbol("referral/referral_history") => 1,
-                    Symbol("referral/rebate_summary") => 1,
-                    Symbol("client/distribution_history") => 1,
-                    Symbol("tv/config") => 1,
-                    Symbol("tv/history") => 1,
-                    Symbol("tv/symbol_info") => 1,
-                    Symbol("public/funding_rate_history") => 1,
-                    Symbol("public/funding_rate/{symbol}") => 0.33,
-                    Symbol("public/funding_rates") => 1,
-                    Symbol("public/info") => 1,
-                    Symbol("public/info/{symbol}") => 1,
-                    Symbol("public/market_trades") => 1,
-                    Symbol("public/token") => 1,
-                    Symbol("public/futures") => 1,
-                    Symbol("public/futures/{symbol}") => 1
+                    Symbol("public/volume/stats") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/broker/name") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/chain_info/{broker_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/system_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/vault_balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/insurancefund") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/chain_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("faucet/usdc") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("get_account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("registration_nonce") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("get_orderly_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/liquidation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/liquidated_positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/campaign/ranking") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("public/campaign/stats") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("public/campaign/user") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("public/campaign/stats/details") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("public/campaigns") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("public/points/leaderboard") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("client/points") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/points/epoch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/points/epoch_dates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/referral/check_ref_code") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/referral/verify_ref_code") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("referral/admin_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("referral/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("referral/referee_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("referral/referee_rebate_summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("referral/referee_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("referral/referral_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("referral/rebate_summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("client/distribution_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("tv/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("tv/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("tv/symbol_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/funding_rate_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/funding_rate/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.33
+),
+                    Symbol("public/funding_rates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/info/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/market_trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/token") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("public/futures/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("register_account") => 1
+                    Symbol("register_account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("client/key_info") => 6,
-                    Symbol("client/orderly_key_ip_restriction") => 6,
-                    Symbol("order/{oid}") => 1,
-                    Symbol("client/order/{client_order_id}") => 1,
-                    Symbol("algo/order/{oid}") => 1,
-                    Symbol("algo/client/order/{client_order_id}") => 1,
-                    Symbol("orders") => 1,
-                    Symbol("algo/orders") => 1,
-                    Symbol("trade/{tid}") => 1,
-                    Symbol("trades") => 1,
-                    Symbol("order/{oid}/trades") => 1,
-                    Symbol("client/liquidator_liquidations") => 1,
-                    Symbol("liquidations") => 1,
-                    Symbol("asset/history") => 60,
-                    Symbol("client/holding") => 1,
-                    Symbol("withdraw_nonce") => 1,
-                    Symbol("settle_nonce") => 1,
-                    Symbol("pnl_settlement/history") => 1,
-                    Symbol("volume/user/daily") => 60,
-                    Symbol("volume/user/stats") => 60,
-                    Symbol("client/statistics") => 60,
-                    Symbol("client/info") => 60,
-                    Symbol("client/statistics/daily") => 60,
-                    Symbol("positions") => 3.33,
-                    Symbol("position/{symbol}") => 3.33,
-                    Symbol("funding_fee/history") => 30,
-                    Symbol("notification/inbox/notifications") => 60,
-                    Symbol("notification/inbox/unread") => 60,
-                    Symbol("volume/broker/daily") => 60,
-                    Symbol("broker/fee_rate/default") => 10,
-                    Symbol("broker/user_info") => 10,
-                    Symbol("orderbook/{symbol}") => 1,
-                    Symbol("kline") => 1
+                    Symbol("client/key_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                    Symbol("client/orderly_key_ip_restriction") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                    Symbol("order/{oid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("client/order/{client_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("algo/order/{oid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("algo/client/order/{client_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("algo/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trade/{tid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/{oid}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("client/liquidator_liquidations") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("liquidations") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("asset/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("client/holding") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("withdraw_nonce") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("settle_nonce") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("pnl_settlement/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("volume/user/daily") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("volume/user/stats") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("client/statistics") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("client/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("client/statistics/daily") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 3.33
+),
+                    Symbol("position/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 3.33
+),
+                    Symbol("funding_fee/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                    Symbol("notification/inbox/notifications") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("notification/inbox/unread") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("volume/broker/daily") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("broker/fee_rate/default") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("broker/user_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("orderbook/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("orderly_key") => 1,
-                    Symbol("client/set_orderly_key_ip_restriction") => 6,
-                    Symbol("client/reset_orderly_key_ip_restriction") => 6,
-                    Symbol("order") => 1,
-                    Symbol("batch-order") => 10,
-                    Symbol("algo/order") => 1,
-                    Symbol("liquidation") => 1,
-                    Symbol("claim_insurance_fund") => 1,
-                    Symbol("withdraw_request") => 1,
-                    Symbol("settle_pnl") => 1,
-                    Symbol("notification/inbox/mark_read") => 60,
-                    Symbol("notification/inbox/mark_read_all") => 60,
-                    Symbol("client/leverage") => 120,
-                    Symbol("client/maintenance_config") => 60,
-                    Symbol("delegate_signer") => 10,
-                    Symbol("delegate_orderly_key") => 10,
-                    Symbol("delegate_settle_pnl") => 10,
-                    Symbol("delegate_withdraw_request") => 10,
-                    Symbol("broker/fee_rate/set") => 10,
-                    Symbol("broker/fee_rate/set_default") => 10,
-                    Symbol("broker/fee_rate/default") => 10,
-                    Symbol("referral/create") => 10,
-                    Symbol("referral/update") => 10,
-                    Symbol("referral/bind") => 10,
-                    Symbol("referral/edit_split") => 10
+                    Symbol("orderly_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("client/set_orderly_key_ip_restriction") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                    Symbol("client/reset_orderly_key_ip_restriction") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                    Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("batch-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("algo/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("liquidation") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("claim_insurance_fund") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("withdraw_request") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("settle_pnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("notification/inbox/mark_read") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("notification/inbox/mark_read_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("client/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 120
+),
+                    Symbol("client/maintenance_config") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("delegate_signer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("delegate_orderly_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("delegate_settle_pnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("delegate_withdraw_request") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("broker/fee_rate/set") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("broker/fee_rate/set_default") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("broker/fee_rate/default") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("referral/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("referral/update") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("referral/bind") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("referral/edit_split") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("order") => 1,
-                    Symbol("algo/order") => 1
+                    Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("algo/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("order") => 1,
-                    Symbol("algo/order") => 1,
-                    Symbol("client/order") => 1,
-                    Symbol("algo/client/order") => 1,
-                    Symbol("algo/orders") => 1,
-                    Symbol("orders") => 1,
-                    Symbol("batch-order") => 1,
-                    Symbol("client/batch-order") => 1
+                    Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("algo/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("client/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("algo/client/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("algo/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("batch-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("client/batch-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             )
         )
@@ -624,7 +856,7 @@ function parseMarket(self::Modetrade, market)
     settleId = safeString(parts, 2);
     settle = self.safeCurrencyCode(settleId);
     symbol = string(base, "/", quote_var, ":", settle);
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -672,7 +904,7 @@ function parseMarket(self::Modetrade, market)
     ),
     Symbol("created") => safeInteger(market, "created_time"),
     Symbol("info") => market
-)
+))
 
 end
 function fetchMarkets(self::Modetrade, params=Dict())
@@ -1170,6 +1402,12 @@ function parseOrderType(self::Modetrade, type_var)
 
 end
 function createOrderRequest(self::Modetrade, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
     reduceOnly = self.safeBool2(params, "reduceOnly", "reduce_only");
     orderType = uppercase(type_var);
     market = self.market(symbol);
@@ -1255,7 +1493,7 @@ function createOrderRequest(self::Modetrade, symbol, type_var, side, amount, pri
                 Symbol("type") => "LIMIT",
                 Symbol("reduce_only") => true
             );
-                        push!(outterOrder, takeProfitOrder);
+                        push!(childOrders, takeProfitOrder);
         end
         request[Symbol("child_orders")] = [outterOrder];
     end
@@ -1630,7 +1868,9 @@ function parseBalance(self::Modetrade, response)
         account = self.account();
         account[Symbol("total")] = safeString(balance, "holding");
         account[Symbol("used")] = safeString(balance, "frozen");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1795,7 +2035,7 @@ function hashMessage(self::Modetrade, message)
 
 end
 function signHash(self::Modetrade, hash, privateKey)
-    signature = ecdsa(hash[-64 + 1:end], privateKey[-64 + 1:end], secp256k1, nothing);
+    signature = ecdsa(functions.ccxt_slice(hash, -64), functions.ccxt_slice(privateKey, -64), secp256k1, nothing);
     r = get(signature, Symbol("r"), nothing);
     s = get(signature, Symbol("s"), nothing);
     v = self.intToBase16(self.sum(27, get(signature, Symbol("v"), nothing)));
@@ -1803,7 +2043,7 @@ function signHash(self::Modetrade, hash, privateKey)
 
 end
 function signMessage(self::Modetrade, message, privateKey)
-    return self.signHash(self.hashMessage(message), privateKey[-64 + 1:end])
+    return self.signHash(self.hashMessage(message), functions.ccxt_slice(privateKey, -64))
 
 end
 function withdraw(self::Modetrade, code, amount, address, tag=nothing, params=Dict())
@@ -2089,476 +2329,529 @@ function handleErrors(self::Modetrade, httpCode, reason, url, method, headers, b
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Modetrade, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v1PublicGetPublicVolumeStats(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/volume/stats", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/volume/stats", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicBrokerName(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/broker/name", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/broker/name", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicChainInfoBrokerId(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/chain_info/{broker_id}", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/chain_info/{broker_id}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicSystemInfo(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/system_info", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/system_info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicVaultBalance(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/vault_balance", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/vault_balance", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicInsurancefund(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/insurancefund", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/insurancefund", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicChainInfo(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/chain_info", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/chain_info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetFaucetUsdc(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "faucet/usdc", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "faucet/usdc", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicAccount(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/account", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/account", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetGetAccount(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "get_account", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_account", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetRegistrationNonce(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "registration_nonce", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "registration_nonce", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetGetOrderlyKey(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "get_orderly_key", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_orderly_key", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicLiquidation(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/liquidation", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/liquidation", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicLiquidatedPositions(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/liquidated_positions", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/liquidated_positions", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicConfig(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/config", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/config", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicCampaignRanking(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/campaign/ranking", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/campaign/ranking", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicCampaignStats(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/campaign/stats", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/campaign/stats", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicCampaignUser(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/campaign/user", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/campaign/user", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicCampaignStatsDetails(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/campaign/stats/details", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/campaign/stats/details", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicCampaigns(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/campaigns", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/campaigns", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicPointsLeaderboard(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/points/leaderboard", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/points/leaderboard", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetClientPoints(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/points", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "client/points", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicPointsEpoch(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/points/epoch", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/points/epoch", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicPointsEpochDates(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/points/epoch_dates", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/points/epoch_dates", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicReferralCheckRefCode(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/referral/check_ref_code", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/referral/check_ref_code", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicReferralVerifyRefCode(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/referral/verify_ref_code", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/referral/verify_ref_code", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetReferralAdminInfo(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "referral/admin_info", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "referral/admin_info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetReferralInfo(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "referral/info", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "referral/info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetReferralRefereeInfo(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "referral/referee_info", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "referral/referee_info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetReferralRefereeRebateSummary(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "referral/referee_rebate_summary", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "referral/referee_rebate_summary", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetReferralRefereeHistory(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "referral/referee_history", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "referral/referee_history", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetReferralReferralHistory(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "referral/referral_history", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "referral/referral_history", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetReferralRebateSummary(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "referral/rebate_summary", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "referral/rebate_summary", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetClientDistributionHistory(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/distribution_history", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "client/distribution_history", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetTvConfig(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "tv/config", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tv/config", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetTvHistory(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "tv/history", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tv/history", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetTvSymbolInfo(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "tv/symbol_info", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tv/symbol_info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicFundingRateHistory(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/funding_rate_history", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/funding_rate_history", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicFundingRateSymbol(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/funding_rate/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.33))
+    return request(self, "public/funding_rate/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicFundingRates(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/funding_rates", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/funding_rates", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicInfo(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/info", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicInfoSymbol(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/info/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/info/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicMarketTrades(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/market_trades", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/market_trades", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicToken(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/token", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/token", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicFutures(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/futures", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/futures", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetPublicFuturesSymbol(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "public/futures/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "public/futures/{symbol}", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicPostRegisterAccount(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "register_account", ["v1", "public"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "register_account", ["v1", "public"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetClientKeyInfo(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/key_info", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "client/key_info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetClientOrderlyKeyIpRestriction(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/orderly_key_ip_restriction", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "client/orderly_key_ip_restriction", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderOid(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "order/{oid}", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/{oid}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetClientOrderClientOrderId(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/order/{client_order_id}", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "client/order/{client_order_id}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetAlgoOrderOid(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "algo/order/{oid}", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/order/{oid}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetAlgoClientOrderClientOrderId(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "algo/client/order/{client_order_id}", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/client/order/{client_order_id}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrders(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "orders", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetAlgoOrders(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "algo/orders", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/orders", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetTradeTid(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "trade/{tid}", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/{tid}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetTrades(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "trades", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderOidTrades(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "order/{oid}/trades", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/{oid}/trades", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetClientLiquidatorLiquidations(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/liquidator_liquidations", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "client/liquidator_liquidations", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetLiquidations(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "liquidations", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "liquidations", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetAssetHistory(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "asset/history", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "asset/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetClientHolding(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/holding", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "client/holding", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetWithdrawNonce(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "withdraw_nonce", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdraw_nonce", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetSettleNonce(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "settle_nonce", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "settle_nonce", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetPnlSettlementHistory(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "pnl_settlement/history", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "pnl_settlement/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetVolumeUserDaily(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "volume/user/daily", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "volume/user/daily", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetVolumeUserStats(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "volume/user/stats", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "volume/user/stats", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetClientStatistics(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/statistics", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "client/statistics", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetClientInfo(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/info", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "client/info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetClientStatisticsDaily(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/statistics/daily", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "client/statistics/daily", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetPositions(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "positions", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3.33))
+    return request(self, "positions", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetPositionSymbol(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "position/{symbol}", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3.33))
+    return request(self, "position/{symbol}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetFundingFeeHistory(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "funding_fee/history", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "funding_fee/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetNotificationInboxNotifications(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "notification/inbox/notifications", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "notification/inbox/notifications", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetNotificationInboxUnread(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "notification/inbox/unread", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "notification/inbox/unread", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetVolumeBrokerDaily(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "volume/broker/daily", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "volume/broker/daily", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetBrokerFeeRateDefault(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "broker/fee_rate/default", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "broker/fee_rate/default", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetBrokerUserInfo(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "broker/user_info", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "broker/user_info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderbookSymbol(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "orderbook/{symbol}", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderbook/{symbol}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetKline(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "kline", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "kline", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostOrderlyKey(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "orderly_key", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderly_key", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostClientSetOrderlyKeyIpRestriction(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/set_orderly_key_ip_restriction", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "client/set_orderly_key_ip_restriction", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostClientResetOrderlyKeyIpRestriction(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/reset_orderly_key_ip_restriction", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "client/reset_orderly_key_ip_restriction", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostOrder(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "order", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostBatchOrder(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "batch-order", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "batch-order", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostAlgoOrder(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "algo/order", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/order", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostLiquidation(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "liquidation", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "liquidation", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostClaimInsuranceFund(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "claim_insurance_fund", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "claim_insurance_fund", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostWithdrawRequest(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "withdraw_request", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdraw_request", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostSettlePnl(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "settle_pnl", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "settle_pnl", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostNotificationInboxMarkRead(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "notification/inbox/mark_read", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "notification/inbox/mark_read", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostNotificationInboxMarkReadAll(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "notification/inbox/mark_read_all", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "notification/inbox/mark_read_all", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostClientLeverage(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/leverage", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 120))
+    return request(self, "client/leverage", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostClientMaintenanceConfig(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/maintenance_config", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "client/maintenance_config", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostDelegateSigner(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "delegate_signer", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "delegate_signer", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostDelegateOrderlyKey(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "delegate_orderly_key", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "delegate_orderly_key", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostDelegateSettlePnl(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "delegate_settle_pnl", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "delegate_settle_pnl", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostDelegateWithdrawRequest(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "delegate_withdraw_request", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "delegate_withdraw_request", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostBrokerFeeRateSet(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "broker/fee_rate/set", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "broker/fee_rate/set", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostBrokerFeeRateSetDefault(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "broker/fee_rate/set_default", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "broker/fee_rate/set_default", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostBrokerFeeRateDefault(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "broker/fee_rate/default", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "broker/fee_rate/default", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostReferralCreate(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "referral/create", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "referral/create", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostReferralUpdate(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "referral/update", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "referral/update", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostReferralBind(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "referral/bind", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "referral/bind", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostReferralEditSplit(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "referral/edit_split", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "referral/edit_split", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePutOrder(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "order", ["v1", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePutAlgoOrder(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "algo/order", ["v1", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/order", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteOrder(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteAlgoOrder(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "algo/order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteClientOrder(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "client/order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteAlgoClientOrder(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "algo/client/order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/client/order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteAlgoOrders(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "algo/orders", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "algo/orders", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteOrders(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "orders", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteBatchOrder(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "batch-order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "batch-order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteClientBatchOrder(self::Modetrade, params=Dict(), context=Dict())
-    return request(self, "client/batch-order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "client/batch-order", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function Modetrade(; kwargs...)
     inst = Modetrade(Exchange(), describe, setSandboxMode, fetchStatus, fetchTime, parseMarket, fetchMarkets, fetchCurrencies, parseCurrency, parseTokenAndFeeTemp, parseTrade, fetchTrades, parseFundingRate, parseFundingInterval, fetchFundingInterval, fetchFundingRate, fetchFundingRates, fetchFundingRateHistory, parseIncome, fetchFundingHistory, fetchTradingFees, fetchOrderBook, parseOHLCV, fetchOHLCV, parseOrder, parseTimeInForce, parseOrderStatus, parseOrderType, createOrderRequest, createOrder, createOrders, editOrder, cancelOrder, cancelOrders, cancelAllOrders, fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchOrderTrades, fetchMyTrades, parseBalance, fetchBalance, getAssetHistoryRows, parseLedgerEntry, parseLedgerEntryType, fetchLedger, parseTransaction, parseTransactionStatus, fetchDeposits, fetchWithdrawals, fetchDepositsWithdrawals, getWithdrawNonce, hashMessage, signHash, signMessage, withdraw, parseLeverage, fetchLeverage, setLeverage, parsePosition, fetchPosition, fetchPositions, nonce, sign, handleErrors, v1PublicGetPublicVolumeStats, v1PublicGetPublicBrokerName, v1PublicGetPublicChainInfoBrokerId, v1PublicGetPublicSystemInfo, v1PublicGetPublicVaultBalance, v1PublicGetPublicInsurancefund, v1PublicGetPublicChainInfo, v1PublicGetFaucetUsdc, v1PublicGetPublicAccount, v1PublicGetGetAccount, v1PublicGetRegistrationNonce, v1PublicGetGetOrderlyKey, v1PublicGetPublicLiquidation, v1PublicGetPublicLiquidatedPositions, v1PublicGetPublicConfig, v1PublicGetPublicCampaignRanking, v1PublicGetPublicCampaignStats, v1PublicGetPublicCampaignUser, v1PublicGetPublicCampaignStatsDetails, v1PublicGetPublicCampaigns, v1PublicGetPublicPointsLeaderboard, v1PublicGetClientPoints, v1PublicGetPublicPointsEpoch, v1PublicGetPublicPointsEpochDates, v1PublicGetPublicReferralCheckRefCode, v1PublicGetPublicReferralVerifyRefCode, v1PublicGetReferralAdminInfo, v1PublicGetReferralInfo, v1PublicGetReferralRefereeInfo, v1PublicGetReferralRefereeRebateSummary, v1PublicGetReferralRefereeHistory, v1PublicGetReferralReferralHistory, v1PublicGetReferralRebateSummary, v1PublicGetClientDistributionHistory, v1PublicGetTvConfig, v1PublicGetTvHistory, v1PublicGetTvSymbolInfo, v1PublicGetPublicFundingRateHistory, v1PublicGetPublicFundingRateSymbol, v1PublicGetPublicFundingRates, v1PublicGetPublicInfo, v1PublicGetPublicInfoSymbol, v1PublicGetPublicMarketTrades, v1PublicGetPublicToken, v1PublicGetPublicFutures, v1PublicGetPublicFuturesSymbol, v1PublicPostRegisterAccount, v1PrivateGetClientKeyInfo, v1PrivateGetClientOrderlyKeyIpRestriction, v1PrivateGetOrderOid, v1PrivateGetClientOrderClientOrderId, v1PrivateGetAlgoOrderOid, v1PrivateGetAlgoClientOrderClientOrderId, v1PrivateGetOrders, v1PrivateGetAlgoOrders, v1PrivateGetTradeTid, v1PrivateGetTrades, v1PrivateGetOrderOidTrades, v1PrivateGetClientLiquidatorLiquidations, v1PrivateGetLiquidations, v1PrivateGetAssetHistory, v1PrivateGetClientHolding, v1PrivateGetWithdrawNonce, v1PrivateGetSettleNonce, v1PrivateGetPnlSettlementHistory, v1PrivateGetVolumeUserDaily, v1PrivateGetVolumeUserStats, v1PrivateGetClientStatistics, v1PrivateGetClientInfo, v1PrivateGetClientStatisticsDaily, v1PrivateGetPositions, v1PrivateGetPositionSymbol, v1PrivateGetFundingFeeHistory, v1PrivateGetNotificationInboxNotifications, v1PrivateGetNotificationInboxUnread, v1PrivateGetVolumeBrokerDaily, v1PrivateGetBrokerFeeRateDefault, v1PrivateGetBrokerUserInfo, v1PrivateGetOrderbookSymbol, v1PrivateGetKline, v1PrivatePostOrderlyKey, v1PrivatePostClientSetOrderlyKeyIpRestriction, v1PrivatePostClientResetOrderlyKeyIpRestriction, v1PrivatePostOrder, v1PrivatePostBatchOrder, v1PrivatePostAlgoOrder, v1PrivatePostLiquidation, v1PrivatePostClaimInsuranceFund, v1PrivatePostWithdrawRequest, v1PrivatePostSettlePnl, v1PrivatePostNotificationInboxMarkRead, v1PrivatePostNotificationInboxMarkReadAll, v1PrivatePostClientLeverage, v1PrivatePostClientMaintenanceConfig, v1PrivatePostDelegateSigner, v1PrivatePostDelegateOrderlyKey, v1PrivatePostDelegateSettlePnl, v1PrivatePostDelegateWithdrawRequest, v1PrivatePostBrokerFeeRateSet, v1PrivatePostBrokerFeeRateSetDefault, v1PrivatePostBrokerFeeRateDefault, v1PrivatePostReferralCreate, v1PrivatePostReferralUpdate, v1PrivatePostReferralBind, v1PrivatePostReferralEditSplit, v1PrivatePutOrder, v1PrivatePutAlgoOrder, v1PrivateDeleteOrder, v1PrivateDeleteAlgoOrder, v1PrivateDeleteClientOrder, v1PrivateDeleteAlgoClientOrder, v1PrivateDeleteAlgoOrders, v1PrivateDeleteOrders, v1PrivateDeleteBatchOrder, v1PrivateDeleteClientBatchOrder)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -129,6 +129,7 @@ function describe(self::Exmo, )
         Symbol("createMarketBuyOrder") => true,
         Symbol("createMarketBuyOrderWithCost") => true,
         Symbol("createMarketOrderWithCost") => true,
+        Symbol("createMarketSellOrderWithCost") => true,
         Symbol("createOrder") => true,
         Symbol("createStopLimitOrder") => true,
         Symbol("createStopMarketOrder") => true,
@@ -213,13 +214,169 @@ function describe(self::Exmo, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("web") => Dict{Symbol, Any}(
-            Symbol("get") => ["ctrl/feesAndLimits", "en/docs/fees"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("ctrl/feesAndLimits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("en/docs/fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["currency", "currency/list/extended", "order_book", "pair_settings", "ticker", "trades", "candles_history", "required_amount", "payments/providers/crypto/list"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currency/list/extended") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pair_settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("candles_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("required_amount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("payments/providers/crypto/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("post") => ["user_info", "order_create", "order_cancel", "stop_market_order_create", "stop_market_order_cancel", "user_open_orders", "user_trades", "user_cancelled_orders", "order_trades", "deposit_address", "withdraw_crypt", "withdraw_get_txid", "excode_create", "excode_load", "code_check", "wallet_history", "wallet_operations", "margin/user/order/create", "margin/user/order/update", "margin/user/order/cancel", "margin/user/position/close", "margin/user/position/margin_add", "margin/user/position/margin_remove", "margin/currency/list", "margin/pair/list", "margin/settings", "margin/funding/list", "margin/user/info", "margin/user/order/list", "margin/user/order/history", "margin/user/order/trades", "margin/user/order/max_quantity", "margin/user/position/list", "margin/user/position/margin_remove_info", "margin/user/position/margin_add_info", "margin/user/wallet/list", "margin/user/wallet/history", "margin/user/trade/list", "margin/trades", "margin/liquidation/feed"]
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("user_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order_create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("stop_market_order_create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("stop_market_order_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user_open_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user_trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user_cancelled_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order_trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("deposit_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraw_crypt") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraw_get_txid") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("excode_create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("excode_load") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("code_check") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet_operations") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/order/update") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/position/close") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/position/margin_add") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/position/margin_remove") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/currency/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/pair/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/funding/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/order/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/order/max_quantity") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/position/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/position/margin_remove_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/position/margin_add_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/wallet/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/wallet/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/user/trade/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/liquidation/feed") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(
@@ -436,9 +593,10 @@ function fetchPublicTradingFees(self::Exmo, params=Dict())
     end
     response = Base.fetch(self.publicGetPairSettings(params));
     result = Dict{Symbol, Any}();
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         market = self.market(symbol);
         fee = safeValue(response, get(market, Symbol("id"), nothing), Dict{Symbol, Any}());
         makerString = safeString(fee, "commission_maker_percent");
@@ -501,7 +659,9 @@ function fetchTransactionFees(self::Exmo, codes=nothing, params=Dict())
             typeInner = safeString(provider, "type");
             commissionDesc = safeString(provider, "commission_desc");
             fee = self.parseFixedFloatValue(commissionDesc);
-            result[Symbol(code)][Symbol(typeInner)] = fee;
+            if functions.ccxtruthy(@functions.ccxt_and(code != nothing, typeInner != nothing))
+                result[Symbol(code)][Symbol(typeInner)] = fee;
+            end
             j += 1
         end
         result[Symbol(code)][Symbol("info")] = providers;
@@ -542,21 +702,25 @@ function parseDepositWithdrawFee(self::Exmo, fee, currency=nothing)
         end
         network = safeValue(get(result, Symbol("networks"), nothing), networkCode);
         if functions.ccxtruthy(network == nothing)
-            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("fee") => nothing,
-                    Symbol("percentage") => nothing
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("fee") => nothing,
-                    Symbol("percentage") => nothing
-                )
+            if functions.ccxtruthy(networkCode != nothing)
+                result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("fee") => nothing,
+                        Symbol("percentage") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("fee") => nothing,
+                        Symbol("percentage") => nothing
+                    )
+                );
+            end
+        end
+        if functions.ccxtruthy(@functions.ccxt_and((networkCode != nothing), (type_var != nothing)))
+            result[Symbol("networks")][Symbol(networkCode)][Symbol(type_var)] = Dict{Symbol, Any}(
+                Symbol("fee") => self.parseFixedFloatValue(safeString(splitCommissionDesc, 0)),
+                Symbol("percentage") => percentage
             );
         end
-        result[Symbol("networks")][Symbol(networkCode)][Symbol(type_var)] = Dict{Symbol, Any}(
-            Symbol("fee") => self.parseFixedFloatValue(safeString(splitCommissionDesc, 0)),
-            Symbol("percentage") => percentage
-        );
         i += 1
     end
     return self.assignDefaultDepositWithdrawFees(result)
@@ -598,37 +762,42 @@ function parseCurrency(self::Exmo, rawCurrency)
         while functions.ccxtruthy(functions.ccxt_lt(j, length(providers)))
             provider = get(providers, j + 1, nothing);
             name = safeString(provider, "name");
+            if functions.ccxtruthy(name == nothing)
+                throw(ExchangeError(string(self.id, " parseCurrency() missing name")));
+            end
             networkId = replace(name, string(currencyId, " ") => "");
             networkId = replace(networkId, "(" => "");
             replaceChar = ")";
             networkId = replace(networkId, replaceChar => "");
             networkCode = self.networkIdToCode(networkId, code);
-            if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(networkCode, networks))))
-                networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-                    Symbol("id") => networkId,
-                    Symbol("network") => networkCode,
-                    Symbol("active") => nothing,
-                    Symbol("deposit") => nothing,
-                    Symbol("withdraw") => nothing,
-                    Symbol("fee") => nothing,
-                    Symbol("limits") => Dict{Symbol, Any}(
-                        Symbol("withdraw") => Dict{Symbol, Any}(
-                            Symbol("min") => nothing,
-                            Symbol("max") => nothing
+            if functions.ccxtruthy(@functions.ccxt_or((networkCode == nothing), !functions.ccxtruthy((ccxt_in(networkCode, networks)))))
+                if functions.ccxtruthy(networkCode != nothing)
+                    networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                        Symbol("id") => networkId,
+                        Symbol("network") => networkCode,
+                        Symbol("active") => nothing,
+                        Symbol("deposit") => nothing,
+                        Symbol("withdraw") => nothing,
+                        Symbol("fee") => nothing,
+                        Symbol("limits") => Dict{Symbol, Any}(
+                            Symbol("withdraw") => Dict{Symbol, Any}(
+                                Symbol("min") => nothing,
+                                Symbol("max") => nothing
+                            ),
+                            Symbol("deposit") => Dict{Symbol, Any}(
+                                Symbol("min") => nothing,
+                                Symbol("max") => nothing
+                            )
                         ),
-                        Symbol("deposit") => Dict{Symbol, Any}(
-                            Symbol("min") => nothing,
-                            Symbol("max") => nothing
-                        )
-                    ),
-                    Symbol("info") => []
-                );
+                        Symbol("info") => []
+                    );
+                end
             end
             typeInner = safeString(provider, "type");
             minValue = safeString(provider, "min");
             maxValue = safeString(provider, "max");
             activeProvider = self.safeBool(provider, "enabled");
-            networkEntry = get(networks, Symbol(networkCode), nothing);
+            networkEntry = safeValue(networks, networkCode);
             if functions.ccxtruthy(typeInner == "deposit")
                 networkEntry[Symbol("deposit")] = activeProvider;
                 networkEntry[Symbol("limits")][Symbol("deposit")][Symbol("min")] = minValue;
@@ -641,7 +810,9 @@ function parseCurrency(self::Exmo, rawCurrency)
             info = self.safeList(networkEntry, "info", []);
             push!(info, provider);
             networkEntry[Symbol("info")] = info;
-            networks[Symbol(networkCode)] = networkEntry;
+            if functions.ccxtruthy(networkCode != nothing)
+                networks[Symbol(networkCode)] = networkEntry;
+            end
             j += 1
         end
     end
@@ -822,7 +993,9 @@ function parseBalance(self::Exmo, response)
             account[Symbol("used")] = safeString(item, "used");
             account[Symbol("free")] = safeString(item, "free");
             account[Symbol("total")] = safeString(item, "balance");
-            result[Symbol(currency)] = account;
+            if functions.ccxtruthy(currency != nothing)
+                result[Symbol(currency)] = account;
+            end
             i += 1
         end
 
@@ -841,7 +1014,9 @@ function parseBalance(self::Exmo, response)
             if functions.ccxtruthy(ccxt_in(currencyId, used))
                 account[Symbol("used")] = safeString(used, currencyId);
             end
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
             i += 1
         end
     end
@@ -912,7 +1087,8 @@ function fetchOrderBooks(self::Exmo, symbols=nothing, limit=nothing, params=Dict
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
         symbol = self.safeSymbol(marketId);
-        result[Symbol(symbol)] = self.parseOrderBook(get(response, Symbol(marketId), nothing), symbol, nothing, "bid", "ask");
+        rawOrderBook = self.safeDict(response, marketId, Dict{Symbol, Any}());
+        result[Symbol(symbol)] = self.parseOrderBook(rawOrderBook, symbol, nothing, "bid", "ask");
         i += 1
     end
     return result
@@ -972,7 +1148,7 @@ function fetchTicker(self::Exmo, symbol, params=Dict())
     end
     response = Base.fetch(self.publicGetTicker(params));
     market = self.market(symbol);
-    return self.parseTicker(get(response, Symbol(get(market, Symbol("id"), nothing)), nothing), market)
+    return self.parseTicker(safeValue(response, get(market, Symbol("id"), nothing)), market)
 
 end
 function parseTrade(self::Exmo, trade, market=nothing)
@@ -1265,7 +1441,11 @@ function fetchOrderTrades(self::Exmo, id, symbol=nothing, since=nothing, limit=n
         response = Base.fetch(self.privatePostOrderTrades(extend(request, params)));
     end
     trades = self.safeList(response, "trades");
-    return self.parseTrades(trades, market, since, limit)
+    tradesList = [];
+    if functions.ccxtruthy(trades != nothing)
+        tradesList = trades;
+    end
+    return self.parseTrades(tradesList, market, since, limit)
 
 end
 function fetchOpenOrders(self::Exmo, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -1404,7 +1584,7 @@ function fetchCanceledOrders(self::Exmo, symbol=nothing, since=nothing, limit=no
         Base.fetch(self.loadMarkets());
     end
     marginMode = nothing;
-    (marginMode, params) = self.handleMarginModeAndParams("fetchOrders", params);
+    (marginMode, params) = self.handleMarginModeAndParams("fetchCanceledOrders", params);
     if functions.ccxtruthy(marginMode == "cross")
         throw(BadRequest(string(self.id, " only supports isolated margin")));
     end
@@ -1506,7 +1686,7 @@ function getMarketFromTrades(self::Exmo, trades)
     symbols = objectKeys(tradesBySymbol);
     numSymbols = length(symbols);
     if functions.ccxtruthy(numSymbols == 1)
-            return get(self.markets, Symbol(get(symbols, 1, nothing)), nothing)
+            return self.market(get(symbols, 1, nothing))
     end
     return nothing
 
@@ -1576,7 +1756,9 @@ function parseTransaction(self::Exmo, transaction, currency=nothing)
             numParts = length(parts);
             if functions.ccxtruthy(numParts == 2)
                 address = safeString(parts, 1);
-                address = replace(address, " " => "");
+                if functions.ccxtruthy(address != nothing)
+                    address = replace(address, " " => "");
+                end
             end
         end
     end
@@ -1642,7 +1824,8 @@ function fetchDepositsWithdrawals(self::Exmo, code=nothing, since=nothing, limit
         currency = self.currency(code);
     end
     response = Base.fetch(self.privatePostWalletHistory(extend(request, params)));
-    return self.parseTransactions(get(response, Symbol("history"), nothing), currency, since, limit)
+    history = self.safeList(response, "history", []);
+    return self.parseTransactions(history, currency, since, limit)
 
 end
 function fetchWithdrawals(self::Exmo, code=nothing, since=nothing, limit=nothing, params=Dict())
@@ -1782,6 +1965,9 @@ function handleErrors(self::Exmo, httpCode, reason, url, method, headers, body, 
         if functions.ccxtruthy(!functions.ccxtruthy(success))
             code = nothing;
             message = safeString2(response, "error", "errmsg");
+            if functions.ccxtruthy(message == nothing)
+                throw(ExchangeError(string(self.id, " handleErrors() missing message")));
+            end
             errorParts = split(message, ":");
             numParts = length(errorParts);
             if functions.ccxtruthy(functions.ccxt_gt(numParts, 1))
@@ -1799,7 +1985,7 @@ function handleErrors(self::Exmo, httpCode, reason, url, method, headers, body, 
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Exmo, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -2010,9 +2196,62 @@ end
 
 function Exmo(; kwargs...)
     inst = Exmo(Exchange(), describe, modifyMarginHelper, parseMarginModification, reduceMargin, addMargin, fetchTradingFees, fetchPrivateTradingFees, fetchPublicTradingFees, parseFixedFloatValue, fetchTransactionFees, fetchDepositWithdrawFees, parseDepositWithdrawFee, fetchCurrencies, parseCurrency, fetchMarkets, fetchOHLCV, parseOHLCV, parseBalance, fetchBalance, fetchOrderBook, fetchOrderBooks, parseTicker, fetchTickers, fetchTicker, parseTrade, fetchTrades, fetchMyTrades, createMarketOrderWithCost, createMarketBuyOrderWithCost, createMarketSellOrderWithCost, createOrder, cancelOrder, fetchOrder, fetchOrderTrades, fetchOpenOrders, parseStatus, parseSide, parseOrder, fetchCanceledOrders, editOrder, fetchDepositAddress, getMarketFromTrades, withdraw, parseTransactionStatus, parseTransaction, fetchDepositsWithdrawals, fetchWithdrawals, fetchWithdrawal, fetchDeposit, fetchDeposits, sign, nonce, handleErrors, webGetCtrlFeesAndLimits, webGetEnDocsFees, publicGetCurrency, publicGetCurrencyListExtended, publicGetOrderBook, publicGetPairSettings, publicGetTicker, publicGetTrades, publicGetCandlesHistory, publicGetRequiredAmount, publicGetPaymentsProvidersCryptoList, privatePostUserInfo, privatePostOrderCreate, privatePostOrderCancel, privatePostStopMarketOrderCreate, privatePostStopMarketOrderCancel, privatePostUserOpenOrders, privatePostUserTrades, privatePostUserCancelledOrders, privatePostOrderTrades, privatePostDepositAddress, privatePostWithdrawCrypt, privatePostWithdrawGetTxid, privatePostExcodeCreate, privatePostExcodeLoad, privatePostCodeCheck, privatePostWalletHistory, privatePostWalletOperations, privatePostMarginUserOrderCreate, privatePostMarginUserOrderUpdate, privatePostMarginUserOrderCancel, privatePostMarginUserPositionClose, privatePostMarginUserPositionMarginAdd, privatePostMarginUserPositionMarginRemove, privatePostMarginCurrencyList, privatePostMarginPairList, privatePostMarginSettings, privatePostMarginFundingList, privatePostMarginUserInfo, privatePostMarginUserOrderList, privatePostMarginUserOrderHistory, privatePostMarginUserOrderTrades, privatePostMarginUserOrderMaxQuantity, privatePostMarginUserPositionList, privatePostMarginUserPositionMarginRemoveInfo, privatePostMarginUserPositionMarginAddInfo, privatePostMarginUserWalletList, privatePostMarginUserWalletHistory, privatePostMarginUserTradeList, privatePostMarginTrades, privatePostMarginLiquidationFeed)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

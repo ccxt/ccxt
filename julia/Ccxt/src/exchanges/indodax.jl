@@ -22,6 +22,7 @@
     createOrder::Function = createOrder
     cancelOrder::Function = cancelOrder
     fetchTransactionFee::Function = fetchTransactionFee
+    fetchDepositWithdrawFee::Function = fetchDepositWithdrawFee
     fetchDepositsWithdrawals::Function = fetchDepositsWithdrawals
     withdraw::Function = withdraw
     parseTransaction::Function = parseTransaction
@@ -101,6 +102,8 @@ function describe(self::Indodax, )
         Symbol("fetchDepositAddressesByNetwork") => false,
         Symbol("fetchDeposits") => false,
         Symbol("fetchDepositsWithdrawals") => true,
+        Symbol("fetchDepositWithdrawFee") => true,
+        Symbol("fetchDepositWithdrawFees") => false,
         Symbol("fetchFundingHistory") => false,
         Symbol("fetchFundingInterval") => false,
         Symbol("fetchFundingIntervals") => false,
@@ -128,6 +131,7 @@ function describe(self::Indodax, )
         Symbol("fetchMarkPrices") => false,
         Symbol("fetchMyLiquidations") => false,
         Symbol("fetchMySettlementHistory") => false,
+        Symbol("fetchOHLCV") => true,
         Symbol("fetchOpenInterest") => false,
         Symbol("fetchOpenInterestHistory") => false,
         Symbol("fetchOpenInterests") => false,
@@ -149,6 +153,7 @@ function describe(self::Indodax, )
         Symbol("fetchPremiumIndexOHLCV") => false,
         Symbol("fetchSettlementHistory") => false,
         Symbol("fetchTicker") => true,
+        Symbol("fetchTickers") => true,
         Symbol("fetchTime") => true,
         Symbol("fetchTrades") => true,
         Symbol("fetchTradingFee") => false,
@@ -186,32 +191,76 @@ function describe(self::Indodax, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("api/server_time") => 5,
-                Symbol("api/pairs") => 5,
-                Symbol("api/price_increments") => 5,
-                Symbol("api/summaries") => 5,
-                Symbol("api/ticker/{pair}") => 5,
-                Symbol("api/ticker_all") => 5,
-                Symbol("api/trades/{pair}") => 5,
-                Symbol("api/depth/{pair}") => 5,
-                Symbol("tradingview/history_v2") => 5
+                Symbol("api/server_time") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/price_increments") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/summaries") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/ticker/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/ticker_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/trades/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/depth/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("tradingview/history_v2") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("getInfo") => 4,
-                Symbol("transHistory") => 4,
-                Symbol("trade") => 1,
-                Symbol("tradeHistory") => 4,
-                Symbol("openOrders") => 4,
-                Symbol("orderHistory") => 4,
-                Symbol("getOrder") => 4,
-                Symbol("cancelOrder") => 4,
-                Symbol("withdrawFee") => 4,
-                Symbol("withdrawCoin") => 4,
-                Symbol("listDownline") => 4,
-                Symbol("checkDownline") => 4,
-                Symbol("createVoucher") => 4
+                Symbol("getInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("transHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tradeHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("orderHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("getOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("cancelOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("withdrawFee") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("withdrawCoin") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("listDownline") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("checkDownline") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("createVoucher") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+)
             )
         )
     ),
@@ -344,9 +393,10 @@ end
 function fetchMarkets(self::Indodax, params=Dict())
     response = Base.fetch(self.publicGetApiPairs(params));
     result = [];
+    rawMarkets = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        market = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawMarkets)))
+        market = get(rawMarkets, i + 1, nothing);
         id = safeString(market, "id");
         baseId = safeString(market, "traded_currency");
         quoteId = safeString(market, "base_currency");
@@ -428,7 +478,9 @@ function parseBalance(self::Indodax, response)
         account = self.account();
         account[Symbol("free")] = safeString(free, currencyId);
         account[Symbol("used")] = safeString(used, currencyId);
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -577,7 +629,7 @@ function fetchOHLCV(self::Indodax, symbol, timeframe="1m", since=nothing, limit=
         request[Symbol("from")] = now - limit * duration - 1;
     end
     response = Base.fetch(self.publicGetTradingviewHistoryV2(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
 
 end
 function parseOrderStatus(self::Indodax, status)
@@ -600,6 +652,7 @@ function parseOrder(self::Indodax, order, market=nothing)
     price = safeString(order, "price");
     amount = nothing;
     remaining = nothing;
+    filled = nothing;
     marketId = safeString(order, "pair");
     market = self.safeMarket(marketId, market);
     if functions.ccxtruthy(market != nothing)
@@ -613,10 +666,9 @@ function parseOrder(self::Indodax, order, market=nothing)
             baseId = "rp";
         end
         cost = safeString(order, string("order_", quoteId));
-        if functions.ccxtruthy(!functions.ccxtruthy(cost))
-            amount = safeString(order, string("order_", baseId));
-            remaining = safeString(order, string("remain_", baseId));
-        end
+        amount = safeString(order, string("order_", baseId));
+        remaining = safeString(order, string("remain_", baseId));
+        filled = safeString(order, string("receive_", baseId));
     end
     timestamp = safeInteger(order, "submit_time");
     fee = nothing;
@@ -638,7 +690,7 @@ function parseOrder(self::Indodax, order, market=nothing)
     Symbol("cost") => cost,
     Symbol("average") => nothing,
     Symbol("amount") => amount,
-    Symbol("filled") => nothing,
+    Symbol("filled") => filled,
     Symbol("remaining") => remaining,
     Symbol("status") => status,
     Symbol("fee") => fee,
@@ -659,7 +711,7 @@ function fetchOrder(self::Indodax, id, symbol=nothing, params=Dict())
         Symbol("order_id") => id
     );
     response = Base.fetch(self.privatePostGetOrder(extend(request, params)));
-    orders = get(response, Symbol("return"), nothing);
+    orders = self.safeDict(response, "return", Dict{Symbol, Any}());
     order = self.parseOrder(extend(Dict{Symbol, Any}(
         Symbol("id") => id
     ), get(orders, Symbol("order"), nothing)), market);
@@ -678,7 +730,8 @@ function fetchOpenOrders(self::Indodax, symbol=nothing, since=nothing, limit=not
         request[Symbol("pair")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privatePostOpenOrders(extend(request, params)));
-    rawOrders = get(get(response, Symbol("return"), nothing), Symbol("orders"), nothing);
+    openOrdersResult = self.safeDict(response, "return", Dict{Symbol, Any}());
+    rawOrders = get(openOrdersResult, Symbol("orders"), nothing);
     if functions.ccxtruthy(!functions.ccxtruthy(rawOrders))
             return []
     end
@@ -711,7 +764,8 @@ function fetchClosedOrders(self::Indodax, symbol=nothing, since=nothing, limit=n
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privatePostOrderHistory(extend(request, params)));
-    orders = self.parseOrders(get(get(response, Symbol("return"), nothing), Symbol("orders"), nothing), market);
+    historyResult = self.safeDict(response, "return", Dict{Symbol, Any}());
+    orders = self.parseOrders(get(historyResult, Symbol("orders"), nothing), market);
     orders = filterBy(orders, "status", "closed");
     return self.filterBySymbolSinceLimit(orders, symbol, since, limit)
 
@@ -752,7 +806,7 @@ function createOrder(self::Indodax, symbol, type_var, side, amount, price=nothin
         priceIsRequired = true;
         quantityIsRequired = true;
         if functions.ccxtruthy(side == "buy")
-            request[Symbol(market[Symbol("quoteId")])] = self.parseToNumeric(stringMul(numberToString(amount), numberToString(price)));
+            request[Symbol(market[Symbol("quoteId")])] = self.parseToNumeric(self.costToPrecision(symbol, stringMul(numberToString(amount), numberToString(price))));
         end
     end
     if functions.ccxtruthy(priceIsRequired)
@@ -811,6 +865,22 @@ function fetchTransactionFee(self::Indodax, code, params=Dict())
     Symbol("rate") => self.safeNumber(data, "withdraw_fee"),
     Symbol("currency") => self.safeCurrencyCode(currencyId, currency)
 )
+
+end
+function fetchDepositWithdrawFee(self::Indodax, code, params=Dict())
+    Base.fetch(self.loadMarkets());
+    currency = self.currency(code);
+    request = Dict{Symbol, Any}(
+        Symbol("currency") => get(currency, Symbol("id"), nothing)
+    );
+    response = Base.fetch(self.privatePostWithdrawFee(extend(request, params)));
+    data = self.safeDict(response, "return", Dict{Symbol, Any}());
+    result = self.depositWithdrawFee(response);
+    result[Symbol("withdraw")][Symbol("fee")] = self.safeNumber(data, "withdraw_fee");
+    result[Symbol("withdraw")][Symbol("percentage")] = false;
+    result[Symbol("deposit")][Symbol("fee")] = 0;
+    result[Symbol("deposit")][Symbol("percentage")] = false;
+    return self.assignDefaultDepositWithdrawFees(result, currency)
 
 end
 function fetchDepositsWithdrawals(self::Indodax, code=nothing, since=nothing, limit=nothing, params=Dict())
@@ -942,27 +1012,41 @@ function fetchDepositAddresses(self::Indodax, codes=nothing, params=Dict())
             network = nothing;
             if functions.ccxtruthy(ccxt_in(marketId, networks))
                 networkId = safeString(networks, marketId);
+                if functions.ccxtruthy(networkId == nothing)
+                    throw(ExchangeError(string(self.id, " fetchDepositAddresses() missing networkId")));
+                end
                 if functions.ccxtruthy(findfirst(",", networkId) !== nothing)
                     network = [];
+                    if functions.ccxtruthy(networkId == nothing)
+                        throw(ExchangeError(string(self.id, " fetchDepositAddresses() missing networkId")));
+                    end
                     networkIds = split(networkId, ",");
                     j = 0
                     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkIds)))
-                        push!(network, uppercase(self.networkIdToCode(get(networkIds, j + 1, nothing), code)));
+                        _netIdTmp = self.networkIdToCode(get(networkIds, j + 1, nothing), code);
+                        if functions.ccxtruthy(_netIdTmp != nothing)
+                                                        push!(network, uppercase(_netIdTmp));
+                        end
                         j += 1
                     end
 
                 else
-                    network = uppercase(self.networkIdToCode(networkId, code));
+                    _netIdTmp = self.networkIdToCode(networkId, code);
+                    if functions.ccxtruthy(_netIdTmp != nothing)
+                        network = uppercase(_netIdTmp);
+                    end
                 end
             end
             finalNetwork = network;
-            result[Symbol(code)] = Dict{Symbol, Any}(
-                Symbol("info") => Dict{Symbol, Any}(),
-                Symbol("currency") => code,
-                Symbol("network") => finalNetwork,
-                Symbol("address") => address,
-                Symbol("tag") => nothing
-            );
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = Dict{Symbol, Any}(
+                    Symbol("info") => Dict{Symbol, Any}(),
+                    Symbol("currency") => code,
+                    Symbol("network") => finalNetwork,
+                    Symbol("address") => address,
+                    Symbol("tag") => nothing
+                );
+            end
         end
         i += 1
     end
@@ -1028,104 +1112,157 @@ function handleErrors(self::Indodax, code, reason, url, method, headers, body, r
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Indodax, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetApiServerTime(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/server_time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/server_time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiPairs(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/pairs", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/pairs", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiPriceIncrements(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/price_increments", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/price_increments", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiSummaries(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/summaries", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/summaries", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiTickerPair(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/ticker/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/ticker/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiTickerAll(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/ticker_all", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/ticker_all", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiTradesPair(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/trades/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/trades/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiDepthPair(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "api/depth/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/depth/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradingviewHistoryV2(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "tradingview/history_v2", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "tradingview/history_v2", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostGetInfo(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "getInfo", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "getInfo", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTransHistory(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "transHistory", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "transHistory", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTrade(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "trade", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeHistory(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "tradeHistory", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "tradeHistory", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenOrders(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "openOrders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "openOrders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderHistory(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "orderHistory", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "orderHistory", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetOrder(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "getOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "getOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelOrder(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "cancelOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "cancelOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawFee(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "withdrawFee", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "withdrawFee", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawCoin(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "withdrawCoin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "withdrawCoin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostListDownline(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "listDownline", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "listDownline", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCheckDownline(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "checkDownline", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "checkDownline", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCreateVoucher(self::Indodax, params=Dict(), context=Dict())
-    return request(self, "createVoucher", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "createVoucher", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Indodax(; kwargs...)
-    inst = Indodax(Exchange(), describe, nonce, fetchTime, fetchMarkets, parseBalance, fetchBalance, fetchOrderBook, parseTicker, fetchTicker, fetchTickers, parseTrade, fetchTrades, parseOHLCV, fetchOHLCV, parseOrderStatus, parseOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders, createOrder, cancelOrder, fetchTransactionFee, fetchDepositsWithdrawals, withdraw, parseTransaction, parseTransactionStatus, fetchDepositAddresses, sign, handleErrors, publicGetApiServerTime, publicGetApiPairs, publicGetApiPriceIncrements, publicGetApiSummaries, publicGetApiTickerPair, publicGetApiTickerAll, publicGetApiTradesPair, publicGetApiDepthPair, publicGetTradingviewHistoryV2, privatePostGetInfo, privatePostTransHistory, privatePostTrade, privatePostTradeHistory, privatePostOpenOrders, privatePostOrderHistory, privatePostGetOrder, privatePostCancelOrder, privatePostWithdrawFee, privatePostWithdrawCoin, privatePostListDownline, privatePostCheckDownline, privatePostCreateVoucher)
+    inst = Indodax(Exchange(), describe, nonce, fetchTime, fetchMarkets, parseBalance, fetchBalance, fetchOrderBook, parseTicker, fetchTicker, fetchTickers, parseTrade, fetchTrades, parseOHLCV, fetchOHLCV, parseOrderStatus, parseOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders, createOrder, cancelOrder, fetchTransactionFee, fetchDepositWithdrawFee, fetchDepositsWithdrawals, withdraw, parseTransaction, parseTransactionStatus, fetchDepositAddresses, sign, handleErrors, publicGetApiServerTime, publicGetApiPairs, publicGetApiPriceIncrements, publicGetApiSummaries, publicGetApiTickerPair, publicGetApiTickerAll, publicGetApiTradesPair, publicGetApiDepthPair, publicGetTradingviewHistoryV2, privatePostGetInfo, privatePostTransHistory, privatePostTrade, privatePostTradeHistory, privatePostOpenOrders, privatePostOrderHistory, privatePostGetOrder, privatePostCancelOrder, privatePostWithdrawFee, privatePostWithdrawCoin, privatePostListDownline, privatePostCheckDownline, privatePostCreateVoucher)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

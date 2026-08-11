@@ -175,6 +175,7 @@ function describe(self::Coinmate, )
         Symbol("fetchSettlementHistory") => false,
         Symbol("fetchTicker") => true,
         Symbol("fetchTickers") => true,
+        Symbol("fetchTime") => true,
         Symbol("fetchTrades") => true,
         Symbol("fetchTradingFee") => true,
         Symbol("fetchTradingFees") => false,
@@ -208,10 +209,195 @@ function describe(self::Coinmate, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["orderBook", "ticker", "tickerAll", "products", "transactions", "tradingPairs", "system/time"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("orderBook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickerAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("products") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tradingPairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("system/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("post") => ["currencies", "balances", "bitcoinCashWithdrawal", "bitcoinCashDepositAddresses", "bitcoinDepositAddresses", "bitcoinWithdrawal", "bitcoinWithdrawalFees", "buyInstant", "buyLimit", "cancelOrder", "cancelOrderWithInfo", "createVoucher", "dashDepositAddresses", "dashWithdrawal", "ethereumWithdrawal", "ethereumDepositAddresses", "litecoinWithdrawal", "litecoinDepositAddresses", "openOrders", "order", "orderHistory", "orderById", "pusherAuth", "redeemVoucher", "replaceByBuyLimit", "replaceByBuyInstant", "replaceBySellLimit", "replaceBySellInstant", "rippleDepositAddresses", "rippleWithdrawal", "sellInstant", "sellLimit", "transactionHistory", "traderFees", "tradeHistory", "transfer", "transferHistory", "unconfirmedBitcoinDeposits", "unconfirmedBitcoinCashDeposits", "unconfirmedDashDeposits", "unconfirmedEthereumDeposits", "unconfirmedLitecoinDeposits", "unconfirmedRippleDeposits", "cancelAllOpenOrders", "withdrawVirtualCurrency", "virtualCurrencyDepositAddresses", "unconfirmedVirtualCurrencyDeposits", "adaWithdrawal", "adaDepositAddresses", "unconfirmedAdaDeposits", "solWithdrawal", "solDepositAddresses", "unconfirmedSolDeposits", "bankWireWithdrawal"]
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bitcoinCashWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bitcoinCashDepositAddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bitcoinDepositAddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bitcoinWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bitcoinWithdrawalFees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("buyInstant") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("buyLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelOrderWithInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("createVoucher") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dashDepositAddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("dashWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ethereumWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ethereumDepositAddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("litecoinWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("litecoinDepositAddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderById") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("pusherAuth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("redeemVoucher") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("replaceByBuyLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("replaceByBuyInstant") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("replaceBySellLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("replaceBySellInstant") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rippleDepositAddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("rippleWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sellInstant") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("sellLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transactionHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("traderFees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tradeHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("transferHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unconfirmedBitcoinDeposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unconfirmedBitcoinCashDeposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unconfirmedDashDeposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unconfirmedEthereumDeposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unconfirmedLitecoinDeposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unconfirmedRippleDeposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelAllOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdrawVirtualCurrency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("virtualCurrencyDepositAddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unconfirmedVirtualCurrencyDeposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("adaWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("adaDepositAddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unconfirmedAdaDeposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("solWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("solDepositAddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unconfirmedSolDeposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("bankWireWithdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(
@@ -437,7 +623,7 @@ function fetchOrderBook(self::Coinmate, symbol, limit=nothing, params=Dict())
         Symbol("groupByPriceLimit") => "False"
     );
     response = Base.fetch(self.publicGetOrderBook(extend(request, params)));
-    orderbook = get(response, Symbol("data"), nothing);
+    orderbook = self.safeDict(response, "data", Dict{Symbol, Any}());
     timestamp = safeTimestamp(orderbook, "timestamp");
     return self.parseOrderBook(orderbook, get(market, Symbol("symbol"), nothing), timestamp, "bids", "asks", "price", "amount")
 
@@ -519,7 +705,7 @@ function fetchDepositsWithdrawals(self::Coinmate, code=nothing, since=nothing, l
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privatePostTransferHistory(extend(request, params)));
-    items = get(response, Symbol("data"), nothing);
+    items = self.safeList(response, "data", []);
     return self.parseTransactions(items, nothing, since, limit)
 
 end
@@ -589,7 +775,7 @@ function withdraw(self::Coinmate, code, amount, address, tag=nothing, params=Dic
     if functions.ccxtruthy(tag != nothing)
         request[Symbol("destinationTag")] = tag;
     end
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     data = safeValue(response, "data");
     transaction = self.parseTransaction(data, currency);
     fillResponseFromRequest = self.safeBool(withdrawOptions, "fillResponseFromRequest", true);
@@ -706,7 +892,8 @@ function fetchOpenOrders(self::Coinmate, symbol=nothing, since=nothing, limit=no
     extension = Dict{Symbol, Any}(
         Symbol("status") => "open"
     );
-    return self.parseOrders(get(response, Symbol("data"), nothing), nothing, since, limit, extension)
+    data = self.safeList(response, "data", []);
+    return self.parseOrders(data, nothing, since, limit, extension)
 
 end
 function fetchOrders(self::Coinmate, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -724,7 +911,8 @@ function fetchOrders(self::Coinmate, symbol=nothing, since=nothing, limit=nothin
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.privatePostOrderHistory(extend(request, params)));
-    return self.parseOrders(get(response, Symbol("data"), nothing), market, since, limit)
+    data = self.safeList(response, "data", []);
+    return self.parseOrders(data, market, since, limit)
 
 end
 function parseOrderStatus(self::Coinmate, status)
@@ -804,7 +992,7 @@ function createOrder(self::Coinmate, symbol, type_var, side, amount, price=nothi
         request[Symbol("price")] = self.priceToPrecision(symbol, price);
         method += capitalize(type_var);
     end
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     id = safeString(response, "data");
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
@@ -885,7 +1073,7 @@ function handleErrors(self::Coinmate, code, reason, url, method, headers, body, 
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Coinmate, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1136,9 +1324,62 @@ end
 
 function Coinmate(; kwargs...)
     inst = Coinmate(Exchange(), describe, fetchTime, fetchMarkets, parseBalance, fetchBalance, fetchOrderBook, fetchTicker, fetchTickers, parseTicker, fetchDepositsWithdrawals, parseTransactionStatus, parseTransaction, withdraw, fetchMyTrades, parseTrade, fetchTrades, fetchTradingFee, fetchOpenOrders, fetchOrders, parseOrderStatus, parseOrderType, parseOrder, createOrder, fetchOrder, cancelOrder, nonce, sign, handleErrors, publicGetOrderBook, publicGetTicker, publicGetTickerAll, publicGetProducts, publicGetTransactions, publicGetTradingPairs, publicGetSystemTime, privatePostCurrencies, privatePostBalances, privatePostBitcoinCashWithdrawal, privatePostBitcoinCashDepositAddresses, privatePostBitcoinDepositAddresses, privatePostBitcoinWithdrawal, privatePostBitcoinWithdrawalFees, privatePostBuyInstant, privatePostBuyLimit, privatePostCancelOrder, privatePostCancelOrderWithInfo, privatePostCreateVoucher, privatePostDashDepositAddresses, privatePostDashWithdrawal, privatePostEthereumWithdrawal, privatePostEthereumDepositAddresses, privatePostLitecoinWithdrawal, privatePostLitecoinDepositAddresses, privatePostOpenOrders, privatePostOrder, privatePostOrderHistory, privatePostOrderById, privatePostPusherAuth, privatePostRedeemVoucher, privatePostReplaceByBuyLimit, privatePostReplaceByBuyInstant, privatePostReplaceBySellLimit, privatePostReplaceBySellInstant, privatePostRippleDepositAddresses, privatePostRippleWithdrawal, privatePostSellInstant, privatePostSellLimit, privatePostTransactionHistory, privatePostTraderFees, privatePostTradeHistory, privatePostTransfer, privatePostTransferHistory, privatePostUnconfirmedBitcoinDeposits, privatePostUnconfirmedBitcoinCashDeposits, privatePostUnconfirmedDashDeposits, privatePostUnconfirmedEthereumDeposits, privatePostUnconfirmedLitecoinDeposits, privatePostUnconfirmedRippleDeposits, privatePostCancelAllOpenOrders, privatePostWithdrawVirtualCurrency, privatePostVirtualCurrencyDepositAddresses, privatePostUnconfirmedVirtualCurrencyDeposits, privatePostAdaWithdrawal, privatePostAdaDepositAddresses, privatePostUnconfirmedAdaDeposits, privatePostSolWithdrawal, privatePostSolDepositAddresses, privatePostUnconfirmedSolDeposits, privatePostBankWireWithdrawal)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

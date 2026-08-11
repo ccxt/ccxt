@@ -82,7 +82,7 @@
      "deposit_disabled": false
     },
     {
-     "name": "ARBNOVA",
+     "name": "ARBITRUM_NOVA",
      "addr": "",
      "withdraw_disabled": true,
      "withdraw_delayed": false,
@@ -133,7 +133,7 @@
      "withdraw": {}
     }
    },
-   "ARBONE": {
+   "ARBITRUM": {
     "info": {
      "name": "ARBEVM",
      "addr": "",
@@ -142,7 +142,7 @@
      "deposit_disabled": false
     },
     "id": "ARBEVM",
-    "network": "ARBONE",
+    "network": "ARBITRUM",
     "deposit": true,
     "withdraw": true,
     "precision": 0.0001,
@@ -151,16 +151,16 @@
      "withdraw": {}
     }
    },
-   "ARBNOVA": {
+   "ARBITRUM_NOVA": {
     "info": {
-     "name": "ARBNOVA",
+     "name": "ARBITRUM_NOVA",
      "addr": "",
      "withdraw_disabled": true,
      "withdraw_delayed": false,
      "deposit_disabled": true
     },
-    "id": "ARBNOVA",
-    "network": "ARBNOVA",
+    "id": "ARBITRUM_NOVA",
+    "network": "ARBITRUM_NOVA",
     "deposit": false,
     "withdraw": false,
     "precision": 0.0001,
@@ -289,7 +289,7 @@
      "withdraw": {}
     }
    },
-   "ARBONE": {
+   "ARBITRUM": {
     "info": {
      "name": "ARBEVM",
      "addr": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
@@ -298,7 +298,7 @@
      "deposit_disabled": false
     },
     "id": "ARBEVM",
-    "network": "ARBONE",
+    "network": "ARBITRUM",
     "deposit": true,
     "withdraw": true,
     "precision": 0.0001,

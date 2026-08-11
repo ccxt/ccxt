@@ -197,30 +197,62 @@ function describe(self::Cryptomus, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v2/user-api/exchange/markets") => 1,
-                Symbol("v2/user-api/exchange/market/price") => 1,
-                Symbol("v1/exchange/market/assets") => 1,
-                Symbol("v1/exchange/market/order-book/{currencyPair}") => 1,
-                Symbol("v1/exchange/market/tickers") => 1,
-                Symbol("v1/exchange/market/trades/{currencyPair}") => 1
+                Symbol("v2/user-api/exchange/markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/user-api/exchange/market/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/exchange/market/assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/exchange/market/order-book/{currencyPair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/exchange/market/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v1/exchange/market/trades/{currencyPair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v2/user-api/exchange/orders") => 1,
-                Symbol("v2/user-api/exchange/orders/history") => 1,
-                Symbol("v2/user-api/exchange/account/balance") => 1,
-                Symbol("v2/user-api/exchange/account/tariffs") => 1,
-                Symbol("v2/user-api/payment/services") => 1,
-                Symbol("v2/user-api/payout/services") => 1,
-                Symbol("v2/user-api/transaction/list") => 1
+                Symbol("v2/user-api/exchange/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/user-api/exchange/orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/user-api/exchange/account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/user-api/exchange/account/tariffs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/user-api/payment/services") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/user-api/payout/services") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/user-api/transaction/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("v2/user-api/exchange/orders") => 1,
-                Symbol("v2/user-api/exchange/orders/market") => 1
+                Symbol("v2/user-api/exchange/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v2/user-api/exchange/orders/market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("v2/user-api/exchange/orders/{orderId}") => 1
+                Symbol("v2/user-api/exchange/orders/{orderId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -238,7 +270,7 @@ function describe(self::Cryptomus, )
             Symbol("BEP20") => "bsc",
             Symbol("DASH") => "dash",
             Symbol("POLYGON") => "polygon",
-            Symbol("ARB") => "arbitrum",
+            Symbol("ARBITRUM") => "arbitrum",
             Symbol("SOL") => "sol",
             Symbol("TON") => "ton",
             Symbol("ERC20") => "eth",
@@ -255,7 +287,7 @@ function describe(self::Cryptomus, )
             Symbol("bsc") => "BEP20",
             Symbol("dash") => "DASH",
             Symbol("polygon") => "POLYGON",
-            Symbol("arbitrum") => "ARB",
+            Symbol("arbitrum") => "ARBITRUM",
             Symbol("sol") => "SOL",
             Symbol("ton") => "TON",
             Symbol("eth") => "ERC20",
@@ -299,6 +331,9 @@ function fetchMarkets(self::Cryptomus, params=Dict())
 end
 function parseMarket(self::Cryptomus, market)
     marketId = safeString(market, "symbol");
+    if functions.ccxtruthy(marketId == nothing)
+        throw(ExchangeError(string(self.id, " parseMarket() missing marketId")));
+    end
     parts = split(marketId, "_");
     baseId = get(parts, 1, nothing);
     quoteId = get(parts, 2, nothing);
@@ -383,26 +418,28 @@ function parseCurrency(self::Cryptomus, rawCurrency)
         end
         networkId = safeString(networkEntry, "network_code");
         networkCode = self.networkIdToCode(networkId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(networkEntry, "min_withdraw"),
-                    Symbol("max") => self.safeNumber(networkEntry, "max_withdraw")
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(networkEntry, "min_withdraw"),
+                        Symbol("max") => self.safeNumber(networkEntry, "max_withdraw")
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(networkEntry, "min_deposit"),
+                        Symbol("max") => self.safeNumber(networkEntry, "max_deposit")
+                    )
                 ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(networkEntry, "min_deposit"),
-                    Symbol("max") => self.safeNumber(networkEntry, "max_deposit")
-                )
-            ),
-            Symbol("active") => nothing,
-            Symbol("deposit") => self.safeBool(networkEntry, "can_deposit"),
-            Symbol("withdraw") => self.safeBool(networkEntry, "can_withdraw"),
-            Symbol("fee") => nothing,
-            Symbol("precision") => nothing,
-            Symbol("info") => networkEntry
-        );
+                Symbol("active") => nothing,
+                Symbol("deposit") => self.safeBool(networkEntry, "can_deposit"),
+                Symbol("withdraw") => self.safeBool(networkEntry, "can_withdraw"),
+                Symbol("fee") => nothing,
+                Symbol("precision") => nothing,
+                Symbol("info") => networkEntry
+            );
+        end
         i += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -479,7 +516,11 @@ function fetchTrades(self::Cryptomus, symbol, since=nothing, limit=nothing, para
     );
     response = Base.fetch(self.publicGetV1ExchangeMarketTradesCurrencyPair(extend(request, params)));
     data = self.safeList(response, "data");
-    return self.parseTrades(data, market, since, limit)
+    dataList = [];
+    if functions.ccxtruthy(data != nothing)
+        dataList = data;
+    end
+    return self.parseTrades(dataList, market, since, limit)
 
 end
 function parseTrade(self::Cryptomus, trade, market=nothing)
@@ -526,7 +567,9 @@ function parseBalance(self::Cryptomus, balance)
         account = self.account();
         account[Symbol("free")] = safeString(balanceEntry, "available");
         account[Symbol("used")] = safeString(balanceEntry, "held");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -814,80 +857,133 @@ function handleErrors(self::Cryptomus, httpCode, reason, url, method, headers, b
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Cryptomus, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetV2UserApiExchangeMarkets(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/markets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/exchange/markets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV2UserApiExchangeMarketPrice(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/market/price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/exchange/market/price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1ExchangeMarketAssets(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/market/assets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/exchange/market/assets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1ExchangeMarketOrderBookCurrencyPair(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/market/order-book/{currencyPair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/exchange/market/order-book/{currencyPair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1ExchangeMarketTickers(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/market/tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/exchange/market/tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV1ExchangeMarketTradesCurrencyPair(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v1/exchange/market/trades/{currencyPair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v1/exchange/market/trades/{currencyPair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2UserApiExchangeOrders(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/exchange/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2UserApiExchangeOrdersHistory(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/orders/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/exchange/orders/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2UserApiExchangeAccountBalance(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/account/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/exchange/account/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2UserApiExchangeAccountTariffs(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/account/tariffs", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/exchange/account/tariffs", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2UserApiPaymentServices(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/payment/services", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/payment/services", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2UserApiPayoutServices(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/payout/services", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/payout/services", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2UserApiTransactionList(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/transaction/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/transaction/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostV2UserApiExchangeOrders(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/exchange/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV2UserApiExchangeOrdersMarket(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/orders/market", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/exchange/orders/market", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privateDeleteV2UserApiExchangeOrdersOrderId(self::Cryptomus, params=Dict(), context=Dict())
-    return request(self, "v2/user-api/exchange/orders/{orderId}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v2/user-api/exchange/orders/{orderId}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Cryptomus(; kwargs...)
     inst = Cryptomus(Exchange(), describe, fetchMarkets, parseMarket, fetchCurrencies, parseCurrency, fetchTickers, parseTicker, fetchOrderBook, fetchTrades, parseTrade, fetchBalance, parseBalance, createOrder, cancelOrder, fetchCanceledAndClosedOrders, fetchOpenOrders, parseOrder, parseOrderStatus, fetchTradingFees, parseFeeTiers, sign, handleErrors, publicGetV2UserApiExchangeMarkets, publicGetV2UserApiExchangeMarketPrice, publicGetV1ExchangeMarketAssets, publicGetV1ExchangeMarketOrderBookCurrencyPair, publicGetV1ExchangeMarketTickers, publicGetV1ExchangeMarketTradesCurrencyPair, privateGetV2UserApiExchangeOrders, privateGetV2UserApiExchangeOrdersHistory, privateGetV2UserApiExchangeAccountBalance, privateGetV2UserApiExchangeAccountTariffs, privateGetV2UserApiPaymentServices, privateGetV2UserApiPayoutServices, privateGetV2UserApiTransactionList, privatePostV2UserApiExchangeOrders, privatePostV2UserApiExchangeOrdersMarket, privateDeleteV2UserApiExchangeOrdersOrderId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

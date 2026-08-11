@@ -87,6 +87,7 @@ using Ccxt
         "Modetrade",
         "Mudrex",
         "Myokx",
+        "Nado",
         "Ndax",
         "Okx",
         "Okxus",

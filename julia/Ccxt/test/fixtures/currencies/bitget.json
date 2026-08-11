@@ -384,7 +384,7 @@
     "fee": 0.0002,
     "precision": 1e-8
    },
-   "ARBONE": {
+   "ARBITRUM": {
     "info": {
      "chain": "ArbitrumOne",
      "needTag": "false",
@@ -403,7 +403,7 @@
      "congestion": "normal"
     },
     "id": "ArbitrumOne",
-    "network": "ARBONE",
+    "network": "ARBITRUM",
     "limits": {
      "withdraw": {
       "min": 0.00520985
@@ -1003,7 +1003,7 @@
     "fee": 0.15,
     "precision": 1e-8
    },
-   "ARBONE": {
+   "ARBITRUM": {
     "info": {
      "chain": "ArbitrumOne",
      "needTag": "false",
@@ -1022,7 +1022,7 @@
      "congestion": "normal"
     },
     "id": "ArbitrumOne",
-    "network": "ARBONE",
+    "network": "ARBITRUM",
     "limits": {
      "withdraw": {
       "min": 10

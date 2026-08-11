@@ -160,11 +160,83 @@ function describe(self::Bit2c, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
-            Symbol("get") => ["Exchanges/{pair}/Ticker", "Exchanges/{pair}/orderbook", "Exchanges/{pair}/trades", "Exchanges/{pair}/lasttrades"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("Exchanges/{pair}/Ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Exchanges/{pair}/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Exchanges/{pair}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Exchanges/{pair}/lasttrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("private") => Dict{Symbol, Any}(
-            Symbol("post") => ["Merchant/CreateCheckout", "Funds/AddCoinFundsRequest", "Order/AddFund", "Order/AddOrder", "Order/GetById", "Order/AddOrderMarketPriceBuy", "Order/AddOrderMarketPriceSell", "Order/CancelOrder", "Order/AddCoinFundsRequest", "Order/AddStopOrder", "Payment/GetMyId", "Payment/Send", "Payment/Pay"],
-            Symbol("get") => ["Account/Balance", "Account/Balance/v2", "Order/MyOrders", "Order/GetById", "Order/AccountHistory", "Order/OrderHistory"]
+            Symbol("post") => Dict{Symbol, Any}(
+                Symbol("Merchant/CreateCheckout") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Funds/AddCoinFundsRequest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/AddFund") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/AddOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/GetById") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/AddOrderMarketPriceBuy") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/AddOrderMarketPriceSell") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/CancelOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/AddCoinFundsRequest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/AddStopOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Payment/GetMyId") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Payment/Send") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Payment/Pay") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            ),
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("Account/Balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Account/Balance/v2") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/MyOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/GetById") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/AccountHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Order/OrderHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         )
     ),
     Symbol("markets") => Dict{Symbol, Any}(
@@ -399,16 +471,21 @@ function fetchTrades(self::Bit2c, symbol, since=nothing, limit=nothing, params=D
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    response = nothing;
+    responseList = [];
     if functions.ccxtruthy(method == "public_get_exchanges_pair_trades")
         response = Base.fetch(self.publicGetExchangesPairTrades(extend(request, params)));
+        if functions.ccxtruthy(isa(response, AbstractString))
+            throw(ExchangeError(response));
+        end
+        responseList = toArray(response);
     else
         response = Base.fetch(self.publicGetExchangesPairLasttrades(extend(request, params)));
+        if functions.ccxtruthy(isa(response, AbstractString))
+            throw(ExchangeError(response));
+        end
+        responseList = toArray(response);
     end
-    if functions.ccxtruthy(isa(response, AbstractString))
-        throw(ExchangeError(response));
-    end
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(responseList, market, since, limit)
 
 end
 function fetchTradingFees(self::Bit2c, params=Dict())
@@ -460,7 +537,7 @@ function createOrder(self::Bit2c, symbol, type_var, side, amount, price=nothing,
         request[Symbol("Total")] = self.parseToNumeric(stringMul(amountString, priceString));
         request[Symbol("IsBid")] =         (side == "buy");
     end
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     return self.parseOrder(response, market)
 
 end
@@ -596,7 +673,11 @@ function fetchMyTrades(self::Bit2c, symbol=nothing, since=nothing, limit=nothing
         request[Symbol("pair")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privateGetOrderOrderHistory(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    responseList = [];
+    if functions.ccxtruthy(response != nothing)
+        responseList = toArray(response);
+    end
+    return self.parseTrades(responseList, market, since, limit)
 
 end
 function removeCommaFromValue(self::Bit2c, str)
@@ -762,7 +843,7 @@ function handleErrors(self::Bit2c, httpCode, reason, url, method, headers, body,
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bit2c, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -861,9 +942,62 @@ end
 
 function Bit2c(; kwargs...)
     inst = Bit2c(Exchange(), describe, parseBalance, fetchBalance, fetchOrderBook, parseTicker, fetchTicker, fetchTrades, fetchTradingFees, createOrder, cancelOrder, fetchOpenOrders, fetchOrder, parseOrder, fetchMyTrades, removeCommaFromValue, parseTrade, isFiat, fetchDepositAddress, parseDepositAddress, nonce, sign, handleErrors, publicGetExchangesPairTicker, publicGetExchangesPairOrderbook, publicGetExchangesPairTrades, publicGetExchangesPairLasttrades, privatePostMerchantCreateCheckout, privatePostFundsAddCoinFundsRequest, privatePostOrderAddFund, privatePostOrderAddOrder, privatePostOrderGetById, privatePostOrderAddOrderMarketPriceBuy, privatePostOrderAddOrderMarketPriceSell, privatePostOrderCancelOrder, privatePostOrderAddCoinFundsRequest, privatePostOrderAddStopOrder, privatePostPaymentGetMyId, privatePostPaymentSend, privatePostPaymentPay, privateGetAccountBalance, privateGetAccountBalanceV2, privateGetOrderMyOrders, privateGetOrderGetById, privateGetOrderAccountHistory, privateGetOrderOrderHistory)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -315,132 +315,376 @@ function describe(self::Deribit, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("auth") => 1,
-                Symbol("exchange_token") => 1,
-                Symbol("fork_token") => 1,
-                Symbol("set_heartbeat") => 1,
-                Symbol("disable_heartbeat") => 1,
-                Symbol("get_time") => 1,
-                Symbol("hello") => 1,
-                Symbol("status") => 1,
-                Symbol("test") => 1,
-                Symbol("subscribe") => 1,
-                Symbol("unsubscribe") => 1,
-                Symbol("unsubscribe_all") => 1,
-                Symbol("get_announcements") => 1,
-                Symbol("get_book_summary_by_currency") => 1,
-                Symbol("get_book_summary_by_instrument") => 1,
-                Symbol("get_contract_size") => 1,
-                Symbol("get_currencies") => 1,
-                Symbol("get_delivery_prices") => 1,
-                Symbol("get_funding_chart_data") => 1,
-                Symbol("get_funding_rate_history") => 1,
-                Symbol("get_funding_rate_value") => 1,
-                Symbol("get_historical_volatility") => 1,
-                Symbol("get_index") => 1,
-                Symbol("get_index_price") => 1,
-                Symbol("get_index_price_names") => 1,
-                Symbol("get_instrument") => 1,
-                Symbol("get_instruments") => 1,
-                Symbol("get_last_settlements_by_currency") => 1,
-                Symbol("get_last_settlements_by_instrument") => 1,
-                Symbol("get_last_trades_by_currency") => 1,
-                Symbol("get_last_trades_by_currency_and_time") => 1,
-                Symbol("get_last_trades_by_instrument") => 1,
-                Symbol("get_last_trades_by_instrument_and_time") => 1,
-                Symbol("get_mark_price_history") => 1,
-                Symbol("get_order_book") => 1,
-                Symbol("get_trade_volumes") => 1,
-                Symbol("get_tradingview_chart_data") => 1,
-                Symbol("get_volatility_index_data") => 1,
-                Symbol("ticker") => 1
+                Symbol("auth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange_token") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("fork_token") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("set_heartbeat") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("disable_heartbeat") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("hello") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("test") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("subscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unsubscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unsubscribe_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_announcements") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_book_summary_by_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_book_summary_by_instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_contract_size") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_delivery_prices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_funding_chart_data") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_funding_rate_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_funding_rate_value") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_historical_volatility") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_index_price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_index_price_names") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_last_settlements_by_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_last_settlements_by_instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_last_trades_by_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_last_trades_by_currency_and_time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_last_trades_by_instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_last_trades_by_instrument_and_time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_mark_price_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_order_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_trade_volumes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_tradingview_chart_data") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_volatility_index_data") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("logout") => 1,
-                Symbol("enable_cancel_on_disconnect") => 1,
-                Symbol("disable_cancel_on_disconnect") => 1,
-                Symbol("get_cancel_on_disconnect") => 1,
-                Symbol("subscribe") => 1,
-                Symbol("unsubscribe") => 1,
-                Symbol("unsubscribe_all") => 1,
-                Symbol("change_api_key_name") => 1,
-                Symbol("change_scope_in_api_key") => 1,
-                Symbol("change_subaccount_name") => 1,
-                Symbol("create_api_key") => 1,
-                Symbol("create_subaccount") => 1,
-                Symbol("disable_api_key") => 1,
-                Symbol("disable_tfa_for_subaccount") => 1,
-                Symbol("enable_affiliate_program") => 1,
-                Symbol("enable_api_key") => 1,
-                Symbol("get_access_log") => 1,
-                Symbol("get_account_summary") => 1,
-                Symbol("get_account_summaries") => 1,
-                Symbol("get_affiliate_program_info") => 1,
-                Symbol("get_email_language") => 1,
-                Symbol("get_new_announcements") => 1,
-                Symbol("get_portfolio_margins") => 1,
-                Symbol("get_position") => 1,
-                Symbol("get_positions") => 1,
-                Symbol("get_subaccounts") => 1,
-                Symbol("get_subaccounts_details") => 1,
-                Symbol("get_transaction_log") => 1,
-                Symbol("list_api_keys") => 1,
-                Symbol("remove_api_key") => 1,
-                Symbol("remove_subaccount") => 1,
-                Symbol("reset_api_key") => 1,
-                Symbol("set_announcement_as_read") => 1,
-                Symbol("set_api_key_as_default") => 1,
-                Symbol("set_email_for_subaccount") => 1,
-                Symbol("set_email_language") => 1,
-                Symbol("set_password_for_subaccount") => 1,
-                Symbol("toggle_notifications_from_subaccount") => 1,
-                Symbol("toggle_subaccount_login") => 1,
-                Symbol("execute_block_trade") => 4,
-                Symbol("get_block_trade") => 1,
-                Symbol("get_last_block_trades_by_currency") => 1,
-                Symbol("invalidate_block_trade_signature") => 1,
-                Symbol("verify_block_trade") => 4,
-                Symbol("buy") => 4,
-                Symbol("sell") => 4,
-                Symbol("edit") => 4,
-                Symbol("edit_by_label") => 4,
-                Symbol("cancel") => 4,
-                Symbol("cancel_all") => 4,
-                Symbol("cancel_all_by_currency") => 4,
-                Symbol("cancel_all_by_instrument") => 4,
-                Symbol("cancel_by_label") => 4,
-                Symbol("close_position") => 4,
-                Symbol("get_margins") => 1,
-                Symbol("get_mmp_config") => 1,
-                Symbol("get_open_orders_by_currency") => 1,
-                Symbol("get_open_orders_by_instrument") => 1,
-                Symbol("get_order_history_by_currency") => 1,
-                Symbol("get_order_history_by_instrument") => 1,
-                Symbol("get_order_margin_by_ids") => 1,
-                Symbol("get_order_state") => 1,
-                Symbol("get_stop_order_history") => 1,
-                Symbol("get_trigger_order_history") => 1,
-                Symbol("get_user_trades_by_currency") => 1,
-                Symbol("get_user_trades_by_currency_and_time") => 1,
-                Symbol("get_user_trades_by_instrument") => 1,
-                Symbol("get_user_trades_by_instrument_and_time") => 1,
-                Symbol("get_user_trades_by_order") => 1,
-                Symbol("reset_mmp") => 1,
-                Symbol("set_mmp_config") => 1,
-                Symbol("get_settlement_history_by_instrument") => 1,
-                Symbol("get_settlement_history_by_currency") => 1,
-                Symbol("cancel_transfer_by_id") => 1,
-                Symbol("cancel_withdrawal") => 1,
-                Symbol("create_deposit_address") => 1,
-                Symbol("get_current_deposit_address") => 1,
-                Symbol("get_deposits") => 1,
-                Symbol("get_transfers") => 1,
-                Symbol("get_withdrawals") => 1,
-                Symbol("submit_transfer_to_subaccount") => 1,
-                Symbol("submit_transfer_to_user") => 1,
-                Symbol("withdraw") => 1
+                Symbol("logout") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("enable_cancel_on_disconnect") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("disable_cancel_on_disconnect") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_cancel_on_disconnect") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("subscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unsubscribe") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unsubscribe_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("change_api_key_name") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("change_scope_in_api_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("change_subaccount_name") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("create_api_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("create_subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("disable_api_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("disable_tfa_for_subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("enable_affiliate_program") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("enable_api_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_access_log") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_account_summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_account_summaries") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_affiliate_program_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_email_language") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_new_announcements") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_portfolio_margins") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_subaccounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_subaccounts_details") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_transaction_log") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("list_api_keys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("remove_api_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("remove_subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("reset_api_key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("set_announcement_as_read") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("set_api_key_as_default") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("set_email_for_subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("set_email_language") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("set_password_for_subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("toggle_notifications_from_subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("toggle_subaccount_login") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("execute_block_trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("get_block_trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_last_block_trades_by_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("invalidate_block_trade_signature") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("verify_block_trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("buy") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("sell") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("edit") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("edit_by_label") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("cancel_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("cancel_all_by_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("cancel_all_by_instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("cancel_by_label") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("close_position") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("get_margins") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_mmp_config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_open_orders_by_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_open_orders_by_instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_order_history_by_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_order_history_by_instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_order_margin_by_ids") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_order_state") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_stop_order_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_trigger_order_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_user_trades_by_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_user_trades_by_currency_and_time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_user_trades_by_instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_user_trades_by_instrument_and_time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_user_trades_by_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("reset_mmp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("set_mmp_config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_settlement_history_by_instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_settlement_history_by_currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_transfer_by_id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancel_withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("create_deposit_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_current_deposit_address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("get_withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("submit_transfer_to_subaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("submit_transfer_to_user") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -680,6 +924,9 @@ function createExpiredOptionMarket(self::Deribit, symbol)
         settle = base;
     end
     splitBase = base;
+    if functions.ccxtruthy(base == nothing)
+        throw(ExchangeError(string(self.id, " createExpiredOptionMarket() missing base")));
+    end
     if functions.ccxtruthy(findfirst("_", base) !== nothing)
         splitSymbol = split(base, "_");
         splitBase = safeString(splitSymbol, 0);
@@ -738,7 +985,7 @@ function createExpiredOptionMarket(self::Deribit, symbol)
 end
 function safeMarket(self::Deribit, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     isOption = @functions.ccxt_and((marketId != nothing), (@functions.ccxt_or((endswith(marketId, "-C")), (endswith(marketId, "-P")))));
-    if functions.ccxtruthy(@functions.ccxt_and(isOption, !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))
+    if functions.ccxtruthy(@functions.ccxt_and(isOption, (@functions.ccxt_or((self.markets_by_id == nothing), !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))))
             return self.createExpiredOptionMarket(marketId)
     end
     return safeMarket(self.parent, marketId, market, delimiter, marketType)
@@ -866,8 +1113,17 @@ function fetchMarkets(self::Deribit, params=Dict())
             settle = self.safeCurrencyCode(settleId);
             settlementPeriod = safeValue(market, "settlement_period");
             swap = (settlementPeriod == "perpetual");
+            if functions.ccxtruthy(kind == nothing)
+                throw(ExchangeError(string(self.id, " method() missing kind")));
+            end
             future = @functions.ccxt_and(!functions.ccxtruthy(swap), (findfirst("future", kind) !== nothing));
+            if functions.ccxtruthy(kind == nothing)
+                throw(ExchangeError(string(self.id, " method() missing kind")));
+            end
             option = (findfirst("option", kind) !== nothing);
+            if functions.ccxtruthy(kind == nothing)
+                throw(ExchangeError(string(self.id, " method() missing kind")));
+            end
             isComboMarket = findfirst("combo", kind) !== nothing;
             expiry = safeInteger(market, "expiration_timestamp");
             strike = nothing;
@@ -906,7 +1162,9 @@ function fetchMarkets(self::Deribit, params=Dict())
             if functions.ccxtruthy(parsedMarketValue)
                 k += 1; continue
             end
-            parsedMarkets[Symbol(symbol)] = true;
+            if functions.ccxtruthy(symbol != nothing)
+                parsedMarkets[Symbol(symbol)] = true;
+            end
             minTradeAmount = self.safeNumber(market, "min_trade_amount");
             tickSize = self.safeNumber(market, "tick_size");
             push!(result, Dict{Symbol, Any}(
@@ -973,7 +1231,7 @@ function parseBalance(self::Deribit, balance)
     );
     summaries = [];
     if functions.ccxtruthy(ccxt_in("summaries", balance))
-        summaries = self.safeList(balance, "summaries");
+        summaries = self.safeList(balance, "summaries", []);
     else
         summaries = [balance];
     end
@@ -986,7 +1244,9 @@ function parseBalance(self::Deribit, balance)
         account[Symbol("free")] = safeString(data, "available_funds");
         account[Symbol("used")] = safeString(data, "maintenance_margin");
         account[Symbol("total")] = safeString(data, "equity");
-        result[Symbol(currencyCode)] = account;
+        if functions.ccxtruthy(currencyCode != nothing)
+            result[Symbol(currencyCode)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1152,7 +1412,9 @@ function fetchTickers(self::Deribit, symbols=nothing, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(result)))
         ticker = self.parseTicker(get(result, i + 1, nothing));
         symbol = get(ticker, Symbol("symbol"), nothing);
-        tickers[Symbol(symbol)] = ticker;
+        if functions.ccxtruthy(symbol != nothing)
+            tickers[Symbol(symbol)] = ticker;
+        end
         i += 1
     end
     return self.filterByArrayTickers(tickers, "symbol", symbols)
@@ -1321,9 +1583,10 @@ function fetchTradingFees(self::Deribit, params=Dict())
         i += 1
     end
     parsedFees = Dict{Symbol, Any}();
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         market = self.market(symbol);
         fee = Dict{Symbol, Any}(
             Symbol("info") => market,
@@ -2085,6 +2348,9 @@ function fetchFundingRateHistory(self::Deribit, symbol=nothing, since=nothing, l
     end
     if functions.ccxtruthy(ccxt_in("isDeribitPaginationCall", params))
         params = omit(params, "isDeribitPaginationCall");
+        if functions.ccxtruthy(limit == nothing)
+            throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a limit argument")));
+        end
         maxUntil = self.sum(since, limit * duration);
         request[Symbol("end_timestamp")] = min(get(request, Symbol("end_timestamp"), nothing), maxUntil);
     end
@@ -2400,504 +2666,557 @@ function handleErrors(self::Deribit, httpCode, reason, url, method, headers, bod
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Deribit, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetAuth(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "auth", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "auth", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetExchangeToken(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "exchange_token", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "exchange_token", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetForkToken(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "fork_token", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "fork_token", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSetHeartbeat(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_heartbeat", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "set_heartbeat", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDisableHeartbeat(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "disable_heartbeat", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "disable_heartbeat", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetTime(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetHello(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "hello", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "hello", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStatus(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "status", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "status", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTest(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "test", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "test", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSubscribe(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "subscribe", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "subscribe", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetUnsubscribe(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "unsubscribe", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unsubscribe", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetUnsubscribeAll(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "unsubscribe_all", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unsubscribe_all", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetAnnouncements(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_announcements", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_announcements", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetBookSummaryByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_book_summary_by_currency", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_book_summary_by_currency", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetBookSummaryByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_book_summary_by_instrument", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_book_summary_by_instrument", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetContractSize(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_contract_size", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_contract_size", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetCurrencies(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_currencies", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_currencies", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetDeliveryPrices(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_delivery_prices", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_delivery_prices", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetFundingChartData(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_funding_chart_data", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_funding_chart_data", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetFundingRateHistory(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_funding_rate_history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_funding_rate_history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetFundingRateValue(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_funding_rate_value", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_funding_rate_value", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetHistoricalVolatility(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_historical_volatility", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_historical_volatility", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetIndex(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_index", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_index", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetIndexPrice(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_index_price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_index_price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetIndexPriceNames(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_index_price_names", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_index_price_names", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_instrument", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_instrument", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetInstruments(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_instruments", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_instruments", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetLastSettlementsByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_settlements_by_currency", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_last_settlements_by_currency", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetLastSettlementsByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_settlements_by_instrument", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_last_settlements_by_instrument", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetLastTradesByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_trades_by_currency", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_last_trades_by_currency", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetLastTradesByCurrencyAndTime(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_trades_by_currency_and_time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_last_trades_by_currency_and_time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetLastTradesByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_trades_by_instrument", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_last_trades_by_instrument", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetLastTradesByInstrumentAndTime(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_trades_by_instrument_and_time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_last_trades_by_instrument_and_time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetMarkPriceHistory(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_mark_price_history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_mark_price_history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetOrderBook(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_order_book", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_order_book", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetTradeVolumes(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_trade_volumes", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_trade_volumes", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetTradingviewChartData(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_tradingview_chart_data", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_tradingview_chart_data", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGetVolatilityIndexData(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_volatility_index_data", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_volatility_index_data", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetLogout(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "logout", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "logout", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetEnableCancelOnDisconnect(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "enable_cancel_on_disconnect", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "enable_cancel_on_disconnect", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDisableCancelOnDisconnect(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "disable_cancel_on_disconnect", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "disable_cancel_on_disconnect", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetCancelOnDisconnect(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_cancel_on_disconnect", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_cancel_on_disconnect", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubscribe(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "subscribe", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "subscribe", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnsubscribe(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "unsubscribe", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unsubscribe", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnsubscribeAll(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "unsubscribe_all", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unsubscribe_all", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetChangeApiKeyName(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "change_api_key_name", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "change_api_key_name", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetChangeScopeInApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "change_scope_in_api_key", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "change_scope_in_api_key", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetChangeSubaccountName(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "change_subaccount_name", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "change_subaccount_name", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCreateApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "create_api_key", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "create_api_key", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCreateSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "create_subaccount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "create_subaccount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDisableApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "disable_api_key", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "disable_api_key", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetDisableTfaForSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "disable_tfa_for_subaccount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "disable_tfa_for_subaccount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetEnableAffiliateProgram(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "enable_affiliate_program", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "enable_affiliate_program", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetEnableApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "enable_api_key", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "enable_api_key", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAccessLog(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_access_log", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_access_log", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAccountSummary(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_account_summary", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_account_summary", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAccountSummaries(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_account_summaries", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_account_summaries", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetAffiliateProgramInfo(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_affiliate_program_info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_affiliate_program_info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetEmailLanguage(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_email_language", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_email_language", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetNewAnnouncements(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_new_announcements", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_new_announcements", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetPortfolioMargins(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_portfolio_margins", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_portfolio_margins", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetPosition(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_position", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_position", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetPositions(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetSubaccounts(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_subaccounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_subaccounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetSubaccountsDetails(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_subaccounts_details", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_subaccounts_details", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetTransactionLog(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_transaction_log", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_transaction_log", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetListApiKeys(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "list_api_keys", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "list_api_keys", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetRemoveApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "remove_api_key", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "remove_api_key", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetRemoveSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "remove_subaccount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "remove_subaccount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetResetApiKey(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "reset_api_key", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "reset_api_key", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSetAnnouncementAsRead(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_announcement_as_read", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "set_announcement_as_read", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSetApiKeyAsDefault(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_api_key_as_default", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "set_api_key_as_default", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSetEmailForSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_email_for_subaccount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "set_email_for_subaccount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSetEmailLanguage(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_email_language", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "set_email_language", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSetPasswordForSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_password_for_subaccount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "set_password_for_subaccount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetToggleNotificationsFromSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "toggle_notifications_from_subaccount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "toggle_notifications_from_subaccount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetToggleSubaccountLogin(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "toggle_subaccount_login", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "toggle_subaccount_login", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExecuteBlockTrade(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "execute_block_trade", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "execute_block_trade", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetBlockTrade(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_block_trade", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_block_trade", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetLastBlockTradesByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_last_block_trades_by_currency", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_last_block_trades_by_currency", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetInvalidateBlockTradeSignature(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "invalidate_block_trade_signature", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "invalidate_block_trade_signature", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetVerifyBlockTrade(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "verify_block_trade", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "verify_block_trade", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetBuy(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "buy", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "buy", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSell(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "sell", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "sell", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetEdit(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "edit", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "edit", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetEditByLabel(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "edit_by_label", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "edit_by_label", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCancel(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "cancel", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCancelAll(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_all", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "cancel_all", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCancelAllByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_all_by_currency", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "cancel_all_by_currency", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCancelAllByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_all_by_instrument", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "cancel_all_by_instrument", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCancelByLabel(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_by_label", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "cancel_by_label", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetClosePosition(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "close_position", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "close_position", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetMargins(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_margins", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_margins", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetMmpConfig(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_mmp_config", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_mmp_config", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOpenOrdersByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_open_orders_by_currency", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_open_orders_by_currency", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOpenOrdersByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_open_orders_by_instrument", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_open_orders_by_instrument", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOrderHistoryByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_order_history_by_currency", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_order_history_by_currency", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOrderHistoryByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_order_history_by_instrument", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_order_history_by_instrument", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOrderMarginByIds(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_order_margin_by_ids", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_order_margin_by_ids", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetOrderState(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_order_state", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_order_state", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetStopOrderHistory(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_stop_order_history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_stop_order_history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetTriggerOrderHistory(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_trigger_order_history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_trigger_order_history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserTradesByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_user_trades_by_currency", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_user_trades_by_currency", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserTradesByCurrencyAndTime(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_user_trades_by_currency_and_time", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_user_trades_by_currency_and_time", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserTradesByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_user_trades_by_instrument", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_user_trades_by_instrument", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserTradesByInstrumentAndTime(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_user_trades_by_instrument_and_time", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_user_trades_by_instrument_and_time", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetUserTradesByOrder(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_user_trades_by_order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_user_trades_by_order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetResetMmp(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "reset_mmp", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "reset_mmp", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSetMmpConfig(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "set_mmp_config", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "set_mmp_config", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetSettlementHistoryByInstrument(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_settlement_history_by_instrument", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_settlement_history_by_instrument", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetSettlementHistoryByCurrency(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_settlement_history_by_currency", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_settlement_history_by_currency", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCancelTransferById(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_transfer_by_id", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cancel_transfer_by_id", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCancelWithdrawal(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "cancel_withdrawal", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cancel_withdrawal", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCreateDepositAddress(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "create_deposit_address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "create_deposit_address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetCurrentDepositAddress(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_current_deposit_address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_current_deposit_address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetDeposits(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_deposits", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_deposits", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetTransfers(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_transfers", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_transfers", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGetWithdrawals(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "get_withdrawals", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "get_withdrawals", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubmitTransferToSubaccount(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "submit_transfer_to_subaccount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "submit_transfer_to_subaccount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubmitTransferToUser(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "submit_transfer_to_user", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "submit_transfer_to_user", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWithdraw(self::Deribit, params=Dict(), context=Dict())
-    return request(self, "withdraw", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdraw", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function Deribit(; kwargs...)
     inst = Deribit(Exchange(), describe, createExpiredOptionMarket, safeMarket, fetchTime, fetchCurrencies, parseCurrency, codeFromOptions, fetchStatus, fetchAccounts, parseAccount, fetchMarkets, parseBalance, fetchBalance, createDepositAddress, fetchDepositAddress, parseTicker, fetchTicker, fetchTickers, fetchOHLCV, parseTrade, fetchTrades, fetchTradingFees, fetchOrderBook, parseOrderStatus, parseTimeInForce, parseOrderType, parseOrder, fetchOrder, createOrder, editOrder, cancelOrder, cancelAllOrders, fetchOpenOrders, fetchClosedOrders, fetchOrderTrades, fetchMyTrades, fetchDeposits, fetchWithdrawals, parseTransactionStatus, parseTransaction, parsePosition, fetchPosition, fetchPositions, fetchVolatilityHistory, parseVolatilityHistory, fetchTransfers, transfer, parseTransfer, parseTransferStatus, withdraw, parseDepositWithdrawFee, fetchDepositWithdrawFees, fetchFundingRate, fetchFundingRateHistory, parseFundingRate, fetchLiquidations, addPaginationCursorToResult, fetchMyLiquidations, parseLiquidation, fetchGreeks, parseGreeks, fetchOption, fetchOptionChain, parseOption, fetchOpenInterest, parseOpenInterest, nonce, sign, handleErrors, publicGetAuth, publicGetExchangeToken, publicGetForkToken, publicGetSetHeartbeat, publicGetDisableHeartbeat, publicGetGetTime, publicGetHello, publicGetStatus, publicGetTest, publicGetSubscribe, publicGetUnsubscribe, publicGetUnsubscribeAll, publicGetGetAnnouncements, publicGetGetBookSummaryByCurrency, publicGetGetBookSummaryByInstrument, publicGetGetContractSize, publicGetGetCurrencies, publicGetGetDeliveryPrices, publicGetGetFundingChartData, publicGetGetFundingRateHistory, publicGetGetFundingRateValue, publicGetGetHistoricalVolatility, publicGetGetIndex, publicGetGetIndexPrice, publicGetGetIndexPriceNames, publicGetGetInstrument, publicGetGetInstruments, publicGetGetLastSettlementsByCurrency, publicGetGetLastSettlementsByInstrument, publicGetGetLastTradesByCurrency, publicGetGetLastTradesByCurrencyAndTime, publicGetGetLastTradesByInstrument, publicGetGetLastTradesByInstrumentAndTime, publicGetGetMarkPriceHistory, publicGetGetOrderBook, publicGetGetTradeVolumes, publicGetGetTradingviewChartData, publicGetGetVolatilityIndexData, publicGetTicker, privateGetLogout, privateGetEnableCancelOnDisconnect, privateGetDisableCancelOnDisconnect, privateGetGetCancelOnDisconnect, privateGetSubscribe, privateGetUnsubscribe, privateGetUnsubscribeAll, privateGetChangeApiKeyName, privateGetChangeScopeInApiKey, privateGetChangeSubaccountName, privateGetCreateApiKey, privateGetCreateSubaccount, privateGetDisableApiKey, privateGetDisableTfaForSubaccount, privateGetEnableAffiliateProgram, privateGetEnableApiKey, privateGetGetAccessLog, privateGetGetAccountSummary, privateGetGetAccountSummaries, privateGetGetAffiliateProgramInfo, privateGetGetEmailLanguage, privateGetGetNewAnnouncements, privateGetGetPortfolioMargins, privateGetGetPosition, privateGetGetPositions, privateGetGetSubaccounts, privateGetGetSubaccountsDetails, privateGetGetTransactionLog, privateGetListApiKeys, privateGetRemoveApiKey, privateGetRemoveSubaccount, privateGetResetApiKey, privateGetSetAnnouncementAsRead, privateGetSetApiKeyAsDefault, privateGetSetEmailForSubaccount, privateGetSetEmailLanguage, privateGetSetPasswordForSubaccount, privateGetToggleNotificationsFromSubaccount, privateGetToggleSubaccountLogin, privateGetExecuteBlockTrade, privateGetGetBlockTrade, privateGetGetLastBlockTradesByCurrency, privateGetInvalidateBlockTradeSignature, privateGetVerifyBlockTrade, privateGetBuy, privateGetSell, privateGetEdit, privateGetEditByLabel, privateGetCancel, privateGetCancelAll, privateGetCancelAllByCurrency, privateGetCancelAllByInstrument, privateGetCancelByLabel, privateGetClosePosition, privateGetGetMargins, privateGetGetMmpConfig, privateGetGetOpenOrdersByCurrency, privateGetGetOpenOrdersByInstrument, privateGetGetOrderHistoryByCurrency, privateGetGetOrderHistoryByInstrument, privateGetGetOrderMarginByIds, privateGetGetOrderState, privateGetGetStopOrderHistory, privateGetGetTriggerOrderHistory, privateGetGetUserTradesByCurrency, privateGetGetUserTradesByCurrencyAndTime, privateGetGetUserTradesByInstrument, privateGetGetUserTradesByInstrumentAndTime, privateGetGetUserTradesByOrder, privateGetResetMmp, privateGetSetMmpConfig, privateGetGetSettlementHistoryByInstrument, privateGetGetSettlementHistoryByCurrency, privateGetCancelTransferById, privateGetCancelWithdrawal, privateGetCreateDepositAddress, privateGetGetCurrentDepositAddress, privateGetGetDeposits, privateGetGetTransfers, privateGetGetWithdrawals, privateGetSubmitTransferToSubaccount, privateGetSubmitTransferToUser, privateGetWithdraw)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -111,6 +111,7 @@ function describe(self::Hollaex, )
         Symbol("fetchDepositAddresses") => true,
         Symbol("fetchDepositAddressesByNetwork") => false,
         Symbol("fetchDeposits") => true,
+        Symbol("fetchDepositWithdrawFees") => true,
         Symbol("fetchFundingHistory") => false,
         Symbol("fetchFundingRate") => false,
         Symbol("fetchFundingRateHistory") => false,
@@ -183,43 +184,101 @@ function describe(self::Hollaex, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("health") => 1,
-                Symbol("constants") => 1,
-                Symbol("kit") => 1,
-                Symbol("tiers") => 1,
-                Symbol("ticker") => 1,
-                Symbol("tickers") => 1,
-                Symbol("orderbook") => 1,
-                Symbol("orderbooks") => 1,
-                Symbol("trades") => 1,
-                Symbol("chart") => 1,
-                Symbol("charts") => 1,
-                Symbol("minicharts") => 1,
-                Symbol("oracle/prices") => 1,
-                Symbol("quick-trade") => 1,
-                Symbol("udf/config") => 1,
-                Symbol("udf/history") => 1,
-                Symbol("udf/symbols") => 1
+                Symbol("health") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("constants") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("kit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orderbooks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("chart") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("charts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("minicharts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("oracle/prices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quick-trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("udf/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("udf/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("udf/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("user") => 1,
-                Symbol("user/balance") => 1,
-                Symbol("user/deposits") => 1,
-                Symbol("user/withdrawals") => 1,
-                Symbol("user/withdrawal/fee") => 1,
-                Symbol("user/trades") => 1,
-                Symbol("orders") => 1,
-                Symbol("order") => 1
+                Symbol("user") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/withdrawal/fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("user/withdrawal") => 1,
-                Symbol("order") => 1
+                Symbol("user/withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("order/all") => 1,
-                Symbol("order") => 1
+                Symbol("order/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -441,22 +500,24 @@ function parseCurrency(self::Hollaex, rawCurrency)
         networkId = get(networkIds, j + 1, nothing);
         networkEntry = self.safeDict(rawNetworks, networkId);
         networkCode = self.networkIdToCode(networkId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("active") => self.safeBool(networkEntry, "active"),
-            Symbol("deposit") => nothing,
-            Symbol("withdraw") => nothing,
-            Symbol("fee") => self.safeNumber(networkEntry, "value"),
-            Symbol("precision") => nothing,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                )
-            ),
-            Symbol("info") => networkEntry
-        );
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("active") => self.safeBool(networkEntry, "active"),
+                Symbol("deposit") => nothing,
+                Symbol("withdraw") => nothing,
+                Symbol("fee") => self.safeNumber(networkEntry, "value"),
+                Symbol("precision") => nothing,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
+                ),
+                Symbol("info") => networkEntry
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -495,10 +556,10 @@ function fetchOrderBooks(self::Hollaex, symbols=nothing, limit=nothing, params=D
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
-        orderbook = get(response, Symbol(marketId), nothing);
+        orderbook = self.safeDict(response, marketId, Dict{Symbol, Any}());
         symbol = self.safeSymbol(marketId, nothing, "-");
         timestamp = self.parse8601(safeString(orderbook, "timestamp"));
-        result[Symbol(symbol)] = self.parseOrderBook(get(response, Symbol(marketId), nothing), symbol, timestamp);
+        result[Symbol(symbol)] = self.parseOrderBook(orderbook, symbol, timestamp);
         i += 1
     end
     return result
@@ -692,7 +753,7 @@ function fetchOHLCV(self::Hollaex, symbol, timeframe="1m", since=nothing, limit=
     request[Symbol("to")] = self.parseToInt(until / 1000);
     params = omit(params, "until");
     response = Base.fetch(self.publicGetChart(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
 
 end
 function parseOHLCV(self::Hollaex, ohlcv, market=nothing)
@@ -706,7 +767,11 @@ function parseBalance(self::Hollaex, response)
         Symbol("timestamp") => timestamp,
         Symbol("datetime") => self.iso8601(timestamp)
     );
-    currencyIds = objectKeys(self.currencies_by_id);
+    currenciesById = self.currencies_by_id;
+    if functions.ccxtruthy(currenciesById == nothing)
+        throw(ExchangeError(string(self.id, " currencies not loaded")));
+    end
+    currencyIds = objectKeys(currenciesById);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(currencyIds)))
         currencyId = get(currencyIds, i + 1, nothing);
@@ -714,7 +779,9 @@ function parseBalance(self::Hollaex, response)
         account = self.account();
         account[Symbol("free")] = safeString(response, string(currencyId, "_available"));
         account[Symbol("total")] = safeString(response, string(currencyId, "_balance"));
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1136,6 +1203,9 @@ function parseDepositWithdrawFee(self::Hollaex, fee, currency=nothing)
             currencyId = safeString(value, "symbol");
             currencyCode = self.safeCurrencyCode(currencyId);
             networkCode = self.networkIdToCode(key, currencyCode);
+            if functions.ccxtruthy(networkCode == nothing)
+                throw(ArgumentsRequired(string(self.id, " requires a networkCode argument")));
+            end
             networkCodeUpper = uppercase(networkCode);
             withdrawalFee = self.safeNumber(value, "value");
             result[Symbol("networks")][Symbol(networkCodeUpper)] = Dict{Symbol, Any}(
@@ -1207,132 +1277,185 @@ function handleErrors(self::Hollaex, code, reason, url, method, headers, body, r
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Hollaex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetHealth(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "health", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "health", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConstants(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "constants", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "constants", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetKit(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "kit", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "kit", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTiers(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "tiers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tiers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickers(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderbook(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderbook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrderbooks(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "orderbooks", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orderbooks", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTrades(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetChart(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "chart", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "chart", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCharts(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "charts", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "charts", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMinicharts(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "minicharts", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "minicharts", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOraclePrices(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "oracle/prices", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "oracle/prices", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuickTrade(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "quick-trade", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quick-trade", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetUdfConfig(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "udf/config", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "udf/config", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetUdfHistory(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "udf/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "udf/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetUdfSymbols(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "udf/symbols", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "udf/symbols", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUser(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserBalance(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserDeposits(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/deposits", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/deposits", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserWithdrawals(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/withdrawals", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/withdrawals", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserWithdrawalFee(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/withdrawal/fee", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/withdrawal/fee", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserTrades(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrders(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrder(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostUserWithdrawal(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "user/withdrawal", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/withdrawal", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrder(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrderAll(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "order/all", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/all", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrder(self::Hollaex, params=Dict(), context=Dict())
-    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Hollaex(; kwargs...)
     inst = Hollaex(Exchange(), describe, fetchMarkets, fetchCurrencies, parseCurrency, fetchOrderBooks, fetchOrderBook, fetchTicker, fetchTickers, parseTickers, parseTicker, fetchTrades, parseTrade, fetchTradingFees, fetchOHLCV, parseOHLCV, parseBalance, fetchBalance, fetchOpenOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, fetchOrders, parseOrderStatus, parseOrder, createOrder, cancelOrder, cancelAllOrders, fetchMyTrades, parseDepositAddress, fetchDepositAddresses, fetchDeposits, fetchWithdrawal, fetchWithdrawals, parseTransaction, withdraw, parseDepositWithdrawFee, fetchDepositWithdrawFees, sign, handleErrors, publicGetHealth, publicGetConstants, publicGetKit, publicGetTiers, publicGetTicker, publicGetTickers, publicGetOrderbook, publicGetOrderbooks, publicGetTrades, publicGetChart, publicGetCharts, publicGetMinicharts, publicGetOraclePrices, publicGetQuickTrade, publicGetUdfConfig, publicGetUdfHistory, publicGetUdfSymbols, privateGetUser, privateGetUserBalance, privateGetUserDeposits, privateGetUserWithdrawals, privateGetUserWithdrawalFee, privateGetUserTrades, privateGetOrders, privateGetOrder, privatePostUserWithdrawal, privatePostOrder, privateDeleteOrderAll, privateDeleteOrder)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -94,6 +94,8 @@ function describe(self::Foxbit, )
         Symbol("createMarketBuyOrder") => true,
         Symbol("createMarketSellOrder") => true,
         Symbol("createOrder") => true,
+        Symbol("createOrders") => true,
+        Symbol("editOrder") => true,
         Symbol("fecthOrderBook") => true,
         Symbol("fetchBalance") => true,
         Symbol("fetchCanceledOrders") => true,
@@ -108,7 +110,10 @@ function describe(self::Foxbit, )
         Symbol("fetchOHLCV") => true,
         Symbol("fetchOpenOrders") => true,
         Symbol("fetchOrder") => true,
+        Symbol("fetchOrderBook") => true,
         Symbol("fetchOrders") => true,
+        Symbol("fetchOrdersByStatus") => true,
+        Symbol("fetchStatus") => true,
         Symbol("fetchTicker") => true,
         Symbol("fetchTickers") => true,
         Symbol("fetchTrades") => true,
@@ -188,42 +193,86 @@ function describe(self::Foxbit, )
         Symbol("v3") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("currencies") => 5,
-                    Symbol("markets") => 5,
-                    Symbol("markets/ticker/24hr") => 60,
-                    Symbol("markets/{market}/orderbook") => 6,
-                    Symbol("markets/{market}/candlesticks") => 12,
-                    Symbol("markets/{market}/trades/history") => 12,
-                    Symbol("markets/{market}/ticker/24hr") => 15
+                    Symbol("currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                    Symbol("markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                    Symbol("markets/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("markets/{market}/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                    Symbol("markets/{market}/candlesticks") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                    Symbol("markets/{market}/trades/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                    Symbol("markets/{market}/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("accounts") => 2,
-                    Symbol("accounts/{symbol}/transactions") => 60,
-                    Symbol("orders") => 2,
-                    Symbol("orders/by-order-id/{id}") => 2,
-                    Symbol("trades") => 6,
-                    Symbol("deposits/address") => 10,
-                    Symbol("deposits") => 10,
-                    Symbol("withdrawals") => 10,
-                    Symbol("me/fees/trading") => 60
+                    Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("accounts/{symbol}/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+),
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("orders/by-order-id/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                    Symbol("deposits/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("me/fees/trading") => Dict{Symbol, Any}(
+    Symbol("cost") => 60
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("orders") => 2,
-                    Symbol("orders/batch") => 7.5,
-                    Symbol("orders/cancel-replace") => 3,
-                    Symbol("withdrawals") => 10
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                    Symbol("orders/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 7.5
+),
+                    Symbol("orders/cancel-replace") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("orders/cancel") => 2
+                    Symbol("orders/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+)
                 )
             )
         ),
         Symbol("status") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("status") => 30
+                    Symbol("status") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+)
                 )
             )
         )
@@ -401,31 +450,33 @@ function parseCurrency(self::Foxbit, rawCurrency)
         networkDepositInfo = self.safeDict(network, "deposit_info");
         isWithdrawEnabled = safeString(networkWithdrawInfo, "status") == "ENABLED";
         isDepositEnabled = safeString(networkDepositInfo, "status") == "ENABLED";
-        parsedNetworks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => rawCurrency,
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("name") => safeString(network, "name"),
-            Symbol("deposit") => isDepositEnabled,
-            Symbol("withdraw") => isWithdrawEnabled,
-            Symbol("active") => true,
-            Symbol("precision") => precision,
-            Symbol("fee") => self.safeNumber(networkWithdrawInfo, "fee"),
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("amount") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(depositInfo, "min_amount"),
-                    Symbol("max") => nothing
-                ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(withdrawInfo, "min_amount"),
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            parsedNetworks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => rawCurrency,
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("name") => safeString(network, "name"),
+                Symbol("deposit") => isDepositEnabled,
+                Symbol("withdraw") => isWithdrawEnabled,
+                Symbol("active") => true,
+                Symbol("precision") => precision,
+                Symbol("fee") => self.safeNumber(networkWithdrawInfo, "fee"),
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("amount") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(depositInfo, "min_amount"),
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(withdrawInfo, "min_amount"),
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -560,7 +611,7 @@ function fetchOHLCV(self::Foxbit, symbol, timeframe="1m", since=nothing, limit=n
         end
     end
     response = Base.fetch(self.v3PublicGetMarketsMarketCandlesticks(extend(request, params)));
-    return self.parseOHLCVs(response, market, interval, since, limit)
+    return self.parseOHLCVs(toArray(response), market, interval, since, limit)
 
 end
 function fetchBalance(self::Foxbit, params=Dict())
@@ -585,7 +636,9 @@ function fetchBalance(self::Foxbit, params=Dict())
             Symbol("used") => used,
             Symbol("total") => total
         );
-        result[Symbol(currencyCode)] = balanceObj;
+        if functions.ccxtruthy(currencyCode != nothing)
+            result[Symbol(currencyCode)] = balanceObj;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -641,6 +694,9 @@ function createOrder(self::Foxbit, symbol, type_var, side, amount, price=nothing
     timeInForce = safeStringUpper(params, "timeInForce");
     postOnly = self.safeBool(params, "postOnly", false);
     triggerPrice = self.safeNumber(params, "triggerPrice");
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("market_symbol") => get(market, Symbol("id"), nothing),
         Symbol("side") => uppercase(side),
@@ -715,15 +771,15 @@ function createOrders(self::Foxbit, orders, params=Dict())
             else
                 request[Symbol("time_in_force")] = timeInForce;
             end
-
+                        delete!(orderParams, :timeInForce);
         end
         if functions.ccxtruthy(postOnly)
             request[Symbol("post_only")] = true;
-
+                        delete!(orderParams, :postOnly);
         end
         if functions.ccxtruthy(triggerPrice != nothing)
             request[Symbol("stop_price")] = self.priceToPrecision(symbol, triggerPrice);
-
+                        delete!(orderParams, :triggerPrice);
         end
         if functions.ccxtruthy(type_var == "INSTANT")
             request[Symbol("amount")] = self.priceToPrecision(symbol, safeString(order, "amount"));
@@ -917,7 +973,7 @@ function fetchStatus(self::Foxbit, params=Dict())
     );
     return Dict{Symbol, Any}(
     Symbol("status") => safeString(statusMap, statusRaw, statusRaw),
-    Symbol("updated") => safeString(attributes, "updatedAt"),
+    Symbol("updated") => self.parse8601(safeString(attributes, "updatedAt")),
     Symbol("eta") => nothing,
     Symbol("url") => nothing,
     Symbol("info") => response
@@ -936,6 +992,9 @@ function editOrder(self::Foxbit, id, symbol, type_var, side, amount=nothing, pri
         Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " editOrder() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("mode") => "ALLOW_FAILURE",
         Symbol("cancel") => Dict{Symbol, Any}(
@@ -962,7 +1021,8 @@ function editOrder(self::Foxbit, id, symbol, type_var, side, amount=nothing, pri
         request[Symbol("create")][Symbol("amount")] = self.priceToPrecision(symbol, amount);
     end
     response = Base.fetch(self.v3PrivatePostOrdersCancelReplace(extend(request, params)));
-    return self.parseOrder(get(response, Symbol("create"), nothing), market)
+    created = self.safeDict(response, "create", Dict{Symbol, Any}());
+    return self.parseOrder(created, market)
 
 end
 function withdraw(self::Foxbit, code, amount, address, tag=nothing, params=Dict())
@@ -1334,9 +1394,21 @@ function parseLedgerEntry(self::Foxbit, item, currency=nothing)
         Symbol("cost") => self.safeNumber(item, "fee"),
         Symbol("currency") => currencySymbol
     );
+    if functions.ccxtruthy(amount == nothing)
+        throw(ArgumentsRequired(string(self.id, " parseLedgerEntry() requires a amount argument")));
+    end
     if functions.ccxtruthy(functions.ccxt_lt(amount, 0))
         direction = "out";
+        if functions.ccxtruthy(amount == nothing)
+            throw(ArgumentsRequired(string(self.id, " parseLedgerEntry() requires a amount argument")));
+        end
         realAmount = amount * -1;
+    end
+    if functions.ccxtruthy(balance == nothing)
+        throw(ExchangeError(string(self.id, " parseLedgerEntry() missing balance")));
+    end
+    if functions.ccxtruthy(amount == nothing)
+        throw(ArgumentsRequired(string(self.id, " parseLedgerEntry() requires a amount argument")));
     end
     return Dict{Symbol, Any}(
     Symbol("id") => id,
@@ -1399,7 +1471,9 @@ function sign(self::Foxbit, path, api=[], method="GET", params=Dict(), headers=n
         bodyToSignature = body;
     end
     headers = Dict{Symbol, Any}(
-        Symbol("Content-Type") => "application/json"
+        Symbol("Content-Type") => "application/json",
+        Symbol("X-FB-CLIENT") => "ccxt",
+        Symbol("X-FB-CLIENT-VERSION") => self.getCcxtVersion()
     );
     if functions.ccxtruthy(urlPath == "private")
         self.checkRequiredCredentials();
@@ -1445,104 +1519,157 @@ function handleErrors(self::Foxbit, httpCode, reason, url, method, headers, body
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Foxbit, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v3PublicGetCurrencies(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "currencies", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "currencies", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetMarkets(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "markets", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetMarketsTicker24hr(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets/ticker/24hr", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "markets/ticker/24hr", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetMarketsMarketOrderbook(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets/{market}/orderbook", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "markets/{market}/orderbook", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetMarketsMarketCandlesticks(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets/{market}/candlesticks", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "markets/{market}/candlesticks", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetMarketsMarketTradesHistory(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets/{market}/trades/history", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "markets/{market}/trades/history", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetMarketsMarketTicker24hr(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "markets/{market}/ticker/24hr", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "markets/{market}/ticker/24hr", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetAccounts(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "accounts", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "accounts", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetAccountsSymbolTransactions(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "accounts/{symbol}/transactions", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "accounts/{symbol}/transactions", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetOrders(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "orders", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetOrdersByOrderIdId(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders/by-order-id/{id}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "orders/by-order-id/{id}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetTrades(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "trades", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "trades", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetDepositsAddress(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "deposits/address", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "deposits/address", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetDeposits(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "deposits", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "deposits", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetWithdrawals(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "withdrawals", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "withdrawals", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetMeFeesTrading(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "me/fees/trading", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 60))
+    return request(self, "me/fees/trading", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostOrders(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "orders", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostOrdersBatch(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders/batch", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 7.5))
+    return request(self, "orders/batch", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostOrdersCancelReplace(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders/cancel-replace", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "orders/cancel-replace", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostWithdrawals(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "withdrawals", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "withdrawals", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePutOrdersCancel(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "orders/cancel", ["v3", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "orders/cancel", ["v3", "private"], "PUT", params, nothing, nothing, Dict())
 end
 
 function statusPublicGetStatus(self::Foxbit, params=Dict(), context=Dict())
-    return request(self, "status", ["status", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "status", ["status", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function Foxbit(; kwargs...)
     inst = Foxbit(Exchange(), describe, fetchCurrencies, parseCurrency, fetchMarkets, fetchTicker, fetchTickers, fetchTradingFees, fetchOrderBook, fetchTrades, fetchOHLCV, fetchBalance, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrdersByStatus, createOrder, createOrders, cancelOrder, cancelAllOrders, fetchOrder, fetchOrders, fetchMyTrades, fetchDepositAddress, fetchDeposits, fetchWithdrawals, fetchTransactions, fetchStatus, editOrder, withdraw, fetchLedger, parseMarket, parseTradingFee, parseTicker, parseOHLCV, parseTrade, parseOrderStatus, parseOrder, parseDepositAddress, parseTransactionStatus, parseTransaction, parseLedgerEntryType, parseLedgerEntry, sign, handleErrors, v3PublicGetCurrencies, v3PublicGetMarkets, v3PublicGetMarketsTicker24hr, v3PublicGetMarketsMarketOrderbook, v3PublicGetMarketsMarketCandlesticks, v3PublicGetMarketsMarketTradesHistory, v3PublicGetMarketsMarketTicker24hr, v3PrivateGetAccounts, v3PrivateGetAccountsSymbolTransactions, v3PrivateGetOrders, v3PrivateGetOrdersByOrderIdId, v3PrivateGetTrades, v3PrivateGetDepositsAddress, v3PrivateGetDeposits, v3PrivateGetWithdrawals, v3PrivateGetMeFeesTrading, v3PrivatePostOrders, v3PrivatePostOrdersBatch, v3PrivatePostOrdersCancelReplace, v3PrivatePostWithdrawals, v3PrivatePutOrdersCancel, statusPublicGetStatus)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

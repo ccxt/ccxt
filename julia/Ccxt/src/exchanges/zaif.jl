@@ -143,56 +143,124 @@ function describe(self::Zaif, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("depth/{pair}") => 1,
-                Symbol("currencies/{pair}") => 1,
-                Symbol("currencies/all") => 1,
-                Symbol("currency_pairs/{pair}") => 1,
-                Symbol("currency_pairs/all") => 1,
-                Symbol("last_price/{pair}") => 1,
-                Symbol("ticker/{pair}") => 1,
-                Symbol("trades/{pair}") => 1
+                Symbol("depth/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currencies/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currencies/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currency_pairs/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currency_pairs/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("last_price/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("active_orders") => 5,
-                Symbol("cancel_order") => 5,
-                Symbol("deposit_history") => 5,
-                Symbol("get_id_info") => 5,
-                Symbol("get_info") => 10,
-                Symbol("get_info2") => 5,
-                Symbol("get_personal_info") => 5,
-                Symbol("trade") => 5,
-                Symbol("trade_history") => 50,
-                Symbol("withdraw") => 5,
-                Symbol("withdraw_history") => 5
+                Symbol("active_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("cancel_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("deposit_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("get_id_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("get_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("get_info2") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("get_personal_info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("trade_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("withdraw_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         ),
         Symbol("ecapi") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("createInvoice") => 1,
-                Symbol("getInvoice") => 1,
-                Symbol("getInvoiceIdsByOrderNumber") => 1,
-                Symbol("cancelInvoice") => 1
+                Symbol("createInvoice") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getInvoice") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("getInvoiceIdsByOrderNumber") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("cancelInvoice") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("tlapi") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("get_positions") => 66,
-                Symbol("position_history") => 66,
-                Symbol("active_positions") => 5,
-                Symbol("create_position") => 33,
-                Symbol("change_position") => 33,
-                Symbol("cancel_position") => 33
+                Symbol("get_positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 66
+),
+                Symbol("position_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 66
+),
+                Symbol("active_positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("create_position") => Dict{Symbol, Any}(
+    Symbol("cost") => 33
+),
+                Symbol("change_position") => Dict{Symbol, Any}(
+    Symbol("cost") => 33
+),
+                Symbol("cancel_position") => Dict{Symbol, Any}(
+    Symbol("cost") => 33
+)
             )
         ),
         Symbol("fapi") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("groups/{group_id}") => 1,
-                Symbol("last_price/{group_id}/{pair}") => 1,
-                Symbol("ticker/{group_id}/{pair}") => 1,
-                Symbol("trades/{group_id}/{pair}") => 1,
-                Symbol("depth/{group_id}/{pair}") => 1
+                Symbol("groups/{group_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("last_price/{group_id}/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker/{group_id}/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades/{group_id}/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("depth/{group_id}/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -272,11 +340,14 @@ end
 function parseMarket(self::Zaif, market)
     id = safeString(market, "currency_pair");
     name = safeString(market, "name");
+    if functions.ccxtruthy(name == nothing)
+        throw(ExchangeError(string(self.id, " parseMarket() missing name")));
+    end
     (baseId, quoteId) = split(name, "/");
     base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
     symbol = string(base, "/", quote_var);
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -324,7 +395,7 @@ function parseMarket(self::Zaif, market)
     ),
     Symbol("created") => nothing,
     Symbol("info") => market
-)
+))
 
 end
 function parseBalance(self::Zaif, response)
@@ -350,7 +421,9 @@ function parseBalance(self::Zaif, response)
                 account[Symbol("total")] = safeString(deposit, currencyId);
             end
         end
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -453,14 +526,15 @@ function fetchTrades(self::Zaif, symbol, since=nothing, limit=nothing, params=Di
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicGetTradesPair(extend(request, params)));
-    numTrades = length(response);
+    trades = toArray(response);
+    numTrades = length(trades);
     if functions.ccxtruthy(numTrades == 1)
-        firstTrade = get(response, 1, nothing);
+        firstTrade = self.safeDict(trades, 0, Dict{Symbol, Any}());
         if functions.ccxtruthy(!functions.ccxtruthy(length(objectKeys(firstTrade))))
-            response = [];
+            trades = [];
         end
     end
-    return self.parseTrades(response, market, since, limit)
+    return self.parseTrades(trades, market, since, limit)
 
 end
 function createOrder(self::Zaif, symbol, type_var, side, amount, price=nothing, params=Dict())
@@ -478,9 +552,10 @@ function createOrder(self::Zaif, symbol, type_var, side, amount, price=nothing, 
         Symbol("price") => price
     );
     response = Base.fetch(self.privatePostTrade(extend(request, params)));
+    data = self.safeDict(response, "return", Dict{Symbol, Any}());
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
-    Symbol("id") => string(get(get(response, Symbol("return"), nothing), Symbol("order_id"), nothing))
+    Symbol("id") => string(get(data, Symbol("order_id"), nothing))
 ), market)
 
 end
@@ -489,7 +564,7 @@ function cancelOrder(self::Zaif, id, symbol=nothing, params=Dict())
         Symbol("order_id") => id
     );
     response = Base.fetch(self.privatePostCancelOrder(extend(request, params)));
-    data = self.safeDict(response, "return");
+    data = self.safeDict(response, "return", Dict{Symbol, Any}());
     return self.parseOrder(data)
 
 end
@@ -538,7 +613,8 @@ function fetchOpenOrders(self::Zaif, symbol=nothing, since=nothing, limit=nothin
         request[Symbol("currency_pair")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privatePostActiveOrders(extend(request, params)));
-    return self.parseOrders(get(response, Symbol("return"), nothing), market, since, limit)
+    data = self.safeDict(response, "return", Dict{Symbol, Any}());
+    return self.parseOrders(data, market, since, limit)
 
 end
 function fetchClosedOrders(self::Zaif, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -552,7 +628,8 @@ function fetchClosedOrders(self::Zaif, symbol=nothing, since=nothing, limit=noth
         request[Symbol("currency_pair")] = get(market, Symbol("id"), nothing);
     end
     response = Base.fetch(self.privatePostTradeHistory(extend(request, params)));
-    return self.parseOrders(get(response, Symbol("return"), nothing), market, since, limit)
+    data = self.safeDict(response, "return", Dict{Symbol, Any}());
+    return self.parseOrders(data, market, since, limit)
 
 end
 function withdraw(self::Zaif, code, amount, address, tag=nothing, params=Dict())
@@ -574,7 +651,7 @@ function withdraw(self::Zaif, code, amount, address, tag=nothing, params=Dict())
         request[Symbol("message")] = tag;
     end
     result = Base.fetch(self.privatePostWithdraw(extend(request, params)));
-    returnData = self.safeDict(result, "return");
+    returnData = self.safeDict(result, "return", Dict{Symbol, Any}());
     return self.parseTransaction(returnData, currency)
 
 end
@@ -671,152 +748,205 @@ function handleErrors(self::Zaif, httpCode, reason, url, method, headers, body, 
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Zaif, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetDepthPair(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "depth/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "depth/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrenciesPair(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "currencies/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "currencies/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrenciesAll(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "currencies/all", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "currencies/all", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrencyPairsPair(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "currency_pairs/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "currency_pairs/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrencyPairsAll(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "currency_pairs/all", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "currency_pairs/all", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetLastPricePair(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "last_price/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "last_price/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickerPair(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "ticker/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradesPair(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "trades/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostActiveOrders(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "active_orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "active_orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelOrder(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "cancel_order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "cancel_order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDepositHistory(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "deposit_history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "deposit_history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetIdInfo(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "get_id_info", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "get_id_info", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetInfo(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "get_info", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "get_info", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetInfo2(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "get_info2", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "get_info2", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetPersonalInfo(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "get_personal_info", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "get_personal_info", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTrade(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "trade", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "trade", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeHistory(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "trade_history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "trade_history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdraw(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawHistory(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "withdraw_history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "withdraw_history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function ecapiPostCreateInvoice(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "createInvoice", "ecapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "createInvoice", "ecapi", "POST", params, nothing, nothing, Dict())
 end
 
 function ecapiPostGetInvoice(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "getInvoice", "ecapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "getInvoice", "ecapi", "POST", params, nothing, nothing, Dict())
 end
 
 function ecapiPostGetInvoiceIdsByOrderNumber(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "getInvoiceIdsByOrderNumber", "ecapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "getInvoiceIdsByOrderNumber", "ecapi", "POST", params, nothing, nothing, Dict())
 end
 
 function ecapiPostCancelInvoice(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "cancelInvoice", "ecapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "cancelInvoice", "ecapi", "POST", params, nothing, nothing, Dict())
 end
 
 function tlapiPostGetPositions(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "get_positions", "tlapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 66))
+    return request(self, "get_positions", "tlapi", "POST", params, nothing, nothing, Dict())
 end
 
 function tlapiPostPositionHistory(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "position_history", "tlapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 66))
+    return request(self, "position_history", "tlapi", "POST", params, nothing, nothing, Dict())
 end
 
 function tlapiPostActivePositions(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "active_positions", "tlapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "active_positions", "tlapi", "POST", params, nothing, nothing, Dict())
 end
 
 function tlapiPostCreatePosition(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "create_position", "tlapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 33))
+    return request(self, "create_position", "tlapi", "POST", params, nothing, nothing, Dict())
 end
 
 function tlapiPostChangePosition(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "change_position", "tlapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 33))
+    return request(self, "change_position", "tlapi", "POST", params, nothing, nothing, Dict())
 end
 
 function tlapiPostCancelPosition(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "cancel_position", "tlapi", "POST", params, nothing, nothing, Dict(Symbol("cost") => 33))
+    return request(self, "cancel_position", "tlapi", "POST", params, nothing, nothing, Dict())
 end
 
 function fapiGetGroupsGroupId(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "groups/{group_id}", "fapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "groups/{group_id}", "fapi", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiGetLastPriceGroupIdPair(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "last_price/{group_id}/{pair}", "fapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "last_price/{group_id}/{pair}", "fapi", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiGetTickerGroupIdPair(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "ticker/{group_id}/{pair}", "fapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker/{group_id}/{pair}", "fapi", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiGetTradesGroupIdPair(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "trades/{group_id}/{pair}", "fapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades/{group_id}/{pair}", "fapi", "GET", params, nothing, nothing, Dict())
 end
 
 function fapiGetDepthGroupIdPair(self::Zaif, params=Dict(), context=Dict())
-    return request(self, "depth/{group_id}/{pair}", "fapi", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "depth/{group_id}/{pair}", "fapi", "GET", params, nothing, nothing, Dict())
 end
 
 function Zaif(; kwargs...)
     inst = Zaif(Exchange(), describe, fetchMarkets, parseMarket, parseBalance, fetchBalance, fetchOrderBook, parseTicker, fetchTicker, parseTrade, fetchTrades, createOrder, cancelOrder, parseOrder, fetchOpenOrders, fetchClosedOrders, withdraw, parseTransaction, customNonce, sign, handleErrors, publicGetDepthPair, publicGetCurrenciesPair, publicGetCurrenciesAll, publicGetCurrencyPairsPair, publicGetCurrencyPairsAll, publicGetLastPricePair, publicGetTickerPair, publicGetTradesPair, privatePostActiveOrders, privatePostCancelOrder, privatePostDepositHistory, privatePostGetIdInfo, privatePostGetInfo, privatePostGetInfo2, privatePostGetPersonalInfo, privatePostTrade, privatePostTradeHistory, privatePostWithdraw, privatePostWithdrawHistory, ecapiPostCreateInvoice, ecapiPostGetInvoice, ecapiPostGetInvoiceIdsByOrderNumber, ecapiPostCancelInvoice, tlapiPostGetPositions, tlapiPostPositionHistory, tlapiPostActivePositions, tlapiPostCreatePosition, tlapiPostChangePosition, tlapiPostCancelPosition, fapiGetGroupsGroupId, fapiGetLastPriceGroupIdPair, fapiGetTickerGroupIdPair, fapiGetTradesGroupIdPair, fapiGetDepthGroupIdPair)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -82,7 +82,7 @@ function helperTestInitMarket()
             Symbol("BTC/USD") => sampleMarket
         )
     ));
-    @test get(get(exchange2, Symbol("markets"), nothing), Symbol("BTC/USD"), nothing) != nothing;
+    @test functions.ccxtruthy(@functions.ccxt_and((get(exchange2, Symbol("markets"), nothing) != nothing), (get(get(exchange2, Symbol("markets"), nothing), Symbol("BTC/USD"), nothing) != nothing)));
 end
 
 
@@ -248,7 +248,7 @@ function helperTestProperties()
     @test exchangeProp(testSharedMethods, exchange, "myTrades") == nothing;
     @test get(exchange, Symbol("positions"), nothing) == nothing
     @test get(exchange, Symbol("markets"), nothing) == nothing
-    @test get(exchange, Symbol("symbols"), nothing) == nothing
+    @test length(get(exchange, Symbol("symbols"), nothing)) == 0
     @test get(exchange, Symbol("markets_by_id"), nothing) == nothing
     @test get(exchange, Symbol("ids"), nothing) == nothing
     assertDeepEqual(testSharedMethods, exchange, Dict{Symbol, Any}(), "currencies", get(exchange, Symbol("currencies"), nothing), Dict{Symbol, Any}());

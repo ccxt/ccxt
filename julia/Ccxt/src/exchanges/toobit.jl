@@ -72,15 +72,19 @@
     commonGetQuoteV1Trades::Function = commonGetQuoteV1Trades
     commonGetQuoteV1Klines::Function = commonGetQuoteV1Klines
     commonGetQuoteV1IndexKlines::Function = commonGetQuoteV1IndexKlines
+    commonGetQuoteV1IndexPriceComponents::Function = commonGetQuoteV1IndexPriceComponents
     commonGetQuoteV1MarkPriceKlines::Function = commonGetQuoteV1MarkPriceKlines
     commonGetQuoteV1MarkPrice::Function = commonGetQuoteV1MarkPrice
     commonGetQuoteV1Index::Function = commonGetQuoteV1Index
     commonGetQuoteV1Ticker24hr::Function = commonGetQuoteV1Ticker24hr
     commonGetQuoteV1ContractTicker24hr::Function = commonGetQuoteV1ContractTicker24hr
     commonGetQuoteV1TickerPrice::Function = commonGetQuoteV1TickerPrice
+    commonGetQuoteV1ContractTickerPrice::Function = commonGetQuoteV1ContractTickerPrice
     commonGetQuoteV1TickerBookTicker::Function = commonGetQuoteV1TickerBookTicker
+    commonGetQuoteV1ContractTickerBookTicker::Function = commonGetQuoteV1ContractTickerBookTicker
     commonGetApiV1FuturesFundingRate::Function = commonGetApiV1FuturesFundingRate
     commonGetApiV1FuturesHistoryFundingRate::Function = commonGetApiV1FuturesHistoryFundingRate
+    commonGetApiV1FuturesRiskLimits::Function = commonGetApiV1FuturesRiskLimits
     privateGetApiV1Account::Function = privateGetApiV1Account
     privateGetApiV1AccountCheckApiKey::Function = privateGetApiV1AccountCheckApiKey
     privateGetApiV1SpotOrder::Function = privateGetApiV1SpotOrder
@@ -94,14 +98,31 @@
     privateGetApiV1AccountWithdrawOrders::Function = privateGetApiV1AccountWithdrawOrders
     privateGetApiV1AccountDepositAddress::Function = privateGetApiV1AccountDepositAddress
     privateGetApiV1SubAccount::Function = privateGetApiV1SubAccount
+    privateGetApiV1AccountSubAccount::Function = privateGetApiV1AccountSubAccount
+    privateGetApiV1SubAccountList::Function = privateGetApiV1SubAccountList
     privateGetApiV1FuturesAccountLeverage::Function = privateGetApiV1FuturesAccountLeverage
     privateGetApiV1FuturesOrder::Function = privateGetApiV1FuturesOrder
     privateGetApiV1FuturesPositions::Function = privateGetApiV1FuturesPositions
+    privateGetApiV1FuturesHistoryPositions::Function = privateGetApiV1FuturesHistoryPositions
     privateGetApiV1FuturesBalance::Function = privateGetApiV1FuturesBalance
     privateGetApiV1FuturesUserTrades::Function = privateGetApiV1FuturesUserTrades
     privateGetApiV1FuturesBalanceFlow::Function = privateGetApiV1FuturesBalanceFlow
     privateGetApiV1FuturesCommissionRate::Function = privateGetApiV1FuturesCommissionRate
     privateGetApiV1FuturesTodayPnl::Function = privateGetApiV1FuturesTodayPnl
+    privateGetApiV1AccountDownloadDetail::Function = privateGetApiV1AccountDownloadDetail
+    privateGetApiV1AgentInviteUserList::Function = privateGetApiV1AgentInviteUserList
+    privateGetApiV1AgentCommissionDataList::Function = privateGetApiV1AgentCommissionDataList
+    privateGetApiV1AgentCommissionDataInfo::Function = privateGetApiV1AgentCommissionDataInfo
+    privateGetApiV1AgentInviteRelationCheck::Function = privateGetApiV1AgentInviteRelationCheck
+    privateGetApiV1AgentDepositDetailList::Function = privateGetApiV1AgentDepositDetailList
+    privateGetApiV1AgentQuerySubAgentData::Function = privateGetApiV1AgentQuerySubAgentData
+    privateGetApiV1AgentSpotOrdersList::Function = privateGetApiV1AgentSpotOrdersList
+    privateGetApiV1AgentFuturesOrdersList::Function = privateGetApiV1AgentFuturesOrdersList
+    privateGetApiV1AgentFuturesPositionsList::Function = privateGetApiV1AgentFuturesPositionsList
+    privateGetApiV1AgentInviteCommissionDetail::Function = privateGetApiV1AgentInviteCommissionDetail
+    privateGetApiV1AgentUserExport::Function = privateGetApiV1AgentUserExport
+    privateGetApiV1AgentExportList::Function = privateGetApiV1AgentExportList
+    privateGetApiV1AgentExportUrl::Function = privateGetApiV1AgentExportUrl
     privatePostApiV1SpotOrderTest::Function = privatePostApiV1SpotOrderTest
     privatePostApiV1SpotOrder::Function = privatePostApiV1SpotOrder
     privatePostApiV1FuturesOrder::Function = privatePostApiV1FuturesOrder
@@ -113,6 +134,11 @@
     privatePostApiV1FuturesBatchOrders::Function = privatePostApiV1FuturesBatchOrders
     privatePostApiV1FuturesPositionTradingStop::Function = privatePostApiV1FuturesPositionTradingStop
     privatePostApiV1FuturesPositionMargin::Function = privatePostApiV1FuturesPositionMargin
+    privatePostApiV1FuturesOrderUpdate::Function = privatePostApiV1FuturesOrderUpdate
+    privatePostApiV1FuturesAutoAddMargin::Function = privatePostApiV1FuturesAutoAddMargin
+    privatePostApiV1FuturesFlashClose::Function = privatePostApiV1FuturesFlashClose
+    privatePostApiV1FuturesReversePosition::Function = privatePostApiV1FuturesReversePosition
+    privatePostApiV1AccountDownloadApply::Function = privatePostApiV1AccountDownloadApply
     privatePostApiV1UserDataStream::Function = privatePostApiV1UserDataStream
     privatePostApiV1ListenKey::Function = privatePostApiV1ListenKey
     privateDeleteApiV1SpotOrder::Function = privateDeleteApiV1SpotOrder
@@ -121,7 +147,9 @@
     privateDeleteApiV1FuturesBatchOrders::Function = privateDeleteApiV1FuturesBatchOrders
     privateDeleteApiV1SpotCancelOrderByIds::Function = privateDeleteApiV1SpotCancelOrderByIds
     privateDeleteApiV1FuturesCancelOrderByIds::Function = privateDeleteApiV1FuturesCancelOrderByIds
+    privateDeleteApiV1UserDataStream::Function = privateDeleteApiV1UserDataStream
     privateDeleteApiV1ListenKey::Function = privateDeleteApiV1ListenKey
+    privatePutApiV1UserDataStream::Function = privatePutApiV1UserDataStream
     privatePutApiV1ListenKey::Function = privatePutApiV1ListenKey
 
 end
@@ -157,6 +185,7 @@ function describe(self::Toobit, )
         Symbol("fetchBorrowRateHistory") => false,
         Symbol("fetchBorrowRates") => false,
         Symbol("fetchBorrowRatesPerSymbol") => false,
+        Symbol("fetchClosedOrders") => true,
         Symbol("fetchCrossBorrowRate") => false,
         Symbol("fetchCrossBorrowRates") => false,
         Symbol("fetchCurrencies") => true,
@@ -170,6 +199,7 @@ function describe(self::Toobit, )
         Symbol("fetchIsolatedBorrowRates") => false,
         Symbol("fetchLastPrices") => true,
         Symbol("fetchLedger") => true,
+        Symbol("fetchLeverage") => true,
         Symbol("fetchMarkets") => true,
         Symbol("fetchMarkOHLCV") => true,
         Symbol("fetchMyTrades") => true,
@@ -180,14 +210,17 @@ function describe(self::Toobit, )
         Symbol("fetchOrder") => true,
         Symbol("fetchOrderBook") => true,
         Symbol("fetchOrders") => true,
+        Symbol("fetchPositions") => true,
         Symbol("fetchStatus") => true,
         Symbol("fetchTickers") => true,
         Symbol("fetchTime") => true,
         Symbol("fetchTrades") => true,
+        Symbol("fetchTradingFees") => true,
         Symbol("fetchVolatilityHistory") => false,
         Symbol("fetchWithdrawals") => true,
         Symbol("repayCrossMargin") => false,
         Symbol("repayIsolatedMargin") => false,
+        Symbol("setLeverage") => true,
         Symbol("setMarginMode") => true,
         Symbol("transfer") => true,
         Symbol("withdraw") => true
@@ -199,7 +232,7 @@ function describe(self::Toobit, )
             Symbol("private") => "https://api.toobit.com"
         ),
         Symbol("www") => "https://www.toobit.com/",
-        Symbol("doc") => ["https://toobit-docs.github.io/apidocs/spot/v1/en/", "https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/"],
+        Symbol("doc") => ["https://api-docs.toobit.com/"],
         Symbol("referral") => Dict{Symbol, Any}(
             Symbol("url") => "https://www.toobit.com/en-US/r?i=IFFPy0",
             Symbol("discount") => 0.1
@@ -209,75 +242,277 @@ function describe(self::Toobit, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("common") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("api/v1/time") => 1,
-                Symbol("api/v1/ping") => 1,
-                Symbol("api/v1/exchangeInfo") => 1,
-                Symbol("quote/v1/depth") => 1,
-                Symbol("quote/v1/depth/merged") => 1,
-                Symbol("quote/v1/trades") => 1,
-                Symbol("quote/v1/klines") => 1,
-                Symbol("quote/v1/index/klines") => 1,
-                Symbol("quote/v1/markPrice/klines") => 1,
-                Symbol("quote/v1/markPrice") => 1,
-                Symbol("quote/v1/index") => 1,
-                Symbol("quote/v1/ticker/24hr") => 40,
-                Symbol("quote/v1/contract/ticker/24hr") => 40,
-                Symbol("quote/v1/ticker/price") => 1,
-                Symbol("quote/v1/ticker/bookTicker") => 1,
-                Symbol("api/v1/futures/fundingRate") => 1,
-                Symbol("api/v1/futures/historyFundingRate") => 1
+                Symbol("api/v1/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/depth/merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/index/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/indexPriceComponents") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/markPrice/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/markPrice") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("quote/v1/index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("quote/v1/contract/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("quote/v1/ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/contract/ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/contract/ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/fundingRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/historyFundingRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/riskLimits") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("api/v1/account") => 5,
-                Symbol("api/v1/account/checkApiKey") => 1,
-                Symbol("api/v1/spot/order") => 1 * 1.67,
-                Symbol("api/v1/spot/openOrders") => 1 * 1.67,
-                Symbol("api/v1/futures/openOrders") => 1 * 1.67,
-                Symbol("api/v1/spot/tradeOrders") => 5 * 1.67,
-                Symbol("api/v1/futures/historyOrders") => 5 * 1.67,
-                Symbol("api/v1/account/trades") => 5 * 1.67,
-                Symbol("api/v1/account/balanceFlow") => 5,
-                Symbol("api/v1/account/depositOrders") => 5,
-                Symbol("api/v1/account/withdrawOrders") => 5,
-                Symbol("api/v1/account/deposit/address") => 1,
-                Symbol("api/v1/subAccount") => 5,
-                Symbol("api/v1/futures/accountLeverage") => 1,
-                Symbol("api/v1/futures/order") => 1 * 1.67,
-                Symbol("api/v1/futures/positions") => 5 * 1.67,
-                Symbol("api/v1/futures/balance") => 5,
-                Symbol("api/v1/futures/userTrades") => 5 * 1.67,
-                Symbol("api/v1/futures/balanceFlow") => 5,
-                Symbol("api/v1/futures/commissionRate") => 5,
-                Symbol("api/v1/futures/todayPnl") => 5
+                Symbol("api/v1/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/account/checkApiKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 * 1.67
+),
+                Symbol("api/v1/spot/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 * 1.67
+),
+                Symbol("api/v1/futures/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 * 1.67
+),
+                Symbol("api/v1/spot/tradeOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5 * 1.67
+),
+                Symbol("api/v1/futures/historyOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5 * 1.67
+),
+                Symbol("api/v1/account/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5 * 1.67
+),
+                Symbol("api/v1/account/balanceFlow") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/account/depositOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/account/withdrawOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/account/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/subAccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/account/subAccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/subAccount/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/futures/accountLeverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 * 1.67
+),
+                Symbol("api/v1/futures/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 5 * 1.67
+),
+                Symbol("api/v1/futures/historyPositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/futures/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/futures/userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5 * 1.67
+),
+                Symbol("api/v1/futures/balanceFlow") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/futures/commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/futures/todayPnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/account/download/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("api/v1/agent/inviteUserList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/commissionDataList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/commissionDataInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/inviteRelationCheck") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/depositDetailList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/querySubAgentData") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/spotOrdersList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/futuresOrdersList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/futuresPositionsList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/invite-commission-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/user/export") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/export-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/agent/export-url") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("api/v1/spot/orderTest") => 1 * 1.67,
-                Symbol("api/v1/spot/order") => 1 * 1.67,
-                Symbol("api/v1/futures/order") => 1 * 1.67,
-                Symbol("api/v1/spot/batchOrders") => 2 * 1.67,
-                Symbol("api/v1/subAccount/transfer") => 1,
-                Symbol("api/v1/account/withdraw") => 1,
-                Symbol("api/v1/futures/marginType") => 1,
-                Symbol("api/v1/futures/leverage") => 1,
-                Symbol("api/v1/futures/batchOrders") => 2 * 1.67,
-                Symbol("api/v1/futures/position/trading-stop") => 3 * 1.67,
-                Symbol("api/v1/futures/positionMargin") => 1,
-                Symbol("api/v1/userDataStream") => 1,
-                Symbol("api/v1/listenKey") => 1
+                Symbol("api/v1/spot/orderTest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 * 1.67
+),
+                Symbol("api/v1/spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 * 1.67
+),
+                Symbol("api/v1/futures/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 * 1.67
+),
+                Symbol("api/v1/spot/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 * 1.67
+),
+                Symbol("api/v1/subAccount/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/marginType") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 * 1.67
+),
+                Symbol("api/v1/futures/position/trading-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 3 * 1.67
+),
+                Symbol("api/v1/futures/positionMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/order/update") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 * 1.67
+),
+                Symbol("api/v1/futures/autoAddMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/flashClose") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/reversePosition") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/account/download/apply") => Dict{Symbol, Any}(
+    Symbol("cost") => 1000
+),
+                Symbol("api/v1/userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("api/v1/spot/order") => 1 * 1.67,
-                Symbol("api/v1/futures/order") => 1 * 1.67,
-                Symbol("api/v1/spot/openOrders") => 5 * 1.67,
-                Symbol("api/v1/futures/batchOrders") => 5 * 1.67,
-                Symbol("api/v1/spot/cancelOrderByIds") => 5 * 1.67,
-                Symbol("api/v1/futures/cancelOrderByIds") => 5 * 1.67,
-                Symbol("api/v1/listenKey") => 1
+                Symbol("api/v1/spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 * 1.67
+),
+                Symbol("api/v1/futures/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 * 1.67
+),
+                Symbol("api/v1/spot/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5 * 1.67
+),
+                Symbol("api/v1/futures/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 3 * 1.67
+),
+                Symbol("api/v1/spot/cancelOrderByIds") => Dict{Symbol, Any}(
+    Symbol("cost") => 5 * 1.67
+),
+                Symbol("api/v1/futures/cancelOrderByIds") => Dict{Symbol, Any}(
+    Symbol("cost") => 3 * 1.67
+),
+                Symbol("api/v1/userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("api/v1/listenKey") => 1
+                Symbol("api/v1/userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/listenKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -305,6 +540,7 @@ function describe(self::Toobit, )
             Symbol("-1002") => PermissionDenied,
             Symbol("-1003") => RateLimitExceeded,
             Symbol("-1004") => BadRequest,
+            Symbol("-1005") => PermissionDenied,
             Symbol("-1006") => OperationFailed,
             Symbol("-1007") => OperationFailed,
             Symbol("-1014") => OperationFailed,
@@ -313,6 +549,8 @@ function describe(self::Toobit, )
             Symbol("-1020") => OperationRejected,
             Symbol("-1021") => OperationRejected,
             Symbol("-1022") => OperationRejected,
+            Symbol("-1023") => PermissionDenied,
+            Symbol("-1031") => OperationRejected,
             Symbol("-1100") => BadRequest,
             Symbol("-1101") => BadRequest,
             Symbol("-1102") => BadRequest,
@@ -320,6 +558,7 @@ function describe(self::Toobit, )
             Symbol("-1104") => BadRequest,
             Symbol("-1105") => BadRequest,
             Symbol("-1106") => BadRequest,
+            Symbol("-1107") => PermissionDenied,
             Symbol("-1111") => BadRequest,
             Symbol("-1112") => OperationRejected,
             Symbol("-1114") => BadRequest,
@@ -329,11 +568,13 @@ function describe(self::Toobit, )
             Symbol("-1118") => InvalidOrder,
             Symbol("-1119") => InvalidOrder,
             Symbol("-1120") => BadRequest,
-            Symbol("-1121") => BadRequest,
+            Symbol("-1121") => BadSymbol,
             Symbol("-1125") => OperationRejected,
             Symbol("-1127") => OperationRejected,
             Symbol("-1128") => BadRequest,
+            Symbol("-1129") => BadRequest,
             Symbol("-1130") => BadRequest,
+            Symbol("-1131") => InsufficientFunds,
             Symbol("-1132") => OperationRejected,
             Symbol("-1133") => OperationRejected,
             Symbol("-1134") => OperationRejected,
@@ -345,11 +586,28 @@ function describe(self::Toobit, )
             Symbol("-1140") => OperationRejected,
             Symbol("-1141") => InvalidOrder,
             Symbol("-1142") => InvalidOrder,
-            Symbol("-1143") => InvalidOrder,
+            Symbol("-1143") => OrderNotFound,
             Symbol("-1144") => OperationRejected,
             Symbol("-1145") => OperationRejected,
             Symbol("-1146") => OperationFailed,
             Symbol("-1147") => OperationFailed,
+            Symbol("-1148") => InvalidOrder,
+            Symbol("-1149") => OperationFailed,
+            Symbol("-1150") => OperationFailed,
+            Symbol("-1151") => OperationRejected,
+            Symbol("-1153") => PermissionDenied,
+            Symbol("-1156") => InvalidOrder,
+            Symbol("-1157") => OperationRejected,
+            Symbol("-1158") => InvalidOrder,
+            Symbol("-1161") => OperationRejected,
+            Symbol("-1164") => OperationRejected,
+            Symbol("-1165") => BadRequest,
+            Symbol("-1166") => BadRequest,
+            Symbol("-1170") => OperationRejected,
+            Symbol("-1171") => ExchangeError,
+            Symbol("-1172") => OperationFailed,
+            Symbol("-1181") => PermissionDenied,
+            Symbol("-1182") => PermissionDenied,
             Symbol("-1193") => OperationRejected,
             Symbol("-1194") => OperationRejected,
             Symbol("-1195") => OperationRejected,
@@ -361,14 +619,53 @@ function describe(self::Toobit, )
             Symbol("-1201") => OperationRejected,
             Symbol("-1202") => OperationRejected,
             Symbol("-1203") => OperationRejected,
+            Symbol("-1204") => PermissionDenied,
+            Symbol("-1205") => BadRequest,
             Symbol("-1206") => OperationRejected,
+            Symbol("-1207") => InvalidOrder,
+            Symbol("-1208") => InvalidOrder,
+            Symbol("-1209") => InvalidOrder,
+            Symbol("-1210") => InvalidOrder,
+            Symbol("-1211") => InvalidOrder,
+            Symbol("-1212") => InvalidOrder,
+            Symbol("-1213") => BadSymbol,
+            Symbol("-1214") => PermissionDenied,
+            Symbol("-1215") => PermissionDenied,
+            Symbol("-1216") => OperationRejected,
+            Symbol("-1217") => InvalidOrder,
+            Symbol("-1300") => BadRequest,
+            Symbol("-1400") => BadRequest,
+            Symbol("-1401") => PermissionDenied,
+            Symbol("-1402") => OperationFailed,
+            Symbol("-1403") => OperationFailed,
+            Symbol("-1404") => ExchangeError,
+            Symbol("-1405") => ExchangeError,
+            Symbol("-1406") => OperationRejected,
+            Symbol("-1407") => OperationRejected,
+            Symbol("-1408") => InsufficientFunds,
+            Symbol("-1409") => OperationRejected,
+            Symbol("-1410") => InsufficientFunds,
+            Symbol("-1411") => OperationRejected,
+            Symbol("-1412") => OperationRejected,
+            Symbol("-1413") => BadRequest,
+            Symbol("-1414") => BadRequest,
+            Symbol("-1415") => BadRequest,
+            Symbol("-1416") => InsufficientFunds,
+            Symbol("-1417") => OperationRejected,
             Symbol("-2010") => OperationFailed,
             Symbol("-2011") => OperationFailed,
-            Symbol("-2013") => InvalidOrder,
+            Symbol("-2013") => OrderNotFound,
             Symbol("-2014") => PermissionDenied,
             Symbol("-2015") => PermissionDenied,
             Symbol("-2016") => BadRequest,
+            Symbol("-2017") => PermissionDenied,
+            Symbol("-2018") => PermissionDenied,
+            Symbol("-3000") => BadRequest,
+            Symbol("-3001") => OperationRejected,
+            Symbol("-3002") => InvalidOrder,
             Symbol("-3050") => ExchangeError,
+            Symbol("-3051") => OperationRejected,
+            Symbol("-3052") => BadRequest,
             Symbol("-3101") => OperationRejected,
             Symbol("-3102") => OperationRejected,
             Symbol("-3103") => BadRequest,
@@ -387,7 +684,39 @@ function describe(self::Toobit, )
             Symbol("-3128") => OperationRejected,
             Symbol("-3129") => BadRequest,
             Symbol("-3130") => OperationRejected,
-            Symbol("-3131") => NotSupported
+            Symbol("-3131") => NotSupported,
+            Symbol("-3132") => InvalidOrder,
+            Symbol("-3133") => InvalidOrder,
+            Symbol("-3136") => OperationRejected,
+            Symbol("-3137") => OperationRejected,
+            Symbol("-3138") => OperationRejected,
+            Symbol("-3139") => OperationRejected,
+            Symbol("-3140") => OperationRejected,
+            Symbol("-3141") => InvalidOrder,
+            Symbol("-3142") => InvalidOrder,
+            Symbol("-3143") => InvalidOrder,
+            Symbol("-3144") => InvalidOrder,
+            Symbol("-3145") => InvalidOrder,
+            Symbol("-3147") => OperationRejected,
+            Symbol("-3148") => InvalidOrder,
+            Symbol("-3149") => InvalidOrder,
+            Symbol("-3150") => NotSupported,
+            Symbol("-3151") => NotSupported,
+            Symbol("-3152") => BadRequest,
+            Symbol("-3153") => BadRequest,
+            Symbol("-32045") => ExchangeError,
+            Symbol("-32090") => OperationRejected,
+            Symbol("-32093") => OperationRejected,
+            Symbol("-120041") => PermissionDenied,
+            Symbol("-120047") => ExchangeError,
+            Symbol("-120055") => OperationRejected,
+            Symbol("-120067") => ExchangeError,
+            Symbol("-120072") => BadRequest,
+            Symbol("-120073") => OperationRejected,
+            Symbol("-120078") => BadRequest,
+            Symbol("-120510") => BadRequest,
+            Symbol("-120511") => BadRequest,
+            Symbol("-120512") => BadRequest
         ),
         Symbol("broad") => Dict{Symbol, Any}(
             Symbol("Unknown order sent") => OrderNotFound,
@@ -424,7 +753,7 @@ function describe(self::Toobit, )
             Symbol("TRC20") => "TRX",
             Symbol("SOL") => "SOL",
             Symbol("MATIC") => "MATIC",
-            Symbol("ARBONE") => "ARBITRUM",
+            Symbol("ARBITRUM") => "ARBITRUM",
             Symbol("BASE") => "BASE",
             Symbol("TON") => "TON",
             Symbol("AVAXC") => "AVAXC",
@@ -569,27 +898,29 @@ function parseCurrency(self::Toobit, rawCurrency)
         rawNetwork = get(rawNetworks, j + 1, nothing);
         networkId = safeString(rawNetwork, "chainType");
         networkCode = self.networkIdToCode(networkId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("margin") => nothing,
-            Symbol("deposit") => self.safeBool(rawNetwork, "allowDeposit"),
-            Symbol("withdraw") => self.safeBool(rawNetwork, "allowWithdraw"),
-            Symbol("active") => nothing,
-            Symbol("fee") => self.safeNumber(rawNetwork, "withdrawFee"),
-            Symbol("precision") => nothing,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(rawNetwork, "minDepositQuantity"),
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("margin") => nothing,
+                Symbol("deposit") => self.safeBool(rawNetwork, "allowDeposit"),
+                Symbol("withdraw") => self.safeBool(rawNetwork, "allowWithdraw"),
+                Symbol("active") => nothing,
+                Symbol("fee") => self.safeNumber(rawNetwork, "withdrawFee"),
+                Symbol("precision") => nothing,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(rawNetwork, "minDepositQuantity"),
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(rawNetwork, "minWithdrawQuantity"),
+                        Symbol("max") => self.safeNumber(rawNetwork, "maxWithdrawQuantity")
+                    )
                 ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(rawNetwork, "minWithdrawQuantity"),
-                    Symbol("max") => self.safeNumber(rawNetwork, "maxWithdrawQuantity")
-                )
-            ),
-            Symbol("info") => rawNetwork
-        );
+                Symbol("info") => rawNetwork
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -834,7 +1165,11 @@ function fetchOHLCV(self::Toobit, symbol, timeframe="1m", since=nothing, limit=n
     else
         response = Base.fetch(self.commonGetQuoteV1Klines(extend(request, params)));
     end
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    candles = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        candles = response;
+    end
+    return self.parseOHLCVs(candles, market, timeframe, since, limit)
 
 end
 function parseOHLCV(self::Toobit, ohlcv, market=nothing)
@@ -1079,7 +1414,9 @@ function parseBalance(self::Toobit, response)
         account[Symbol("free")] = safeString2(balance, "free", "availableBalance");
         account[Symbol("total")] = safeString2(balance, "total", "balance");
         account[Symbol("used")] = safeString(balance, "locked");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1103,6 +1440,9 @@ function createOrder(self::Toobit, symbol, type_var, side, amount, price=nothing
 
 end
 function createOrderRequest(self::Toobit, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
     market = self.market(symbol);
     if functions.ccxtruthy(side == nothing)
         throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
@@ -1137,6 +1477,12 @@ function createOrderRequest(self::Toobit, symbol, type_var, side, amount, price=
 
 end
 function createContractOrderRequest(self::Toobit, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -1394,7 +1740,7 @@ function fetchOpenOrders(self::Toobit, symbol=nothing, since=nothing, limit=noth
         request[Symbol("limit")] = limit;
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("fetchOrders", market, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchOpenOrders", market, params);
     response = [];
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.privateGetApiV1SpotOpenOrders(extend(request, params)));
@@ -1455,10 +1801,14 @@ function fetchClosedOrders(self::Toobit, symbol=nothing, since=nothing, limit=no
         response = Base.fetch(self.privateGetApiV1FuturesHistoryOrders(request));
     end
     ordersList = [];
+    responseList = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        responseList = response;
+    end
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(responseList)))
         push!(ordersList, Dict{Symbol, Any}(
-    Symbol("result") => get(response, i + 1, nothing)
+    Symbol("result") => get(responseList, i + 1, nothing)
 ));
         i += 1
     end
@@ -1543,7 +1893,7 @@ function fetchLedger(self::Toobit, code=nothing, since=nothing, limit=nothing, p
         request[Symbol("limit")] = limit;
     end
     marketType = nothing;
-    (marketType, params) = self.handleMarketTypeAndParams("cancelAllOrders", nothing, params);
+    (marketType, params) = self.handleMarketTypeAndParams("fetchLedger", nothing, params);
     response = nothing;
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.privateGetApiV1AccountBalanceFlow(extend(request, params)));
@@ -1967,85 +2317,101 @@ function handleErrors(self::Toobit, code, reason, url, method, headers, body, re
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Toobit, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function commonGetApiV1Time(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/time", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/time", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetApiV1Ping(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/ping", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/ping", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetApiV1ExchangeInfo(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/exchangeInfo", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/exchangeInfo", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1Depth(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/depth", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/depth", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1DepthMerged(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/depth/merged", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/depth/merged", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1Trades(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/trades", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/trades", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1Klines(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/klines", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/klines", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1IndexKlines(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/index/klines", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/index/klines", "common", "GET", params, nothing, nothing, Dict())
+end
+
+function commonGetQuoteV1IndexPriceComponents(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "quote/v1/indexPriceComponents", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1MarkPriceKlines(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/markPrice/klines", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/markPrice/klines", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1MarkPrice(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/markPrice", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/markPrice", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1Index(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/index", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/index", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1Ticker24hr(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/24hr", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "quote/v1/ticker/24hr", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1ContractTicker24hr(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/contract/ticker/24hr", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "quote/v1/contract/ticker/24hr", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1TickerPrice(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/price", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/ticker/price", "common", "GET", params, nothing, nothing, Dict())
+end
+
+function commonGetQuoteV1ContractTickerPrice(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "quote/v1/contract/ticker/price", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetQuoteV1TickerBookTicker(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/bookTicker", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/ticker/bookTicker", "common", "GET", params, nothing, nothing, Dict())
+end
+
+function commonGetQuoteV1ContractTickerBookTicker(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "quote/v1/contract/ticker/bookTicker", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetApiV1FuturesFundingRate(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/fundingRate", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/fundingRate", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function commonGetApiV1FuturesHistoryFundingRate(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/historyFundingRate", "common", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/historyFundingRate", "common", "GET", params, nothing, nothing, Dict())
+end
+
+function commonGetApiV1FuturesRiskLimits(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/futures/riskLimits", "common", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1Account(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountCheckApiKey(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/checkApiKey", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/checkApiKey", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1SpotOrder(self::Toobit, params=Dict(), context=Dict())
@@ -2073,27 +2439,35 @@ function privateGetApiV1AccountTrades(self::Toobit, params=Dict(), context=Dict(
 end
 
 function privateGetApiV1AccountBalanceFlow(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/balanceFlow", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/account/balanceFlow", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountDepositOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/depositOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/account/depositOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountWithdrawOrders(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/withdrawOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/account/withdrawOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountDepositAddress(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/deposit/address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/deposit/address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1SubAccount(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/subAccount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/subAccount", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AccountSubAccount(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/account/subAccount", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1SubAccountList(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/subAccount/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesAccountLeverage(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/accountLeverage", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/accountLeverage", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesOrder(self::Toobit, params=Dict(), context=Dict())
@@ -2104,8 +2478,12 @@ function privateGetApiV1FuturesPositions(self::Toobit, params=Dict(), context=Di
     return request(self, "api/v1/futures/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
+function privateGetApiV1FuturesHistoryPositions(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/futures/historyPositions", "private", "GET", params, nothing, nothing, Dict())
+end
+
 function privateGetApiV1FuturesBalance(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/futures/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesUserTrades(self::Toobit, params=Dict(), context=Dict())
@@ -2113,15 +2491,71 @@ function privateGetApiV1FuturesUserTrades(self::Toobit, params=Dict(), context=D
 end
 
 function privateGetApiV1FuturesBalanceFlow(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/balanceFlow", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/futures/balanceFlow", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesCommissionRate(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/commissionRate", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/futures/commissionRate", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesTodayPnl(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/todayPnl", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/futures/todayPnl", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AccountDownloadDetail(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/account/download/detail", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentInviteUserList(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/inviteUserList", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentCommissionDataList(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/commissionDataList", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentCommissionDataInfo(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/commissionDataInfo", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentInviteRelationCheck(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/inviteRelationCheck", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentDepositDetailList(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/depositDetailList", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentQuerySubAgentData(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/querySubAgentData", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentSpotOrdersList(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/spotOrdersList", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentFuturesOrdersList(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/futuresOrdersList", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentFuturesPositionsList(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/futuresPositionsList", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentInviteCommissionDetail(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/invite-commission-detail", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentUserExport(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/user/export", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentExportList(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/export-list", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetApiV1AgentExportUrl(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/agent/export-url", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1SpotOrderTest(self::Toobit, params=Dict(), context=Dict())
@@ -2141,19 +2575,19 @@ function privatePostApiV1SpotBatchOrders(self::Toobit, params=Dict(), context=Di
 end
 
 function privatePostApiV1SubAccountTransfer(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/subAccount/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/subAccount/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1AccountWithdraw(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1FuturesMarginType(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/marginType", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/marginType", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1FuturesLeverage(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1FuturesBatchOrders(self::Toobit, params=Dict(), context=Dict())
@@ -2165,15 +2599,35 @@ function privatePostApiV1FuturesPositionTradingStop(self::Toobit, params=Dict(),
 end
 
 function privatePostApiV1FuturesPositionMargin(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/positionMargin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/positionMargin", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostApiV1FuturesOrderUpdate(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/futures/order/update", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostApiV1FuturesAutoAddMargin(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/futures/autoAddMargin", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostApiV1FuturesFlashClose(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/futures/flashClose", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostApiV1FuturesReversePosition(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/futures/reversePosition", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostApiV1AccountDownloadApply(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/account/download/apply", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1UserDataStream(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/userDataStream", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/userDataStream", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1ListenKey(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/listenKey", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/listenKey", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV1SpotOrder(self::Toobit, params=Dict(), context=Dict())
@@ -2200,19 +2654,80 @@ function privateDeleteApiV1FuturesCancelOrderByIds(self::Toobit, params=Dict(), 
     return request(self, "api/v1/futures/cancelOrderByIds", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
+function privateDeleteApiV1UserDataStream(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/userDataStream", "private", "DELETE", params, nothing, nothing, Dict())
+end
+
 function privateDeleteApiV1ListenKey(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/listenKey", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/listenKey", "private", "DELETE", params, nothing, nothing, Dict())
+end
+
+function privatePutApiV1UserDataStream(self::Toobit, params=Dict(), context=Dict())
+    return request(self, "api/v1/userDataStream", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutApiV1ListenKey(self::Toobit, params=Dict(), context=Dict())
-    return request(self, "api/v1/listenKey", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/listenKey", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function Toobit(; kwargs...)
-    inst = Toobit(Exchange(), describe, fetchStatus, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, fetchOrderBook, fetchTrades, parseTrade, fetchOHLCV, parseOHLCV, fetchTickers, parseTicker, fetchLastPrices, parseLastPrice, fetchBidsAsks, parseBidsAsksCustom, parseBidAskCustom, fetchFundingRates, parseFundingRate, fetchFundingRateHistory, parseFundingRateHistory, fetchBalance, parseBalance, createOrder, createOrderRequest, createContractOrderRequest, parseOrder, parseOrderStatus, parseOrderType, cancelOrder, cancelAllOrders, cancelOrders, fetchOrder, fetchOpenOrders, fetchOrders, fetchClosedOrders, fetchMyTrades, transfer, parseTransfer, fetchLedger, parseLedgerEntry, parseLedgerType, fetchTradingFees, parseTradingFee, fetchDeposits, fetchWithdrawals, fetchDepositsOrWithdrawalsHelper, parseTransaction, parseTransactionStatus, fetchDepositAddress, parseDepositAddress, withdraw, setMarginMode, setLeverage, fetchLeverage, parseLeverage, fetchPositions, parsePosition, sign, handleErrors, commonGetApiV1Time, commonGetApiV1Ping, commonGetApiV1ExchangeInfo, commonGetQuoteV1Depth, commonGetQuoteV1DepthMerged, commonGetQuoteV1Trades, commonGetQuoteV1Klines, commonGetQuoteV1IndexKlines, commonGetQuoteV1MarkPriceKlines, commonGetQuoteV1MarkPrice, commonGetQuoteV1Index, commonGetQuoteV1Ticker24hr, commonGetQuoteV1ContractTicker24hr, commonGetQuoteV1TickerPrice, commonGetQuoteV1TickerBookTicker, commonGetApiV1FuturesFundingRate, commonGetApiV1FuturesHistoryFundingRate, privateGetApiV1Account, privateGetApiV1AccountCheckApiKey, privateGetApiV1SpotOrder, privateGetApiV1SpotOpenOrders, privateGetApiV1FuturesOpenOrders, privateGetApiV1SpotTradeOrders, privateGetApiV1FuturesHistoryOrders, privateGetApiV1AccountTrades, privateGetApiV1AccountBalanceFlow, privateGetApiV1AccountDepositOrders, privateGetApiV1AccountWithdrawOrders, privateGetApiV1AccountDepositAddress, privateGetApiV1SubAccount, privateGetApiV1FuturesAccountLeverage, privateGetApiV1FuturesOrder, privateGetApiV1FuturesPositions, privateGetApiV1FuturesBalance, privateGetApiV1FuturesUserTrades, privateGetApiV1FuturesBalanceFlow, privateGetApiV1FuturesCommissionRate, privateGetApiV1FuturesTodayPnl, privatePostApiV1SpotOrderTest, privatePostApiV1SpotOrder, privatePostApiV1FuturesOrder, privatePostApiV1SpotBatchOrders, privatePostApiV1SubAccountTransfer, privatePostApiV1AccountWithdraw, privatePostApiV1FuturesMarginType, privatePostApiV1FuturesLeverage, privatePostApiV1FuturesBatchOrders, privatePostApiV1FuturesPositionTradingStop, privatePostApiV1FuturesPositionMargin, privatePostApiV1UserDataStream, privatePostApiV1ListenKey, privateDeleteApiV1SpotOrder, privateDeleteApiV1FuturesOrder, privateDeleteApiV1SpotOpenOrders, privateDeleteApiV1FuturesBatchOrders, privateDeleteApiV1SpotCancelOrderByIds, privateDeleteApiV1FuturesCancelOrderByIds, privateDeleteApiV1ListenKey, privatePutApiV1ListenKey)
+    inst = Toobit(Exchange(), describe, fetchStatus, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, fetchOrderBook, fetchTrades, parseTrade, fetchOHLCV, parseOHLCV, fetchTickers, parseTicker, fetchLastPrices, parseLastPrice, fetchBidsAsks, parseBidsAsksCustom, parseBidAskCustom, fetchFundingRates, parseFundingRate, fetchFundingRateHistory, parseFundingRateHistory, fetchBalance, parseBalance, createOrder, createOrderRequest, createContractOrderRequest, parseOrder, parseOrderStatus, parseOrderType, cancelOrder, cancelAllOrders, cancelOrders, fetchOrder, fetchOpenOrders, fetchOrders, fetchClosedOrders, fetchMyTrades, transfer, parseTransfer, fetchLedger, parseLedgerEntry, parseLedgerType, fetchTradingFees, parseTradingFee, fetchDeposits, fetchWithdrawals, fetchDepositsOrWithdrawalsHelper, parseTransaction, parseTransactionStatus, fetchDepositAddress, parseDepositAddress, withdraw, setMarginMode, setLeverage, fetchLeverage, parseLeverage, fetchPositions, parsePosition, sign, handleErrors, commonGetApiV1Time, commonGetApiV1Ping, commonGetApiV1ExchangeInfo, commonGetQuoteV1Depth, commonGetQuoteV1DepthMerged, commonGetQuoteV1Trades, commonGetQuoteV1Klines, commonGetQuoteV1IndexKlines, commonGetQuoteV1IndexPriceComponents, commonGetQuoteV1MarkPriceKlines, commonGetQuoteV1MarkPrice, commonGetQuoteV1Index, commonGetQuoteV1Ticker24hr, commonGetQuoteV1ContractTicker24hr, commonGetQuoteV1TickerPrice, commonGetQuoteV1ContractTickerPrice, commonGetQuoteV1TickerBookTicker, commonGetQuoteV1ContractTickerBookTicker, commonGetApiV1FuturesFundingRate, commonGetApiV1FuturesHistoryFundingRate, commonGetApiV1FuturesRiskLimits, privateGetApiV1Account, privateGetApiV1AccountCheckApiKey, privateGetApiV1SpotOrder, privateGetApiV1SpotOpenOrders, privateGetApiV1FuturesOpenOrders, privateGetApiV1SpotTradeOrders, privateGetApiV1FuturesHistoryOrders, privateGetApiV1AccountTrades, privateGetApiV1AccountBalanceFlow, privateGetApiV1AccountDepositOrders, privateGetApiV1AccountWithdrawOrders, privateGetApiV1AccountDepositAddress, privateGetApiV1SubAccount, privateGetApiV1AccountSubAccount, privateGetApiV1SubAccountList, privateGetApiV1FuturesAccountLeverage, privateGetApiV1FuturesOrder, privateGetApiV1FuturesPositions, privateGetApiV1FuturesHistoryPositions, privateGetApiV1FuturesBalance, privateGetApiV1FuturesUserTrades, privateGetApiV1FuturesBalanceFlow, privateGetApiV1FuturesCommissionRate, privateGetApiV1FuturesTodayPnl, privateGetApiV1AccountDownloadDetail, privateGetApiV1AgentInviteUserList, privateGetApiV1AgentCommissionDataList, privateGetApiV1AgentCommissionDataInfo, privateGetApiV1AgentInviteRelationCheck, privateGetApiV1AgentDepositDetailList, privateGetApiV1AgentQuerySubAgentData, privateGetApiV1AgentSpotOrdersList, privateGetApiV1AgentFuturesOrdersList, privateGetApiV1AgentFuturesPositionsList, privateGetApiV1AgentInviteCommissionDetail, privateGetApiV1AgentUserExport, privateGetApiV1AgentExportList, privateGetApiV1AgentExportUrl, privatePostApiV1SpotOrderTest, privatePostApiV1SpotOrder, privatePostApiV1FuturesOrder, privatePostApiV1SpotBatchOrders, privatePostApiV1SubAccountTransfer, privatePostApiV1AccountWithdraw, privatePostApiV1FuturesMarginType, privatePostApiV1FuturesLeverage, privatePostApiV1FuturesBatchOrders, privatePostApiV1FuturesPositionTradingStop, privatePostApiV1FuturesPositionMargin, privatePostApiV1FuturesOrderUpdate, privatePostApiV1FuturesAutoAddMargin, privatePostApiV1FuturesFlashClose, privatePostApiV1FuturesReversePosition, privatePostApiV1AccountDownloadApply, privatePostApiV1UserDataStream, privatePostApiV1ListenKey, privateDeleteApiV1SpotOrder, privateDeleteApiV1FuturesOrder, privateDeleteApiV1SpotOpenOrders, privateDeleteApiV1FuturesBatchOrders, privateDeleteApiV1SpotCancelOrderByIds, privateDeleteApiV1FuturesCancelOrderByIds, privateDeleteApiV1UserDataStream, privateDeleteApiV1ListenKey, privatePutApiV1UserDataStream, privatePutApiV1ListenKey)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

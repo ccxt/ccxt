@@ -18,6 +18,36 @@ function capitalize(s: string): string {
 }
 
 /**
+ * Write the generated error hierarchy to `Errors.jl`, but only when a
+ * loadable, canonical `Errors.jl` is NOT already present.
+ *
+ * The upstream Julia transpiler emits `ts/src/base/errors.ts` (which extends
+ * the JS `Error` builtin) into Julia structs with `parent::Union{Error,
+ * Nothing} = Error()` — but `Error` is a JavaScript builtin, undefined in
+ * Julia, so the regenerated file fails to load. The repository ships a
+ * hand-written, loadable `Errors.jl` (Exception subtypes via a `@def_err`
+ * macro). We must not overwrite it with the broken generated output during
+ * `--errors` (or `--all`, which also drives the error transpiler in
+ * `juliaTranspileDirect.ts`). When the existing file is present and already
+ * declares the error types, keep it untouched so the package stays loadable.
+ */
+function writeErrorsGuarded(outFile: string, generated: string) {
+  if (fs.existsSync(outFile)) {
+    const existing = fs.readFileSync(outFile, 'utf8');
+    const existingIsBroken = /\bError\s*\(/.test(existing) || /Union\s*\{\s*Error\b/.test(existing);
+    if (!existingIsBroken) {
+      // The existing Errors.jl is loadable (it does not reference the undefined
+      // JS `Error` builtin the transpiler emits). Keep it untouched so the
+      // package stays loadable; do not overwrite with broken generated output.
+      console.log(`Julia errors preserved (canonical hand-written Errors.jl) -> ${outFile}`);
+      return;
+    }
+  }
+  fs.writeFileSync(outFile, generated, 'utf8');
+  console.log(`Julia errors transpiled -> ${outFile}`);
+}
+
+/**
  * Capitalize exchange class names inside a generated Julia exchange file so that
  * the emitted struct, its method receivers, the parent-field type, and the
  * wrapper constructor all use the PascalCase name (e.g. `binance` -> `Binance`).
@@ -129,17 +159,29 @@ function buildWrapperSource(structContent: string, wrapperName: string): string 
     `    # wholesale would drop the base defaults an exchange does not restate —`,
     `    # e.g. \`options.defaultNetworkCodeReplacements\`, which every`,
     `    # networkIdToCode lookup needs.`,
+    `    #`,
+    `    # \`features\` is the exception, and is assigned rather than merged.`,
+    `    # Julia models inheritance by composition, so a child's \`parent\` is a`,
+    `    # fully-built instance that has already run \`afterConstruct\` — and`,
+    `    # \`featuresGenerator\` rewrites \`features\` in place, expanding the raw`,
+    `    # \`{'default': ...}\` / \`{'swap': {'extends': ...}}\` shorthand into a`,
+    `    # per-market-type table and recording absent types as \`nothing\`. Merging`,
+    `    # that derived table with the raw \`describe()\` value it was derived from`,
+    `    # feeds the generator its own output on the child's pass: a market type`,
+    `    # the parent recorded as absent comes back as a present-but-\`nothing\``,
+    `    # entry, which the generator then tries to index into. In TS the`,
+    `    # generator only ever sees the raw value, so assign it here too.`,
     `    desc = inst.describe()`,
     `    for (k, v) in desc`,
     `        key = Symbol(k)`,
-    `        if v isa AbstractDict`,
+    `        if v isa AbstractDict && key !== :features`,
     `            inst[key] = deepExtend(get(inst, key, nothing), v)`,
     `        else`,
     `            inst[key] = v`,
     `        end`,
     `    end`,
     `    for (k, v) in kwargs`,
-    `        if v isa AbstractDict`,
+    `        if v isa AbstractDict && k !== :features`,
     `            inst[k] = deepExtend(get(inst, k, nothing), v)`,
     `        else`,
     `            inst[k] = v`,
@@ -158,8 +200,12 @@ function buildWrapperSource(structContent: string, wrapperName: string): string 
     `    end`,
     `    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)`,
     `    inst.newUpdates = newUpdates === nothing ? true : newUpdates`,
+    `    # afterConstruct already honours \`options.sandbox\`/\`options.testnet\`; the`,
+    `    # TS constructor's extra \`setSandboxMode\` call reads the *user config*,`,
+    `    # which arrives here as kwargs. Repeating the options-based check would`,
+    `    # swap the api/test URLs a second time and clobber the apiBackup snapshot.`,
     `    inst.afterConstruct()`,
-    `    if ccxtruthy(inst.safeBool2(inst.options, "sandbox", "testnet", false))`,
+    `    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))`,
     `        inst.setSandboxMode(true)`,
     `    end`,
     `    inst.loadExchangeSpecificFiles()`,
@@ -279,6 +325,444 @@ function suppressBareUndefined(input: string): string {
 }
 
 /**
+ * Collapse a duplicated abstract supertype in a struct header.
+ *
+ * The upstream Julia backend appends ` <: CcxtExchange` twice for the root
+ * base class: once because the class is named `Exchange`, and once more for
+ * its `extends` heritage clause (since upstream split the base into
+ * `class Exchange extends BaseExchange`). Julia rejects the result —
+ * `@kwdef mutable struct Exchange <: CcxtExchange <: CcxtExchange` fails with
+ * "Invalid usage of @kwdef" — so the repeated token is folded back to one.
+ */
+function collapseDuplicateSupertype(input: string): string {
+  return input.replace(
+    /(struct\s+[A-Za-z_]\w*\s*<:\s*CcxtExchange)(?:\s*<:\s*CcxtExchange)+/g,
+    '$1',
+  );
+}
+
+/**
+ * Flatten the upstream `BaseExchange` / `Exchange` two-tier base into the
+ * single `Exchange` struct the Julia runtime is built around.
+ *
+ * `ts/src/base/Exchange.ts` declares `class BaseExchange` (all shared
+ * infrastructure) plus a thin `class Exchange extends BaseExchange` holding
+ * only "not supported yet" stubs, so the prediction tier can extend
+ * `BaseExchange` as an independent sibling. TypeScript expresses that with two
+ * classes; the Julia backend therefore emits two sibling structs, with every
+ * base method typed `self::BaseExchange` and a thin `Exchange` whose `parent`
+ * is a `BaseExchange`.
+ *
+ * That shape does not work here. `BaseExchange` is not a subtype of
+ * `CcxtExchange`, so `ccxt_takes_self` (src/CCXTBase.jl) reports every base
+ * method as a free function and calls it without the instance; and the thin
+ * `Exchange` no longer carries the state fields (`id`, `markets`, `options`,
+ * …) that `Base.getproperty(self::Exchange, …)` resolves against.
+ *
+ * Julia models the inheritance by composition rather than by subtyping, so the
+ * split buys nothing: the two tiers are merged back into one `Exchange <:
+ * CcxtExchange`. The thin struct is dropped — its fields are only
+ * `field::Function = field` aliases for stubs that are already emitted as
+ * top-level `self::CcxtExchange` functions and resolved through the
+ * module-level fallback in `getproperty`.
+ */
+function flattenBaseExchangeTier(input: string): string {
+  const lines = input.split('\n');
+  const baseIdx = lines.findIndex((l) => /^@kwdef mutable struct BaseExchange\b/.test(l));
+  if (baseIdx === -1) return input;
+  let kept = lines;
+  const thinIdx = lines.findIndex((l) => /^@kwdef mutable struct Exchange\b/.test(l));
+  if (thinIdx > baseIdx) {
+    let endIdx = -1;
+    for (let i = thinIdx + 1; i < lines.length; i++) {
+      if (lines[i] === 'end') {
+        endIdx = i;
+        break;
+      }
+      // A top-level declaration before the closing `end` means the block is
+      // not the shape we expect; leave the source alone rather than guess.
+      if (/^(@kwdef\b|function\s|struct\s|mutable\s)/.test(lines[i])) break;
+    }
+    if (endIdx !== -1) {
+      const body = lines.slice(thinIdx + 1, endIdx).join('\n');
+      if (/^\s*parent::Union\{BaseExchange,\s*Nothing\}/m.test(body)) {
+        kept = lines.slice(0, thinIdx).concat(lines.slice(endIdx + 1));
+      }
+    }
+  }
+  let content = kept.join('\n');
+  content = content.replace(
+    /^@kwdef mutable struct BaseExchange\b.*$/m,
+    '@kwdef mutable struct Exchange <: CcxtExchange',
+  );
+  // Property resolution stays keyed on the concrete struct: the abstract
+  // `CcxtExchange` overload already lives in src/CCXTBase.jl and must not be
+  // redefined here.
+  content = content.replace(
+    /Base\.getproperty\(self::BaseExchange,/g,
+    'Base.getproperty(self::Exchange,',
+  );
+  // Base methods dispatch on the abstract supertype so that a composed
+  // exchange (`Binance`, whose `parent` is an `Exchange`) is accepted too, and
+  // so `ccxt_takes_self` recognises them as `self`-taking.
+  content = content.replace(/self::BaseExchange\b/g, 'self::CcxtExchange');
+  // Whatever is left is the struct/constructor name itself.
+  return content.replace(/\bBaseExchange\b/g, 'Exchange');
+}
+
+/**
+ * TS declares `deepExtendSafe`/`indexBySafe` as narrowly-typed aliases of
+ * `deepExtend`/`indexBy` (`ts/src/base/Exchange.ts`, ~line 446). They are
+ * class *properties*, so the backend emits them as struct fields whose default
+ * is the same-named binding — but it never emits that binding, and it also
+ * calls them unqualified (`indexBySafe (this.currencies, 'id')` at
+ * Exchange.ts:4618 becomes a bare `indexBySafe(...)`). Both spellings need a
+ * module-level name to resolve against, so declare them next to the other
+ * `<name> = functions.<name>` preamble aliases the generator does emit.
+ */
+function declareTypedHelperAliases(input: string): string {
+  const anchor = 'deepExtend = functions.deepExtend';
+  if (!input.includes(anchor)) return input;
+  if (/^deepExtendSafe\s*=/m.test(input)) return input;
+  return input.replace(
+    anchor,
+    [
+      anchor,
+      '# TS narrows `deepExtendSafe`/`indexBySafe` to typed aliases of the same',
+      '# helpers (Exchange.ts); the backend references them without emitting the',
+      '# bindings, so they are declared here.',
+      'deepExtendSafe = functions.deepExtend',
+      'indexBySafe = functions.indexBy',
+    ].join('\n'),
+  );
+}
+
+/**
+ * Widen `Exchange` struct fields whose declared type is narrower than what
+ * actually gets assigned to them.
+ *
+ * TS property declarations carry interface types (`urls: Urls`,
+ * `precision: Precision`, `limits: Limits`, …) that the backend copies onto
+ * the Julia struct field. Nothing in the runtime ever builds those structs:
+ * `describe()` returns nested `Dict`s, so the very first assignment — the
+ * constructor's own default, before any user config — raises
+ * `MethodError: Cannot convert Dict{String, Any} to Precision`.
+ *
+ * The `_overlay_*` machinery in `baseExtras` catches type mismatches on
+ * *property writes*, but the inner `new(...)` call bypasses `setproperty!`
+ * entirely, so a mismatched default is fatal at construction. These fields are
+ * dictionary-shaped in every language; typing them `Any` is what the runtime
+ * has always assumed.
+ *
+ * Only fields on the `Exchange` struct are touched, and only the ones listed:
+ * a blanket widening would erase the type information that the overlay uses to
+ * decide when a write needs redirecting.
+ */
+const WIDENED_EXCHANGE_FIELDS = [
+  // Interface-typed fields that `describe()` fills with plain dictionaries.
+  'urls', 'precision', 'status', 'requiredCredentials', 'limits', 'fees',
+  'tokenBucket', 'exceptions', 'timeframes',
+  // Element-typed containers filled with heterogeneous entries.
+  'fetchHistoryCache', 'symbols', 'features',
+];
+
+/**
+ * Reset the inner constructor's default for every TS field declared with the
+ * definite-assignment assertion (`apiKey!: string`) back to `nothing`.
+ *
+ * `!` tells the TS compiler "this property is assigned somewhere I cannot
+ * see" — `describe()`, the user config merge, or a credential setter. The
+ * declaration carries a type but deliberately NO initializer, so at
+ * construction time the property is plain `undefined` in JS. Several base
+ * behaviours read that: `checkRequiredCredentials` throws only when a required
+ * credential is falsy, and `test.afterConstructor` asserts a fresh instance has
+ * `apiKey === undefined`, `accounts === undefined`, `precision === undefined`.
+ *
+ * The backend, seeing a typed field with no initializer, synthesises the
+ * type's zero value instead (`""` for `string`, `Dict{String, Account}()` for
+ * `Dictionary<Account>`, `Vector{Account}()` for `Account[]`). That is a
+ * defensible default for a typed language but it is the wrong port: an empty
+ * string is not `undefined`, and the difference is observable. It also only
+ * appeared once upstream annotated these fields for `strictNullChecks`
+ * (ts/src/base/Exchange.ts, "enable strictNullChecks compliance across
+ * ts/src"), which silently changed the generated Julia for ~29 fields.
+ *
+ * The field list is read out of the TS source rather than hardcoded, so a
+ * field that gains or loses its `!` upstream is picked up on the next run.
+ * Fields WITH an initializer (`symbols: string[] = []`) are untouched: there
+ * the zero value is what the source actually asks for.
+ *
+ * Only the inner constructor's positional defaults are rewritten. The struct's
+ * own `@kwdef` defaults are already `nothing`, and every call site goes
+ * through the constructor.
+ */
+function resetDefiniteAssignmentDefaults(input: string): string {
+  const exchangeTs = path.join(TS_SRC, 'base', 'Exchange.ts');
+  let tsSource: string;
+  try {
+    tsSource = fs.readFileSync(exchangeTs, 'utf8');
+  } catch {
+    return input;
+  }
+  // Class-body property declarations only: they sit at exactly 4-space indent
+  // (method bodies are 8+). The type may span lines (`precision!: {` … `};`),
+  // so match the declaration head rather than the whole statement. TS forbids
+  // combining `!` with an initializer, so there is nothing to exclude.
+  const fields = new Set<string>();
+  for (const m of tsSource.matchAll(/^ {4}([A-Za-z_][A-Za-z0-9_]*)!\s*:/gm)) {
+    fields.add(m[1]);
+  }
+  if (fields.size === 0) return input;
+  const ctorIdx = input.indexOf('function Exchange(');
+  if (ctorIdx === -1) return input;
+  // The signature runs to the `; userConfig` keyword-argument separator.
+  const sigEnd = input.indexOf('; userConfig', ctorIdx);
+  if (sigEnd === -1) return input;
+  const signature = input.slice(ctorIdx, sigEnd);
+  // Split on top-level commas: a default may itself be a nested
+  // `Dict{Symbol, Any}(...)` literal spanning commas and newlines.
+  const parts: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of signature) {
+    if (ch === '(' || ch === '[' || ch === '{') depth++;
+    else if (ch === ')' || ch === ']' || ch === '}') depth--;
+    if (ch === ',' && depth === 1) {
+      parts.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  parts.push(current);
+  let changed = false;
+  const rewritten = parts.map((part) => {
+    const m = /^(\s*)([A-Za-z_][A-Za-z0-9_]*)=([\s\S]*)$/.exec(part);
+    if (m === null || !fields.has(m[2]) || m[3].trim() === 'nothing') return part;
+    changed = true;
+    return `${m[1]}${m[2]}=nothing`;
+  });
+  if (!changed) return input;
+  return input.slice(0, ctorIdx) + rewritten.join(',') + input.slice(sigEnd);
+}
+
+function widenExchangeStructFields(input: string): string {
+  const structIdx = input.indexOf('@kwdef mutable struct Exchange');
+  if (structIdx === -1) return input;
+  const lines = input.split('\n');
+  const startLine = input.slice(0, structIdx).split('\n').length - 1;
+  const widened = new Set(WIDENED_EXCHANGE_FIELDS);
+  for (let i = startLine + 1; i < lines.length; i++) {
+    // The struct body ends at the inner constructor (or its own `end`).
+    if (/^\s*function\s+Exchange\s*\(/.test(lines[i])) break;
+    if (/^end\b/.test(lines[i])) break;
+    const m = /^(\s*)([A-Za-z_][A-Za-z0-9_]*)\s*::\s*[^=]+?(\s*=\s*.*)?$/.exec(lines[i]);
+    if (m === null || !widened.has(m[2])) continue;
+    // Keep `= nothing` so the field stays optional; a container default (`[]`,
+    // `Dict{...}()`) is preserved verbatim, it is only the annotation that goes.
+    lines[i] = `${m[1]}${m[2]}::Any${m[3] ?? ' = nothing'}`;
+  }
+  return lines.join('\n');
+}
+
+/**
+ * Collapse `Union{Union{A, Nothing}, Nothing}` down to `Union{A, Nothing}`.
+ *
+ * A TS property that is both optional (`prop?:`) and explicitly nullable
+ * (`: Dict | undefined`) makes the backend add `Nothing` twice. Julia accepts
+ * the nested spelling but it makes the field lines unreadable and defeats the
+ * exact-match comparisons the other passes do, so normalise it.
+ */
+function collapseNestedNothingUnions(input: string): string {
+  // The inner union carries its own braces (`Union{Dict{String, Any},
+  // Nothing}`), so finding its end takes a balanced scan rather than a regex.
+  const findClose = (s: string, openIdx: number): number => {
+    let depth = 0;
+    for (let i = openIdx; i < s.length; i++) {
+      if (s[i] === '{') depth++;
+      else if (s[i] === '}' && --depth === 0) return i;
+    }
+    return -1;
+  };
+  let out = input;
+  for (;;) {
+    const start = out.indexOf('Union{Union{');
+    if (start === -1) break;
+    const innerOpen = start + 'Union{'.length;
+    const innerClose = findClose(out, innerOpen + 'Union'.length);
+    const outerClose = findClose(out, start + 'Union'.length);
+    if (innerClose === -1 || outerClose === -1) break;
+    const inner = out.slice(innerOpen, innerClose + 1);
+    const tail = out.slice(innerClose + 1, outerClose).trim();
+    // Only the redundant `, Nothing}` wrapper is removed; anything else in the
+    // outer union is a real alternative and must be preserved.
+    if (tail !== ', Nothing' && tail !== ',Nothing') break;
+    if (!inner.endsWith('Nothing}')) break;
+    out = out.slice(0, start) + inner + out.slice(outerClose + 1);
+  }
+  return out;
+}
+
+/**
+ * Accept a leading positional `Dict` as the user config in `Exchange(...)`.
+ *
+ * The TS constructor takes exactly one argument, `userConfig`. The backend
+ * expands every class property into its own positional parameter, which pushes
+ * `userConfig` out to a keyword — so the idiomatic `Exchange (config)` call
+ * that every call site and the shared test suite uses would land the config in
+ * `attrs` (the first property) and silently drop it.
+ *
+ * Recover it: if the caller passed no `userConfig` keyword but did pass a
+ * non-empty leading dictionary, that dictionary is the config.
+ */
+function recoverLeadingDictConfig(input: string): string {
+  const lines = input.split('\n');
+  const newIdx = lines.findIndex((l) => /^\s*v = new\(attrs,/.test(l));
+  if (newIdx === -1) return input;
+  if (lines.slice(newIdx, newIdx + 12).some((l) => l.includes('userConfig = attrs'))) return input;
+  const indent = /^(\s*)/.exec(lines[newIdx])![1];
+  const block = [
+    '# In TS the constructor takes a single `userConfig` object. The',
+    '# backend expanded every struct field into its own positional',
+    '# parameter, pushing `userConfig` into a keyword — so a plain',
+    '# `Exchange (config)` call would land the config in `attrs` and be',
+    '# dropped. Treat a leading Dict as the user config, which is what',
+    '# every call site (and the shared test suite) actually passes.',
+    'if isempty(userConfig) && attrs isa AbstractDict && !isempty(attrs)',
+    '    userConfig = attrs',
+    '    attrs = Dict{Symbol, Any}()',
+    '    v.attrs = attrs',
+    'end',
+  ].map((l) => indent + l);
+  lines.splice(newIdx + 1, 0, ...block);
+  return lines.join('\n');
+}
+
+/**
+ * Restore the plain-object guard in the `describe()`/`userConfig` merge.
+ *
+ * TS: `if (value && Object.getPrototypeOf (value) === Object.prototype)` —
+ * deep-merge plain objects onto the current value, assign everything else. The
+ * backend has no notion of `Object.prototype`, so it emits the tautology
+ * `ccxt_and(value, nothing == nothing)`, which sends arrays and scalars down
+ * the `deepExtend` path too and corrupts list-valued config keys.
+ */
+function restorePlainObjectMergeGuard(input: string): string {
+  return input.replace(
+    /^(\s*)if functions\.ccxtruthy\(@functions\.ccxt_and\(value, nothing == nothing\)\)$/gm,
+    [
+      '$1# TS: `value && Object.getPrototypeOf (value) === Object.prototype`',
+      '$1# — merge only plain objects, assign everything else. The backend lost',
+      '$1# the prototype check (it emitted `nothing == nothing`), so arrays and',
+      '$1# scalars went down the deepExtend path too.',
+      '$1if functions.ccxtruthy(value) && isa(value, AbstractDict)',
+    ].join('\n'),
+  );
+}
+
+/**
+ * Fix base methods whose body calls a *module-level* function that shares its
+ * own name, and the JS-builtin checks the backend cannot express.
+ *
+ * `throttle(self::CcxtExchange, cost)` delegating to `throttle(self.throttler,
+ * cost)` resolves to itself and recurses forever, so the `Throttler` overload
+ * has to be named explicitly. `isBinaryMessage` tests `msg instanceof
+ * Uint8Array || msg instanceof ArrayBuffer`; both map to the same Julia type
+ * (a byte vector), and neither name is exported from `functions`.
+ */
+function fixBaseRuntimeCalls(input: string): string {
+  let out = input.replace(
+    /^(\s*)return throttle\(self\.throttler, cost\)$/m,
+    '$1return functions.throttle(self.throttler, cost)',
+  );
+  out = out.replace(
+    /^(\s*)return @functions\.ccxt_or\(isa\(msg, Uint8Array\), isa\(msg, ArrayBuffer\)\)$/m,
+    [
+      '$1# Julia port of `msg instanceof Uint8Array || msg instanceof ArrayBuffer`.',
+      '$1# Binary payloads are represented as AbstractVector{UInt8}.',
+      '$1return isa(msg, AbstractVector{UInt8})',
+    ].join('\n'),
+  );
+  // `Uint8Array`/`ArrayBuffer` are defined in functions.jl but not exported,
+  // so any surviving reference has to be qualified.
+  out = out.replace(/(?<!functions\.)\b(Uint8Array|ArrayBuffer)\b/g, 'functions.$1');
+  // The uncompressed-point helper: TS reaches into `@noble/curves`
+  // (`Point.fromBytes(...).toBytes(false)`); Julia has one named equivalent.
+  out = out.replace(
+    /toBytes\(fromBytes\(get\(secp256k1, Symbol\("Point"\), nothing\), (\w+)\), false\)/g,
+    'functions.ecPointToUncompressed(functions.secp256k1, $1)',
+  );
+  out = redirectJsonStringifyWithNull(out);
+  return out;
+}
+
+/**
+ * Point `jsonStringifyWithNull` at the canonical encoder in `functions.jl`.
+ *
+ * TS: `JSON.stringify (obj, (_, v) => (v === undefined ? null : v))`. The
+ * backend maps `JSON.stringify` onto `JSON3.json` and passes the replacer
+ * through as a Julia closure — but JSON3's entry point is `write`, not `json`,
+ * and it takes no replacer, so the emitted body raises
+ * `UndefVarError: json not defined in JSON3` the first time it is reached.
+ *
+ * The replacer needs no port (`JSON3.write` already encodes `nothing` as
+ * `null`), but key ordering does: JS objects iterate in insertion order while a
+ * Julia `Dict` does not, and this method's only caller compares two encoded
+ * strings. `functions.jsonStringifyCanonical` handles both — see the comment
+ * there for the full reasoning.
+ */
+function redirectJsonStringifyWithNull(input: string): string {
+  const marker = 'function jsonStringifyWithNull(self::CcxtExchange, obj)';
+  const start = input.indexOf(marker);
+  if (start === -1) return input;
+  const lines = input.slice(start).split('\n');
+  // The generated body is the replacer closure, so the method's own `end` is
+  // the second one — find it by depth rather than by counting lines, which
+  // would silently mis-slice if the backend reformats.
+  let depth = 0;
+  let endLine = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^\s*(function|if|for|while|try|begin)\b/.test(lines[i]) || /\bfunction\s*\(/.test(lines[i])) depth++;
+    if (/^\s*end\)?\s*$/.test(lines[i]) && --depth === 0) {
+      endLine = i;
+      break;
+    }
+  }
+  if (endLine === -1) return input;
+  const body = lines.slice(0, endLine + 1).join('\n');
+  if (!body.includes('JSON3.json(')) return input;
+  const replacement = [
+    marker,
+    '    # TS: `JSON.stringify (obj, (_, v) => (v === undefined ? null : v))`.',
+    '    # The backend emits `JSON3.json` (which does not exist) plus a replacer',
+    '    # closure (which JSON3 does not accept); `jsonStringifyCanonical` is the',
+    '    # Julia equivalent, and sorts keys so the encoding is order-independent.',
+    '    return functions.jsonStringifyCanonical(obj)',
+    'end',
+  ].join('\n');
+  return input.slice(0, start) + replacement + input.slice(start + body.length);
+}
+
+/**
+ * Every fix that applies only to `BaseMethods.jl`, in dependency order.
+ *
+ * Kept separate from `cleanupJuliaSource` (which runs over exchange files and
+ * transpiled tests too) because each one keys off a construct that exists
+ * exactly once, in the base: the `Exchange` struct, its constructor, or a
+ * named base method.
+ */
+function cleanupJuliaBaseSource(input: string): string {
+  let out = declareTypedHelperAliases(input);
+  out = collapseNestedNothingUnions(out);
+  out = widenExchangeStructFields(out);
+  out = resetDefiniteAssignmentDefaults(out);
+  out = recoverLeadingDictConfig(out);
+  out = restorePlainObjectMergeGuard(out);
+  out = fixBaseRuntimeCalls(out);
+  return out;
+}
+
+/**
  * Master cleanup pipeline for Julia transpiler output.
  * Chains the individual post-processing passes in dependency-safe
  * order: comment normalization -> undefined suppression -> stray
@@ -287,7 +771,9 @@ function suppressBareUndefined(input: string): string {
  * destructuring suppression.
  */
 function cleanupJuliaSource(input: string): string {
- let out = normalizeJuliaComments(input);
+ let out = flattenBaseExchangeTier(input);
+ out = collapseDuplicateSupertype(out);
+ out = normalizeJuliaComments(out);
  out = suppressBareUndefined(out);
  out = suppressStrayArgList(out);
  out = suppressOrphanTypeVars(out);
@@ -299,7 +785,27 @@ function cleanupJuliaSource(input: string): string {
  out = qualifyPreAssignmentCalls(out);
  out = fixDesugaredLoopContinues(out);
  out = fixForInLoops(out);
+ out = fixPlainJsonStringify(out);
  return out;
+}
+
+/**
+ * Rewrite a plain `JSON.stringify (x)` to the library's own `json` helper.
+ *
+ * The backend maps `JSON.stringify` onto `JSON3.json`, but JSON3 exposes
+ * `write` — there is no `json` — so every emitted call raises
+ * `UndefVarError: json not defined in JSON3` when it is reached. Both current
+ * call sites (`digifinex`, `zebpay`) sit in `sign()`, so the failure only
+ * surfaces on a signed request rather than at load time.
+ *
+ * `functions.json` is the same encoder the rest of the transpiled code already
+ * uses for `this.json (...)`, which keeps the request body byte-identical to
+ * the other languages. The replacer-taking overload in the base is handled
+ * separately (see `redirectJsonStringifyWithNull`); this pass deliberately
+ * only matches a single-argument call.
+ */
+function fixPlainJsonStringify(input: string): string {
+  return input.replace(/\bJSON3\.json\(([^(),]*)\)/g, 'functions.json($1)');
 }
 
 /**
@@ -557,7 +1063,21 @@ function suppressOrphanTypeVars(input: string): string {
   const rewritten: string[] = [];
   for (const line of lines) {
     const trimmed = line.trim();
-    if (/^[A-Za-z_][A-Za-z0-9_]*\);\s*$/.test(trimmed)) {
+    // An honest orphan type-var artifact is a bare `Name);` on its own
+    // line (the opening `Name(` was lost in transpilation). We must NOT
+    // swallow legitimate Julia such as:
+    //   * `end);` / `end;` — the trailing `);` that closes an anonymous
+    //     `function () ... end` (e.g. a promise `.catch(() => {})` handler);
+    //   * `catch_var(...);` or any `Name(args...);` call — those have a
+    //     preceding `(`, so they are real calls, not orphans.
+    // Only suppress a name immediately followed by `);` with no `(` before
+    // the `)` on the line, and never when the token is `end`/a keyword.
+    const isOrphanTypeVar =
+      /^end\b/.test(trimmed) === false &&
+      /^\);\s*$/.test(trimmed) === false && // do not touch bare `);`/trailing `end);`
+      /^[A-Za-z_][A-Za-z0-9_]*\);\s*$/.test(trimmed) &&
+      trimmed.indexOf('(') === -1;
+    if (isOrphanTypeVar) {
       rewritten.push(`# (orphan type-var suppressed: ${trimmed})`);
     } else {
       rewritten.push(line);
@@ -1023,7 +1543,7 @@ Flags:
   if (command === '--base') {
     const basePath = path.join(TS_SRC, 'base', 'Exchange.ts');
     const result = transpiler.transpileJuliaByPath(basePath);
-    const content = cleanupJuliaSource(result.content ?? '');
+    const content = cleanupJuliaBaseSource(cleanupJuliaSource(result.content ?? ''));
     const outFile = path.join(JULIA_SRC, 'BaseMethods.jl');
     // Hand-written base methods that have no direct TS source equivalent:
     // computed-key get/set on the Exchange struct (used by unCamelCaseProperties
@@ -1081,6 +1601,23 @@ function Base.get(self::Exchange, key::Symbol, default)
     end
     return default
 end
+
+# The transpiler emits Symbol keys for property access it can see statically,
+# but a key that arrives as data (a fixture key, a \`getProperty\` argument, an
+# \`unCamelCaseProperties\` walk) stays a String. Accept both spellings.
+Base.get(self::Exchange, key::AbstractString, default) = get(self, Symbol(key), default)
+Base.getindex(self::Exchange, key::AbstractString) = getindex(self, Symbol(key))
+Base.setindex!(self::Exchange, val, key::AbstractString) = setindex!(self, val, Symbol(key))
+
+# JS \`'key' in exchange\` — used by \`getProperty\`/\`hasProp\` style helpers, which
+# reach \`functions.ccxt_in\` and from there \`haskey\`. Both a Symbol and a String
+# key must resolve, and the camelCase spelling counts as present too.
+function Base.haskey(self::Exchange, key::Symbol)
+    _overlay_get(self, key) !== nothing && return true
+    hasfield(Exchange, key) && return true
+    return hasfield(Exchange, Symbol(functions.camelCase(string(key))))
+end
+Base.haskey(self::Exchange, key::AbstractString) = haskey(self, Symbol(key))
 
 function Base.setindex!(self::Exchange, val, key::Symbol)
     if hasfield(Exchange, key)
@@ -1172,8 +1709,7 @@ end
     const result = transpiler.transpileJuliaByPath(errorsPath);
     const content = cleanupJuliaSource(result.content ?? '');
     const outFile = path.join(JULIA_SRC, 'Errors.jl');
-    fs.writeFileSync(outFile, content, 'utf8');
-    console.log(`Julia errors transpiled -> ${outFile}`);
+    writeErrorsGuarded(outFile, content);
     return;
   }
 

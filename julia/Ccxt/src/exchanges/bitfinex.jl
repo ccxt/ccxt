@@ -233,6 +233,7 @@ function describe(self::Bitfinex, )
         Symbol("createLimitOrder") => true,
         Symbol("createMarketOrder") => true,
         Symbol("createOrder") => true,
+        Symbol("createOrders") => true,
         Symbol("createPostOnlyOrder") => true,
         Symbol("createReduceOnlyOrder") => true,
         Symbol("createStopLimitOrder") => true,
@@ -273,6 +274,7 @@ function describe(self::Bitfinex, )
         Symbol("fetchLiquidations") => true,
         Symbol("fetchMarginMode") => false,
         Symbol("fetchMarketLeverageTiers") => false,
+        Symbol("fetchMarkets") => true,
         Symbol("fetchMarkOHLCV") => false,
         Symbol("fetchMyTrades") => true,
         Symbol("fetchOHLCV") => true,
@@ -292,8 +294,10 @@ function describe(self::Bitfinex, )
         Symbol("fetchPositions") => true,
         Symbol("fetchPremiumIndexOHLCV") => false,
         Symbol("fetchStatus") => true,
+        Symbol("fetchTicker") => true,
         Symbol("fetchTickers") => true,
         Symbol("fetchTime") => false,
+        Symbol("fetchTrades") => true,
         Symbol("fetchTradingFee") => false,
         Symbol("fetchTradingFees") => true,
         Symbol("fetchTransactionFees") => nothing,
@@ -340,148 +344,420 @@ function describe(self::Bitfinex, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("conf/{config}") => 2.7,
-                Symbol("conf/pub:{action}:{object}") => 2.7,
-                Symbol("conf/pub:{action}:{object}:{detail}") => 2.7,
-                Symbol("conf/pub:map:{object}") => 2.7,
-                Symbol("conf/pub:map:{object}:{detail}") => 2.7,
-                Symbol("conf/pub:map:currency:{detail}") => 2.7,
-                Symbol("conf/pub:map:currency:sym") => 2.7,
-                Symbol("conf/pub:map:currency:label") => 2.7,
-                Symbol("conf/pub:map:currency:unit") => 2.7,
-                Symbol("conf/pub:map:currency:undl") => 2.7,
-                Symbol("conf/pub:map:currency:pool") => 2.7,
-                Symbol("conf/pub:map:currency:explorer") => 2.7,
-                Symbol("conf/pub:map:currency:tx:fee") => 2.7,
-                Symbol("conf/pub:map:tx:method") => 2.7,
-                Symbol("conf/pub:list:{object}") => 2.7,
-                Symbol("conf/pub:list:{object}:{detail}") => 2.7,
-                Symbol("conf/pub:list:currency") => 2.7,
-                Symbol("conf/pub:list:pair:exchange") => 2.7,
-                Symbol("conf/pub:list:pair:margin") => 2.7,
-                Symbol("conf/pub:list:pair:futures") => 2.7,
-                Symbol("conf/pub:list:competitions") => 2.7,
-                Symbol("conf/pub:info:{object}") => 2.7,
-                Symbol("conf/pub:info:{object}:{detail}") => 2.7,
-                Symbol("conf/pub:info:pair") => 2.7,
-                Symbol("conf/pub:info:pair:futures") => 2.7,
-                Symbol("conf/pub:info:tx:status") => 2.7,
-                Symbol("conf/pub:fees") => 2.7,
-                Symbol("platform/status") => 8,
-                Symbol("tickers") => 2.7,
-                Symbol("ticker/{symbol}") => 2.7,
-                Symbol("tickers/hist") => 2.7,
-                Symbol("trades/{symbol}/hist") => 2.7,
-                Symbol("book/{symbol}/{precision}") => 1,
-                Symbol("book/{symbol}/P0") => 1,
-                Symbol("book/{symbol}/P1") => 1,
-                Symbol("book/{symbol}/P2") => 1,
-                Symbol("book/{symbol}/P3") => 1,
-                Symbol("book/{symbol}/R0") => 1,
-                Symbol("stats1/{key}:{size}:{symbol}:{side}/{section}") => 2.7,
-                Symbol("stats1/{key}:{size}:{symbol}:{side}/last") => 2.7,
-                Symbol("stats1/{key}:{size}:{symbol}:{side}/hist") => 2.7,
-                Symbol("stats1/{key}:{size}:{symbol}/{section}") => 2.7,
-                Symbol("stats1/{key}:{size}:{symbol}/last") => 2.7,
-                Symbol("stats1/{key}:{size}:{symbol}/hist") => 2.7,
-                Symbol("stats1/{key}:{size}:{symbol}:long/last") => 2.7,
-                Symbol("stats1/{key}:{size}:{symbol}:long/hist") => 2.7,
-                Symbol("stats1/{key}:{size}:{symbol}:short/last") => 2.7,
-                Symbol("stats1/{key}:{size}:{symbol}:short/hist") => 2.7,
-                Symbol("candles/trade:{timeframe}:{symbol}:{period}/{section}") => 2.7,
-                Symbol("candles/trade:{timeframe}:{symbol}/{section}") => 2.7,
-                Symbol("candles/trade:{timeframe}:{symbol}/last") => 2.7,
-                Symbol("candles/trade:{timeframe}:{symbol}/hist") => 2.7,
-                Symbol("status/{type}") => 2.7,
-                Symbol("status/deriv") => 2.7,
-                Symbol("status/deriv/{symbol}/hist") => 2.7,
-                Symbol("liquidations/hist") => 80,
-                Symbol("rankings/{key}:{timeframe}:{symbol}/{section}") => 2.7,
-                Symbol("rankings/{key}:{timeframe}:{symbol}/hist") => 2.7,
-                Symbol("pulse/hist") => 2.7,
-                Symbol("pulse/profile/{nickname}") => 2.7,
-                Symbol("funding/stats/{symbol}/hist") => 10,
-                Symbol("ext/vasps") => 1
+                Symbol("conf/{config}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:{action}:{object}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:{action}:{object}:{detail}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:map:{object}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:map:{object}:{detail}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:map:currency:{detail}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:map:currency:sym") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:map:currency:label") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:map:currency:unit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:map:currency:undl") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:map:currency:pool") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:map:currency:explorer") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:map:currency:tx:fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:map:tx:method") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:list:{object}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:list:{object}:{detail}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:list:currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:list:pair:exchange") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:list:pair:margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:list:pair:futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:list:competitions") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:info:{object}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:info:{object}:{detail}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:info:pair") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:info:pair:futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:info:tx:status") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("conf/pub:fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("platform/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("ticker/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("tickers/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("trades/{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("book/{symbol}/{precision}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("book/{symbol}/P0") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("book/{symbol}/P1") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("book/{symbol}/P2") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("book/{symbol}/P3") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("book/{symbol}/R0") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("stats1/{key}:{size}:{symbol}:{side}/{section}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("stats1/{key}:{size}:{symbol}:{side}/last") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("stats1/{key}:{size}:{symbol}:{side}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("stats1/{key}:{size}:{symbol}/{section}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("stats1/{key}:{size}:{symbol}/last") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("stats1/{key}:{size}:{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("stats1/{key}:{size}:{symbol}:long/last") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("stats1/{key}:{size}:{symbol}:long/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("stats1/{key}:{size}:{symbol}:short/last") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("stats1/{key}:{size}:{symbol}:short/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("candles/trade:{timeframe}:{symbol}:{period}/{section}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("candles/trade:{timeframe}:{symbol}/{section}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("candles/trade:{timeframe}:{symbol}/last") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("candles/trade:{timeframe}:{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("status/{type}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("status/deriv") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("status/deriv/{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("liquidations/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 80
+),
+                Symbol("rankings/{key}:{timeframe}:{symbol}/{section}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("rankings/{key}:{timeframe}:{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("pulse/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("pulse/profile/{nickname}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("funding/stats/{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("ext/vasps") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("calc/trade/avg") => 2.7,
-                Symbol("calc/fx") => 2.7
+                Symbol("calc/trade/avg") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("calc/fx") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("auth/r/wallets") => 2.7,
-                Symbol("auth/r/wallets/hist") => 2.7,
-                Symbol("auth/r/orders") => 2.7,
-                Symbol("auth/r/orders/{symbol}") => 2.7,
-                Symbol("auth/w/order/submit") => 2.7,
-                Symbol("auth/w/order/update") => 2.7,
-                Symbol("auth/w/order/cancel") => 2.7,
-                Symbol("auth/w/order/multi") => 2.7,
-                Symbol("auth/w/order/cancel/multi") => 2.7,
-                Symbol("auth/r/orders/{symbol}/hist") => 2.7,
-                Symbol("auth/r/orders/hist") => 2.7,
-                Symbol("auth/r/order/{symbol}:{id}/trades") => 2.7,
-                Symbol("auth/r/trades/{symbol}/hist") => 2.7,
-                Symbol("auth/r/trades/hist") => 2.7,
-                Symbol("auth/r/ledgers/{currency}/hist") => 2.7,
-                Symbol("auth/r/ledgers/hist") => 2.7,
-                Symbol("auth/r/info/margin/{key}") => 2.7,
-                Symbol("auth/r/info/margin/base") => 2.7,
-                Symbol("auth/r/info/margin/sym_all") => 2.7,
-                Symbol("auth/r/positions") => 2.7,
-                Symbol("auth/w/position/claim") => 2.7,
-                Symbol("auth/w/position/increase:") => 2.7,
-                Symbol("auth/r/position/increase/info") => 2.7,
-                Symbol("auth/r/positions/hist") => 2.7,
-                Symbol("auth/r/positions/audit") => 2.7,
-                Symbol("auth/r/positions/snap") => 2.7,
-                Symbol("auth/w/deriv/collateral/set") => 2.7,
-                Symbol("auth/w/deriv/collateral/limits") => 2.7,
-                Symbol("auth/r/funding/offers") => 2.7,
-                Symbol("auth/r/funding/offers/{symbol}") => 2.7,
-                Symbol("auth/w/funding/offer/submit") => 2.7,
-                Symbol("auth/w/funding/offer/cancel") => 2.7,
-                Symbol("auth/w/funding/offer/cancel/all") => 2.7,
-                Symbol("auth/w/funding/close") => 2.7,
-                Symbol("auth/w/funding/auto") => 2.7,
-                Symbol("auth/w/funding/keep") => 2.7,
-                Symbol("auth/r/funding/offers/{symbol}/hist") => 2.7,
-                Symbol("auth/r/funding/offers/hist") => 2.7,
-                Symbol("auth/r/funding/loans") => 2.7,
-                Symbol("auth/r/funding/loans/hist") => 2.7,
-                Symbol("auth/r/funding/loans/{symbol}") => 2.7,
-                Symbol("auth/r/funding/loans/{symbol}/hist") => 2.7,
-                Symbol("auth/r/funding/credits") => 2.7,
-                Symbol("auth/r/funding/credits/hist") => 2.7,
-                Symbol("auth/r/funding/credits/{symbol}") => 2.7,
-                Symbol("auth/r/funding/credits/{symbol}/hist") => 2.7,
-                Symbol("auth/r/funding/trades/{symbol}/hist") => 2.7,
-                Symbol("auth/r/funding/trades/hist") => 2.7,
-                Symbol("auth/r/info/funding/{key}") => 2.7,
-                Symbol("auth/r/info/user") => 2.7,
-                Symbol("auth/r/summary") => 2.7,
-                Symbol("auth/r/logins/hist") => 2.7,
-                Symbol("auth/r/permissions") => 2.7,
-                Symbol("auth/w/token") => 2.7,
-                Symbol("auth/r/audit/hist") => 2.7,
-                Symbol("auth/w/transfer") => 2.7,
-                Symbol("auth/w/deposit/address") => 24,
-                Symbol("auth/w/deposit/invoice") => 24,
-                Symbol("auth/w/withdraw") => 24,
-                Symbol("auth/r/movements/{currency}/hist") => 2.7,
-                Symbol("auth/r/movements/hist") => 2.7,
-                Symbol("auth/r/alerts") => 5.34,
-                Symbol("auth/w/alert/set") => 2.7,
-                Symbol("auth/w/alert/price:{symbol}:{price}/del") => 2.7,
-                Symbol("auth/w/alert/{type}:{symbol}:{price}/del") => 2.7,
-                Symbol("auth/calc/order/avail") => 2.7,
-                Symbol("auth/w/settings/set") => 2.7,
-                Symbol("auth/r/settings") => 2.7,
-                Symbol("auth/w/settings/del") => 2.7,
-                Symbol("auth/r/pulse/hist") => 2.7,
-                Symbol("auth/w/pulse/add") => 16,
-                Symbol("auth/w/pulse/del") => 2.7
+                Symbol("auth/r/wallets") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/wallets/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/orders/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/order/submit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/order/update") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/order/multi") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/order/cancel/multi") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/orders/{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/orders/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/order/{symbol}:{id}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/trades/{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/trades/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/ledgers/{currency}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/ledgers/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/info/margin/{key}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/info/margin/base") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/info/margin/sym_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/position/claim") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/position/increase:") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/position/increase/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/positions/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/positions/audit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/positions/snap") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/deriv/collateral/set") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/deriv/collateral/limits") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/offers") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/offers/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/funding/offer/submit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/funding/offer/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/funding/offer/cancel/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/funding/close") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/funding/auto") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/funding/keep") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/offers/{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/offers/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/loans") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/loans/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/loans/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/loans/{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/credits") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/credits/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/credits/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/credits/{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/trades/{symbol}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/funding/trades/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/info/funding/{key}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/info/user") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/logins/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/permissions") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/token") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/audit/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 24
+),
+                Symbol("auth/w/deposit/invoice") => Dict{Symbol, Any}(
+    Symbol("cost") => 24
+),
+                Symbol("auth/w/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 24
+),
+                Symbol("auth/r/movements/{currency}/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/movements/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/alerts") => Dict{Symbol, Any}(
+    Symbol("cost") => 5.34
+),
+                Symbol("auth/w/alert/set") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/alert/price:{symbol}:{price}/del") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/alert/{type}:{symbol}:{price}/del") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/calc/order/avail") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/settings/set") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/settings/del") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/r/pulse/hist") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+),
+                Symbol("auth/w/pulse/add") => Dict{Symbol, Any}(
+    Symbol("cost") => 16
+),
+                Symbol("auth/w/pulse/del") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.7
+)
             )
         )
     ),
@@ -711,12 +987,14 @@ function getCurrencyName(self::Bitfinex, code)
 end
 function amountToPrecision(self::Bitfinex, symbol, amount)
     symbol = self.safeSymbol(symbol);
-    return decimalToPrecision(amount, TRUNCATE, get(get(get(self.markets, Symbol(symbol), nothing), Symbol("precision"), nothing), Symbol("amount"), nothing), DECIMAL_PLACES)
+    market = self.market(symbol);
+    return decimalToPrecision(amount, TRUNCATE, get(get(market, Symbol("precision"), nothing), Symbol("amount"), nothing), DECIMAL_PLACES)
 
 end
 function priceToPrecision(self::Bitfinex, symbol, price)
     symbol = self.safeSymbol(symbol);
-    price = decimalToPrecision(price, ROUND, get(get(get(self.markets, Symbol(symbol), nothing), Symbol("precision"), nothing), Symbol("price"), nothing), self.precisionMode);
+    market = self.market(symbol);
+    price = decimalToPrecision(price, ROUND, get(get(market, Symbol("precision"), nothing), Symbol("price"), nothing), self.precisionMode);
     return decimalToPrecision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
 end
@@ -741,7 +1019,11 @@ function fetchMarkets(self::Bitfinex, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("config") => config
     );
-    (spotMarketsInfo, futuresMarketsInfo, securitiesMarketsIds, marginIds) = (Base.fetch(self.publicGetConfConfig(extend(request, params))));
+    response = Base.fetch(self.publicGetConfConfig(extend(request, params)));
+    spotMarketsInfo = self.safeList(response, 0, []);
+    futuresMarketsInfo = self.safeList(response, 1, []);
+    securitiesMarketsIds = self.safeList(response, 2, []);
+    marginIds = self.safeList(response, 3, []);
     markets = arrayConcat(spotMarketsInfo, futuresMarketsInfo);
     result = [];
     i = 0
@@ -765,8 +1047,8 @@ function fetchMarkets(self::Bitfinex, params=Dict())
             baseId = get(parts, 1, nothing);
             quoteId = get(parts, 2, nothing);
         else
-            baseId = id[0 + 1:3];
-            quoteId = id[3 + 1:6];
+            baseId = functions.ccxt_slice(id, 0, 3);
+            quoteId = functions.ccxt_slice(id, 3, 6);
         end
         base = self.safeCurrencyCode(baseId);
         quote_var = self.safeCurrencyCode(quoteId);
@@ -910,30 +1192,35 @@ function parseCurrencyCustom(self::Bitfinex, id, indexed, indexedNetworks)
     fee = self.safeNumber(fees, 1);
     undl = self.safeList(get(indexed, Symbol("undl"), nothing), id, []);
     defaultCurrencyPrecision = safeString(self.options, "defaultCurrencyPrecision", "8");
-    precision = self.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision);
+    precision = numberToString(self.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision));
     networks = Dict{Symbol, Any}();
     networkIds = self.safeList(indexedNetworks, id, []);
     j = 0
     while functions.ccxtruthy(functions.ccxt_lt(j, length(networkIds)))
-        networkId = get(networkIds, j + 1, nothing);
+        networkId = safeString(networkIds, j);
+        if functions.ccxtruthy(networkId == nothing)
+            j += 1; continue
+        end
         network = self.networkIdToCode(networkId, code);
         dwStatuses = self.safeList(get(indexed, Symbol("statuses"), nothing), networkId, []);
-        networks[Symbol(network)] = Dict{Symbol, Any}(
-            Symbol("info") => networkId,
-            Symbol("id") => lowercase(networkId),
-            Symbol("network") => networkId,
-            Symbol("active") => nothing,
-            Symbol("deposit") => safeInteger(dwStatuses, 1) == 1,
-            Symbol("withdraw") => safeInteger(dwStatuses, 2) == 1,
-            Symbol("fee") => nothing,
-            Symbol("precision") => nothing,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(network != nothing)
+            networks[Symbol(network)] = Dict{Symbol, Any}(
+                Symbol("info") => networkId,
+                Symbol("id") => lowercase(networkId),
+                Symbol("network") => networkId,
+                Symbol("active") => nothing,
+                Symbol("deposit") => safeInteger(dwStatuses, 1) == 1,
+                Symbol("withdraw") => safeInteger(dwStatuses, 2) == 1,
+                Symbol("fee") => nothing,
+                Symbol("precision") => nothing,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -976,12 +1263,13 @@ function fetchBalance(self::Bitfinex, params=Dict())
     isDerivative = requestedType == "derivatives";
     query = omit(params, "type");
     response = Base.fetch(self.privatePostAuthRWallets(query));
+    balances = toArray(response);
     result = Dict{Symbol, Any}(
         Symbol("info") => response
     );
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        balance = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(balances)))
+        balance = get(balances, i + 1, nothing);
         account = self.account();
         interest = safeString(balance, 3);
         if functions.ccxtruthy(interest != "0")
@@ -990,13 +1278,15 @@ function fetchBalance(self::Bitfinex, params=Dict())
         type_var = safeString(balance, 0);
         currencyId = safeStringLower(balance, 1, "");
         start = length(currencyId) - 2;
-        isDerivativeCode = currencyId[start + 1:end] == "f0";
+        isDerivativeCode = functions.ccxt_slice(currencyId, start) == "f0";
         derivativeCondition = (@functions.ccxt_or(!functions.ccxtruthy(isDerivative), isDerivativeCode));
         if functions.ccxtruthy(@functions.ccxt_and((accountType == type_var), derivativeCondition))
             code = self.safeCurrencyCode(currencyId);
             account[Symbol("total")] = safeString(balance, 2);
             account[Symbol("free")] = safeString(balance, 4);
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
         end
         i += 1
     end
@@ -1079,7 +1369,7 @@ function convertDerivativesId(self::Bitfinex, currency, type_var)
     if functions.ccxtruthy(type_var == "derivatives")
         currencyId = safeString(underlying, 0, transferId);
         start = length(currencyId) - 2;
-        isDerivativeCode = currencyId[start + 1:end] == "F0";
+        isDerivativeCode = functions.ccxt_slice(currencyId, start) == "F0";
         if functions.ccxtruthy(!functions.ccxtruthy(isDerivativeCode))
             currencyId = string(currencyId, "F0");
         end
@@ -1116,15 +1406,15 @@ function fetchOrderBook(self::Bitfinex, symbol, limit=nothing, params=Dict())
         Symbol("nonce") => nothing
     );
     priceIndex = functions.ccxtruthy((get(fullRequest, Symbol("precision"), nothing) == "R0")) ? 1 : 0;
+    orders = toArray(orderbook);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(orderbook)))
-        order = get(orderbook, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
+        order = get(orders, i + 1, nothing);
         price = self.safeNumber(order, priceIndex);
         signedAmount = safeString(order, 2);
         amount = stringAbs(signedAmount);
         side = functions.ccxtruthy(stringGt(signedAmount, "0")) ? "bids" : "asks";
-        resultSide = get(result, Symbol(side), nothing);
-        push!(resultSide, [price, self.parseNumber(amount)]);
+        push!(get(result, Symbol(side), nothing), [price, self.parseNumber(amount)]);
         i += 1
     end
     result[Symbol("bids")] = sortBy(get(result, Symbol("bids"), nothing), 0, true);
@@ -1307,7 +1597,8 @@ function fetchTrades(self::Bitfinex, symbol, since=nothing, limit=nothing, param
     request[Symbol("sort")] = sort_var;
     (request, params) = self.handleUntilOption("end", request, params);
     response = Base.fetch(self.publicGetTradesSymbolHist(extend(request, params)));
-    trades = sortBy(response, 1);
+    rawTrades = toArray(response);
+    trades = sortBy(rawTrades, 1);
     tradesList = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(trades)))
@@ -1337,15 +1628,15 @@ function fetchOHLCV(self::Bitfinex, symbol, timeframe="1m", since=nothing, limit
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("timeframe") => safeString(self.timeframes, timeframe, timeframe),
-        Symbol("sort") => 1,
         Symbol("limit") => limit
     );
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start")] = since;
+        request[Symbol("sort")] = 1;
     end
     (request, params) = self.handleUntilOption("end", request, params);
     response = Base.fetch(self.publicGetCandlesTradeTimeframeSymbolHist(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    return self.parseOHLCVs(toArray(response), market, timeframe, since, limit)
 
 end
 function parseOHLCV(self::Bitfinex, ohlcv, market=nothing)
@@ -1461,6 +1752,12 @@ function parseOrder(self::Bitfinex, order, market=nothing)
 
 end
 function createOrderRequest(self::Bitfinex, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     amountString = self.amountToPrecision(symbol, amount);
     amountString = functions.ccxtruthy((side == "buy")) ? amountString : stringNeg(amountString);
@@ -1536,9 +1833,9 @@ function createOrder(self::Bitfinex, symbol, type_var, side, amount, price=nothi
     response = Base.fetch(self.privatePostAuthWOrderSubmit(request));
     status = safeString(response, 6);
     if functions.ccxtruthy(status != "SUCCESS")
-        errorCode = get(response, 6, nothing);
-        errorText = get(response, 8, nothing);
-        throw(ExchangeError(string(self.id, " ", get(response, 7, nothing), ": ", errorText, " (#", errorCode, ")")));
+        errorCode = safeString(response, 5);
+        errorText = safeString(response, 7);
+        throw(ExchangeError(string(self.id, " ", status, ": ", errorText, " (#", errorCode, ")")));
     end
     orders = self.safeList(response, 4, []);
     order = self.safeList(orders, 0);
@@ -1764,11 +2061,12 @@ function fetchOrderTrades(self::Bitfinex, id, symbol=nothing, since=nothing, lim
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.privatePostAuthROrderSymbolIdTrades(extend(request, params)));
+    rawTrades = toArray(response);
     tradesList = [];
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawTrades)))
         push!(tradesList, Dict{Symbol, Any}(
-    Symbol("result") => get(response, i + 1, nothing)
+    Symbol("result") => get(rawTrades, i + 1, nothing)
 ));
         i += 1
     end
@@ -2015,9 +2313,11 @@ function fetchDepositsWithdrawals(self::Bitfinex, code=nothing, since=nothing, l
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
         request[Symbol("currency")] = get(currency, Symbol("id"), nothing);
-        response = Base.fetch(self.privatePostAuthRMovementsCurrencyHist(extend(request, params)));
+        currencyMovements = Base.fetch(self.privatePostAuthRMovementsCurrencyHist(extend(request, params)));
+        response = toArray(currencyMovements);
     else
-        response = Base.fetch(self.privatePostAuthRMovementsHist(extend(request, params)));
+        movements = Base.fetch(self.privatePostAuthRMovementsHist(extend(request, params)));
+        response = toArray(movements);
     end
     return self.parseTransactions(response, currency, since, limit)
 
@@ -2074,11 +2374,12 @@ function fetchPositions(self::Bitfinex, symbols=nothing, params=Dict())
     end
     symbols = self.marketSymbols(symbols);
     response = Base.fetch(self.privatePostAuthRPositions(params));
+    rawPositions = toArray(response);
     positionsList = [];
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawPositions)))
         push!(positionsList, Dict{Symbol, Any}(
-    Symbol("result") => get(response, i + 1, nothing)
+    Symbol("result") => get(rawPositions, i + 1, nothing)
 ));
         i += 1
     end
@@ -2327,10 +2628,11 @@ function fetchFundingRateHistory(self::Bitfinex, symbol=nothing, since=nothing, 
     end
     (request, params) = self.handleUntilOption("end", request, params);
     response = Base.fetch(self.publicGetStatusDerivSymbolHist(extend(request, params)));
+    rawRatesData = toArray(response);
     rates = [];
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        fr = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawRatesData)))
+        fr = get(rawRatesData, i + 1, nothing);
         rate = self.parseFundingRateHistory(fr, market);
         push!(rates, rate);
         i += 1
@@ -2485,7 +2787,7 @@ function fetchLiquidations(self::Bitfinex, symbol, since=nothing, limit=nothing,
     end
     (request, params) = self.handleUntilOption("end", request, params);
     response = Base.fetch(self.publicGetLiquidationsHist(extend(request, params)));
-    return self.parseLiquidations(response, market, since, limit)
+    return self.parseLiquidations(toArray(response), market, since, limit)
 
 end
 function parseLiquidation(self::Bitfinex, liquidation, market=nothing)
@@ -2620,9 +2922,9 @@ function editOrder(self::Bitfinex, id, symbol, type_var, side, amount=nothing, p
     response = Base.fetch(self.privatePostAuthWOrderUpdate(extend(request, params)));
     status = safeString(response, 6);
     if functions.ccxtruthy(status != "SUCCESS")
-        errorCode = get(response, 6, nothing);
-        errorText = get(response, 8, nothing);
-        throw(ExchangeError(string(self.id, " ", get(response, 7, nothing), ": ", errorText, " (#", errorCode, ")")));
+        errorCode = safeString(response, 5);
+        errorText = safeString(response, 7);
+        throw(ExchangeError(string(self.id, " ", status, ": ", errorText, " (#", errorCode, ")")));
     end
     order = self.safeList(response, 4, []);
     newOrder = Dict{Symbol, Any}(
@@ -2632,560 +2934,613 @@ function editOrder(self::Bitfinex, id, symbol, type_var, side, amount=nothing, p
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitfinex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetConfConfig(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/{config}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/{config}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubActionObject(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:{action}:{object}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:{action}:{object}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubActionObjectDetail(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:{action}:{object}:{detail}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:{action}:{object}:{detail}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubMapObject(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:map:{object}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:map:{object}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubMapObjectDetail(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:map:{object}:{detail}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:map:{object}:{detail}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubMapCurrencyDetail(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:map:currency:{detail}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:map:currency:{detail}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubMapCurrencySym(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:map:currency:sym", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:map:currency:sym", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubMapCurrencyLabel(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:map:currency:label", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:map:currency:label", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubMapCurrencyUnit(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:map:currency:unit", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:map:currency:unit", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubMapCurrencyUndl(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:map:currency:undl", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:map:currency:undl", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubMapCurrencyPool(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:map:currency:pool", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:map:currency:pool", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubMapCurrencyExplorer(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:map:currency:explorer", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:map:currency:explorer", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubMapCurrencyTxFee(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:map:currency:tx:fee", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:map:currency:tx:fee", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubMapTxMethod(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:map:tx:method", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:map:tx:method", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubListObject(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:list:{object}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:list:{object}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubListObjectDetail(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:list:{object}:{detail}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:list:{object}:{detail}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubListCurrency(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:list:currency", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:list:currency", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubListPairExchange(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:list:pair:exchange", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:list:pair:exchange", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubListPairMargin(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:list:pair:margin", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:list:pair:margin", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubListPairFutures(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:list:pair:futures", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:list:pair:futures", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubListCompetitions(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:list:competitions", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:list:competitions", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubInfoObject(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:info:{object}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:info:{object}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubInfoObjectDetail(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:info:{object}:{detail}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:info:{object}:{detail}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubInfoPair(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:info:pair", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:info:pair", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubInfoPairFutures(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:info:pair:futures", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:info:pair:futures", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubInfoTxStatus(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:info:tx:status", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:info:tx:status", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetConfPubFees(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "conf/pub:fees", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "conf/pub:fees", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPlatformStatus(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "platform/status", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "platform/status", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickers(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickerSymbol(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "ticker/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "ticker/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickersHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "tickers/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "tickers/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradesSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "trades/{symbol}/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "trades/{symbol}/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBookSymbolPrecision(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "book/{symbol}/{precision}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "book/{symbol}/{precision}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBookSymbolP0(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "book/{symbol}/P0", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "book/{symbol}/P0", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBookSymbolP1(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "book/{symbol}/P1", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "book/{symbol}/P1", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBookSymbolP2(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "book/{symbol}/P2", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "book/{symbol}/P2", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBookSymbolP3(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "book/{symbol}/P3", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "book/{symbol}/P3", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBookSymbolR0(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "book/{symbol}/R0", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "book/{symbol}/R0", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStats1KeySizeSymbolSideSection(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "stats1/{key}:{size}:{symbol}:{side}/{section}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "stats1/{key}:{size}:{symbol}:{side}/{section}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStats1KeySizeSymbolSideLast(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "stats1/{key}:{size}:{symbol}:{side}/last", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "stats1/{key}:{size}:{symbol}:{side}/last", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStats1KeySizeSymbolSideHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "stats1/{key}:{size}:{symbol}:{side}/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "stats1/{key}:{size}:{symbol}:{side}/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStats1KeySizeSymbolSection(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "stats1/{key}:{size}:{symbol}/{section}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "stats1/{key}:{size}:{symbol}/{section}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStats1KeySizeSymbolLast(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "stats1/{key}:{size}:{symbol}/last", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "stats1/{key}:{size}:{symbol}/last", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStats1KeySizeSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "stats1/{key}:{size}:{symbol}/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "stats1/{key}:{size}:{symbol}/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStats1KeySizeSymbolLongLast(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "stats1/{key}:{size}:{symbol}:long/last", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "stats1/{key}:{size}:{symbol}:long/last", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStats1KeySizeSymbolLongHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "stats1/{key}:{size}:{symbol}:long/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "stats1/{key}:{size}:{symbol}:long/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStats1KeySizeSymbolShortLast(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "stats1/{key}:{size}:{symbol}:short/last", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "stats1/{key}:{size}:{symbol}:short/last", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStats1KeySizeSymbolShortHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "stats1/{key}:{size}:{symbol}:short/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "stats1/{key}:{size}:{symbol}:short/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesTradeTimeframeSymbolPeriodSection(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "candles/trade:{timeframe}:{symbol}:{period}/{section}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "candles/trade:{timeframe}:{symbol}:{period}/{section}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesTradeTimeframeSymbolSection(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "candles/trade:{timeframe}:{symbol}/{section}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "candles/trade:{timeframe}:{symbol}/{section}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesTradeTimeframeSymbolLast(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "candles/trade:{timeframe}:{symbol}/last", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "candles/trade:{timeframe}:{symbol}/last", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCandlesTradeTimeframeSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "candles/trade:{timeframe}:{symbol}/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "candles/trade:{timeframe}:{symbol}/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStatusType(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "status/{type}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "status/{type}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStatusDeriv(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "status/deriv", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "status/deriv", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetStatusDerivSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "status/deriv/{symbol}/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "status/deriv/{symbol}/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetLiquidationsHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "liquidations/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 80))
+    return request(self, "liquidations/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetRankingsKeyTimeframeSymbolSection(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "rankings/{key}:{timeframe}:{symbol}/{section}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "rankings/{key}:{timeframe}:{symbol}/{section}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetRankingsKeyTimeframeSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "rankings/{key}:{timeframe}:{symbol}/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "rankings/{key}:{timeframe}:{symbol}/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPulseHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "pulse/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "pulse/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPulseProfileNickname(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "pulse/profile/{nickname}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "pulse/profile/{nickname}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetFundingStatsSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "funding/stats/{symbol}/hist", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "funding/stats/{symbol}/hist", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetExtVasps(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "ext/vasps", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ext/vasps", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicPostCalcTradeAvg(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "calc/trade/avg", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "calc/trade/avg", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function publicPostCalcFx(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "calc/fx", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "calc/fx", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRWallets(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/wallets", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/wallets", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRWalletsHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/wallets/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/wallets/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthROrders(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthROrdersSymbol(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/orders/{symbol}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/orders/{symbol}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWOrderSubmit(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/order/submit", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/order/submit", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWOrderUpdate(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/order/update", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/order/update", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWOrderCancel(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/order/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/order/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWOrderMulti(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/order/multi", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/order/multi", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWOrderCancelMulti(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/order/cancel/multi", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/order/cancel/multi", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthROrdersSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/orders/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/orders/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthROrdersHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/orders/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/orders/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthROrderSymbolIdTrades(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/order/{symbol}:{id}/trades", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/order/{symbol}:{id}/trades", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRTradesSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/trades/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/trades/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRTradesHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/trades/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/trades/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRLedgersCurrencyHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/ledgers/{currency}/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/ledgers/{currency}/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRLedgersHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/ledgers/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/ledgers/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRInfoMarginKey(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/info/margin/{key}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/info/margin/{key}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRInfoMarginBase(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/info/margin/base", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/info/margin/base", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRInfoMarginSymAll(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/info/margin/sym_all", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/info/margin/sym_all", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRPositions(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/positions", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/positions", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWPositionClaim(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/position/claim", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/position/claim", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWPositionIncrease(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/position/increase:", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/position/increase:", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRPositionIncreaseInfo(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/position/increase/info", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/position/increase/info", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRPositionsHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/positions/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/positions/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRPositionsAudit(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/positions/audit", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/positions/audit", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRPositionsSnap(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/positions/snap", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/positions/snap", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWDerivCollateralSet(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/deriv/collateral/set", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/deriv/collateral/set", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWDerivCollateralLimits(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/deriv/collateral/limits", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/deriv/collateral/limits", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingOffers(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/offers", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/offers", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingOffersSymbol(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/offers/{symbol}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/offers/{symbol}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWFundingOfferSubmit(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/funding/offer/submit", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/funding/offer/submit", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWFundingOfferCancel(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/funding/offer/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/funding/offer/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWFundingOfferCancelAll(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/funding/offer/cancel/all", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/funding/offer/cancel/all", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWFundingClose(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/funding/close", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/funding/close", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWFundingAuto(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/funding/auto", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/funding/auto", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWFundingKeep(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/funding/keep", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/funding/keep", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingOffersSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/offers/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/offers/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingOffersHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/offers/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/offers/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingLoans(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/loans", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/loans", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingLoansHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/loans/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/loans/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingLoansSymbol(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/loans/{symbol}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/loans/{symbol}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingLoansSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/loans/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/loans/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingCredits(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/credits", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/credits", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingCreditsHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/credits/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/credits/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingCreditsSymbol(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/credits/{symbol}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/credits/{symbol}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingCreditsSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/credits/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/credits/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingTradesSymbolHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/trades/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/trades/{symbol}/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRFundingTradesHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/funding/trades/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/funding/trades/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRInfoFundingKey(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/info/funding/{key}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/info/funding/{key}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRInfoUser(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/info/user", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/info/user", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRSummary(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/summary", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/summary", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRLoginsHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/logins/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/logins/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRPermissions(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/permissions", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/permissions", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWToken(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/token", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/token", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRAuditHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/audit/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/audit/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWTransfer(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWDepositAddress(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/deposit/address", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 24))
+    return request(self, "auth/w/deposit/address", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWDepositInvoice(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/deposit/invoice", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 24))
+    return request(self, "auth/w/deposit/invoice", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWWithdraw(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 24))
+    return request(self, "auth/w/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRMovementsCurrencyHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/movements/{currency}/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/movements/{currency}/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRMovementsHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/movements/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/movements/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRAlerts(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/alerts", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5.34))
+    return request(self, "auth/r/alerts", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWAlertSet(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/alert/set", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/alert/set", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWAlertPriceSymbolPriceDel(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/alert/price:{symbol}:{price}/del", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/alert/price:{symbol}:{price}/del", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWAlertTypeSymbolPriceDel(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/alert/{type}:{symbol}:{price}/del", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/alert/{type}:{symbol}:{price}/del", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthCalcOrderAvail(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/calc/order/avail", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/calc/order/avail", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWSettingsSet(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/settings/set", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/settings/set", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRSettings(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/settings", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/settings", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWSettingsDel(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/settings/del", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/settings/del", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthRPulseHist(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/r/pulse/hist", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/r/pulse/hist", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWPulseAdd(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/pulse/add", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 16))
+    return request(self, "auth/w/pulse/add", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAuthWPulseDel(self::Bitfinex, params=Dict(), context=Dict())
-    return request(self, "auth/w/pulse/del", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.7))
+    return request(self, "auth/w/pulse/del", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Bitfinex(; kwargs...)
     inst = Bitfinex(Exchange(), describe, isFiat, getCurrencyName, amountToPrecision, priceToPrecision, fetchStatus, fetchMarkets, fetchCurrencies, parseCurrenciesCustom, parseCurrencyCustom, fetchBalance, transfer, parseTransfer, parseTransferStatus, convertDerivativesId, fetchOrderBook, parseTicker, fetchTickers, fetchTicker, parseTrade, fetchTrades, fetchOHLCV, parseOHLCV, parseOrderStatus, parseOrderFlags, parseTimeInForce, parseOrder, createOrderRequest, createOrder, createOrders, cancelAllOrders, cancelOrder, cancelOrders, fetchOpenOrder, fetchClosedOrder, fetchOpenOrders, fetchClosedOrders, fetchOrderTrades, fetchMyTrades, createDepositAddress, fetchDepositAddress, parseTransactionStatus, parseTransaction, fetchTradingFees, fetchDepositsWithdrawals, withdraw, fetchPositions, parsePosition, nonce, sign, handleErrors, parseLedgerEntryType, parseLedgerEntry, fetchLedger, fetchFundingRates, fetchFundingRateHistory, parseFundingRate, parseFundingRateHistory, fetchOpenInterests, fetchOpenInterest, fetchOpenInterestHistory, parseOpenInterest, fetchLiquidations, parseLiquidation, setMargin, parseMarginModification, fetchOrder, editOrder, publicGetConfConfig, publicGetConfPubActionObject, publicGetConfPubActionObjectDetail, publicGetConfPubMapObject, publicGetConfPubMapObjectDetail, publicGetConfPubMapCurrencyDetail, publicGetConfPubMapCurrencySym, publicGetConfPubMapCurrencyLabel, publicGetConfPubMapCurrencyUnit, publicGetConfPubMapCurrencyUndl, publicGetConfPubMapCurrencyPool, publicGetConfPubMapCurrencyExplorer, publicGetConfPubMapCurrencyTxFee, publicGetConfPubMapTxMethod, publicGetConfPubListObject, publicGetConfPubListObjectDetail, publicGetConfPubListCurrency, publicGetConfPubListPairExchange, publicGetConfPubListPairMargin, publicGetConfPubListPairFutures, publicGetConfPubListCompetitions, publicGetConfPubInfoObject, publicGetConfPubInfoObjectDetail, publicGetConfPubInfoPair, publicGetConfPubInfoPairFutures, publicGetConfPubInfoTxStatus, publicGetConfPubFees, publicGetPlatformStatus, publicGetTickers, publicGetTickerSymbol, publicGetTickersHist, publicGetTradesSymbolHist, publicGetBookSymbolPrecision, publicGetBookSymbolP0, publicGetBookSymbolP1, publicGetBookSymbolP2, publicGetBookSymbolP3, publicGetBookSymbolR0, publicGetStats1KeySizeSymbolSideSection, publicGetStats1KeySizeSymbolSideLast, publicGetStats1KeySizeSymbolSideHist, publicGetStats1KeySizeSymbolSection, publicGetStats1KeySizeSymbolLast, publicGetStats1KeySizeSymbolHist, publicGetStats1KeySizeSymbolLongLast, publicGetStats1KeySizeSymbolLongHist, publicGetStats1KeySizeSymbolShortLast, publicGetStats1KeySizeSymbolShortHist, publicGetCandlesTradeTimeframeSymbolPeriodSection, publicGetCandlesTradeTimeframeSymbolSection, publicGetCandlesTradeTimeframeSymbolLast, publicGetCandlesTradeTimeframeSymbolHist, publicGetStatusType, publicGetStatusDeriv, publicGetStatusDerivSymbolHist, publicGetLiquidationsHist, publicGetRankingsKeyTimeframeSymbolSection, publicGetRankingsKeyTimeframeSymbolHist, publicGetPulseHist, publicGetPulseProfileNickname, publicGetFundingStatsSymbolHist, publicGetExtVasps, publicPostCalcTradeAvg, publicPostCalcFx, privatePostAuthRWallets, privatePostAuthRWalletsHist, privatePostAuthROrders, privatePostAuthROrdersSymbol, privatePostAuthWOrderSubmit, privatePostAuthWOrderUpdate, privatePostAuthWOrderCancel, privatePostAuthWOrderMulti, privatePostAuthWOrderCancelMulti, privatePostAuthROrdersSymbolHist, privatePostAuthROrdersHist, privatePostAuthROrderSymbolIdTrades, privatePostAuthRTradesSymbolHist, privatePostAuthRTradesHist, privatePostAuthRLedgersCurrencyHist, privatePostAuthRLedgersHist, privatePostAuthRInfoMarginKey, privatePostAuthRInfoMarginBase, privatePostAuthRInfoMarginSymAll, privatePostAuthRPositions, privatePostAuthWPositionClaim, privatePostAuthWPositionIncrease, privatePostAuthRPositionIncreaseInfo, privatePostAuthRPositionsHist, privatePostAuthRPositionsAudit, privatePostAuthRPositionsSnap, privatePostAuthWDerivCollateralSet, privatePostAuthWDerivCollateralLimits, privatePostAuthRFundingOffers, privatePostAuthRFundingOffersSymbol, privatePostAuthWFundingOfferSubmit, privatePostAuthWFundingOfferCancel, privatePostAuthWFundingOfferCancelAll, privatePostAuthWFundingClose, privatePostAuthWFundingAuto, privatePostAuthWFundingKeep, privatePostAuthRFundingOffersSymbolHist, privatePostAuthRFundingOffersHist, privatePostAuthRFundingLoans, privatePostAuthRFundingLoansHist, privatePostAuthRFundingLoansSymbol, privatePostAuthRFundingLoansSymbolHist, privatePostAuthRFundingCredits, privatePostAuthRFundingCreditsHist, privatePostAuthRFundingCreditsSymbol, privatePostAuthRFundingCreditsSymbolHist, privatePostAuthRFundingTradesSymbolHist, privatePostAuthRFundingTradesHist, privatePostAuthRInfoFundingKey, privatePostAuthRInfoUser, privatePostAuthRSummary, privatePostAuthRLoginsHist, privatePostAuthRPermissions, privatePostAuthWToken, privatePostAuthRAuditHist, privatePostAuthWTransfer, privatePostAuthWDepositAddress, privatePostAuthWDepositInvoice, privatePostAuthWWithdraw, privatePostAuthRMovementsCurrencyHist, privatePostAuthRMovementsHist, privatePostAuthRAlerts, privatePostAuthWAlertSet, privatePostAuthWAlertPriceSymbolPriceDel, privatePostAuthWAlertTypeSymbolPriceDel, privatePostAuthCalcOrderAvail, privatePostAuthWSettingsSet, privatePostAuthRSettings, privatePostAuthWSettingsDel, privatePostAuthRPulseHist, privatePostAuthWPulseAdd, privatePostAuthWPulseDel)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

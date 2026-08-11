@@ -188,28 +188,64 @@ function describe(self::P2b, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("markets") => 1,
-                Symbol("market") => 1,
-                Symbol("tickers") => 1,
-                Symbol("ticker") => 1,
-                Symbol("book") => 1,
-                Symbol("history") => 1,
-                Symbol("depth/result") => 1,
-                Symbol("market/kline") => 1
+                Symbol("markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("depth/result") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("account/balances") => 1,
-                Symbol("account/balance") => 1,
-                Symbol("order/new") => 1,
-                Symbol("order/cancel") => 1,
-                Symbol("orders") => 1,
-                Symbol("account/market_order_history") => 1,
-                Symbol("account/market_deal_history") => 1,
-                Symbol("account/order") => 1,
-                Symbol("account/order_history") => 1,
-                Symbol("account/executed_history") => 1
+                Symbol("account/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/new") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/market_order_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/market_deal_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/order_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/executed_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -810,88 +846,141 @@ function handleErrors(self::P2b, code, reason, url, method, headers, body, respo
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::P2b, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarkets(self::P2b, params=Dict(), context=Dict())
-    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarket(self::P2b, params=Dict(), context=Dict())
-    return request(self, "market", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickers(self::P2b, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker(self::P2b, params=Dict(), context=Dict())
-    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBook(self::P2b, params=Dict(), context=Dict())
-    return request(self, "book", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "book", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetHistory(self::P2b, params=Dict(), context=Dict())
-    return request(self, "history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDepthResult(self::P2b, params=Dict(), context=Dict())
-    return request(self, "depth/result", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "depth/result", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketKline(self::P2b, params=Dict(), context=Dict())
-    return request(self, "market/kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountBalances(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/balances", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/balances", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountBalance(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/balance", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/balance", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderNew(self::P2b, params=Dict(), context=Dict())
-    return request(self, "order/new", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/new", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderCancel(self::P2b, params=Dict(), context=Dict())
-    return request(self, "order/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrders(self::P2b, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountMarketOrderHistory(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/market_order_history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/market_order_history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountMarketDealHistory(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/market_deal_history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/market_deal_history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountOrder(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountOrderHistory(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/order_history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/order_history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountExecutedHistory(self::P2b, params=Dict(), context=Dict())
-    return request(self, "account/executed_history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/executed_history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function P2b(; kwargs...)
     inst = P2b(Exchange(), describe, fetchMarkets, parseMarket, fetchTickers, fetchTicker, parseTicker, fetchOrderBook, fetchTrades, parseTrade, fetchOHLCV, parseOHLCV, fetchBalance, parseBalance, createOrder, cancelOrder, fetchOpenOrders, fetchOrderTrades, fetchMyTrades, fetchClosedOrders, parseOrder, sign, handleErrors, publicGetMarkets, publicGetMarket, publicGetTickers, publicGetTicker, publicGetBook, publicGetHistory, publicGetDepthResult, publicGetMarketKline, privatePostAccountBalances, privatePostAccountBalance, privatePostOrderNew, privatePostOrderCancel, privatePostOrders, privatePostAccountMarketOrderHistory, privatePostAccountMarketDealHistory, privatePostAccountOrder, privatePostAccountOrderHistory, privatePostAccountExecutedHistory)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

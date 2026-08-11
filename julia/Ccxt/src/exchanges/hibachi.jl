@@ -167,6 +167,7 @@ function describe(self::Hibachi, )
         Symbol("fetchOrder") => true,
         Symbol("fetchOrderBook") => true,
         Symbol("fetchOrders") => false,
+        Symbol("fetchOrdersByStatus") => true,
         Symbol("fetchOrderTrades") => false,
         Symbol("fetchPosition") => false,
         Symbol("fetchPositionMode") => false,
@@ -213,44 +214,100 @@ function describe(self::Hibachi, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("market/exchange-info") => 1,
-                Symbol("market/inventory") => 1,
-                Symbol("market/data/prices") => 1,
-                Symbol("market/data/stats") => 1,
-                Symbol("market/data/trades") => 1,
-                Symbol("market/data/klines") => 1,
-                Symbol("market/data/open-interest") => 1,
-                Symbol("market/data/orderbook") => 1,
-                Symbol("market/data/funding-rates") => 1,
-                Symbol("exchange/utc-timestamp") => 1
+                Symbol("market/exchange-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/inventory") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/data/prices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/data/stats") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/data/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/data/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/data/open-interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/data/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("market/data/funding-rates") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/utc-timestamp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("capital/balance") => 1,
-                Symbol("capital/history") => 1,
-                Symbol("capital/deposit-info") => 1,
-                Symbol("trade/account/info") => 1,
-                Symbol("trade/account/trades") => 1,
-                Symbol("trade/account/trading_history") => 1,
-                Symbol("trade/account/settlements_history") => 1,
-                Symbol("trade/orders") => 1,
-                Symbol("trade/order") => 1,
-                Symbol("trade/orders/history") => 1
+                Symbol("capital/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("capital/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("capital/deposit-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/account/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/account/trading_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/account/settlements_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("trade/order") => 1
+                Symbol("trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("trade/order") => 1,
-                Symbol("trade/orders") => 1
+                Symbol("trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("trade/order") => 1,
-                Symbol("trade/orders") => 1,
-                Symbol("capital/withdraw") => 1,
-                Symbol("capital/transfer") => 1,
-                Symbol("trade/account/leverage") => 1
+                Symbol("trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("capital/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("capital/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trade/account/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -366,7 +423,7 @@ function parseMarket(self::Hibachi, market)
     settle = self.safeCurrencyCode(settleId);
     symbol = string(base, "/", quote_var, ":", settle);
     created = safeIntegerProduct(market, "marketCreationTimestamp", 1000);
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("numericId") => numericId,
     Symbol("symbol") => symbol,
@@ -415,7 +472,7 @@ function parseMarket(self::Hibachi, market)
     ),
     Symbol("created") => created,
     Symbol("info") => market
-)
+))
 
 end
 function fetchMarkets(self::Hibachi, params=Dict())
@@ -447,7 +504,8 @@ function hardcodedCurrencies(self::Hibachi, )
         Symbol("info") => Dict{Symbol, Any}()
     );
     code = self.safeCurrencyCode("USDT");
-    result[Symbol(code)] = self.safeCurrencyStructure(Dict{Symbol, Any}(
+    if functions.ccxtruthy(code != nothing)
+        result[Symbol(code)] = self.safeCurrencyStructure(Dict{Symbol, Any}(
     Symbol("id") => "USDT",
     Symbol("name") => "USDT",
     Symbol("type") => "fiat",
@@ -470,6 +528,7 @@ function hardcodedCurrencies(self::Hibachi, )
     ),
     Symbol("info") => Dict{Symbol, Any}()
 ));
+    end
     return result
 
 end
@@ -481,7 +540,9 @@ function parseBalance(self::Hibachi, response)
     account = self.account();
     account[Symbol("total")] = safeString(response, "balance");
     account[Symbol("free")] = safeString(response, "maximalWithdraw");
-    result[Symbol(code)] = account;
+    if functions.ccxtruthy(code != nothing)
+        result[Symbol(code)] = account;
+    end
     return self.safeBalance(result)
 
 end
@@ -583,7 +644,11 @@ function fetchTrades(self::Hibachi, symbol, since=nothing, limit=nothing, params
     );
     response = Base.fetch(self.publicGetMarketDataTrades(extend(request, params)));
     trades = self.safeList(response, "trades", []);
-    return self.parseTrades(trades, market)
+    tradesList = [];
+    if functions.ccxtruthy(trades != nothing)
+        tradesList = trades;
+    end
+    return self.parseTrades(tradesList, market)
 
 end
 function fetchTicker(self::Hibachi, symbol, params=Dict())
@@ -720,9 +785,10 @@ function fetchTradingFees(self::Hibachi, params=Dict())
     makerFeeRate = self.safeNumber(response, "tradeMakerFeeRate");
     takerFeeRate = self.safeNumber(response, "tradeTakerFeeRate");
     result = Dict{Symbol, Any}();
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         result[Symbol(symbol)] = Dict{Symbol, Any}(
             Symbol("info") => response,
             Symbol("symbol") => symbol,
@@ -736,6 +802,12 @@ function fetchTradingFees(self::Hibachi, params=Dict())
 
 end
 function orderMessage(self::Hibachi, market, nonce, feeRate, type_var, side, amount, price=nothing)
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     sideInternal = 0;
     if functions.ccxtruthy(side == "sell")
         sideInternal = 0;
@@ -780,8 +852,18 @@ function orderMessage(self::Hibachi, market, nonce, feeRate, type_var, side, amo
 
 end
 function createOrderRequest(self::Hibachi, nonce, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
-    feeRate = max(self.safeNumber(market, "taker", self.safeNumber(self.options, "defaultTakerFee", 0.00045)), self.safeNumber(market, "maker", self.safeNumber(self.options, "defaultMakerFee", 0.00015)));
+    takerFee = self.safeNumber(market, "taker", self.safeNumber(self.options, "defaultTakerFee", 0.00045));
+    makerFee = self.safeNumber(market, "maker", self.safeNumber(self.options, "defaultMakerFee", 0.00015));
+    takerFeeValue = functions.ccxtruthy((takerFee == nothing)) ? 0 : takerFee;
+    makerFeeValue = functions.ccxtruthy((makerFee == nothing)) ? 0 : makerFee;
+    feeRate = max(takerFeeValue, makerFeeValue);
     sideInternal = "";
     if functions.ccxtruthy(side == "sell")
         sideInternal = "ASK";
@@ -880,8 +962,18 @@ function createOrders(self::Hibachi, orders, params=Dict())
 
 end
 function editOrderRequest(self::Hibachi, nonce, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
-    feeRate = max(self.safeNumber(market, "taker"), self.safeNumber(market, "maker"));
+    takerFee = self.safeNumber(market, "taker", 0);
+    makerFee = self.safeNumber(market, "maker", 0);
+    takerFeeValue = functions.ccxtruthy((takerFee == nothing)) ? 0 : takerFee;
+    makerFeeValue = functions.ccxtruthy((makerFee == nothing)) ? 0 : makerFee;
+    feeRate = max(takerFeeValue, makerFeeValue);
     message = self.orderMessage(market, nonce, feeRate, type_var, side, amount, price);
     signature = self.signMessage(message, self.privateKey);
     request = Dict{Symbol, Any}(
@@ -1049,7 +1141,7 @@ function encodeWithdrawMessage(self::Hibachi, amount, maxFees, address)
 
 end
 function withdraw(self::Hibachi, code, amount, address, tag=nothing, params=Dict())
-    withdrawAddress = address[-40 + 1:end];
+    withdrawAddress = functions.ccxt_slice(address, -40);
     exchangeInfo = Base.fetch(self.publicGetMarketExchangeInfo(params));
     feeConfig = self.safeDict(exchangeInfo, "feeConfig");
     maxFees = self.safeNumber(feeConfig, "withdrawalFees");
@@ -1102,7 +1194,7 @@ function signMessage(self::Hibachi, message, privateKey)
             return self.hmac(message, self.encode(privateKey), sha256, "hex")
     else
         hash = Ccxt.hash(message, sha256, "hex");
-        signature = ecdsa(hash[-64 + 1:end], privateKey[-64 + 1:end], secp256k1, nothing);
+        signature = ecdsa(functions.ccxt_slice(hash, -64), functions.ccxt_slice(privateKey, -64), secp256k1, nothing);
         r = get(signature, Symbol("r"), nothing);
         s = get(signature, Symbol("s"), nothing);
         v = self.intToBase16(get(signature, Symbol("v"), nothing));
@@ -1138,7 +1230,11 @@ function fetchMyTrades(self::Hibachi, symbol=nothing, since=nothing, limit=nothi
     );
     response = Base.fetch(self.privateGetTradeAccountTrades(extend(request, params)));
     trades = self.safeList(response, "trades");
-    return self.parseTrades(trades, market, since, limit, params)
+    tradesList = [];
+    if functions.ccxtruthy(trades != nothing)
+        tradesList = trades;
+    end
+    return self.parseTrades(tradesList, market, since, limit, params)
 
 end
 function parseOHLCV(self::Hibachi, ohlcv, market=nothing)
@@ -1409,9 +1505,9 @@ function fetchLedger(self::Hibachi, code=nothing, since=nothing, limit=nothing, 
     rawPromises = [self.privateGetCapitalHistory(extend(request, params)), self.privateGetTradeAccountTradingHistory(extend(request, params))];
     promises = Base.fetch(asyncmap(Base.fetch, rawPromises));
     responseCapitalHistory = get(promises, 1, nothing);
-    rowsCapitalHistory = self.safeList(responseCapitalHistory, "transactions");
+    rowsCapitalHistory = self.safeList(responseCapitalHistory, "transactions", []);
     responseTradingHistory = get(promises, 2, nothing);
-    rowsTradingHistory = self.safeList(responseTradingHistory, "tradingHistory");
+    rowsTradingHistory = self.safeList(responseTradingHistory, "tradingHistory", []);
     rows = arrayConcat(rowsCapitalHistory, rowsTradingHistory);
     return self.parseLedger(rows, currency, since, limit, params)
 
@@ -1623,128 +1719,181 @@ function fetchFundingRateHistory(self::Hibachi, symbol=nothing, since=nothing, l
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Hibachi, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarketExchangeInfo(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/exchange-info", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/exchange-info", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketInventory(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/inventory", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/inventory", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketDataPrices(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/prices", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/data/prices", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketDataStats(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/stats", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/data/stats", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketDataTrades(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/data/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketDataKlines(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/klines", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/data/klines", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketDataOpenInterest(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/open-interest", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/data/open-interest", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketDataOrderbook(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/orderbook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/data/orderbook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketDataFundingRates(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "market/data/funding-rates", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/data/funding-rates", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetExchangeUtcTimestamp(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "exchange/utc-timestamp", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "exchange/utc-timestamp", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCapitalBalance(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "capital/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "capital/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCapitalHistory(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "capital/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "capital/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetCapitalDepositInfo(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "capital/deposit-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "capital/deposit-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeAccountInfo(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/account/info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/account/info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeAccountTrades(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/account/trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/account/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeAccountTradingHistory(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/account/trading_history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/account/trading_history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeAccountSettlementsHistory(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/account/settlements_history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/account/settlements_history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrders(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrder(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTradeOrdersHistory(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/orders/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/orders/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePutTradeOrder(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/order", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privateDeleteTradeOrder(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteTradeOrders(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/orders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/orders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeOrder(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeOrders(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCapitalWithdraw(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "capital/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "capital/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCapitalTransfer(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "capital/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "capital/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeAccountLeverage(self::Hibachi, params=Dict(), context=Dict())
-    return request(self, "trade/account/leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/account/leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Hibachi(; kwargs...)
     inst = Hibachi(Exchange(), describe, getAccountId, parseMarket, fetchMarkets, hardcodedCurrencies, parseBalance, fetchBalance, parseTicker, parseTrade, fetchTrades, fetchTicker, parseOrderStatus, parseOrder, fetchOrder, fetchTradingFees, orderMessage, createOrderRequest, createOrder, createOrders, editOrderRequest, editOrder, editOrders, cancelOrderRequest, cancelOrder, cancelOrders, cancelAllOrders, encodeWithdrawMessage, withdraw, nonce, signMessage, fetchOrderBook, fetchMyTrades, parseOHLCV, fetchOpenOrders, fetchOrdersByStatus, fetchClosedOrders, fetchCanceledOrders, fetchOHLCV, fetchPositions, parsePosition, sign, handleErrors, parseTransactionType, parseTransactionStatus, parseLedgerEntry, fetchLedger, fetchDepositAddress, parseTransaction, fetchDepositsWithdrawals, fetchDeposits, fetchWithdrawals, parseSettlement, parseSettlements, fetchMySettlementHistory, fetchTime, fetchOpenInterest, fetchFundingRate, fetchFundingRateHistory, publicGetMarketExchangeInfo, publicGetMarketInventory, publicGetMarketDataPrices, publicGetMarketDataStats, publicGetMarketDataTrades, publicGetMarketDataKlines, publicGetMarketDataOpenInterest, publicGetMarketDataOrderbook, publicGetMarketDataFundingRates, publicGetExchangeUtcTimestamp, privateGetCapitalBalance, privateGetCapitalHistory, privateGetCapitalDepositInfo, privateGetTradeAccountInfo, privateGetTradeAccountTrades, privateGetTradeAccountTradingHistory, privateGetTradeAccountSettlementsHistory, privateGetTradeOrders, privateGetTradeOrder, privateGetTradeOrdersHistory, privatePutTradeOrder, privateDeleteTradeOrder, privateDeleteTradeOrders, privatePostTradeOrder, privatePostTradeOrders, privatePostCapitalWithdraw, privatePostCapitalTransfer, privatePostTradeAccountLeverage)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

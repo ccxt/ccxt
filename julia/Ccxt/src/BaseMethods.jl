@@ -2,15 +2,15 @@ isNode = functions.isNode
 isBun = functions.isBun
 selfIsDefined = functions.selfIsDefined
 deepExtend = functions.deepExtend
+# TS narrows `deepExtendSafe`/`indexBySafe` to typed aliases of the same
+# helpers (Exchange.ts); the backend references them without emitting the
+# bindings, so they are declared here.
+deepExtendSafe = functions.deepExtend
+indexBySafe = functions.indexBy
 extend = functions.extend
 clone = functions.clone
 unique = functions.unique
 indexBy = functions.indexBy
-# TS exposes `deepExtendSafe`/`indexBySafe` as typed aliases of the same
-# helpers (Exchange.ts); the transpiler references them without emitting the
-# bindings, so they are declared here.
-deepExtendSafe = functions.deepExtend
-indexBySafe = functions.indexBy
 sortBy = functions.sortBy
 sortBy2 = functions.sortBy2
 safeFloat2 = functions.safeFloat2
@@ -110,7 +110,10 @@ writeFile = functions.writeFile
 existsFile = functions.existsFile
 getTempDir = functions.getTempDir
 filePathToFileUrlForWindows = functions.filePathToFileUrlForWindows;
-export Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL
+export Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL
+function dynamicImport(moduleName)
+    return (moduleName)
+end;
 protobufMexc = nothing;
 encodeAsAny = nothing;
 AuthInfo = nothing;
@@ -120,17 +123,6 @@ TxRaw = nothing;
 SignDoc = nothing;
 SignMode = nothing;
 QUOTE_JSON_NUMBERS_REGEX = Regex("\":([+.0-9eE-]+)(?=[,}])");
-@kwdef mutable struct Urls
-        logo::Union{String, Nothing} = nothing
-        api::Union{String, NestedDictionary} = nothing
-        test::Union{String, NestedDictionary} = nothing
-        www::Union{String, Nothing} = nothing
-        doc::Union{Vector{String}, Nothing} = nothing
-        api_management::Union{String, Nothing} = nothing
-        fees::Union{String, Nothing} = nothing
-        referral::Union{String, Nothing} = nothing
-end
-
 @kwdef mutable struct Precision
         amount::Float64 = 0.0
         price::Float64 = 0.0
@@ -147,18 +139,6 @@ end
         info::Any = nothing
 end
 
-@kwdef mutable struct RequiredCredentials
-        apiKey::Bool = false
-        secret::Bool = false
-        uid::Bool = false
-        login::Bool = false
-        password::Bool = false
-        twofa::Bool = false
-        privateKey::Bool = false
-        walletAddress::Bool = false
-        token::Bool = false
-end
-
 @kwdef mutable struct Limits
         amount::Union{MinMax, Nothing} = nothing
         cost::Union{MinMax, Nothing} = nothing
@@ -173,7 +153,7 @@ end
 
 @kwdef mutable struct Exchange <: CcxtExchange
     attrs::Dict{Symbol, Any} = Dict{Symbol, Any}()
-    ccxtVersion = "4.5.64"
+    ccxtVersion = "4.5.71"
     options::Union{Dict, Nothing} = nothing
     isSandboxModeEnabled::Bool = false
     api::Union{Dict{String, Any}, Nothing} = nothing
@@ -197,8 +177,8 @@ end
     socks_proxy::Union{String, Nothing} = nothing
     socksProxyCallback::Any = nothing
     socks_proxy_callback::Any = nothing
-    userAgent::Union{Union{Dict{String, Any}, Bool, Nothing}, Nothing} = nothing
-    user_agent::Union{Union{Dict{String, Any}, Bool, Nothing}, Nothing} = nothing
+    userAgent::Union{Dict{String, Any}, Bool, Nothing} = nothing
+    user_agent::Union{Dict{String, Any}, Bool, Nothing} = nothing
     wsProxy::Union{String, Nothing} = nothing
     ws_proxy::Union{String, Nothing} = nothing
     wssProxy::Union{String, Nothing} = nothing
@@ -252,13 +232,13 @@ end
     tickers::Dict{String, Ticker} = Dict{String, Ticker}()
     fundingRates::Dict{String, FundingRate} = Dict{String, FundingRate}()
     bidsasks::Dict{String, Ticker} = Dict{String, Ticker}()
-    orders::Union{Union{ArrayCache, Nothing}, Nothing} = nothing
+    orders::Union{ArrayCache, Nothing} = nothing
     triggerOrders::Union{ArrayCache, Nothing} = nothing
     trades::Union{Dict{String, ArrayCache}, Nothing} = nothing
     transactions::Dict{String, Transaction} = Dict{String, Transaction}()
     ohlcvs::Union{Dict{String, Dict{String, ArrayCacheByTimestamp}}, Nothing} = nothing
     myLiquidations::Any = nothing
-    myTrades::Union{Union{ArrayCache, Nothing}, Nothing} = nothing
+    myTrades::Union{ArrayCache, Nothing} = nothing
     positions::Any = nothing
     urls::Any = nothing
     requiresWeb3::Bool = false
@@ -273,12 +253,12 @@ end
     last_request_body::Any = nothing
     last_request_url::Union{String, Nothing} = nothing
     last_request_path::Union{String, Nothing} = nothing
-    fetchHistoryCache::Vector{Any} = []
+    fetchHistoryCache::Any = []
     fetchHistoryCacheSize::Float64 = 0
     id::String = "Exchange"
     markets::Union{Dict{String, Any}, Nothing} = nothing
     has::Union{Dict{String, Union{Bool, String, Nothing}}, Nothing} = nothing
-    features::Union{Dict{String, Dict{String, Any}}, Nothing} = nothing
+    features::Any = nothing
     status::Any = nothing
     requiredCredentials::Any = nothing
     rateLimit::Float64 = 2000
@@ -291,7 +271,7 @@ end
     limits::Any = nothing
     fees::Any = nothing
     markets_by_id::Union{Dict{String, Any}, Nothing} = nothing
-    symbols::Union{Strings, Nothing} = nothing
+    symbols::Any = []
     ids::Union{Strings, Nothing} = nothing
     currencies::Currencies = Dict{Symbol, Any}()
     baseCurrencies::Union{Dict{String, CurrencyInterface}, Nothing} = nothing
@@ -306,8 +286,8 @@ end
     hostname::Union{String, Nothing} = nothing
     precisionMode::Union{Int, Nothing} = nothing
     paddingMode::Union{Int, Nothing} = nothing
-    exceptions::Any = nothing
-    timeframes::Any = nothing
+    exceptions::Any = Dict{Symbol, Any}()
+    timeframes::Any = Dict{String, Union{Float64, String}}()
     version::Union{String, Nothing} = nothing
     name::Union{String, Nothing} = nothing
     lastRestRequestTimestamp::Union{Int, Nothing} = nothing
@@ -422,14 +402,14 @@ end
     writeFile = writeFile
     existsFile = existsFile
     getTempDir = getTempDir
-    function Exchange(attrs=Dict{Symbol, Any}(), ccxtVersion="4.5.64", options=nothing, isSandboxModeEnabled=false, api=Dict{String, Any}(), certified=false, pro=false, countries=nothing, proxy=nothing, proxyUrl=nothing, proxy_url=nothing, proxyUrlCallback=nothing, proxy_url_callback=nothing, httpProxy=nothing, http_proxy=nothing, httpProxyCallback=nothing, http_proxy_callback=nothing, httpsProxy=nothing, https_proxy=nothing, httpsProxyCallback=nothing, https_proxy_callback=nothing, socksProxy=nothing, socks_proxy=nothing, socksProxyCallback=nothing, socks_proxy_callback=nothing, userAgent=nothing, user_agent=nothing, wsProxy=nothing, ws_proxy=nothing, wssProxy=nothing, wss_proxy=nothing, wsSocksProxy=nothing, ws_socks_proxy=nothing, userAgents=Dict{Symbol, Any}(
+    function Exchange(attrs=Dict{Symbol, Any}(), ccxtVersion="4.5.71", options=nothing, isSandboxModeEnabled=false, api=nothing, certified=false, pro=false, countries=nothing, proxy=nothing, proxyUrl=nothing, proxy_url=nothing, proxyUrlCallback=nothing, proxy_url_callback=nothing, httpProxy=nothing, http_proxy=nothing, httpProxyCallback=nothing, http_proxy_callback=nothing, httpsProxy=nothing, https_proxy=nothing, httpsProxyCallback=nothing, https_proxy_callback=nothing, socksProxy=nothing, socks_proxy=nothing, socksProxyCallback=nothing, socks_proxy_callback=nothing, userAgent=nothing, user_agent=nothing, wsProxy=nothing, ws_proxy=nothing, wssProxy=nothing, wss_proxy=nothing, wsSocksProxy=nothing, ws_socks_proxy=nothing, userAgents=Dict{Symbol, Any}(
     Symbol("chrome") => "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
     Symbol("chrome39") => "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36",
     Symbol("chrome100") => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36"
-), headers=Dict{Symbol, Any}(), returnResponseHeaders=false, origin="*", MAX_VALUE=get(ccxt_Number, Symbol("MAX_VALUE"), nothing), agent=nothing, httpAgent=nothing, httpsAgent=nothing, minFundingAddressLength=1, substituteCommonCurrencyCodes=true, quoteJsonNumbers=true, number=ccxt_Number, handleContentTypeApplicationZip=false, reduceFees=true, fetchImplementation=nothing, AbortError=nothing, FetchError=nothing, fetchImplementationLoading=nothing, fetchIsNative=false, undiciModule=nothing, zlibModule=nothing, httpStatusTexts=Dict{Symbol, Any}(), fetchDispatcher=nothing, validateServerSsl=true, validateClientSsl=false, timeout=10000, verbose=false, apiKey=nothing, secret=nothing, uid=nothing, login=nothing, password=nothing, privateKey=nothing, walletAddress=nothing, token=nothing, twofa=nothing, accountId=nothing, balance=Dict{Symbol, Any}(), liquidations=nothing, orderbooks=Dict{Symbol, Any}(), tickers=Dict{Symbol, Any}(), fundingRates=Dict{Symbol, Any}(), bidsasks=Dict{Symbol, Any}(), orders=nothing, triggerOrders=nothing, trades=Dict{String, ArrayCache}(), transactions=Dict{Symbol, Any}(), ohlcvs=Dict{String, Dict{String, ArrayCacheByTimestamp}}(), myLiquidations=nothing, myTrades=nothing, positions=nothing, urls=Dict{String, Any}(), requiresWeb3=false, precision=nothing, enableLastJsonResponse=false, enableLastHttpResponse=true, enableLastResponseHeaders=true, last_http_response=nothing, last_json_response=nothing, last_response_headers=nothing, last_request_headers=nothing, last_request_body=nothing, last_request_url=nothing, last_request_path=nothing, fetchHistoryCache=[], fetchHistoryCacheSize=0, id="Exchange", markets=Dict{String, Any}(), has=nothing, features=nothing, status=Dict{String, Any}(), requiredCredentials=Dict{String, Any}(), rateLimit=2000, tokenBucket=Dict{String, Float64}(), throttler=nothing, enableRateLimit=true, rollingWindowSize=0, rateLimiterAlgorithm="leakyBucket", httpExceptions=Dict{String, Any}(), limits=Dict{String, Any}(), fees=Dict{String, Any}(), markets_by_id=nothing, symbols=nothing, ids=nothing, currencies=Dict{Symbol, Any}(), baseCurrencies=nothing, quoteCurrencies=nothing, currencies_by_id=nothing, codes=nothing, reloadingMarkets=nothing, marketsLoading=nothing, accounts=nothing, accountsById=nothing, commonCurrencies=Dict{String, String}(), hostname=nothing, precisionMode=nothing, paddingMode=nothing, exceptions=nothing, timeframes=nothing, version=nothing, name=nothing, lastRestRequestTimestamp=0.0, targetAccount="", httpProxyAgentModule=nothing, httpsProxyAgentModule=nothing, socksProxyAgentModule=nothing, socksProxyAgentModuleChecked=false, proxyDictionaries=Dict{Symbol, Any}(), proxyDictionariesMaxSize=8, proxiesModulesLoading=nothing, alias=false, clients=Dict{Symbol, Any}(), newUpdates=true, streaming=Dict{Symbol, Any}(), sleep=sleep, deepExtend=deepExtend, deepExtendSafe=deepExtend, isNode=isNode, extend=extend, clone=clone, unique=unique, indexBy=indexBy, indexBySafe=indexBy, roundTimeframe=roundTimeframe, sortBy=sortBy, sortBy2=sortBy2, groupBy=groupBy, aggregate=aggregate, uuid=uuid, unCamelCase=unCamelCase, precisionFromString=precisionFromString, capitalize=capitalize, now=now, decimalToPrecision=decimalToPrecision, safeValue=safeValue, safeValue2=safeValue2, safeString=safeString, safeString2=safeString2, safeFloat=safeFloat, safeFloat2=safeFloat2, seconds=seconds, milliseconds=milliseconds, binaryToBase16=binaryToBase16, numberToBE=numberToBE, base16ToBinary=base16ToBinary, iso8601=iso8601, omit=omit, isJsonEncodedObject=isJsonEncodedObject, safeInteger=safeInteger, sum=sum, omitZero=omitZero, implodeParams=implodeParams, extractParams=extractParams, json=json, binaryConcat=binaryConcat, hash=hash, arrayConcat=arrayConcat, encode=encode, urlencode=urlencode, hmac=hmac, numberToString=numberToString, parseTimeframe=parseTimeframe, safeInteger2=safeInteger2, safeStringLower=safeStringLower, parse8601=parse8601, yyyymmdd=yyyymmdd, safeStringUpper=safeStringUpper, safeTimestamp=safeTimestamp, binaryConcatArray=binaryConcatArray, ymdhms=ymdhms, yymmdd=yymmdd, stringToBase64=stringToBase64, decode=decode, uuid22=uuid22, safeIntegerProduct2=safeIntegerProduct2, safeIntegerProduct=safeIntegerProduct, binaryToBase58=binaryToBase58, base58ToBinary=base58ToBinary, base64ToBinary=base64ToBinary, safeTimestamp2=safeTimestamp2, rawencode=rawencode, keysort=keysort, sort=sort, inArray=inArray, safeStringLower2=safeStringLower2, safeStringUpper2=safeStringUpper2, isEmpty=isEmpty, filterBy=filterBy, uuid16=uuid16, urlencodeWithArrayRepeat=urlencodeWithArrayRepeat, microseconds=microseconds, binaryToBase64=binaryToBase64, strip=strip, toArray=toArray, safeFloatN=safeFloatN, safeIntegerN=safeIntegerN, safeIntegerProductN=safeIntegerProductN, safeTimestampN=safeTimestampN, safeValueN=safeValueN, safeStringN=safeStringN, safeStringLowerN=safeStringLowerN, safeStringUpperN=safeStringUpperN, urlencodeNested=urlencodeNested, parseDate=parseDate, ymd=ymd, base64ToString=base64ToString, crc32=crc32, packb=packb, urlencodeBase64=urlencodeBase64, readFile=readFile, writeFile=writeFile, existsFile=existsFile, getTempDir=getTempDir; userConfig::ConstructorArgs = Dict{Symbol, Any}(), kwargs...)
+), headers=Dict{Symbol, Any}(), returnResponseHeaders=false, origin="*", MAX_VALUE=get(ccxt_Number, Symbol("MAX_VALUE"), nothing), agent=nothing, httpAgent=nothing, httpsAgent=nothing, minFundingAddressLength=1, substituteCommonCurrencyCodes=true, quoteJsonNumbers=true, number=ccxt_Number, handleContentTypeApplicationZip=false, reduceFees=true, fetchImplementation=nothing, AbortError=nothing, FetchError=nothing, fetchImplementationLoading=nothing, fetchIsNative=false, undiciModule=nothing, zlibModule=nothing, httpStatusTexts=Dict{Symbol, Any}(), fetchDispatcher=nothing, validateServerSsl=true, validateClientSsl=false, timeout=10000, verbose=false, apiKey=nothing, secret=nothing, uid=nothing, login=nothing, password=nothing, privateKey=nothing, walletAddress=nothing, token=nothing, twofa=nothing, accountId=nothing, balance=Dict{Symbol, Any}(), liquidations=nothing, orderbooks=Dict{Symbol, Any}(), tickers=Dict{Symbol, Any}(), fundingRates=Dict{Symbol, Any}(), bidsasks=Dict{Symbol, Any}(), orders=nothing, triggerOrders=nothing, trades=Dict{String, ArrayCache}(), transactions=Dict{Symbol, Any}(), ohlcvs=Dict{String, Dict{String, ArrayCacheByTimestamp}}(), myLiquidations=nothing, myTrades=nothing, positions=nothing, urls=nothing, requiresWeb3=false, precision=nothing, enableLastJsonResponse=false, enableLastHttpResponse=true, enableLastResponseHeaders=true, last_http_response=nothing, last_json_response=nothing, last_response_headers=nothing, last_request_headers=nothing, last_request_body=nothing, last_request_url=nothing, last_request_path=nothing, fetchHistoryCache=[], fetchHistoryCacheSize=0, id="Exchange", markets=nothing, has=nothing, features=nothing, status=nothing, requiredCredentials=nothing, rateLimit=2000, tokenBucket=nothing, throttler=nothing, enableRateLimit=true, rollingWindowSize=0, rateLimiterAlgorithm="leakyBucket", httpExceptions=nothing, limits=nothing, fees=nothing, markets_by_id=nothing, symbols=[], ids=nothing, currencies=Dict{Symbol, Any}(), baseCurrencies=nothing, quoteCurrencies=nothing, currencies_by_id=nothing, codes=nothing, reloadingMarkets=nothing, marketsLoading=nothing, accounts=nothing, accountsById=nothing, commonCurrencies=nothing, hostname=nothing, precisionMode=nothing, paddingMode=nothing, exceptions=Dict{Symbol, Any}(), timeframes=Dict{Symbol, Any}(), version=nothing, name=nothing, lastRestRequestTimestamp=0.0, targetAccount=nothing, httpProxyAgentModule=nothing, httpsProxyAgentModule=nothing, socksProxyAgentModule=nothing, socksProxyAgentModuleChecked=false, proxyDictionaries=Dict{Symbol, Any}(), proxyDictionariesMaxSize=8, proxiesModulesLoading=nothing, alias=false, clients=Dict{Symbol, Any}(), newUpdates=true, streaming=Dict{Symbol, Any}(), sleep=sleep, deepExtend=deepExtend, deepExtendSafe=deepExtend, isNode=isNode, extend=extend, clone=clone, unique=unique, indexBy=indexBy, indexBySafe=indexBy, roundTimeframe=roundTimeframe, sortBy=sortBy, sortBy2=sortBy2, groupBy=groupBy, aggregate=aggregate, uuid=uuid, unCamelCase=unCamelCase, precisionFromString=precisionFromString, capitalize=capitalize, now=now, decimalToPrecision=decimalToPrecision, safeValue=safeValue, safeValue2=safeValue2, safeString=safeString, safeString2=safeString2, safeFloat=safeFloat, safeFloat2=safeFloat2, seconds=seconds, milliseconds=milliseconds, binaryToBase16=binaryToBase16, numberToBE=numberToBE, base16ToBinary=base16ToBinary, iso8601=iso8601, omit=omit, isJsonEncodedObject=isJsonEncodedObject, safeInteger=safeInteger, sum=sum, omitZero=omitZero, implodeParams=implodeParams, extractParams=extractParams, json=json, binaryConcat=binaryConcat, hash=hash, arrayConcat=arrayConcat, encode=encode, urlencode=urlencode, hmac=hmac, numberToString=numberToString, parseTimeframe=parseTimeframe, safeInteger2=safeInteger2, safeStringLower=safeStringLower, parse8601=parse8601, yyyymmdd=yyyymmdd, safeStringUpper=safeStringUpper, safeTimestamp=safeTimestamp, binaryConcatArray=binaryConcatArray, ymdhms=ymdhms, yymmdd=yymmdd, stringToBase64=stringToBase64, decode=decode, uuid22=uuid22, safeIntegerProduct2=safeIntegerProduct2, safeIntegerProduct=safeIntegerProduct, binaryToBase58=binaryToBase58, base58ToBinary=base58ToBinary, base64ToBinary=base64ToBinary, safeTimestamp2=safeTimestamp2, rawencode=rawencode, keysort=keysort, sort=sort, inArray=inArray, safeStringLower2=safeStringLower2, safeStringUpper2=safeStringUpper2, isEmpty=isEmpty, filterBy=filterBy, uuid16=uuid16, urlencodeWithArrayRepeat=urlencodeWithArrayRepeat, microseconds=microseconds, binaryToBase64=binaryToBase64, strip=strip, toArray=toArray, safeFloatN=safeFloatN, safeIntegerN=safeIntegerN, safeIntegerProductN=safeIntegerProductN, safeTimestampN=safeTimestampN, safeValueN=safeValueN, safeStringN=safeStringN, safeStringLowerN=safeStringLowerN, safeStringUpperN=safeStringUpperN, urlencodeNested=urlencodeNested, parseDate=parseDate, ymd=ymd, base64ToString=base64ToString, crc32=crc32, packb=packb, urlencodeBase64=urlencodeBase64, readFile=readFile, writeFile=writeFile, existsFile=existsFile, getTempDir=getTempDir; userConfig::ConstructorArgs = Dict{Symbol, Any}(), kwargs...)
         v = new(attrs, ccxtVersion, options, isSandboxModeEnabled, api, certified, pro, countries, proxy, proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback, httpProxy, http_proxy, httpProxyCallback, http_proxy_callback, httpsProxy, https_proxy, httpsProxyCallback, https_proxy_callback, socksProxy, socks_proxy, socksProxyCallback, socks_proxy_callback, userAgent, user_agent, wsProxy, ws_proxy, wssProxy, wss_proxy, wsSocksProxy, ws_socks_proxy, userAgents, headers, returnResponseHeaders, origin, MAX_VALUE, agent, httpAgent, httpsAgent, minFundingAddressLength, substituteCommonCurrencyCodes, quoteJsonNumbers, number, handleContentTypeApplicationZip, reduceFees, fetchImplementation, AbortError, FetchError, fetchImplementationLoading, fetchIsNative, undiciModule, zlibModule, httpStatusTexts, fetchDispatcher, validateServerSsl, validateClientSsl, timeout, verbose, apiKey, secret, uid, login, password, privateKey, walletAddress, token, twofa, accountId, balance, liquidations, orderbooks, tickers, fundingRates, bidsasks, orders, triggerOrders, trades, transactions, ohlcvs, myLiquidations, myTrades, positions, urls, requiresWeb3, precision, enableLastJsonResponse, enableLastHttpResponse, enableLastResponseHeaders, last_http_response, last_json_response, last_response_headers, last_request_headers, last_request_body, last_request_url, last_request_path, fetchHistoryCache, fetchHistoryCacheSize, id, markets, has, features, status, requiredCredentials, rateLimit, tokenBucket, throttler, enableRateLimit, rollingWindowSize, rateLimiterAlgorithm, httpExceptions, limits, fees, markets_by_id, symbols, ids, currencies, baseCurrencies, quoteCurrencies, currencies_by_id, codes, reloadingMarkets, marketsLoading, accounts, accountsById, commonCurrencies, hostname, precisionMode, paddingMode, exceptions, timeframes, version, name, lastRestRequestTimestamp, targetAccount, httpProxyAgentModule, httpsProxyAgentModule, socksProxyAgentModule, socksProxyAgentModuleChecked, proxyDictionaries, proxyDictionariesMaxSize, proxiesModulesLoading, alias, clients, newUpdates, streaming, sleep, deepExtend, deepExtendSafe, isNode, extend, clone, unique, indexBy, indexBySafe, roundTimeframe, sortBy, sortBy2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, safeFloat, safeFloat2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, yymmdd, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, binaryToBase58, base58ToBinary, base64ToBinary, safeTimestamp2, rawencode, keysort, sort, inArray, safeStringLower2, safeStringUpper2, isEmpty, filterBy, uuid16, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, base64ToString, crc32, packb, urlencodeBase64, readFile, writeFile, existsFile, getTempDir)
         # In TS the constructor takes a single `userConfig` object. The
-        # transpiler expanded every struct field into its own positional
+        # backend expanded every struct field into its own positional
         # parameter, pushing `userConfig` into a keyword — so a plain
         # `Exchange (config)` call would land the config in `attrs` and be
         # dropped. Treat a leading Dict as the user config, which is what
@@ -497,9 +477,9 @@ end
         while functions.ccxtruthy(functions.ccxt_lt(i, length(configEntries)))
             (property, value) = get(configEntries, i + 1, nothing);
             # TS: `value && Object.getPrototypeOf (value) === Object.prototype`
-            # — merge only plain objects, assign everything else. The transpiler
-            # lost the prototype check (it emitted `nothing == nothing`), which
-            # made arrays and scalars go down the deepExtend path too.
+            # — merge only plain objects, assign everything else. The backend lost
+            # the prototype check (it emitted `nothing == nothing`), so arrays and
+            # scalars went down the deepExtend path too.
             if functions.ccxtruthy(value) && isa(value, AbstractDict)
                 v[Symbol(property)] = deepExtend(get(v, Symbol(property), nothing), value);
             else
@@ -544,7 +524,7 @@ function uuid5(self::CcxtExchange, namespace, name)
     
     , match(replace(namespace, Regex("-") => ""), Regex(".{1,2}")));
     nameBytes = encode(TextEncoder(), name);
-    data = Uint8Array([nsBytes..., nameBytes...]);
+    data = functions.Uint8Array([nsBytes..., nameBytes...]);
     nsHash = sha1(data);
     nsHash[7] = (get(nsHash, 7, nothing) & 15) | 80;
     nsHash[9] = (get(nsHash, 9, nothing) & 63) | 128;
@@ -559,6 +539,11 @@ function uuid5(self::CcxtExchange, namespace, name)
 end
 function encodeURIComponent(self::CcxtExchange, args...)
     return functions.encodeURIComponent(args...)
+
+end
+function getCcxtVersion(self::CcxtExchange, )
+    staticVersion = Exchange.ccxtVersion;
+    return functions.ccxtruthy((staticVersion == nothing)) ? "unknown" : staticVersion
 
 end
 function throttle(self::CcxtExchange, cost=nothing)
@@ -599,7 +584,7 @@ function defineRestApiEndpoint(self::CcxtExchange, methodName, uppercaseMethod, 
     underscore = string(underscorePrefix, "_", lowercaseMethod, "_", underscoreSuffix);
     typeArgument = functions.ccxtruthy((functions.ccxt_gt(length(paths), 1))) ? paths : get(paths, 1, nothing);
     function partial(params=Dict(), context=Dict())
-        return getproperty(self, Symbol(methodName))(self, path, typeArgument, uppercaseMethod, params, nothing, nothing, config, context)
+        return getproperty(self, Symbol(methodName))(path, typeArgument, uppercaseMethod, params, nothing, nothing, config, context)
     end;
     self[Symbol(camelcase)] = partial;
     self[Symbol(underscore)] = partial;
@@ -656,14 +641,14 @@ function loadProxyModules(self::CcxtExchange, )
         self.proxiesModulesLoading = (function ()
 
     try
-        self.httpProxyAgentModule = nothing;
-        self.httpsProxyAgentModule = nothing;
+        self.httpProxyAgentModule = dynamicImport("http-proxy-agent");
+        self.httpsProxyAgentModule = dynamicImport("https-proxy-agent");
     catch e
 
     end
     if functions.ccxtruthy(self.socksProxyAgentModuleChecked == false)
         try
-            self.socksProxyAgentModule = nothing;
+            self.socksProxyAgentModule = dynamicImport("socks-proxy-agent");
         catch e
 
         end
@@ -699,6 +684,9 @@ function setProxyAgents(self::CcxtExchange, httpProxy, httpsProxy, socksProxy)
             self.cacheProxyDictionary(httpsProxy, get(self.httpsProxyAgentModule, Symbol("HttpsProxyAgent"), nothing)(httpsProxy));
         end
         chosenAgent = get(self.proxyDictionaries, Symbol(httpsProxy), nothing);
+        if functions.ccxtruthy(chosenAgent == nothing)
+            throw(ExchangeError(string(self.id, " setProxyAgents() missing chosenAgent")));
+        end
         chosenAgent.keepAlive = true;
     else
         if functions.ccxtruthy(socksProxy)
@@ -718,7 +706,7 @@ function setProxyAgents(self::CcxtExchange, httpProxy, httpsProxy, socksProxy)
 end
 function loadHttpProxyAgent(self::CcxtExchange, )
     if functions.ccxtruthy(!functions.ccxtruthy(self.httpAgent))
-        httpModule = nothing;
+        httpModule = ("node:http");
         self.httpAgent = get(httpModule, Symbol("Agent"), nothing)();
     end
     return self.httpAgent
@@ -751,29 +739,27 @@ function getFetchCache(self::CcxtExchange, )
 
 end
 function isBinaryMessage(self::CcxtExchange, msg)
-    # Julia port of `msg instanceof Uint8Array || msg instanceof ArrayBuffer`.
+    # Julia port of `msg instanceof functions.Uint8Array || msg instanceof functions.ArrayBuffer`.
     # Binary payloads are represented as AbstractVector{UInt8}.
     return isa(msg, AbstractVector{UInt8})
 
 end
 function stringToBinary(self::CcxtExchange, content)
-    # TS uses `TextEncoder().encode(content)` -> UTF-8 bytes. Ported as utf8encode.
-    return functions.utf8encode(content)
+    return self.encode(content)
 
 end
 function binaryToString(self::CcxtExchange, binary)
-    # TS uses `TextDecoder().decode(binary)` -> UTF-8 string. Ported as utf8decode.
-    return functions.utf8decode(binary)
+    return self.decode(binary)
 
 end
 function decodeProtoMsg(self::CcxtExchange, data)
     if functions.ccxtruthy(!functions.ccxtruthy(protobufMexc))
         throw(NotSupported(string(self.id, " requires protobuf to decode messages, please install it with `npm install protobufjs`")));
     end
-    if functions.ccxtruthy(isa(data, ArrayBuffer))
-        data = Uint8Array(data);
+    if functions.ccxtruthy(isa(data, functions.ArrayBuffer))
+        data = functions.Uint8Array(data);
     end
-    if functions.ccxtruthy(isa(data, Uint8Array))
+    if functions.ccxtruthy(isa(data, functions.Uint8Array))
         decoded = decode(get(get(protobufMexc, Symbol("default"), nothing), Symbol("PushDataV3ApiWrapper"), nothing), data);
         dict = toJSON(decoded);
             return dict
@@ -808,14 +794,14 @@ function loadFetchImplementation(self::CcxtExchange, )
             return 
     end
     try
-        undiciModule = nothing;
+        undiciModule = ("undici");
         self.undiciModule = undiciModule;
-        self.fetchImplementation = nothing;
-        self.fetchDispatcher = nothing;
-        self.zlibModule = nothing;
-        httpModule = nothing;
-        self.httpStatusTexts = nothing;
-        self.fetchIsNative = false;
+        self.fetchImplementation = get(undiciModule, Symbol("fetch"), nothing);
+        self.fetchDispatcher = get(undiciModule, Symbol("Agent"), nothing)(self.getDispatcherOptions(true));
+        self.zlibModule = ("node:zlib");
+        httpModule = ("node:http");
+        self.httpStatusTexts = get(httpModule, Symbol("STATUS_CODES"), nothing);
+        self.fetchIsNative = true;
         return
     catch e
 
@@ -839,7 +825,9 @@ function getDispatcherOptions(self::CcxtExchange, isPlainAgent=false)
         Symbol("keepAliveMaxTimeout") => 10 * 60 * 1000,
         Symbol("connections") => 256,
         Symbol("pipelining") => 1,
-        Symbol("allowH2") => false
+        Symbol("allowH2") => false,
+        Symbol("autoSelectFamily") => true,
+        Symbol("autoSelectFamilyAttemptTimeout") => 10
     );
     if functions.ccxtruthy(!functions.ccxtruthy(self.shouldValidateServerSsl()))
         tlsOptions = Dict{Symbol, Any}(
@@ -894,7 +882,7 @@ function cacheProxyDictionary(self::CcxtExchange, proxyUrl, value)
         if functions.ccxtruthy(functions.ccxt_ge(length(cachedProxyUrls), self.proxyDictionariesMaxSize))
             oldestProxyUrl = get(cachedProxyUrls, 1, nothing);
             oldestEntry = get(self.proxyDictionaries, Symbol(oldestProxyUrl), nothing);
-
+                        delete!(self.proxyDictionaries, Symbol(oldestProxyUrl));
             self.releaseProxyDictionaryEntry(oldestEntry);
         end
     end
@@ -1030,6 +1018,9 @@ function fetch(self::CcxtExchange, url, method="GET", headers=nothing, body=noth
         self.loadProxyModules();
     end
     userAgent = functions.ccxtruthy((self.userAgent != nothing)) ? self.userAgent : self.user_agent;
+    if functions.ccxtruthy(@functions.ccxt_and((userAgent == nothing), isNode))
+        userAgent = get(self.userAgents, Symbol("chrome"), nothing);
+    end
     if functions.ccxtruthy(@functions.ccxt_and(userAgent, isNode))
         if functions.ccxtruthy(isa(userAgent, AbstractString))
             headers = extend(Dict{Symbol, Any}(
@@ -1124,46 +1115,11 @@ function fetch(self::CcxtExchange, url, method="GET", headers=nothing, body=noth
 
 end
 function jsonStringifyWithNull(self::CcxtExchange, obj)
-    # JSON3.write serializes `nothing` as JSON `null`, matching JSON.stringify's
-    # behaviour. Julia's JSON3 has no JSON.stringify-style replacer callback.
-    #
-    # One deliberate divergence: JS objects iterate in insertion order, so
-    # `JSON.stringify` of two structurally-equal objects yields byte-identical
-    # text. Julia's `Dict` is a hash table with no ordering guarantee, so the
-    # same two dicts can serialize to different strings. The only consumer of
-    # this method is `deepEqual` in the shared test helpers, which compares the
-    # two strings, so sort keys recursively to make the encoding canonical and
-    # the comparison order-independent.
-    return _canonicalJson(obj)
-end
-"""
-JSON encoder that emits object keys in sorted order. Only dictionaries need
-special handling; every leaf is delegated back to `JSON3.write` so numbers,
-strings and escaping stay identical to the rest of the library.
-"""
-function _canonicalJson(value)
-    if isa(value, AbstractDict)
-        ks = sort!(String[string(k) for k in keys(value)])
-        parts = String[]
-        for k in ks
-            v = value[_matchingKey(value, k)]
-            push!(parts, string(JSON3.write(k), ":", _canonicalJson(v)))
-        end
-        return string("{", join(parts, ","), "}")
-    elseif isa(value, AbstractVector) && !isa(value, AbstractVector{UInt8})
-        return string("[", join((_canonicalJson(v) for v in value), ","), "]")
-    end
-    return JSON3.write(value)
-end
-# Dict keys may be `Symbol` or `String`; recover the original key object from
-# its stringified form so the value lookup succeeds either way.
-function _matchingKey(d::AbstractDict, k::String)
-    for key in keys(d)
-        if string(key) == k
-            return key
-        end
-    end
-    return k
+    # TS: `JSON.stringify (obj, (_, v) => (v === undefined ? null : v))`.
+    # The backend emits `JSON3.json` (which does not exist) plus a replacer
+    # closure (which JSON3 does not accept); `jsonStringifyCanonical` is the
+    # Julia equivalent, and sorts keys so the encoding is order-independent.
+    return functions.jsonStringifyCanonical(obj)
 end
 function hasUnsafeInteger(self::CcxtExchange, value)
     if functions.ccxtruthy(isa(value, Number))
@@ -1180,7 +1136,7 @@ function hasUnsafeInteger(self::CcxtExchange, value)
             end
 
         else
-            for (key, _) in value
+            for key in functions.ccxt_forin(value)
                 if functions.ccxtruthy(self.hasUnsafeInteger(get(value, Symbol(key), nothing)))
                         return true
                 end
@@ -1249,7 +1205,7 @@ function handleRestResponse(self::CcxtExchange, response, url, method="GET", req
     if functions.ccxtruthy(@functions.ccxt_and(self.handleContentTypeApplicationZip, (get(responseHeaders, Symbol("Content-Type"), nothing) == "application/zip")))
         responseBuffer = functions.ccxt_then_sync(arrayBuffer(response), function (arrayBuffer)
         
-            return (functions.ccxtruthy((Buffer !== nothing)) ? from(arrayBuffer) : Uint8Array(arrayBuffer));
+            return (functions.ccxtruthy((Buffer !== nothing)) ? from(arrayBuffer) : functions.Uint8Array(arrayBuffer));
         end
         
         , nothing);
@@ -1315,7 +1271,7 @@ function loadMarketsHelper(self::CcxtExchange, reload=false, params=Dict())
     end
     markets = self.fetchMarkets(params);
     if functions.ccxtruthy(ccxt_in("cachedCurrencies", self.options))
-
+                delete!(self.options, :cachedCurrencies);
     end
     return self.setMarkets(markets, currencies)
 
@@ -1362,7 +1318,12 @@ function fetchMarkets(self::CcxtExchange, params=Dict())
     return begin
     resolve = identity
     reject = identity
-    resolve(objectValues(self.markets));
+    markets = self.markets;
+    if functions.ccxtruthy(markets == nothing)
+        resolve([]);
+            return 
+    end
+    resolve(objectValues(markets));
 
 end
 
@@ -1371,7 +1332,12 @@ function fetchMarketsWs(self::CcxtExchange, params=Dict())
     return begin
     resolve = identity
     reject = identity
-    resolve(objectValues(self.markets));
+    markets = self.markets;
+    if functions.ccxtruthy(markets == nothing)
+        resolve([]);
+            return 
+    end
+    resolve(objectValues(markets));
 
 end
 
@@ -1437,6 +1403,9 @@ function safeMapToMap(self::CcxtExchange, dict)
 end
 function spawn(self::CcxtExchange, method, args...)
     future = Future();
+    catch_var(future, function ()
+
+end);
     setTimeout(function ()
 
     catch_var(functions.ccxt_then_sync(method(self, args...), get(future, Symbol("resolve"), nothing), nothing), get(future, Symbol("reject"), nothing));
@@ -1471,6 +1440,9 @@ function ping(self::CcxtExchange, client)
 
 end
 function client(self::CcxtExchange, url)
+    if functions.ccxtruthy(url == nothing)
+        throw(ArgumentsRequired(string(self.id, " client() requires a url argument")));
+    end
     self.clients = @functions.ccxt_or(self.clients, Dict{Symbol, Any}());
     if functions.ccxtruthy(!functions.ccxtruthy(get(self.clients, Symbol(url), nothing)))
         onMessage = bind(self.handleMessage, self);
@@ -1497,9 +1469,50 @@ function client(self::CcxtExchange, url)
     return get(self.clients, Symbol(url), nothing)
 
 end
+function calculateWsBackoffDelay(self::CcxtExchange, url)
+    wsOptions = self.safeDict(self.options, "ws", Dict{Symbol, Any}());
+    backoff = self.safeDict(wsOptions, "backoff", Dict{Symbol, Any}());
+    base = safeInteger(backoff, "base", 1000);
+    factor = safeInteger(backoff, "factor", 2);
+    maxDelay = safeInteger(backoff, "max", 60000);
+    stableAfter = safeInteger(backoff, "stableAfter", 30000);
+    state = self.safeDict(wsOptions, "backoffState");
+    if functions.ccxtruthy(state == nothing)
+        state = Dict{Symbol, Any}();
+    end
+    nowMillis = milliseconds();
+    urlState = self.safeDict(state, url, Dict{Symbol, Any}());
+    lastAttempt = safeInteger(urlState, "lastAttempt", 0);
+    attempts = safeInteger(urlState, "attempts", 0);
+    if functions.ccxtruthy(@functions.ccxt_and((functions.ccxt_gt(lastAttempt, 0)), (functions.ccxt_gt((nowMillis - lastAttempt), stableAfter))))
+        attempts = 0;
+    end
+    urlState[Symbol("attempts")] = attempts + 1;
+    urlState[Symbol("lastAttempt")] = nowMillis;
+    state[Symbol(url)] = urlState;
+    wsOptions[Symbol("backoffState")] = state;
+    self.options[Symbol("ws")] = wsOptions;
+    if functions.ccxtruthy(attempts == 0)
+            return 0
+    end
+    delay = base;
+    capped = min(attempts, 20);
+    i = 1
+    while functions.ccxtruthy(functions.ccxt_lt(i, capped))
+        delay = delay * factor;
+        i += 1
+    end
+    jitterMillis = nowMillis % 1000;
+    jittered = self.parseToInt(delay * (0.8 + (jitterMillis / 2500)));
+    return min(jittered, maxDelay)
+
+end
 function watchMultiple(self::CcxtExchange, url, messageHashes, message=nothing, subscribeHashes=nothing, subscription=nothing)
+    if functions.ccxtruthy(url == nothing)
+        throw(ArgumentsRequired(string(self.id, " watchMultiple() requires a url argument")));
+    end
+    clientExisted = (ccxt_in(url, self.clients));
     client = self.client(url);
-    backoffDelay = 0;
     future = race(map(function (messageHash)
     
         return future(client, messageHash);
@@ -1519,6 +1532,10 @@ function watchMultiple(self::CcxtExchange, url, messageHashes, message=nothing, 
         end
 
     end
+    backoffDelay = 0;
+    if functions.ccxtruthy(!functions.ccxtruthy(clientExisted))
+        backoffDelay = self.calculateWsBackoffDelay(url);
+    end
     connected = connect(client, backoffDelay);
     if functions.ccxtruthy(@functions.ccxt_or((subscribeHashes == nothing), length(missingSubscriptions)))
         catch_var(functions.ccxt_then_sync(connected, function ()
@@ -1537,6 +1554,7 @@ end
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(missingSubscriptions)))
         subscribeHash = get(missingSubscriptions, i + 1, nothing);
+        delete!(get(client, Symbol("subscriptions"), nothing), Symbol(subscribeHash));
         i += 1
     end
     reject(future, e);
@@ -1547,6 +1565,7 @@ end);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(missingSubscriptions)))
         subscribeHash = get(missingSubscriptions, i + 1, nothing);
+        delete!(get(client, Symbol("subscriptions"), nothing), Symbol(subscribeHash));
         i += 1
     end
     reject(future, e);
@@ -1560,6 +1579,7 @@ end
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(missingSubscriptions)))
         subscribeHash = get(missingSubscriptions, i + 1, nothing);
+        delete!(get(client, Symbol("subscriptions"), nothing), Symbol(subscribeHash));
         i += 1
     end
     reject(future, e);
@@ -1569,15 +1589,25 @@ end);
 
 end
 function watch(self::CcxtExchange, url, messageHash, message=nothing, subscribeHash=nothing, subscription=nothing)
+    if functions.ccxtruthy(url == nothing)
+        throw(ArgumentsRequired(string(self.id, " watch() requires a url argument")));
+    end
+    if functions.ccxtruthy(messageHash == nothing)
+        throw(ArgumentsRequired(string(self.id, " watch() requires a messageHash argument")));
+    end
+    clientExisted = (ccxt_in(url, self.clients));
     client = self.client(url);
-    backoffDelay = 0;
-    if functions.ccxtruthy(@functions.ccxt_and((subscribeHash == nothing), (ccxt_in(messageHash, get(client, Symbol("futures"), nothing)))))
+    if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and((subscribeHash == nothing), (messageHash != nothing)), (ccxt_in(messageHash, get(client, Symbol("futures"), nothing)))))
             return get(get(client, Symbol("futures"), nothing), Symbol(messageHash), nothing)
     end
     future = Ccxt.future(client, messageHash);
     clientSubscription = get(get(client, Symbol("subscriptions"), nothing), Symbol(subscribeHash), nothing);
     if functions.ccxtruthy(!functions.ccxtruthy(clientSubscription))
         client.subscriptions[Symbol(subscribeHash)] = @functions.ccxt_or(subscription, true);
+    end
+    backoffDelay = 0;
+    if functions.ccxtruthy(!functions.ccxtruthy(clientExisted))
+        backoffDelay = self.calculateWsBackoffDelay(url);
     end
     connected = connect(client, backoffDelay);
     if functions.ccxtruthy(!functions.ccxtruthy(clientSubscription))
@@ -1607,6 +1637,7 @@ end
 
 , nothing), function (e)
 
+    delete!(get(client, Symbol("subscriptions"), nothing), Symbol(subscribeHash));
     reject(future, e);
 end);
     end
@@ -1618,7 +1649,7 @@ function onConnected(self::CcxtExchange, client, message=nothing)
 end
 function onError(self::CcxtExchange, client, error)
     if functions.ccxtruthy(@functions.ccxt_and((ccxt_in(get(client, Symbol("url"), nothing), self.clients)), (get(get(self.clients, Symbol(get(client, Symbol("url"), nothing)), nothing), Symbol("error"), nothing))))
-
+                delete!(self.clients, Symbol(get(client, Symbol("url"), nothing)));
     end
 
 end
@@ -1626,7 +1657,7 @@ function onClose(self::CcxtExchange, client, error)
     if functions.ccxtruthy(get(client, Symbol("error"), nothing))
     else
         if functions.ccxtruthy(get(self.clients, Symbol(get(client, Symbol("url"), nothing)), nothing))
-
+                        delete!(self.clients, Symbol(get(client, Symbol("url"), nothing)));
         end
     end
 
@@ -1645,6 +1676,7 @@ function close(self::CcxtExchange, cleanInstanceCache=false)
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(clients)))
         client = get(clients, i + 1, nothing);
+        delete!(self.clients, Symbol(get(client, Symbol("url"), nothing)));
         push!(closedClients, close(client));
         i += 1
     end
@@ -1654,37 +1686,6 @@ function close(self::CcxtExchange, cleanInstanceCache=false)
     end
     if functions.ccxtruthy(cleanInstanceCache)
         self.cleanRestData();
-    end
-
-end
-function loadOrderBook(self::CcxtExchange, client, messageHash, symbol, limit=nothing, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(symbol, self.orderbooks))))
-        reject(client, ExchangeError(string(self.id, " loadOrderBook() orderbook is not initiated")), messageHash);
-            return 
-    end
-    maxRetries = self.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
-    tries = 0;
-    try
-        stored = get(self.orderbooks, Symbol(symbol), nothing);
-        while functions.ccxtruthy(functions.ccxt_lt(tries, maxRetries))
-            cache = get(stored, Symbol("cache"), nothing);
-            orderBook = self.fetchRestOrderBookSafe(symbol, limit, params);
-            index = self.getCacheIndex(orderBook, cache);
-            if functions.ccxtruthy(functions.ccxt_ge(index, 0))
-                reset(stored, orderBook);
-                self.handleDeltas(stored, functions.ccxt_slice(cache, index));
-                stored.cache.length = 0;
-                resolve(client, stored, messageHash);
-                    return 
-            end
-            tries += 1;
-        end
-        reject(client, ExchangeError(string(self.id, " nonce is behind the cache after ", maxRetries, " tries.")), messageHash);
-        self.orderbooks[Symbol(symbol)] = self.orderBook();
-    catch e
-        reject(client, e, messageHash);
-        self.loadOrderBook(client, messageHash, symbol, limit, params);
-
     end
 
 end
@@ -1738,11 +1739,9 @@ function ethEncodeStructuredData(self::CcxtExchange, domain, messageTypes, messa
 end
 function ethGetAddressFromPrivateKey(self::CcxtExchange, privateKey)
     cleanPrivateKey = self.remove0xPrefix(privateKey);
-    publicKeyBytes = functions.getPublicKey(functions.secp256k1, self.base16ToBinary(cleanPrivateKey));
-    # The Ethereum address is derived from the *uncompressed* point with its
-    # 0x04 prefix stripped, i.e. the raw 64-byte X||Y concatenation.
+    publicKeyBytes = getPublicKey(secp256k1, self.base16ToBinary(cleanPrivateKey));
     publicKeyUncompressed = functions.ccxt_slice(functions.ecPointToUncompressed(functions.secp256k1, publicKeyBytes), 1);
-    publicKeyHash = functions.keccak_256(publicKeyUncompressed);
+    publicKeyHash = keccak_256(publicKeyUncompressed);
     addressBytes = functions.ccxt_slice(publicKeyHash, -20);
     addressHex = string("0x", self.binaryToBase16(addressBytes));
     return addressHex
@@ -1812,17 +1811,46 @@ function extendedStarknetComputePoseidonHashOnElements(self::CcxtExchange, data)
 
 end
 function getZKContractSignatureObj(self::CcxtExchange, seed, params=Dict())
-    formattedSlotId = string(BigInt(string("0x", self.remove0xPrefix(hash(self.encode(safeString(params, "slotId")), sha256, "hex")))));
-    formattedNonce = string(BigInt(string("0x", self.remove0xPrefix(hash(self.encode(safeString(params, "nonce")), sha256, "hex")))));
+    formattedSlotId = string(BigInt(string("0x", self.remove0xPrefix(hash(self.encode(safeString(params, "slotId", "")), sha256, "hex")))));
+    formattedNonce = string(BigInt(string("0x", self.remove0xPrefix(hash(self.encode(safeString(params, "nonce", "")), sha256, "hex")))));
     formattedUint64 = "18446744073709551615";
     formattedUint32 = "4294967295";
-    accountId = ccxt_parseInt(stringMod(safeString(params, "accountId"), formattedUint32), 10);
-    slotId = ccxt_parseInt(stringDiv(stringMod(formattedSlotId, formattedUint64), formattedUint32), 10);
-    nonce = ccxt_parseInt(stringMod(formattedNonce, formattedUint32), 10);
+    accountIdString = stringMod(safeString(params, "accountId", "0"), formattedUint32);
+    if functions.ccxtruthy(accountIdString == nothing)
+        accountIdString = "0";
+    end
+    slotIdString = stringDiv(stringMod(formattedSlotId, formattedUint64), formattedUint32);
+    if functions.ccxtruthy(slotIdString == nothing)
+        slotIdString = "0";
+    end
+    nonceString = stringMod(formattedNonce, formattedUint32);
+    if functions.ccxtruthy(nonceString == nothing)
+        nonceString = "0";
+    end
+    accountId = ccxt_parseInt(accountIdString, 10);
+    slotId = ccxt_parseInt(slotIdString, 10);
+    nonce = ccxt_parseInt(nonceString, 10);
     init();
     _signer = newRpcSignerWithProvider(zklink, Dict{Symbol, Any}());
     initZklinkSigner(_signer, seed);
-    tx_builder = get(zklink, Symbol("ContractBuilder"), nothing)(accountId, 0, slotId, nonce, safeInteger(params, "pairId"), stringMul(safeString(params, "size"), "1e18"), stringMul(safeString(params, "price"), "1e18"), safeString(params, "direction") == "BUY", ccxt_parseInt(stringMul(safeString(params, "makerFeeRate"), "10000")), ccxt_parseInt(stringMul(safeString(params, "takerFeeRate"), "10000")), false);
+    pairId = safeInteger(params, "pairId", 0);
+    sizeString = stringMul(safeString(params, "size", "0"), "1e18");
+    if functions.ccxtruthy(sizeString == nothing)
+        sizeString = "0";
+    end
+    priceString = stringMul(safeString(params, "price", "0"), "1e18");
+    if functions.ccxtruthy(priceString == nothing)
+        priceString = "0";
+    end
+    makerFeeRateString = stringMul(safeString(params, "makerFeeRate", "0"), "10000");
+    if functions.ccxtruthy(makerFeeRateString == nothing)
+        makerFeeRateString = "0";
+    end
+    takerFeeRateString = stringMul(safeString(params, "takerFeeRate", "0"), "10000");
+    if functions.ccxtruthy(takerFeeRateString == nothing)
+        takerFeeRateString = "0";
+    end
+    tx_builder = get(zklink, Symbol("ContractBuilder"), nothing)(accountId, 0, slotId, nonce, pairId, sizeString, priceString, safeString(params, "direction") == "BUY", ccxt_parseInt(makerFeeRateString), ccxt_parseInt(takerFeeRateString), false);
     contractor = newContract(zklink, tx_builder);
     sign(contractor, getZkLinkSigner(_signer));
     tx = jsValue(contractor);
@@ -1840,7 +1868,12 @@ function getZKTransferSignatureObj(self::CcxtExchange, seed, params=Dict())
         formattedNonce = string(BigInt(string("0x", self.remove0xPrefix(hash(self.encode(nonce), sha256, "hex")))));
         nonce = stringMod(formattedNonce, formattedUint32);
     end
-    tx_builder = get(zklink, Symbol("TransferBuilder"), nothing)(self.safeNumber(params, "zkAccountId", 0), safeString(params, "receiverAddress"), self.safeNumber(params, "subAccountId", 0), self.safeNumber(params, "receiverSubAccountId", 0), self.safeNumber(params, "tokenId", 0), safeString(params, "fee", "0"), safeString(params, "amount", "0"), self.parseToInt(nonce), self.safeNumber(params, "timestampSeconds", 0));
+    zkAccountId = self.safeNumber(params, "zkAccountId", 0);
+    subAccountId = self.safeNumber(params, "subAccountId", 0);
+    receiverSubAccountId = self.safeNumber(params, "receiverSubAccountId", 0);
+    tokenId = self.safeNumber(params, "tokenId", 0);
+    timestampSeconds = self.safeNumber(params, "timestampSeconds", 0);
+    tx_builder = get(zklink, Symbol("TransferBuilder"), nothing)(functions.ccxtruthy((zkAccountId == nothing)) ? 0 : zkAccountId, safeString(params, "receiverAddress", ""), functions.ccxtruthy((subAccountId == nothing)) ? 0 : subAccountId, functions.ccxtruthy((receiverSubAccountId == nothing)) ? 0 : receiverSubAccountId, functions.ccxtruthy((tokenId == nothing)) ? 0 : tokenId, safeString(params, "fee", "0"), safeString(params, "amount", "0"), self.parseToInt(nonce), functions.ccxtruthy((timestampSeconds == nothing)) ? 0 : timestampSeconds);
     contractor = newTransfer(zklink, tx_builder);
     sign(contractor, getZkLinkSigner(_signer));
     tx = jsValue(contractor);
@@ -1874,7 +1907,11 @@ function retrieveDydxCredentials(self::CcxtExchange, privateKey)
 
 end
 function encodeDydxTxForSimulation(self::CcxtExchange, message, memo, sequence, publicKey)
-    if functions.ccxtruthy(!functions.ccxtruthy(encodeAsAny))
+    encodeFn = encodeAsAny;
+    if functions.ccxtruthy(encodeFn == nothing)
+        throw(NotSupported(string(self.id, " requires protobuf to encode messages, please install it with `npm install protobufjs`")));
+    end
+    if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((Tx == nothing), (TxBody == nothing)), (AuthInfo == nothing)), (SignMode == nothing)))
         throw(NotSupported(string(self.id, " requires protobuf to encode messages, please install it with `npm install protobufjs`")));
     end
     if functions.ccxtruthy(!functions.ccxtruthy(publicKey))
@@ -1883,7 +1920,7 @@ function encodeDydxTxForSimulation(self::CcxtExchange, message, memo, sequence, 
     messages = [message];
     encodedMessages = map(function (msg)
     
-        return encodeAsAny(msg);
+        return encodeFn(msg);
     end
     
     , messages);
@@ -1895,7 +1932,7 @@ function encodeDydxTxForSimulation(self::CcxtExchange, message, memo, sequence, 
         Symbol("authInfo") => fromPartial(Dict{Symbol, Any}(
         Symbol("fee") => Dict{Symbol, Any}(),
         Symbol("signerInfos") => [Dict{Symbol, Any}(
-        Symbol("publicKey") => encodeAsAny(Dict{Symbol, Any}(
+        Symbol("publicKey") => encodeFn(Dict{Symbol, Any}(
         Symbol("typeUrl") => "/cosmos.crypto.secp256k1.PubKey",
         Symbol("value") => publicKey
     )),
@@ -1907,13 +1944,17 @@ function encodeDydxTxForSimulation(self::CcxtExchange, message, memo, sequence, 
         )
     )]
     )),
-        Symbol("signatures") => [Uint8Array()]
+        Symbol("signatures") => [functions.Uint8Array()]
     ));
     return self.binaryToBase64(finish(encode(tx)))
 
 end
 function encodeDydxTxForSigning(self::CcxtExchange, message, memo, chainId, account, authenticators, fee=nothing)
-    if functions.ccxtruthy(!functions.ccxtruthy(encodeAsAny))
+    encodeFn = encodeAsAny;
+    if functions.ccxtruthy(encodeFn == nothing)
+        throw(NotSupported(string(self.id, " requires protobuf to encode messages, please install it with `npm install protobufjs`")));
+    end
+    if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((TxBody == nothing), (AuthInfo == nothing)), (SignMode == nothing)), (SignDoc == nothing)))
         throw(NotSupported(string(self.id, " requires protobuf to encode messages, please install it with `npm install protobufjs`")));
     end
     if functions.ccxtruthy(!functions.ccxtruthy(get(account, Symbol("pub_key"), nothing)))
@@ -1922,18 +1963,19 @@ function encodeDydxTxForSigning(self::CcxtExchange, message, memo, chainId, acco
     messages = [message];
     sequence = milliseconds();
     if functions.ccxtruthy(fee == nothing)
+        emptyAmount = [];
         fee = Dict{Symbol, Any}(
-            Symbol("amount") => [],
+            Symbol("amount") => emptyAmount,
             Symbol("gasLimit") => 1000000
         );
     end
     encodedMessages = map(function (msg)
     
-        return encodeAsAny(msg);
+        return encodeFn(msg);
     end
     
     , messages);
-    nonCriticalExtensionOptions = [encodeAsAny(Dict{Symbol, Any}(
+    nonCriticalExtensionOptions = [encodeFn(Dict{Symbol, Any}(
         Symbol("typeUrl") => "/dydxprotocol.accountplus.TxExtension",
         Symbol("value") => Dict{Symbol, Any}(
             Symbol("selectedAuthenticators") => something(authenticators, [])
@@ -1948,7 +1990,7 @@ function encodeDydxTxForSigning(self::CcxtExchange, message, memo, chainId, acco
     authInfoBytes = finish(encode(fromPartial(Dict{Symbol, Any}(
         Symbol("fee") => fee,
         Symbol("signerInfos") => [Dict{Symbol, Any}(
-        Symbol("publicKey") => encodeAsAny(Dict{Symbol, Any}(
+        Symbol("publicKey") => encodeFn(Dict{Symbol, Any}(
         Symbol("typeUrl") => "/cosmos.crypto.secp256k1.PubKey",
         Symbol("value") => get(account, Symbol("pub_key"), nothing)
     )),
@@ -1971,7 +2013,10 @@ function encodeDydxTxForSigning(self::CcxtExchange, message, memo, chainId, acco
 
 end
 function encodeDydxTxRaw(self::CcxtExchange, signDoc, signature)
-    if functions.ccxtruthy(!functions.ccxtruthy(encodeAsAny))
+    if functions.ccxtruthy(encodeAsAny == nothing)
+        throw(NotSupported(string(self.id, " requires protobuf to encode messages, please install it with `npm install protobufjs`")));
+    end
+    if functions.ccxtruthy(TxRaw == nothing)
         throw(NotSupported(string(self.id, " requires protobuf to encode messages, please install it with `npm install protobufjs`")));
     end
     return string("0x", self.binaryToBase16(finish(encode(fromPartial(Dict{Symbol, Any}(
@@ -1998,7 +2043,7 @@ function convertToSafeDictionary(self::CcxtExchange, dict)
 
 end
 function randomBytes(self::CcxtExchange, length)
-    x = Uint8Array(length);
+    x = functions.Uint8Array(length);
     getRandomValues(crypto, x);
     return self.binaryToBase16(x)
 
@@ -2039,7 +2084,7 @@ function loadLighterLibrary(self::CcxtExchange, libraryPath, chainId, privateKey
     end
     (filePathToFileUrlForWindows(wasmExecPath));
     go = get(globalThis, Symbol("Go"), nothing)();
-    bytes = Uint8Array(readFile(libraryPath, nothing));
+    bytes = functions.Uint8Array(readFile(libraryPath, nothing));
     instance = (instantiate(bytes, get(go, Symbol("importObject"), nothing))).instance;
     run(go, instance);
     if functions.ccxtruthy(createClient)
@@ -2197,6 +2242,7 @@ function describe(self::CcxtExchange, )
         Symbol("swap") => nothing,
         Symbol("future") => nothing,
         Symbol("option") => nothing,
+        Symbol("index") => nothing,
         Symbol("addMargin") => nothing,
         Symbol("borrowCrossMargin") => nothing,
         Symbol("borrowIsolatedMargin") => nothing,
@@ -2535,7 +2581,7 @@ function cleanRestData(self::CcxtExchange, )
     self.ids = nothing;
     self.markets = nothing;
     self.markets_by_id = nothing;
-    self.symbols = nothing;
+    self.symbols = [];
     self.codes = nothing;
     self.currencies = self.createSafeDictionary();
     self.currencies_by_id = nothing;
@@ -2694,6 +2740,13 @@ function safeList(self::CcxtExchange, dictionaryOrList, key, defaultValue=nothin
             return value
     end
     return defaultValue
+
+end
+function storeByKey(self::CcxtExchange, dict, key, value)
+    k = key;
+    if functions.ccxtruthy(k != nothing)
+        dict[Symbol(k)] = value;
+    end
 
 end
 function handleDeltas(self::CcxtExchange, orderbook, deltas)
@@ -2934,6 +2987,9 @@ function filterByLimit(self::CcxtExchange, array, limit=nothing, key="timestamp"
 
 end
 function filterBySinceLimit(self::CcxtExchange, array, since=nothing, limit=nothing, key="timestamp", tail=false)
+    if functions.ccxtruthy(array == nothing)
+            return []
+    end
     sinceIsDefined = self.valueIsDefined(since);
     parsedArray = toArray(array);
     result = parsedArray;
@@ -2967,7 +3023,7 @@ function filterByValueSinceLimit(self::CcxtExchange, array, field, value=nothing
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(parsedArray)))
             entry = get(parsedArray, i + 1, nothing);
-            entryFiledEqualValue = get(entry, Symbol(field), nothing) == value;
+            entryFiledEqualValue = safeValue(entry, field) == value;
             firstCondition = functions.ccxtruthy(valueIsDefined) ? entryFiledEqualValue : true;
             entryKeyValue = safeValue(entry, key);
             entryKeyGESince = @functions.ccxt_and(@functions.ccxt_and((entryKeyValue), (since != nothing)), (functions.ccxt_ge(entryKeyValue, since)));
@@ -3039,14 +3095,6 @@ function fetchAccounts(self::CcxtExchange, params=Dict())
     throw(NotSupported(string(self.id, " fetchAccounts() is not supported yet")));
 
 end
-function fetchTrades(self::CcxtExchange, symbol, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchTrades() is not supported yet")));
-
-end
-function fetchTradesWs(self::CcxtExchange, symbol, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchTradesWs() is not supported yet")));
-
-end
 function watchLiquidations(self::CcxtExchange, symbol, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(get(self.has, Symbol("watchLiquidationsForSymbols"), nothing))
             return self.watchLiquidationsForSymbols([symbol], since, limit, params)
@@ -3069,10 +3117,6 @@ function watchMyLiquidationsForSymbols(self::CcxtExchange, symbols, since=nothin
     throw(NotSupported(string(self.id, " watchMyLiquidationsForSymbols() is not supported yet")));
 
 end
-function watchTrades(self::CcxtExchange, symbol, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchTrades() is not supported yet")));
-
-end
 function unWatchOrders(self::CcxtExchange, symbol=nothing, params=Dict())
     throw(NotSupported(string(self.id, " unWatchOrders() is not supported yet")));
 
@@ -3081,20 +3125,8 @@ function unWatchTrades(self::CcxtExchange, symbol, params=Dict())
     throw(NotSupported(string(self.id, " unWatchTrades() is not supported yet")));
 
 end
-function watchTradesForSymbols(self::CcxtExchange, symbols, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchTradesForSymbols() is not supported yet")));
-
-end
 function unWatchTradesForSymbols(self::CcxtExchange, symbols, params=Dict())
     throw(NotSupported(string(self.id, " unWatchTradesForSymbols() is not supported yet")));
-
-end
-function watchMyTradesForSymbols(self::CcxtExchange, symbols, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchMyTradesForSymbols() is not supported yet")));
-
-end
-function watchOrdersForSymbols(self::CcxtExchange, symbols, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchOrdersForSymbols() is not supported yet")));
 
 end
 function watchOHLCVForSymbols(self::CcxtExchange, symbolsAndTimeframes, since=nothing, limit=nothing, params=Dict())
@@ -3103,10 +3135,6 @@ function watchOHLCVForSymbols(self::CcxtExchange, symbolsAndTimeframes, since=no
 end
 function unWatchOHLCVForSymbols(self::CcxtExchange, symbolsAndTimeframes, params=Dict())
     throw(NotSupported(string(self.id, " unWatchOHLCVForSymbols() is not supported yet")));
-
-end
-function watchOrderBookForSymbols(self::CcxtExchange, symbols, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchOrderBookForSymbols() is not supported yet")));
 
 end
 function unWatchOrderBookForSymbols(self::CcxtExchange, symbols, params=Dict())
@@ -3133,14 +3161,6 @@ function fetchDepositAddresses(self::CcxtExchange, codes=nothing, params=Dict())
     throw(NotSupported(string(self.id, " fetchDepositAddresses() is not supported yet")));
 
 end
-function fetchOrderBook(self::CcxtExchange, symbol, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchOrderBook() is not supported yet")));
-
-end
-function fetchOrderBookWs(self::CcxtExchange, symbol, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchOrderBookWs() is not supported yet")));
-
-end
 function fetchMarginMode(self::CcxtExchange, symbol, params=Dict())
     if functions.ccxtruthy(get(self.has, Symbol("fetchMarginModes"), nothing))
         marginModes = self.fetchMarginModes([symbol], params);
@@ -3152,28 +3172,6 @@ function fetchMarginMode(self::CcxtExchange, symbol, params=Dict())
 end
 function fetchMarginModes(self::CcxtExchange, symbols=nothing, params=Dict())
     throw(NotSupported(string(self.id, " fetchMarginModes () is not supported yet")));
-
-end
-function fetchRestOrderBookSafe(self::CcxtExchange, symbol, limit=nothing, params=Dict())
-    fetchSnapshotMaxRetries = self.handleOption("watchOrderBook", "maxRetries", 3);
-    i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, fetchSnapshotMaxRetries))
-        try
-            orderBook = self.fetchOrderBook(symbol, limit, params);
-            return orderBook
-        catch e
-            if functions.ccxtruthy((i + 1) == fetchSnapshotMaxRetries)
-                throw(e);
-            end
-
-        end
-        i += 1
-    end
-    return nothing
-
-end
-function watchOrderBook(self::CcxtExchange, symbol, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchOrderBook() is not supported yet")));
 
 end
 function unWatchOrderBook(self::CcxtExchange, symbol, params=Dict())
@@ -3239,6 +3237,9 @@ function parseTransaction(self::CcxtExchange, transaction, currency=nothing)
 
 end
 function parseTransfer(self::CcxtExchange, transfer, currency=nothing)
+    if functions.ccxtruthy(transfer == nothing)
+        throw(NotSupported(string(self.id, " parseTransfer() is not supported yet")));
+    end
     throw(NotSupported(string(self.id, " parseTransfer() is not supported yet")));
 
 end
@@ -3393,15 +3394,6 @@ function fetchDepositAddressesByNetwork(self::CcxtExchange, code, params=Dict())
 end
 function fetchOpenInterestHistory(self::CcxtExchange, symbol, timeframe="1h", since=nothing, limit=nothing, params=Dict())
     throw(NotSupported(string(self.id, " fetchOpenInterestHistory() is not supported yet")));
-
-end
-function fetchOpenInterest(self::CcxtExchange, symbol, params=Dict())
-    if functions.ccxtruthy(get(self.has, Symbol("fetchOpenInterests"), nothing))
-        openInterests = self.fetchOpenInterests([symbol], params);
-            return self.safeDict(openInterests, symbol)
-    else
-        throw(NotSupported(string(self.id, " fetchOpenInterest() is not supported yet")));
-    end
 
 end
 function fetchOpenInterests(self::CcxtExchange, symbols=nothing, params=Dict())
@@ -3657,6 +3649,11 @@ function getDefaultOptions(self::CcxtExchange, )
             Symbol("secondary") => "BRC20",
             Symbol("default") => "primary"
         )
+    ),
+    Symbol("backwardSupportedNetworkCodes") => Dict{Symbol, Any}(
+        Symbol("ARB") => "ARBITRUM",
+        Symbol("ARBONE") => "ARBITRUM",
+        Symbol("ARBNOVA") => "ARBITRUM_NOVA"
     )
 )
 
@@ -3887,7 +3884,7 @@ function safeMarketStructure(self::CcxtExchange, market=nothing)
         end
             return result
     end
-    return cleanStructure
+    return extend(cleanStructure)
 
 end
 function setMarkets(self::CcxtExchange, markets, currencies=nothing)
@@ -3904,10 +3901,20 @@ function setMarkets(self::CcxtExchange, markets, currencies=nothing)
         else
             self.markets_by_id[Symbol(value[Symbol("id")])] = [value];
         end
+        valueDefined = Dict{Symbol, Any}();
+        valueKeys = objectKeys(value);
+        j = 0
+        while functions.ccxtruthy(functions.ccxt_lt(j, length(valueKeys)))
+            valueKey = get(valueKeys, j + 1, nothing);
+            if functions.ccxtruthy(get(value, Symbol(valueKey), nothing) != nothing)
+                valueDefined[Symbol(valueKey)] = get(value, Symbol(valueKey), nothing);
+            end
+            j += 1
+        end
         market = deepExtend(self.safeMarketStructure(), Dict{Symbol, Any}(
             Symbol("precision") => self.precision,
             Symbol("limits") => self.limits
-        ), get(self.fees, Symbol("trading"), nothing), value);
+        ), get(self.fees, Symbol("trading"), nothing), valueDefined);
         if functions.ccxtruthy(get(market, Symbol("linear"), nothing))
             market[Symbol("subType")] = "linear";
         elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
@@ -3990,6 +3997,9 @@ function setMarkets(self::CcxtExchange, markets, currencies=nothing)
     self.currencies_by_id = indexBySafe(self.currencies, "id");
     currenciesSortedByCode = keysort(self.currencies);
     self.codes = objectKeys(currenciesSortedByCode);
+    if functions.ccxtruthy(self.markets == nothing)
+        throw(ExchangeError(string(self.id, " setMarkets() markets not set")));
+    end
     return self.markets
 
 end
@@ -4071,6 +4081,9 @@ function safeBalance(self::CcxtExchange, balance)
 
 end
 function safeOrder(self::CcxtExchange, order, market=nothing)
+    if functions.ccxtruthy(order == nothing)
+        order = Dict{Symbol, Any}();
+    end
     amount = omitZero(safeString(order, "amount"));
     remaining = safeString(order, "remaining");
     filled = safeString(order, "filled");
@@ -4174,7 +4187,13 @@ function safeOrder(self::CcxtExchange, order, market=nothing)
         end
     end
     if functions.ccxtruthy(shouldParseFees)
-        reducedFees = functions.ccxtruthy(self.reduceFees) ? self.reduceFeesByCurrency(fees) : fees;
+        reducedFees = fees;
+        if functions.ccxtruthy(self.reduceFees)
+            reducedFees = self.reduceFeesByCurrency(fees);
+        end
+        if functions.ccxtruthy(reducedFees == nothing)
+            reducedFees = [];
+        end
         reducedLength = length(reducedFees);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, reducedLength))
@@ -4323,6 +4342,9 @@ function safeOrder(self::CcxtExchange, order, market=nothing)
 
 end
 function parseOrders(self::CcxtExchange, orders, market=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(orders == nothing)
+            return []
+    end
     results = [];
     if functions.ccxtruthy(functions.ccxt_isArray(orders))
         i = 0
@@ -4348,7 +4370,7 @@ function parseOrders(self::CcxtExchange, orders, market=nothing, since=nothing, 
         end
     end
     results = sortBy(results, "timestamp");
-    symbol = functions.ccxtruthy((market != nothing)) ? get(market, Symbol("symbol"), nothing) : nothing;
+    symbol = safeString(market, "symbol");
     return self.filterBySymbolSinceLimit(results, symbol, since, limit)
 
 end
@@ -4356,7 +4378,11 @@ function calculateFeeWithRate(self::CcxtExchange, symbol, type_var, side, amount
     if functions.ccxtruthy(@functions.ccxt_and(type_var == "market", takerOrMaker == "maker"))
         throw(ArgumentsRequired(string(self.id, " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.")));
     end
-    market = get(self.markets, Symbol(symbol), nothing);
+    markets = self.markets;
+    if functions.ccxtruthy(markets == nothing)
+        throw(ExchangeError(string(self.id, " markets not loaded")));
+    end
+    market = get(markets, Symbol(symbol), nothing);
     feeSide = safeString(market, "feeSide", "quote");
     useQuote = nothing;
     if functions.ccxtruthy(feeSide == "get")
@@ -4473,7 +4499,13 @@ function parsedFeeAndFees(self::CcxtExchange, container)
         if functions.ccxtruthy(!functions.ccxtruthy(feesDefined))
             fees = [fee];
         end
-        reducedFees = functions.ccxtruthy(self.reduceFees) ? self.reduceFeesByCurrency(fees) : fees;
+        reducedFees = fees;
+        if functions.ccxtruthy(self.reduceFees)
+            reducedFees = self.reduceFeesByCurrency(fees);
+        end
+        if functions.ccxtruthy(reducedFees == nothing)
+            reducedFees = [];
+        end
         reducedLength = length(reducedFees);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, reducedLength))
@@ -4801,7 +4833,7 @@ function fetchWebEndpoint(self::CcxtExchange, method, endpointMethod, returnAsJs
         shouldBreak = false;
         while functions.ccxtruthy(functions.ccxt_lt(retry, maxRetries))
             try
-                response = getproperty(self, Symbol(endpointMethod))(self, Dict{Symbol, Any}());
+                response = getproperty(self, Symbol(endpointMethod))(Dict{Symbol, Any}());
                 shouldBreak = true;
                 break
             catch e
@@ -4816,9 +4848,15 @@ function fetchWebEndpoint(self::CcxtExchange, method, endpointMethod, returnAsJs
             end
         end
         content = response;
+        if functions.ccxtruthy(content == nothing)
+            throw(NullResponse(string(self.id, " fetchWebEndpoint() returned empty content")));
+        end
         if functions.ccxtruthy(startRegex != nothing)
             splitted_by_start = split(content, startRegex);
             content = get(splitted_by_start, 2, nothing);
+        end
+        if functions.ccxtruthy(content == nothing)
+            throw(NullResponse(string(self.id, " fetchWebEndpoint() returned empty content")));
         end
         if functions.ccxtruthy(endRegex != nothing)
             splitted_by_end = split(content, endRegex);
@@ -4858,7 +4896,10 @@ function marketIds(self::CcxtExchange, symbols=nothing)
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
-        push!(result, self.marketId(get(symbols, i + 1, nothing)));
+        id = self.marketId(get(symbols, i + 1, nothing));
+        if functions.ccxtruthy(id != nothing)
+                        push!(result, id);
+        end
         i += 1
     end
     return result
@@ -4877,7 +4918,10 @@ function currencyIds(self::CcxtExchange, codes=nothing)
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(codes)))
-        push!(result, self.currencyId(get(codes, i + 1, nothing)));
+        id = self.currencyId(get(codes, i + 1, nothing));
+        if functions.ccxtruthy(id != nothing)
+                        push!(result, id);
+        end
         i += 1
     end
     return result
@@ -4885,7 +4929,7 @@ function currencyIds(self::CcxtExchange, codes=nothing)
 end
 function marketsForSymbols(self::CcxtExchange, symbols=nothing)
     if functions.ccxtruthy(symbols == nothing)
-            return symbols
+            return nothing
     end
     result = [];
     i = 0
@@ -4894,6 +4938,9 @@ function marketsForSymbols(self::CcxtExchange, symbols=nothing)
         i += 1
     end
     return result
+
+end
+function marketSymbols(self::CcxtExchange, symbols, type_var, allowEmpty, sameTypeOnly=nothing, sameSubTypeOnly=nothing)
 
 end
 function marketSymbols(self::CcxtExchange, symbols, type_var=nothing, allowEmpty=nothing, sameTypeOnly=nothing, sameSubTypeOnly=nothing)
@@ -4970,28 +5017,24 @@ function parseOrderBookBidsAsks(self::CcxtExchange, bidasks, priceKey=0, amountK
     return result
 
 end
-function fetchL2OrderBook(self::CcxtExchange, symbol, limit=nothing, params=Dict())
-    orderbook = self.fetchOrderBook(symbol, limit, params);
-    return extend(orderbook, Dict{Symbol, Any}(
-    Symbol("asks") => sortBy(aggregate(get(orderbook, Symbol("asks"), nothing)), 0),
-    Symbol("bids") => sortBy(aggregate(get(orderbook, Symbol("bids"), nothing)), 0, true)
-))
-
-end
-function filterBySymbol(self::CcxtExchange, objects, symbol=nothing)
-    if functions.ccxtruthy(symbol == nothing)
+function filterByKey(self::CcxtExchange, objects, key, value=nothing)
+    if functions.ccxtruthy(value == nothing)
             return objects
     end
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(objects)))
-        objectSymbol = safeString(get(objects, i + 1, nothing), "symbol");
-        if functions.ccxtruthy(objectSymbol == symbol)
+        objectValue = safeString(get(objects, i + 1, nothing), key);
+        if functions.ccxtruthy(objectValue == value)
                         push!(result, get(objects, i + 1, nothing));
         end
         i += 1
     end
     return result
+
+end
+function filterBySymbol(self::CcxtExchange, objects, symbol=nothing)
+    return self.filterByKey(objects, "symbol", symbol)
 
 end
 function parseOHLCV(self::CcxtExchange, ohlcv, market=nothing)
@@ -5070,7 +5113,9 @@ function networkCodeToId(self::CcxtExchange, networkCode, currencyCode=nothing)
             return nothing
     end
     networkIdsByCodes = self.safeDict(self.options, "networks", Dict{Symbol, Any}());
-    (preferredChain, alternativeChain) = self.prioritizedNetworkAliases(networkCode, currencyCode, false);
+    chainPair = self.prioritizedNetworkAliases(networkCode, currencyCode, false);
+    preferredChain = functions.ccxtruthy((chainPair == nothing)) ? networkCode : get(chainPair, 1, nothing);
+    alternativeChain = functions.ccxtruthy((chainPair == nothing)) ? networkCode : get(chainPair, 2, nothing);
     networkId = safeString2(networkIdsByCodes, preferredChain, alternativeChain);
     if functions.ccxtruthy(networkId != nothing)
             return networkId
@@ -5089,6 +5134,10 @@ function networkCodeToId(self::CcxtExchange, networkCode, currencyCode=nothing)
         end
         i += 1
     end
+    oldCodes = self.safeDict(self.options, "backwardSupportedNetworkCodes", Dict{Symbol, Any}());
+    if functions.ccxtruthy(ccxt_in(networkCode, oldCodes))
+            return self.networkCodeToId(get(oldCodes, Symbol(networkCode), nothing), currencyCode)
+    end
     return networkCode
 
 end
@@ -5098,7 +5147,12 @@ function networkIdToCode(self::CcxtExchange, networkId=nothing, currencyCode=not
     end
     networkCodesByIds = self.safeDict(self.options, "networksById", Dict{Symbol, Any}());
     networkCode = safeString(networkCodesByIds, networkId, networkId);
-    (preferredChain, alternativeChain) = self.prioritizedNetworkAliases(networkCode, currencyCode, true);
+    chainPair = self.prioritizedNetworkAliases(networkCode, currencyCode, true);
+    if functions.ccxtruthy(chainPair == nothing)
+            return networkCode
+    end
+    preferredChain = get(chainPair, 1, nothing);
+    alternativeChain = get(chainPair, 2, nothing);
     if functions.ccxtruthy(currencyCode == nothing)
         networkIdsByCodes = self.safeDict(self.options, "networks", Dict{Symbol, Any}());
         if functions.ccxtruthy(@functions.ccxt_and((ccxt_in(preferredChain, networkIdsByCodes)), (ccxt_in(alternativeChain, networkIdsByCodes))))
@@ -5159,6 +5213,9 @@ function selectNetworkKeyFromNetworks(self::CcxtExchange, currencyCode, networkC
         else
             defaultNetworkCode = self.defaultNetworkCode(currencyCode);
             defaultNetworkId = functions.ccxtruthy(isIndexedByUnifiedNetworkCode) ? defaultNetworkCode : self.networkCodeToId(defaultNetworkCode, currencyCode);
+            if functions.ccxtruthy(defaultNetworkId == nothing)
+                throw(ExchangeError(string(self.id, " selectNetworkKeyFromNetworks() missing defaultNetworkId")));
+            end
             if functions.ccxtruthy(ccxt_in(defaultNetworkId, indexedNetworkEntries))
                     return defaultNetworkId
             end
@@ -5174,6 +5231,9 @@ function safeNumber2(self::CcxtExchange, dictionary, key1, key2, d=nothing)
 
 end
 function parseOrderBook(self::CcxtExchange, orderbook, symbol, timestamp=nothing, bidsKey="bids", asksKey="asks", priceKey=0, amountKey=1, countOrIdKey=2)
+    if functions.ccxtruthy(orderbook == nothing)
+        orderbook = Dict{Symbol, Any}();
+    end
     bids = self.parseOrderBookBidsAsks(safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
     asks = self.parseOrderBookBidsAsks(safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
     return Dict{Symbol, Any}(
@@ -5187,6 +5247,9 @@ function parseOrderBook(self::CcxtExchange, orderbook, symbol, timestamp=nothing
 
 end
 function parseOHLCVs(self::CcxtExchange, ohlcvs, market=nothing, timeframe="1m", since=nothing, limit=nothing, tail=false)
+    if functions.ccxtruthy(ohlcvs == nothing)
+            return []
+    end
     results = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(ohlcvs)))
@@ -5213,7 +5276,7 @@ function parseLeverageTiers(self::CcxtExchange, response, symbols=nothing, marke
             market = self.safeMarket(id, nothing, nothing, "swap");
             symbol = get(market, Symbol("symbol"), nothing);
             contract = self.safeBool(market, "contract", false);
-            if functions.ccxtruthy(@functions.ccxt_and(contract, (@functions.ccxt_or(noSymbols, inArray(symbol, symbols)))))
+            if functions.ccxtruthy(@functions.ccxt_and(contract, (@functions.ccxt_or(noSymbols, (@functions.ccxt_and((symbols != nothing), inArray(symbol, symbols)))))))
                 tiers[Symbol(symbol)] = self.parseMarketLeverageTiers(item, market);
             end
             i += 1
@@ -5228,7 +5291,7 @@ function parseLeverageTiers(self::CcxtExchange, response, symbols=nothing, marke
             market = self.safeMarket(marketId, nothing, nothing, "swap");
             symbol = get(market, Symbol("symbol"), nothing);
             contract = self.safeBool(market, "contract", false);
-            if functions.ccxtruthy(@functions.ccxt_and(contract, (@functions.ccxt_or(noSymbols, inArray(symbol, symbols)))))
+            if functions.ccxtruthy(@functions.ccxt_and(contract, (@functions.ccxt_or(noSymbols, (@functions.ccxt_and((symbols != nothing), inArray(symbol, symbols)))))))
                 tiers[Symbol(symbol)] = self.parseMarketLeverageTiers(item, market);
             end
             i += 1
@@ -5241,10 +5304,15 @@ function loadTradingLimits(self::CcxtExchange, symbols=nothing, reload=false, pa
     if functions.ccxtruthy(get(self.has, Symbol("fetchTradingLimits"), nothing))
         if functions.ccxtruthy(@functions.ccxt_or(reload, !functions.ccxtruthy((ccxt_in("limitsLoaded", self.options)))))
             response = self.fetchTradingLimits(symbols);
+            symbolsArray = self.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
+            markets = self.markets;
+            if functions.ccxtruthy(markets == nothing)
+                throw(ExchangeError(string(self.id, " markets not loaded")));
+            end
             i = 0
-            while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
-                symbol = get(symbols, i + 1, nothing);
-                self.markets[Symbol(symbol)] = deepExtend(get(self.markets, Symbol(symbol), nothing), get(response, Symbol(symbol), nothing));
+            while functions.ccxtruthy(functions.ccxt_lt(i, length(symbolsArray)))
+                symbol = get(symbolsArray, i + 1, nothing);
+                markets[Symbol(symbol)] = deepExtend(get(markets, Symbol(symbol), nothing), get(response, Symbol(symbol), nothing));
                 i += 1
             end
 
@@ -5277,11 +5345,11 @@ function safePosition(self::CcxtExchange, position)
 end
 function parsePositions(self::CcxtExchange, positions, symbols=nothing, params=Dict())
     symbols = self.marketSymbols(symbols);
-    positions = toArray(positions);
+    positionsArray = toArray(positions);
     result = [];
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
-        position = extend(self.parsePosition(get(positions, i + 1, nothing)), params);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(positionsArray)))
+        position = extend(self.parsePosition(get(positionsArray, i + 1, nothing)), params);
         push!(result, position);
         i += 1
     end
@@ -5289,16 +5357,19 @@ function parsePositions(self::CcxtExchange, positions, symbols=nothing, params=D
 
 end
 function parseADLRank(self::CcxtExchange, info, market=nothing)
+    if functions.ccxtruthy(info == nothing)
+        throw(NotSupported(string(self.id, " parseADLRank() is not supported yet")));
+    end
     throw(NotSupported(string(self.id, " parseADLRank() is not supported yet")));
 
 end
 function parseADLRanks(self::CcxtExchange, ranks, symbols=nothing, params=Dict())
     symbols = self.marketSymbols(symbols);
-    ranks = toArray(ranks);
+    ranksArray = toArray(ranks);
     result = [];
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(ranks)))
-        rank = extend(self.parseADLRank(get(ranks, i + 1, nothing)), params);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(ranksArray)))
+        rank = extend(self.parseADLRank(get(ranksArray, i + 1, nothing)), params);
         push!(result, rank);
         i += 1
     end
@@ -5306,11 +5377,11 @@ function parseADLRanks(self::CcxtExchange, ranks, symbols=nothing, params=Dict()
 
 end
 function parseAccounts(self::CcxtExchange, accounts, params=Dict())
-    accounts = toArray(accounts);
+    accountsArray = toArray(accounts);
     result = [];
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(accounts)))
-        account = extend(self.parseAccount(get(accounts, i + 1, nothing)), params);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(accountsArray)))
+        account = extend(self.parseAccount(get(accountsArray, i + 1, nothing)), params);
         push!(result, account);
         i += 1
     end
@@ -5318,22 +5389,22 @@ function parseAccounts(self::CcxtExchange, accounts, params=Dict())
 
 end
 function parseTradesHelper(self::CcxtExchange, isWs, trades, market=nothing, since=nothing, limit=nothing, params=Dict())
-    trades = toArray(trades);
+    tradesArray = toArray(trades);
     result = [];
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(trades)))
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(tradesArray)))
         parsed = nothing;
         if functions.ccxtruthy(isWs)
-            parsed = self.parseWsTrade(get(trades, i + 1, nothing), market);
+            parsed = self.parseWsTrade(get(tradesArray, i + 1, nothing), market);
         else
-            parsed = self.parseTrade(get(trades, i + 1, nothing), market);
+            parsed = self.parseTrade(get(tradesArray, i + 1, nothing), market);
         end
         trade = extend(parsed, params);
         push!(result, trade);
         i += 1
     end
     result = sortBy2(result, "timestamp", "id");
-    symbol = functions.ccxtruthy((market != nothing)) ? get(market, Symbol("symbol"), nothing) : nothing;
+    symbol = safeString(market, "symbol");
     return self.filterBySymbolSinceLimit(result, symbol, since, limit)
 
 end
@@ -5346,11 +5417,11 @@ function parseWsTrades(self::CcxtExchange, trades, market=nothing, since=nothing
 
 end
 function parseTransactions(self::CcxtExchange, transactions, currency=nothing, since=nothing, limit=nothing, params=Dict())
-    transactions = toArray(transactions);
+    transactionsArray = toArray(transactions);
     result = [];
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(transactions)))
-        transaction = extend(self.parseTransaction(get(transactions, i + 1, nothing), currency), params);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(transactionsArray)))
+        transaction = extend(self.parseTransaction(get(transactionsArray, i + 1, nothing), currency), params);
         push!(result, transaction);
         i += 1
     end
@@ -5360,11 +5431,11 @@ function parseTransactions(self::CcxtExchange, transactions, currency=nothing, s
 
 end
 function parseTransfers(self::CcxtExchange, transfers, currency=nothing, since=nothing, limit=nothing, params=Dict())
-    transfers = toArray(transfers);
+    transfersArray = toArray(transfers);
     result = [];
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(transfers)))
-        transfer = extend(self.parseTransfer(get(transfers, i + 1, nothing), currency), params);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(transfersArray)))
+        transfer = extend(self.parseTransfer(get(transfersArray, i + 1, nothing), currency), params);
         push!(result, transfer);
         i += 1
     end
@@ -5405,6 +5476,9 @@ function setHeaders(self::CcxtExchange, headers)
 
 end
 function currencyId(self::CcxtExchange, code)
+    if functions.ccxtruthy(code == nothing)
+            return code
+    end
     currency = self.safeDict(self.currencies, code);
     if functions.ccxtruthy(currency == nothing)
         currency = self.safeCurrency(code);
@@ -5424,8 +5498,17 @@ function marketId(self::CcxtExchange, symbol)
 
 end
 function symbol(self::CcxtExchange, symbol)
+    if functions.ccxtruthy(symbol == nothing)
+        throw(ArgumentsRequired(string(self.id, " symbol() requires a symbol argument")));
+    end
     market = self.market(symbol);
     return safeString(market, "symbol", symbol)
+
+end
+function handleParamString(self::CcxtExchange, params, paramName, defaultValue)
+
+end
+function handleParamString(self::CcxtExchange, params, paramName, defaultValue=nothing)
 
 end
 function handleParamString(self::CcxtExchange, params, paramName, defaultValue=nothing)
@@ -5434,6 +5517,12 @@ function handleParamString(self::CcxtExchange, params, paramName, defaultValue=n
         params = omit(params, paramName);
     end
     return [value, params]
+
+end
+function handleParamString2(self::CcxtExchange, params, paramName1, paramName2, defaultValue)
+
+end
+function handleParamString2(self::CcxtExchange, params, paramName1, paramName2, defaultValue=nothing)
 
 end
 function handleParamString2(self::CcxtExchange, params, paramName1, paramName2, defaultValue=nothing)
@@ -5576,10 +5665,10 @@ function fetch2(self::CcxtExchange, path, api="public", method="GET", params=Dic
         cost = self.calculateRateLimiterCost(api, method, path, params, config);
         self.throttle(cost);
     end
-    retries = nothing;
-    (retries, params) = self.handleOptionAndParams(params, path, "maxRetriesOnFailure", 0);
-    retryDelay = nothing;
-    (retryDelay, params) = self.handleOptionAndParams(params, path, "maxRetriesOnFailureDelay", 0);
+    retries = 0;
+    (retries, params) = self.handleOptionAndParams(params, path, "maxRetriesOnFailure", retries);
+    retryDelay = 0;
+    (retryDelay, params) = self.handleOptionAndParams(params, path, "maxRetriesOnFailureDelay", retryDelay);
     fetchData = nothing;
     fetchDataCacheEnabled = functions.ccxt_gt(self.fetchHistoryCacheSize, 0);
     i = 0
@@ -5596,18 +5685,18 @@ function fetch2(self::CcxtExchange, path, api="public", method="GET", params=Dic
         try
             self.setLastRestRequestTimestamp();
             request = self.sign(path, api, method, params, headers, body);
-            if functions.ccxtruthy(fetchDataCacheEnabled)
+            if functions.ccxtruthy(@functions.ccxt_and(fetchDataCacheEnabled, (fetchData != nothing)))
                 fetchData[Symbol("request")] = request;
             end
             self.setLastRequest(request);
             response = self.fetch(get(request, Symbol("url"), nothing), get(request, Symbol("method"), nothing), get(request, Symbol("headers"), nothing), get(request, Symbol("body"), nothing));
-            if functions.ccxtruthy(fetchDataCacheEnabled)
+            if functions.ccxtruthy(@functions.ccxt_and(fetchDataCacheEnabled, (fetchData != nothing)))
                 fetchData[Symbol("response")][Symbol("body")] = response;
                 self.addFetchCache(fetchData);
             end
             return response
         catch e
-            if functions.ccxtruthy(fetchDataCacheEnabled)
+            if functions.ccxtruthy(@functions.ccxt_and(fetchDataCacheEnabled, (fetchData != nothing)))
                 fetchData[Symbol("error")] = e;
                 self.addFetchCache(fetchData);
             end
@@ -5669,8 +5758,14 @@ function buildOHLCVC(self::CcxtExchange, trades, timeframe="1m", since=0, limit=
         trade = get(trades, i + 1, nothing);
         ts = get(trade, Symbol("timestamp"), nothing);
         price = get(trade, Symbol("price"), nothing);
+        if functions.ccxtruthy(@functions.ccxt_or((ts == nothing), (price == nothing)))
+            i += 1; continue
+        end
         if functions.ccxtruthy(functions.ccxt_lt(ts, since))
             i += 1; continue
+        end
+        if functions.ccxtruthy(ts == nothing)
+            throw(ExchangeError(string(self.id, " buildOHLCVC() missing ts")));
         end
         openingTime = floor(ts / ms) * ms;
         if functions.ccxtruthy(functions.ccxt_lt(openingTime, since))
@@ -5678,6 +5773,9 @@ function buildOHLCVC(self::CcxtExchange, trades, timeframe="1m", since=0, limit=
         end
         ohlcv_length = length(ohlcvs);
         candle = ohlcv_length - 1;
+        if functions.ccxtruthy(price == nothing)
+            throw(ArgumentsRequired(string(self.id, " buildOHLCVC() requires a price argument")));
+        end
         if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(skipZeroPrices, !functions.ccxtruthy((functions.ccxt_gt(price, 0)))), !functions.ccxtruthy((functions.ccxt_lt(price, 0)))))
             i += 1; continue
         end
@@ -5685,8 +5783,12 @@ function buildOHLCVC(self::CcxtExchange, trades, timeframe="1m", since=0, limit=
         if functions.ccxtruthy(@functions.ccxt_or(isFirstCandle, functions.ccxt_ge(openingTime, self.sum(get(get(ohlcvs, candle + 1, nothing), i_timestamp + 1, nothing), ms))))
                         push!(ohlcvs, [openingTime, price, price, price, price, get(trade, Symbol("amount"), nothing), 1]);
         else
-            ohlcvs[candle + 1][i_high + 1] = max(get(get(ohlcvs, candle + 1, nothing), i_high + 1, nothing), price);
-            ohlcvs[candle + 1][i_low + 1] = min(get(get(ohlcvs, candle + 1, nothing), i_low + 1, nothing), price);
+            prevHigh = get(get(ohlcvs, candle + 1, nothing), i_high + 1, nothing);
+            prevLow = get(get(ohlcvs, candle + 1, nothing), i_low + 1, nothing);
+            prevHighValue = functions.ccxtruthy((prevHigh == nothing)) ? price : prevHigh;
+            prevLowValue = functions.ccxtruthy((prevLow == nothing)) ? price : prevLow;
+            ohlcvs[candle + 1][i_high + 1] = max(prevHighValue, price);
+            ohlcvs[candle + 1][i_low + 1] = min(prevLowValue, price);
             ohlcvs[candle + 1][i_close + 1] = price;
             ohlcvs[candle + 1][i_volume + 1] = self.sum(get(get(ohlcvs, candle + 1, nothing), i_volume + 1, nothing), get(trade, Symbol("amount"), nothing));
             ohlcvs[candle + 1][i_count + 1] = self.sum(get(get(ohlcvs, candle + 1, nothing), i_count + 1, nothing), 1);
@@ -5699,79 +5801,6 @@ end
 function parseTradingViewOHLCV(self::CcxtExchange, ohlcvs, market=nothing, timeframe="1m", since=nothing, limit=nothing)
     result = self.convertTradingViewToOHLCV(ohlcvs);
     return self.parseOHLCVs(result, market, timeframe, since, limit)
-
-end
-function editLimitBuyOrder(self::CcxtExchange, id, symbol, amount, price=nothing, params=Dict())
-    return self.editLimitOrder(id, symbol, "buy", amount, price, params)
-
-end
-function editLimitSellOrder(self::CcxtExchange, id, symbol, amount, price=nothing, params=Dict())
-    return self.editLimitOrder(id, symbol, "sell", amount, price, params)
-
-end
-function editLimitOrder(self::CcxtExchange, id, symbol, side, amount, price=nothing, params=Dict())
-    return self.editOrder(id, symbol, "limit", side, amount, price, params)
-
-end
-function editOrder(self::CcxtExchange, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
-    self.cancelOrder(id, symbol);
-    return self.createOrder(symbol, type_var, side, amount, price, params)
-
-end
-function editOrderWithClientOrderId(self::CcxtExchange, clientOrderId, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
-    extendedParams = extend(params, Dict{Symbol, Any}(
-        Symbol("clientOrderId") => clientOrderId
-    ));
-    return self.editOrder("", symbol, type_var, side, amount, price, extendedParams)
-
-end
-function editOrderWs(self::CcxtExchange, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
-    self.cancelOrderWs(id, symbol);
-    return self.createOrderWs(symbol, type_var, side, amount, price, params)
-
-end
-function fetchPosition(self::CcxtExchange, symbol, params=Dict())
-    throw(NotSupported(string(self.id, " fetchPosition() is not supported yet")));
-
-end
-function fetchPositionWs(self::CcxtExchange, symbol, params=Dict())
-    throw(NotSupported(string(self.id, " fetchPositionWs() is not supported yet")));
-
-end
-function watchPosition(self::CcxtExchange, symbol=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchPosition() is not supported yet")));
-
-end
-function watchPositions(self::CcxtExchange, symbols=nothing, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchPositions() is not supported yet")));
-
-end
-function watchPositionForSymbols(self::CcxtExchange, symbols=nothing, since=nothing, limit=nothing, params=Dict())
-    return self.watchPositions(symbols, since, limit, params)
-
-end
-function fetchPositionsForSymbol(self::CcxtExchange, symbol, params=Dict())
-    throw(NotSupported(string(self.id, " fetchPositionsForSymbol() is not supported yet")));
-
-end
-function fetchPositionsForSymbolWs(self::CcxtExchange, symbol, params=Dict())
-    throw(NotSupported(string(self.id, " fetchPositionsForSymbol() is not supported yet")));
-
-end
-function fetchPositions(self::CcxtExchange, symbols=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchPositions() is not supported yet")));
-
-end
-function fetchPositionsWs(self::CcxtExchange, symbols=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchPositions() is not supported yet")));
-
-end
-function fetchPositionsRisk(self::CcxtExchange, symbols=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchPositionsRisk() is not supported yet")));
-
-end
-function fetchBidsAsks(self::CcxtExchange, symbols=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchBidsAsks() is not supported yet")));
 
 end
 function fetchBorrowInterest(self::CcxtExchange, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -5846,12 +5875,25 @@ function safeMarket(self::CcxtExchange, marketId=nothing, market=nothing, delimi
                 Symbol("symbol") => marketId,
                 Symbol("marketId") => marketId
             ));
+            if functions.ccxtruthy(result == nothing)
+                throw(ExchangeError(string(self.id, " safeMarket() failed to build market structure")));
+            end
             if functions.ccxtruthy(partsLength == 2)
-                result[Symbol("baseId")] = safeString(parts, 0);
-                result[Symbol("quoteId")] = safeString(parts, 1);
-                result[Symbol("base")] = self.safeCurrencyCode(get(result, Symbol("baseId"), nothing));
-                result[Symbol("quote")] = self.safeCurrencyCode(get(result, Symbol("quoteId"), nothing));
-                result[Symbol("symbol")] = string(get(result, Symbol("base"), nothing), "/", get(result, Symbol("quote"), nothing));
+                baseId = safeString(parts, 0);
+                quoteId = safeString(parts, 1);
+                base = self.safeCurrencyCode(baseId);
+                quote_var = self.safeCurrencyCode(quoteId);
+                result[Symbol("baseId")] = baseId;
+                result[Symbol("quoteId")] = quoteId;
+                if functions.ccxtruthy(base != nothing)
+                    result[Symbol("base")] = base;
+                end
+                if functions.ccxtruthy(quote_var != nothing)
+                    result[Symbol("quote")] = quote_var;
+                end
+                if functions.ccxtruthy(@functions.ccxt_and((base != nothing), (quote_var != nothing)))
+                    result[Symbol("symbol")] = string(base, "/", quote_var);
+                end
             end
             return result
         end
@@ -5859,10 +5901,14 @@ function safeMarket(self::CcxtExchange, marketId=nothing, market=nothing, delimi
     if functions.ccxtruthy(market != nothing)
             return market
     end
-    return self.safeMarketStructure(Dict{Symbol, Any}(
-    Symbol("symbol") => marketId,
-    Symbol("marketId") => marketId
-))
+    emptyMarket = self.safeMarketStructure(Dict{Symbol, Any}(
+        Symbol("symbol") => marketId,
+        Symbol("marketId") => marketId
+    ));
+    if functions.ccxtruthy(emptyMarket == nothing)
+        throw(ExchangeError(string(self.id, " safeMarket() failed to build market structure")));
+    end
+    return emptyMarket
 
 end
 function marketOrNull(self::CcxtExchange, symbol=nothing)
@@ -5991,6 +6037,23 @@ function fetchIsolatedBorrowRate(self::CcxtExchange, symbol, params=Dict())
     return rate
 
 end
+function requireValue(self::CcxtExchange, value, message=nothing)
+
+end
+function requireValue(self::CcxtExchange, value, message=nothing)
+    if functions.ccxtruthy(value == nothing)
+        errorMessage = functions.ccxtruthy((message != nothing)) ? message : "value is required";
+        throw(ArgumentsRequired(string(self.id, " ", errorMessage)));
+    end
+    return value
+
+end
+function handleOptionAndParams(self::CcxtExchange, params, methodName, optionName, defaultValue)
+
+end
+function handleOptionAndParams(self::CcxtExchange, params, methodName, optionName, defaultValue=nothing)
+
+end
 function handleOptionAndParams(self::CcxtExchange, params, methodName, optionName, defaultValue=nothing)
     defaultOptionName = string("default", capitalize(optionName));
     value = safeValue2(params, optionName, defaultOptionName);
@@ -6008,6 +6071,12 @@ function handleOptionAndParams(self::CcxtExchange, params, methodName, optionNam
         value = functions.ccxtruthy((value != nothing)) ? value : defaultValue;
     end
     return [value, params]
+
+end
+function handleOptionAndParams2(self::CcxtExchange, params, methodName1, optionName1, optionName2, defaultValue)
+
+end
+function handleOptionAndParams2(self::CcxtExchange, params, methodName1, optionName1, optionName2, defaultValue=nothing)
 
 end
 function handleOptionAndParams2(self::CcxtExchange, params, methodName1, optionName1, optionName2, defaultValue=nothing)
@@ -6058,7 +6127,9 @@ function handleSubTypeAndParams(self::CcxtExchange, methodName, market=nothing, 
     subType = nothing;
     subTypeInParams = safeString2(params, "subType", "defaultSubType");
     if functions.ccxtruthy(subTypeInParams != nothing)
-        subType = subTypeInParams;
+        if functions.ccxtruthy(@functions.ccxt_or((subTypeInParams == "linear"), (subTypeInParams == "inverse")))
+            subType = subTypeInParams;
+        end
         params = omit(params, ["subType", "defaultSubType"]);
     else
         if functions.ccxtruthy(market != nothing)
@@ -6119,65 +6190,6 @@ function calculateRateLimiterCost(self::CcxtExchange, api, method, path, params,
     return safeValue(config, "cost", 1)
 
 end
-function fetchTicker(self::CcxtExchange, symbol, params=Dict())
-    if functions.ccxtruthy(get(self.has, Symbol("fetchTickers"), nothing))
-        self.loadMarkets();
-        market = self.market(symbol);
-        symbol = get(market, Symbol("symbol"), nothing);
-        tickers = self.fetchTickers([symbol], params);
-        ticker = self.safeDict(tickers, symbol);
-        if functions.ccxtruthy(ticker == nothing)
-            throw(NullResponse(string(self.id, " fetchTickers() could not find a ticker for ", symbol)));
-        else
-            return ticker
-        end
-    else
-        throw(NotSupported(string(self.id, " fetchTicker() is not supported yet")));
-    end
-
-end
-function fetchMarkPrice(self::CcxtExchange, symbol, params=Dict())
-    if functions.ccxtruthy(get(self.has, Symbol("fetchMarkPrices"), nothing))
-        self.loadMarkets();
-        market = self.market(symbol);
-        symbol = get(market, Symbol("symbol"), nothing);
-        tickers = self.fetchMarkPrices([symbol], params);
-        ticker = self.safeDict(tickers, symbol);
-        if functions.ccxtruthy(ticker == nothing)
-            throw(NullResponse(string(self.id, " fetchMarkPrices() could not find a ticker for ", symbol)));
-        else
-            return ticker
-        end
-    else
-        throw(NotSupported(string(self.id, " fetchMarkPrices() is not supported yet")));
-    end
-
-end
-function fetchTickerWs(self::CcxtExchange, symbol, params=Dict())
-    if functions.ccxtruthy(get(self.has, Symbol("fetchTickersWs"), nothing))
-        self.loadMarkets();
-        market = self.market(symbol);
-        symbol = get(market, Symbol("symbol"), nothing);
-        tickers = self.fetchTickersWs([symbol], params);
-        ticker = self.safeDict(tickers, symbol);
-        if functions.ccxtruthy(ticker == nothing)
-            throw(NullResponse(string(self.id, " fetchTickerWs() could not find a ticker for ", symbol)));
-        else
-            return ticker
-        end
-    else
-        throw(NotSupported(string(self.id, " fetchTickerWs() is not supported yet")));
-    end
-
-end
-function watchTicker(self::CcxtExchange, symbol, params=Dict())
-    throw(NotSupported(string(self.id, " watchTicker() is not supported yet")));
-
-end
-function fetchTickers(self::CcxtExchange, symbols=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchTickers() is not supported yet")));
-
-end
 function fetchSpotTickers(self::CcxtExchange, symbols=nothing, params=Dict())
     throw(NotSupported(string(self.id, " fetchSpotTickers() is not supported yet")));
 
@@ -6186,24 +6198,8 @@ function fetchContractTickers(self::CcxtExchange, symbols=nothing, params=Dict()
     throw(NotSupported(string(self.id, " fetchContractTickers() is not supported yet")));
 
 end
-function fetchMarkPrices(self::CcxtExchange, symbols=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchMarkPrices() is not supported yet")));
-
-end
-function fetchTickersWs(self::CcxtExchange, symbols=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchTickersWs() is not supported yet")));
-
-end
 function fetchOrderBooks(self::CcxtExchange, symbols=nothing, limit=nothing, params=Dict())
     throw(NotSupported(string(self.id, " fetchOrderBooks() is not supported yet")));
-
-end
-function watchBidsAsks(self::CcxtExchange, symbols=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchBidsAsks() is not supported yet")));
-
-end
-function watchTickers(self::CcxtExchange, symbols=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchTickers() is not supported yet")));
 
 end
 function unWatchTickers(self::CcxtExchange, symbols=nothing, params=Dict())
@@ -6212,34 +6208,6 @@ function unWatchTickers(self::CcxtExchange, symbols=nothing, params=Dict())
 end
 function unWatchFundingRate(self::CcxtExchange, symbol, params=Dict())
     throw(NotSupported(string(self.id, " unWatchFundingRate() is not supported yet")));
-
-end
-function fetchOrder(self::CcxtExchange, id, symbol=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchOrder() is not supported yet")));
-
-end
-function fetchOrderWithClientOrderId(self::CcxtExchange, clientOrderId, symbol=nothing, params=Dict())
-    extendedParams = extend(params, Dict{Symbol, Any}(
-        Symbol("clientOrderId") => clientOrderId
-    ));
-    return self.fetchOrder("", symbol, extendedParams)
-
-end
-function fetchOrderWs(self::CcxtExchange, id, symbol=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchOrderWs() is not supported yet")));
-
-end
-function fetchOrderStatus(self::CcxtExchange, id, symbol=nothing, params=Dict())
-    order = self.fetchOrder(id, symbol, params);
-    return get(order, Symbol("status"), nothing)
-
-end
-function fetchUnifiedOrder(self::CcxtExchange, order, params=Dict())
-    return self.fetchOrder(safeString(order, "id"), safeString(order, "symbol"), params)
-
-end
-function createOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " createOrder() is not supported yet")));
 
 end
 function createTwapOrder(self::CcxtExchange, symbol, side, amount, duration, params=Dict())
@@ -6285,176 +6253,6 @@ function fetchPositionADLRank(self::CcxtExchange, symbol, params=Dict())
     else
         throw(NotSupported(string(self.id, " fetchPositionsADLRank() is not supported yet")));
     end
-
-end
-function createTrailingAmountOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, trailingAmount=nothing, trailingTriggerPrice=nothing, params=Dict())
-    if functions.ccxtruthy(trailingAmount == nothing)
-        throw(ArgumentsRequired(string(self.id, " createTrailingAmountOrder() requires a trailingAmount argument")));
-    end
-    params[Symbol("trailingAmount")] = trailingAmount;
-    if functions.ccxtruthy(trailingTriggerPrice != nothing)
-        params[Symbol("trailingTriggerPrice")] = trailingTriggerPrice;
-    end
-    if functions.ccxtruthy(get(self.has, Symbol("createTrailingAmountOrder"), nothing))
-            return self.createOrder(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createTrailingAmountOrder() is not supported yet")));
-
-end
-function createTrailingAmountOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, trailingAmount=nothing, trailingTriggerPrice=nothing, params=Dict())
-    if functions.ccxtruthy(trailingAmount == nothing)
-        throw(ArgumentsRequired(string(self.id, " createTrailingAmountOrderWs() requires a trailingAmount argument")));
-    end
-    params[Symbol("trailingAmount")] = trailingAmount;
-    if functions.ccxtruthy(trailingTriggerPrice != nothing)
-        params[Symbol("trailingTriggerPrice")] = trailingTriggerPrice;
-    end
-    if functions.ccxtruthy(get(self.has, Symbol("createTrailingAmountOrderWs"), nothing))
-            return self.createOrderWs(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createTrailingAmountOrderWs() is not supported yet")));
-
-end
-function createTrailingPercentOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, trailingPercent=nothing, trailingTriggerPrice=nothing, params=Dict())
-    if functions.ccxtruthy(trailingPercent == nothing)
-        throw(ArgumentsRequired(string(self.id, " createTrailingPercentOrder() requires a trailingPercent argument")));
-    end
-    params[Symbol("trailingPercent")] = trailingPercent;
-    if functions.ccxtruthy(trailingTriggerPrice != nothing)
-        params[Symbol("trailingTriggerPrice")] = trailingTriggerPrice;
-    end
-    if functions.ccxtruthy(get(self.has, Symbol("createTrailingPercentOrder"), nothing))
-            return self.createOrder(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createTrailingPercentOrder() is not supported yet")));
-
-end
-function createTrailingPercentOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, trailingPercent=nothing, trailingTriggerPrice=nothing, params=Dict())
-    if functions.ccxtruthy(trailingPercent == nothing)
-        throw(ArgumentsRequired(string(self.id, " createTrailingPercentOrderWs() requires a trailingPercent argument")));
-    end
-    params[Symbol("trailingPercent")] = trailingPercent;
-    if functions.ccxtruthy(trailingTriggerPrice != nothing)
-        params[Symbol("trailingTriggerPrice")] = trailingTriggerPrice;
-    end
-    if functions.ccxtruthy(get(self.has, Symbol("createTrailingPercentOrderWs"), nothing))
-            return self.createOrderWs(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createTrailingPercentOrderWs() is not supported yet")));
-
-end
-function createMarketOrderWithCost(self::CcxtExchange, symbol, side, cost, params=Dict())
-    if functions.ccxtruthy(@functions.ccxt_or(get(self.has, Symbol("createMarketOrderWithCost"), nothing), (@functions.ccxt_and(get(self.has, Symbol("createMarketBuyOrderWithCost"), nothing), get(self.has, Symbol("createMarketSellOrderWithCost"), nothing)))))
-            return self.createOrder(symbol, "market", side, cost, 1, params)
-    end
-    throw(NotSupported(string(self.id, " createMarketOrderWithCost() is not supported yet")));
-
-end
-function createMarketBuyOrderWithCost(self::CcxtExchange, symbol, cost, params=Dict())
-    if functions.ccxtruthy(@functions.ccxt_or(get(self.options, Symbol("createMarketBuyOrderRequiresPrice"), nothing), get(self.has, Symbol("createMarketBuyOrderWithCost"), nothing)))
-            return self.createOrder(symbol, "market", "buy", cost, 1, params)
-    end
-    throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() is not supported yet")));
-
-end
-function createMarketSellOrderWithCost(self::CcxtExchange, symbol, cost, params=Dict())
-    if functions.ccxtruthy(@functions.ccxt_or(get(self.options, Symbol("createMarketSellOrderRequiresPrice"), nothing), get(self.has, Symbol("createMarketSellOrderWithCost"), nothing)))
-            return self.createOrder(symbol, "market", "sell", cost, 1, params)
-    end
-    throw(NotSupported(string(self.id, " createMarketSellOrderWithCost() is not supported yet")));
-
-end
-function createMarketOrderWithCostWs(self::CcxtExchange, symbol, side, cost, params=Dict())
-    if functions.ccxtruthy(@functions.ccxt_or(get(self.has, Symbol("createMarketOrderWithCostWs"), nothing), (@functions.ccxt_and(get(self.has, Symbol("createMarketBuyOrderWithCostWs"), nothing), get(self.has, Symbol("createMarketSellOrderWithCostWs"), nothing)))))
-            return self.createOrderWs(symbol, "market", side, cost, 1, params)
-    end
-    throw(NotSupported(string(self.id, " createMarketOrderWithCostWs() is not supported yet")));
-
-end
-function createTriggerOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, triggerPrice=nothing, params=Dict())
-    if functions.ccxtruthy(triggerPrice == nothing)
-        throw(ArgumentsRequired(string(self.id, " createTriggerOrder() requires a triggerPrice argument")));
-    end
-    params = extend(params, Dict{Symbol, Any}(
-    Symbol("triggerPrice") => triggerPrice
-));
-    if functions.ccxtruthy(get(self.has, Symbol("createTriggerOrder"), nothing))
-            return self.createOrder(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createTriggerOrder() is not supported yet")));
-
-end
-function createTriggerOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, triggerPrice=nothing, params=Dict())
-    if functions.ccxtruthy(triggerPrice == nothing)
-        throw(ArgumentsRequired(string(self.id, " createTriggerOrderWs() requires a triggerPrice argument")));
-    end
-    params = extend(params, Dict{Symbol, Any}(
-    Symbol("triggerPrice") => triggerPrice
-));
-    if functions.ccxtruthy(get(self.has, Symbol("createTriggerOrderWs"), nothing))
-            return self.createOrderWs(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createTriggerOrderWs() is not supported yet")));
-
-end
-function createStopLossOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, stopLossPrice=nothing, params=Dict())
-    if functions.ccxtruthy(stopLossPrice == nothing)
-        throw(ArgumentsRequired(string(self.id, " createStopLossOrder() requires a stopLossPrice argument")));
-    end
-    params = extend(params, Dict{Symbol, Any}(
-    Symbol("stopLossPrice") => stopLossPrice
-));
-    if functions.ccxtruthy(get(self.has, Symbol("createStopLossOrder"), nothing))
-            return self.createOrder(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createStopLossOrder() is not supported yet")));
-
-end
-function createStopLossOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, stopLossPrice=nothing, params=Dict())
-    if functions.ccxtruthy(stopLossPrice == nothing)
-        throw(ArgumentsRequired(string(self.id, " createStopLossOrderWs() requires a stopLossPrice argument")));
-    end
-    params = extend(params, Dict{Symbol, Any}(
-    Symbol("stopLossPrice") => stopLossPrice
-));
-    if functions.ccxtruthy(get(self.has, Symbol("createStopLossOrderWs"), nothing))
-            return self.createOrderWs(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createStopLossOrderWs() is not supported yet")));
-
-end
-function createTakeProfitOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, takeProfitPrice=nothing, params=Dict())
-    if functions.ccxtruthy(takeProfitPrice == nothing)
-        throw(ArgumentsRequired(string(self.id, " createTakeProfitOrder() requires a takeProfitPrice argument")));
-    end
-    params = extend(params, Dict{Symbol, Any}(
-    Symbol("takeProfitPrice") => takeProfitPrice
-));
-    if functions.ccxtruthy(get(self.has, Symbol("createTakeProfitOrder"), nothing))
-            return self.createOrder(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createTakeProfitOrder() is not supported yet")));
-
-end
-function createTakeProfitOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, takeProfitPrice=nothing, params=Dict())
-    if functions.ccxtruthy(takeProfitPrice == nothing)
-        throw(ArgumentsRequired(string(self.id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")));
-    end
-    params = extend(params, Dict{Symbol, Any}(
-    Symbol("takeProfitPrice") => takeProfitPrice
-));
-    if functions.ccxtruthy(get(self.has, Symbol("createTakeProfitOrderWs"), nothing))
-            return self.createOrderWs(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createTakeProfitOrderWs() is not supported yet")));
-
-end
-function createOrderWithTakeProfitAndStopLoss(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, takeProfit=nothing, stopLoss=nothing, params=Dict())
-    params = self.setTakeProfitAndStopLossParams(symbol, type_var, side, amount, price, takeProfit, stopLoss, params);
-    if functions.ccxtruthy(get(self.has, Symbol("createOrderWithTakeProfitAndStopLoss"), nothing))
-            return self.createOrder(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")));
 
 end
 function setTakeProfitAndStopLossParams(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, takeProfit=nothing, stopLoss=nothing, params=Dict())
@@ -6507,18 +6305,6 @@ function setTakeProfitAndStopLossParams(self::CcxtExchange, symbol, type_var, si
     return params
 
 end
-function createOrderWithTakeProfitAndStopLossWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, takeProfit=nothing, stopLoss=nothing, params=Dict())
-    params = self.setTakeProfitAndStopLossParams(symbol, type_var, side, amount, price, takeProfit, stopLoss, params);
-    if functions.ccxtruthy(get(self.has, Symbol("createOrderWithTakeProfitAndStopLossWs"), nothing))
-            return self.createOrderWs(symbol, type_var, side, amount, price, params)
-    end
-    throw(NotSupported(string(self.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")));
-
-end
-function createOrders(self::CcxtExchange, orders, params=Dict())
-    throw(NotSupported(string(self.id, " createOrders() is not supported yet")));
-
-end
 function createSpotOrders(self::CcxtExchange, orders, params=Dict())
     throw(NotSupported(string(self.id, " createSpotOrders() is not supported yet")));
 
@@ -6527,54 +6313,12 @@ function createContractOrders(self::CcxtExchange, orders, params=Dict())
     throw(NotSupported(string(self.id, " createContractOrders() is not supported yet")));
 
 end
-function editOrders(self::CcxtExchange, orders, params=Dict())
-    throw(NotSupported(string(self.id, " editOrders() is not supported yet")));
-
-end
-function createOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " createOrderWs() is not supported yet")));
-
-end
-function cancelOrder(self::CcxtExchange, id, symbol=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " cancelOrder() is not supported yet")));
-
-end
 function cancelSpotOrder(self::CcxtExchange, id, symbol=nothing, params=Dict())
     throw(NotSupported(string(self.id, " cancelSpotOrder() is not supported yet")));
 
 end
 function cancelContractOrder(self::CcxtExchange, id, symbol=nothing, params=Dict())
     throw(NotSupported(string(self.id, " cancelContractOrder() is not supported yet")));
-
-end
-function cancelOrderWithClientOrderId(self::CcxtExchange, clientOrderId, symbol=nothing, params=Dict())
-    extendedParams = extend(params, Dict{Symbol, Any}(
-        Symbol("clientOrderId") => clientOrderId
-    ));
-    return self.cancelOrder("", symbol, extendedParams)
-
-end
-function cancelOrderWs(self::CcxtExchange, id, symbol=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " cancelOrderWs() is not supported yet")));
-
-end
-function cancelOrders(self::CcxtExchange, ids, symbol=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " cancelOrders() is not supported yet")));
-
-end
-function cancelOrdersWithClientOrderIds(self::CcxtExchange, clientOrderIds, symbol=nothing, params=Dict())
-    extendedParams = extend(params, Dict{Symbol, Any}(
-        Symbol("clientOrderIds") => clientOrderIds
-    ));
-    return self.cancelOrders([], symbol, extendedParams)
-
-end
-function cancelOrdersWs(self::CcxtExchange, ids, symbol=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " cancelOrdersWs() is not supported yet")));
-
-end
-function cancelAllOrders(self::CcxtExchange, symbol=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " cancelAllOrders() is not supported yet")));
 
 end
 function cancelAllSpotOrders(self::CcxtExchange, symbol=nothing, params=Dict())
@@ -6593,91 +6337,12 @@ function cancelOrdersForSymbols(self::CcxtExchange, orders, params=Dict())
     throw(NotSupported(string(self.id, " cancelOrdersForSymbols() is not supported yet")));
 
 end
-function cancelAllOrdersWs(self::CcxtExchange, symbol=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " cancelAllOrdersWs() is not supported yet")));
-
-end
-function cancelUnifiedOrder(self::CcxtExchange, order, params=Dict())
-    return self.cancelOrder(safeString(order, "id"), safeString(order, "symbol"), params)
-
-end
-function fetchOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    if functions.ccxtruthy(@functions.ccxt_and(get(self.has, Symbol("fetchOpenOrders"), nothing), get(self.has, Symbol("fetchClosedOrders"), nothing)))
-        throw(NotSupported(string(self.id, " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")));
-    end
-    throw(NotSupported(string(self.id, " fetchOrders() is not supported yet")));
-
-end
-function fetchOrdersWs(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchOrdersWs() is not supported yet")));
-
-end
-function fetchOrderTrades(self::CcxtExchange, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchOrderTrades() is not supported yet")));
-
-end
-function watchOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchOrders() is not supported yet")));
-
-end
-function fetchOpenOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    if functions.ccxtruthy(get(self.has, Symbol("fetchOrders"), nothing))
-        orders = self.fetchOrders(symbol, since, limit, params);
-            return filterBy(orders, "status", "open")
-    end
-    throw(NotSupported(string(self.id, " fetchOpenOrders() is not supported yet")));
-
-end
-function fetchOpenOrdersWs(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    if functions.ccxtruthy(get(self.has, Symbol("fetchOrdersWs"), nothing))
-        orders = self.fetchOrdersWs(symbol, since, limit, params);
-            return filterBy(orders, "status", "open")
-    end
-    throw(NotSupported(string(self.id, " fetchOpenOrdersWs() is not supported yet")));
-
-end
-function fetchClosedOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    if functions.ccxtruthy(get(self.has, Symbol("fetchOrders"), nothing))
-        orders = self.fetchOrders(symbol, since, limit, params);
-            return filterBy(orders, "status", "closed")
-    end
-    throw(NotSupported(string(self.id, " fetchClosedOrders() is not supported yet")));
-
-end
-function fetchCanceledOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchCanceledOrders() is not supported yet")));
-
-end
-function fetchCanceledAndClosedOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchCanceledAndClosedOrders() is not supported yet")));
-
-end
-function fetchClosedOrdersWs(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    if functions.ccxtruthy(get(self.has, Symbol("fetchOrdersWs"), nothing))
-        orders = self.fetchOrdersWs(symbol, since, limit, params);
-            return filterBy(orders, "status", "closed")
-    end
-    throw(NotSupported(string(self.id, " fetchClosedOrdersWs() is not supported yet")));
-
-end
-function fetchMyTrades(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchMyTrades() is not supported yet")));
-
-end
 function fetchMyLiquidations(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     throw(NotSupported(string(self.id, " fetchMyLiquidations() is not supported yet")));
 
 end
 function fetchLiquidations(self::CcxtExchange, symbol, since=nothing, limit=nothing, params=Dict())
     throw(NotSupported(string(self.id, " fetchLiquidations() is not supported yet")));
-
-end
-function fetchMyTradesWs(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchMyTradesWs() is not supported yet")));
-
-end
-function watchMyTrades(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchMyTrades() is not supported yet")));
 
 end
 function fetchGreeks(self::CcxtExchange, symbol, params=Dict())
@@ -6726,18 +6391,6 @@ function fetchFundingRateHistory(self::CcxtExchange, symbol=nothing, since=nothi
 end
 function fetchFundingHistory(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     throw(NotSupported(string(self.id, " fetchFundingHistory() is not supported yet")));
-
-end
-function closePosition(self::CcxtExchange, symbol, side=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " closePosition() is not supported yet")));
-
-end
-function closeAllPositions(self::CcxtExchange, params=Dict())
-    throw(NotSupported(string(self.id, " closeAllPositions() is not supported yet")));
-
-end
-function fetchL3OrderBook(self::CcxtExchange, symbol, limit=nothing, params=Dict())
-    throw(BadRequest(string(self.id, " fetchL3OrderBook() is not supported yet")));
 
 end
 function parseLastPrice(self::CcxtExchange, price, market=nothing)
@@ -6789,39 +6442,49 @@ function commonCurrencyCode(self::CcxtExchange, code)
 
 end
 function currency(self::CcxtExchange, code)
+    if functions.ccxtruthy(code == nothing)
+        throw(ArgumentsRequired(string(self.id, " currency() requires a code argument")));
+    end
     keys_var = objectKeys(self.currencies);
     numCurrencies = length(keys_var);
     if functions.ccxtruthy(numCurrencies == 0)
         throw(ExchangeError(string(self.id, " currencies not loaded")));
     end
     if functions.ccxtruthy(isa(code, AbstractString))
-        if functions.ccxtruthy(ccxt_in(code, self.currencies))
-                return get(self.currencies, Symbol(code), nothing)
-        elseif functions.ccxtruthy(ccxt_in(code, self.currencies_by_id))
-            return get(self.currencies_by_id, Symbol(code), nothing)
+        currencies = self.currencies;
+        currenciesById = self.currencies_by_id;
+        if functions.ccxtruthy(ccxt_in(code, currencies))
+                return get(currencies, Symbol(code), nothing)
+        elseif functions.ccxtruthy(@functions.ccxt_and((currenciesById != nothing), (ccxt_in(code, currenciesById))))
+            return get(currenciesById, Symbol(code), nothing)
         end
     end
     throw(ExchangeError(string(self.id, " does not have currency code ", code)));
 
 end
 function market(self::CcxtExchange, symbol)
-    if functions.ccxtruthy(self.markets == nothing)
+    if functions.ccxtruthy(symbol == nothing)
+        throw(ArgumentsRequired(string(self.id, " Ccxt.market() requires a symbol argument")));
+    end
+    markets = self.markets;
+    if functions.ccxtruthy(markets == nothing)
         throw(ExchangeError(string(self.id, " markets not loaded")));
     end
-    if functions.ccxtruthy(ccxt_in(symbol, self.markets))
-            return get(self.markets, Symbol(symbol), nothing)
-    elseif functions.ccxtruthy(ccxt_in(symbol, self.markets_by_id))
-        markets = get(self.markets_by_id, Symbol(symbol), nothing);
+    marketsById = self.markets_by_id;
+    if functions.ccxtruthy(ccxt_in(symbol, markets))
+            return get(markets, Symbol(symbol), nothing)
+    elseif functions.ccxtruthy(@functions.ccxt_and((marketsById != nothing), (ccxt_in(symbol, marketsById))))
+        marketsList = get(marketsById, Symbol(symbol), nothing);
         defaultType = safeString2(self.options, "defaultType", "defaultSubType", "spot");
         i = 0
-        while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
-            market = get(markets, i + 1, nothing);
+        while functions.ccxtruthy(functions.ccxt_lt(i, length(marketsList)))
+            market = get(marketsList, i + 1, nothing);
             if functions.ccxtruthy(get(market, Symbol(defaultType), nothing))
                     return market
             end
             i += 1
         end
-        return get(markets, 1, nothing)
+        return get(marketsList, 1, nothing)
     else
         if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((endswith(symbol, "-C")), (endswith(symbol, "-P"))), (startswith(symbol, "C-"))), (startswith(symbol, "P-"))))
                 return self.createExpiredOptionMarket(symbol)
@@ -6845,7 +6508,7 @@ function isLeveragedCurrency(self::CcxtExchange, currencyCode, checkBaseCoin=fal
                     return true
             else
                 baseCurrencyCode = replace(currencyCode, leverageSuffix => "");
-                if functions.ccxtruthy(ccxt_in(baseCurrencyCode, existingCurrencies))
+                if functions.ccxtruthy(@functions.ccxt_and((existingCurrencies != nothing), (ccxt_in(baseCurrencyCode, existingCurrencies))))
                         return true
                 end
             end
@@ -6867,54 +6530,6 @@ function handleWithdrawTagAndParams(self::CcxtExchange, tag, params)
         end
     end
     return [tag, params]
-
-end
-function createLimitOrder(self::CcxtExchange, symbol, side, amount, price, params=Dict())
-    return self.createOrder(symbol, "limit", side, amount, price, params)
-
-end
-function createLimitOrderWs(self::CcxtExchange, symbol, side, amount, price, params=Dict())
-    return self.createOrderWs(symbol, "limit", side, amount, price, params)
-
-end
-function createMarketOrder(self::CcxtExchange, symbol, side, amount, price=nothing, params=Dict())
-    return self.createOrder(symbol, "market", side, amount, price, params)
-
-end
-function createMarketOrderWs(self::CcxtExchange, symbol, side, amount, price=nothing, params=Dict())
-    return self.createOrderWs(symbol, "market", side, amount, price, params)
-
-end
-function createLimitBuyOrder(self::CcxtExchange, symbol, amount, price, params=Dict())
-    return self.createOrder(symbol, "limit", "buy", amount, price, params)
-
-end
-function createLimitBuyOrderWs(self::CcxtExchange, symbol, amount, price, params=Dict())
-    return self.createOrderWs(symbol, "limit", "buy", amount, price, params)
-
-end
-function createLimitSellOrder(self::CcxtExchange, symbol, amount, price, params=Dict())
-    return self.createOrder(symbol, "limit", "sell", amount, price, params)
-
-end
-function createLimitSellOrderWs(self::CcxtExchange, symbol, amount, price, params=Dict())
-    return self.createOrderWs(symbol, "limit", "sell", amount, price, params)
-
-end
-function createMarketBuyOrder(self::CcxtExchange, symbol, amount, params=Dict())
-    return self.createOrder(symbol, "market", "buy", amount, nothing, params)
-
-end
-function createMarketBuyOrderWs(self::CcxtExchange, symbol, amount, params=Dict())
-    return self.createOrderWs(symbol, "market", "buy", amount, nothing, params)
-
-end
-function createMarketSellOrder(self::CcxtExchange, symbol, amount, params=Dict())
-    return self.createOrder(symbol, "market", "sell", amount, nothing, params)
-
-end
-function createMarketSellOrderWs(self::CcxtExchange, symbol, amount, params=Dict())
-    return self.createOrderWs(symbol, "market", "sell", amount, nothing, params)
 
 end
 function costToPrecision(self::CcxtExchange, symbol, cost)
@@ -6958,6 +6573,9 @@ function feeToPrecision(self::CcxtExchange, symbol, fee)
 
 end
 function currencyToPrecision(self::CcxtExchange, code, fee, networkCode=nothing)
+    if functions.ccxtruthy(code == nothing)
+        throw(ArgumentsRequired(string(self.id, " currencyToPrecision() requires a code argument")));
+    end
     currency = get(self.currencies, Symbol(code), nothing);
     precision = safeValue(currency, "precision");
     if functions.ccxtruthy(networkCode != nothing)
@@ -7038,6 +6656,9 @@ function integerPrecisionToAmount(self::CcxtExchange, precision)
             return self.parsePrecision(precision)
     else
         positivePrecisionString = stringAbs(precision);
+        if functions.ccxtruthy(positivePrecisionString == nothing)
+                return nothing
+        end
         positivePrecision = ccxt_parseInt(positivePrecisionString);
         parsedPrecision = "1";
         i = 0
@@ -7052,6 +6673,9 @@ end
 function loadTimeDifference(self::CcxtExchange, params=Dict())
     serverTime = self.fetchTime(params);
     after = milliseconds();
+    if functions.ccxtruthy(serverTime == nothing)
+        throw(ExchangeError(string(self.id, " loadTimeDifference() missing serverTime")));
+    end
     self.options[Symbol("timeDifference")] = after - serverTime;
     return get(self.options, Symbol("timeDifference"), nothing)
 
@@ -7073,112 +6697,6 @@ function fetchMarketLeverageTiers(self::CcxtExchange, symbol, params=Dict())
     else
         throw(NotSupported(string(self.id, " fetchMarketLeverageTiers() is not supported yet")));
     end
-
-end
-function createPostOnlyOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createPostOnlyOrder"), nothing)))
-        throw(NotSupported(string(self.id, " createPostOnlyOrder() is not supported yet")));
-    end
-    query = extend(params, Dict{Symbol, Any}(
-        Symbol("postOnly") => true
-    ));
-    return self.createOrder(symbol, type_var, side, amount, price, query)
-
-end
-function createPostOnlyOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createPostOnlyOrderWs"), nothing)))
-        throw(NotSupported(string(self.id, " createPostOnlyOrderWs() is not supported yet")));
-    end
-    query = extend(params, Dict{Symbol, Any}(
-        Symbol("postOnly") => true
-    ));
-    return self.createOrderWs(symbol, type_var, side, amount, price, query)
-
-end
-function createReduceOnlyOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createReduceOnlyOrder"), nothing)))
-        throw(NotSupported(string(self.id, " createReduceOnlyOrder() is not supported yet")));
-    end
-    query = extend(params, Dict{Symbol, Any}(
-        Symbol("reduceOnly") => true
-    ));
-    return self.createOrder(symbol, type_var, side, amount, price, query)
-
-end
-function createReduceOnlyOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createReduceOnlyOrderWs"), nothing)))
-        throw(NotSupported(string(self.id, " createReduceOnlyOrderWs() is not supported yet")));
-    end
-    query = extend(params, Dict{Symbol, Any}(
-        Symbol("reduceOnly") => true
-    ));
-    return self.createOrderWs(symbol, type_var, side, amount, price, query)
-
-end
-function createStopOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, triggerPrice=nothing, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopOrder"), nothing)))
-        throw(NotSupported(string(self.id, " createStopOrder() is not supported yet")));
-    end
-    if functions.ccxtruthy(triggerPrice == nothing)
-        throw(ArgumentsRequired(string(self.id, " create_stop_order() requires a stopPrice argument")));
-    end
-    query = extend(params, Dict{Symbol, Any}(
-        Symbol("stopPrice") => triggerPrice
-    ));
-    return self.createOrder(symbol, type_var, side, amount, price, query)
-
-end
-function createStopOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, triggerPrice=nothing, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopOrderWs"), nothing)))
-        throw(NotSupported(string(self.id, " createStopOrderWs() is not supported yet")));
-    end
-    if functions.ccxtruthy(triggerPrice == nothing)
-        throw(ArgumentsRequired(string(self.id, " createStopOrderWs() requires a stopPrice argument")));
-    end
-    query = extend(params, Dict{Symbol, Any}(
-        Symbol("stopPrice") => triggerPrice
-    ));
-    return self.createOrderWs(symbol, type_var, side, amount, price, query)
-
-end
-function createStopLimitOrder(self::CcxtExchange, symbol, side, amount, price, triggerPrice, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopLimitOrder"), nothing)))
-        throw(NotSupported(string(self.id, " createStopLimitOrder() is not supported yet")));
-    end
-    query = extend(params, Dict{Symbol, Any}(
-        Symbol("stopPrice") => triggerPrice
-    ));
-    return self.createOrder(symbol, "limit", side, amount, price, query)
-
-end
-function createStopLimitOrderWs(self::CcxtExchange, symbol, side, amount, price, triggerPrice, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopLimitOrderWs"), nothing)))
-        throw(NotSupported(string(self.id, " createStopLimitOrderWs() is not supported yet")));
-    end
-    query = extend(params, Dict{Symbol, Any}(
-        Symbol("stopPrice") => triggerPrice
-    ));
-    return self.createOrderWs(symbol, "limit", side, amount, price, query)
-
-end
-function createStopMarketOrder(self::CcxtExchange, symbol, side, amount, triggerPrice, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopMarketOrder"), nothing)))
-        throw(NotSupported(string(self.id, " createStopMarketOrder() is not supported yet")));
-    end
-    query = extend(params, Dict{Symbol, Any}(
-        Symbol("stopPrice") => triggerPrice
-    ));
-    return self.createOrder(symbol, "market", side, amount, nothing, query)
-
-end
-function createStopMarketOrderWs(self::CcxtExchange, symbol, side, amount, triggerPrice, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopMarketOrderWs"), nothing)))
-        throw(NotSupported(string(self.id, " createStopMarketOrderWs() is not supported yet")));
-    end
-    query = extend(params, Dict{Symbol, Any}(
-        Symbol("stopPrice") => triggerPrice
-    ));
-    return self.createOrderWs(symbol, "market", side, amount, nothing, query)
 
 end
 function createSubAccount(self::CcxtExchange, name, params=Dict())
@@ -7341,7 +6859,9 @@ function parseFundingRates(self::CcxtExchange, response, symbols=nothing)
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         entry = get(response, i + 1, nothing);
         parsed = self.parseFundingRate(entry);
-        fundingRates[Symbol(parsed[Symbol("symbol")])] = parsed;
+        if functions.ccxtruthy(get(parsed, Symbol("symbol"), nothing) != nothing)
+            fundingRates[Symbol(parsed[Symbol("symbol")])] = parsed;
+        end
         i += 1
     end
     return self.filterByArray(fundingRates, "symbol", symbols)
@@ -7476,14 +6996,6 @@ function fetchTradingFeesWs(self::CcxtExchange, params=Dict())
     throw(NotSupported(string(self.id, " fetchTradingFeesWs() is not supported yet")));
 
 end
-function fetchTradingFee(self::CcxtExchange, symbol, params=Dict())
-    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("fetchTradingFees"), nothing)))
-        throw(NotSupported(string(self.id, " fetchTradingFee() is not supported yet")));
-    end
-    fees = self.fetchTradingFees(params);
-    return self.safeDict(fees, symbol)
-
-end
 function fetchConvertCurrencies(self::CcxtExchange, params=Dict())
     throw(NotSupported(string(self.id, " fetchConvertCurrencies() is not supported yet")));
 
@@ -7498,7 +7010,9 @@ function parseOpenInterests(self::CcxtExchange, response, symbols=nothing)
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         entry = get(response, i + 1, nothing);
         parsed = self.parseOpenInterest(entry);
-        result[Symbol(parsed[Symbol("symbol")])] = parsed;
+        if functions.ccxtruthy(get(parsed, Symbol("symbol"), nothing) != nothing)
+            result[Symbol(parsed[Symbol("symbol")])] = parsed;
+        end
         i += 1
     end
     return self.filterByArray(result, "symbol", symbols)
@@ -7608,9 +7122,12 @@ function convertTypeToAccount(self::CcxtExchange, account)
     lowercaseAccount = lowercase(account);
     if functions.ccxtruthy(ccxt_in(lowercaseAccount, accountsByType))
             return get(accountsByType, Symbol(lowercaseAccount), nothing)
-    elseif functions.ccxtruthy(@functions.ccxt_or((ccxt_in(account, self.markets)), (ccxt_in(account, self.markets_by_id))))
+    end
+    markets = self.markets;
+    marketsById = self.markets_by_id;
+    if functions.ccxtruthy(@functions.ccxt_or((@functions.ccxt_and((markets != nothing), (ccxt_in(account, markets)))), (@functions.ccxt_and((marketsById != nothing), (ccxt_in(account, marketsById))))))
         market = self.market(account);
-        return get(market, Symbol("id"), nothing)
+            return get(market, Symbol("id"), nothing)
     else
         return account
     end
@@ -7719,11 +7236,20 @@ function parseIncomes(self::CcxtExchange, incomes, market=nothing, since=nothing
     return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
 
 end
+function getMarketFromSymbols(self::CcxtExchange, symbols)
+
+end
+function getMarketFromSymbols(self::CcxtExchange, symbols=nothing)
+
+end
 function getMarketFromSymbols(self::CcxtExchange, symbols=nothing)
     if functions.ccxtruthy(symbols == nothing)
             return nothing
     end
     firstMarket = safeString(symbols, 0);
+    if functions.ccxtruthy(firstMarket == nothing)
+            return nothing
+    end
     market = self.market(firstMarket);
     return market
 
@@ -7778,10 +7304,10 @@ function handleMaxEntriesPerRequestAndParams(self::CcxtExchange, method, maxEntr
 
 end
 function fetchPaginatedCallDynamic(self::CcxtExchange, method, symbol=nothing, since=nothing, limit=nothing, params=Dict(), maxEntriesPerRequest=nothing, removeRepeated=true)
-    maxCalls = nothing;
-    (maxCalls, params) = self.handleOptionAndParams(params, method, "paginationCalls", 10);
-    maxRetries = nothing;
-    (maxRetries, params) = self.handleOptionAndParams(params, method, "maxRetries", 3);
+    maxCalls = 10;
+    (maxCalls, params) = self.handleOptionAndParams(params, method, "paginationCalls", maxCalls);
+    maxRetries = 3;
+    (maxRetries, params) = self.handleOptionAndParams(params, method, "maxRetries", maxRetries);
     paginationDirection = nothing;
     (paginationDirection, params) = self.handleOptionAndParams(params, method, "paginationDirection", "backward");
     paginationTimestamp = nothing;
@@ -7805,7 +7331,7 @@ function fetchPaginatedCallDynamic(self::CcxtExchange, method, symbol=nothing, s
                 if functions.ccxtruthy(paginationTimestamp != nothing)
                     params[Symbol("until")] = paginationTimestamp - 1;
                 end
-                response = getproperty(self, Symbol(method))(self, symbol, nothing, maxEntriesPerRequest, params);
+                response = getproperty(self, Symbol(method))(symbol, nothing, maxEntriesPerRequest, params);
                 responseLength = length(response);
                 if functions.ccxtruthy(self.verbose)
                     backwardMessage = string("Dynamic pagination call ", numberToString(calls), " method ", method, " response length ", numberToString(responseLength));
@@ -7821,11 +7347,14 @@ function fetchPaginatedCallDynamic(self::CcxtExchange, method, symbol=nothing, s
                 result = arrayConcat(result, response);
                 firstElement = safeValue(response, 0);
                 paginationTimestamp = safeInteger2(firstElement, "timestamp", 0);
+                if functions.ccxtruthy(paginationTimestamp == nothing)
+                    break
+                end
                 if functions.ccxtruthy(@functions.ccxt_and((since != nothing), (functions.ccxt_le(paginationTimestamp, since))))
                     break
                 end
             else
-                response = getproperty(self, Symbol(method))(self, symbol, paginationTimestamp, maxEntriesPerRequest, params);
+                response = getproperty(self, Symbol(method))(symbol, paginationTimestamp, maxEntriesPerRequest, params);
                 responseLength = length(response);
                 if functions.ccxtruthy(self.verbose)
                     forwardMessage = string("Dynamic pagination call ", numberToString(calls), " method ", method, " response length ", numberToString(responseLength));
@@ -7840,8 +7369,13 @@ function fetchPaginatedCallDynamic(self::CcxtExchange, method, symbol=nothing, s
                 errors = 0;
                 result = arrayConcat(result, response);
                 last_var = safeValue(response, responseLength - 1);
-                paginationTimestamp = safeInteger(last_var, "timestamp", 0) + 1;
-                if functions.ccxtruthy(@functions.ccxt_and((until != nothing), (functions.ccxt_ge(paginationTimestamp, until))))
+                lastTimestamp = safeInteger(last_var, "timestamp", 0);
+                if functions.ccxtruthy(lastTimestamp == nothing)
+                    break
+                end
+                nextPaginationTimestamp = lastTimestamp + 1;
+                paginationTimestamp = nextPaginationTimestamp;
+                if functions.ccxtruthy(@functions.ccxt_and((until != nothing), (functions.ccxt_ge(nextPaginationTimestamp, until))))
                     break
                 end
             end
@@ -7863,15 +7397,15 @@ function fetchPaginatedCallDynamic(self::CcxtExchange, method, symbol=nothing, s
 
 end
 function safeDeterministicCall(self::CcxtExchange, method, symbol=nothing, since=nothing, limit=nothing, timeframe=nothing, params=Dict())
-    maxRetries = nothing;
-    (maxRetries, params) = self.handleOptionAndParams(params, method, "maxRetries", 3);
+    maxRetries = 3;
+    (maxRetries, params) = self.handleOptionAndParams(params, method, "maxRetries", maxRetries);
     errors = 0;
     while functions.ccxtruthy(functions.ccxt_le(errors, maxRetries))
         try
             if functions.ccxtruthy(@functions.ccxt_and(timeframe, method != "fetchFundingRateHistory"))
-                    return getproperty(self, Symbol(method))(self, symbol, timeframe, since, limit, params)
+                    return getproperty(self, Symbol(method))(symbol, timeframe, since, limit, params)
             else
-                return getproperty(self, Symbol(method))(self, symbol, since, limit, params)
+                return getproperty(self, Symbol(method))(symbol, since, limit, params)
             end
         catch e
             if functions.ccxtruthy(isa(e, RateLimitExceeded))
@@ -7888,21 +7422,30 @@ function safeDeterministicCall(self::CcxtExchange, method, symbol=nothing, since
 
 end
 function fetchPaginatedCallDeterministic(self::CcxtExchange, method, symbol=nothing, since=nothing, limit=nothing, timeframe=nothing, params=Dict(), maxEntriesPerRequest=nothing)
-    maxCalls = nothing;
-    (maxCalls, params) = self.handleOptionAndParams(params, method, "paginationCalls", 10);
+    maxCalls = 10;
+    (maxCalls, params) = self.handleOptionAndParams(params, method, "paginationCalls", maxCalls);
     (maxEntriesPerRequest, params) = self.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
+    params = omit(params, "paginationDirection");
     current = milliseconds();
     tasks = [];
     time = self.parseTimeframe(timeframe) * 1000;
+    maxEntriesPerRequest = self.requireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
     step = time * maxEntriesPerRequest;
+    until = safeInteger2(params, "until", "till");
     currentSince = current - (maxCalls * step) - 1;
     if functions.ccxtruthy(since != nothing)
-        currentSince = max(currentSince, since);
+        if functions.ccxtruthy(until != nothing)
+            currentSince = since;
+        else
+            currentSince = max(currentSince, since);
+        end
     else
         currentSince = max(currentSince, 1241440531000);
     end
-    until = safeInteger2(params, "until", "till");
     if functions.ccxtruthy(until != nothing)
+        if functions.ccxtruthy(since == nothing)
+            throw(ArgumentsRequired(string(self.id, " fetchPaginatedCallDeterministic() requires a since argument when until is set")));
+        end
         requiredCalls = ceil((until - since) / step);
         if functions.ccxtruthy(functions.ccxt_gt(requiredCalls, maxCalls))
             throw(BadRequest(string(self.id, " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ", maxCalls, " required calls is ", requiredCalls)));
@@ -7933,10 +7476,10 @@ function fetchPaginatedCallDeterministic(self::CcxtExchange, method, symbol=noth
 
 end
 function fetchPaginatedCallCursor(self::CcxtExchange, method, symbol=nothing, since=nothing, limit=nothing, params=Dict(), cursorReceived=nothing, cursorSent=nothing, cursorIncrement=nothing, maxEntriesPerRequest=nothing)
-    maxCalls = nothing;
-    (maxCalls, params) = self.handleOptionAndParams(params, method, "paginationCalls", 10);
-    maxRetries = nothing;
-    (maxRetries, params) = self.handleOptionAndParams(params, method, "maxRetries", 3);
+    maxCalls = 10;
+    (maxCalls, params) = self.handleOptionAndParams(params, method, "paginationCalls", maxCalls);
+    maxRetries = 3;
+    (maxRetries, params) = self.handleOptionAndParams(params, method, "maxRetries", maxRetries);
     (maxEntriesPerRequest, params) = self.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
     cursorValue = nothing;
     i = 0;
@@ -7954,18 +7497,27 @@ function fetchPaginatedCallCursor(self::CcxtExchange, method, symbol=nothing, si
             end
             response = nothing;
             if functions.ccxtruthy(method == "fetchAccounts")
-                response = getproperty(self, Symbol(method))(self, params);
+                response = getproperty(self, Symbol(method))(params);
             elseif functions.ccxtruthy(@functions.ccxt_or(method == "getLeverageTiersPaginated", method == "fetchPositions"))
-                response = getproperty(self, Symbol(method))(self, symbol, params);
+                response = getproperty(self, Symbol(method))(symbol, params);
             else
                 if functions.ccxtruthy(method == "fetchOpenInterestHistory")
-                    response = getproperty(self, Symbol(method))(self, symbol, timeframe, since, maxEntriesPerRequest, params);
+                    if functions.ccxtruthy(!isa(symbol, AbstractString))
+                        throw(ArgumentsRequired(string(self.id, " fetchPaginatedCallCursor() requires a symbol argument")));
+                    end
+                    if functions.ccxtruthy(timeframe == nothing)
+                        throw(ArgumentsRequired(string(self.id, " fetchPaginatedCallCursor() requires a timeframe argument")));
+                    end
+                    response = getproperty(self, Symbol(method))(symbol, timeframe, since, maxEntriesPerRequest, params);
                 else
-                    response = getproperty(self, Symbol(method))(self, symbol, since, maxEntriesPerRequest, params);
+                    response = getproperty(self, Symbol(method))(symbol, since, maxEntriesPerRequest, params);
                 end
 
             end
             errors = 0;
+            if functions.ccxtruthy(response == nothing)
+                throw(NullResponse(string(self.id, " fetchPaginatedCallCursor() returned empty response")));
+            end
             responseLength = length(response);
             if functions.ccxtruthy(self.verbose)
                 cursorString = functions.ccxtruthy((cursorValue == nothing)) ? "" : cursorValue;
@@ -7976,7 +7528,9 @@ function fetchPaginatedCallCursor(self::CcxtExchange, method, symbol=nothing, si
             if functions.ccxtruthy(responseLength == 0)
                 break
             end
-            result = arrayConcat(result, response);
+            if functions.ccxtruthy(response != nothing)
+                result = arrayConcat(result, response);
+            end
             last_var = self.safeDict(response, responseLength - 1);
             cursorValue = nothing;
             j = 0
@@ -7995,6 +7549,9 @@ function fetchPaginatedCallCursor(self::CcxtExchange, method, symbol=nothing, si
                 break
             end
             lastTimestamp = safeInteger(last_var, "timestamp");
+            if functions.ccxtruthy(since == nothing)
+                throw(ArgumentsRequired(string(self.id, " fetchPaginatedCallCursor() requires a since argument")));
+            end
             if functions.ccxtruthy(@functions.ccxt_and(lastTimestamp != nothing, functions.ccxt_lt(lastTimestamp, since)))
                 break
             end
@@ -8013,10 +7570,10 @@ function fetchPaginatedCallCursor(self::CcxtExchange, method, symbol=nothing, si
 
 end
 function fetchPaginatedCallIncremental(self::CcxtExchange, method, symbol=nothing, since=nothing, limit=nothing, params=Dict(), pageKey=nothing, maxEntriesPerRequest=nothing)
-    maxCalls = nothing;
-    (maxCalls, params) = self.handleOptionAndParams(params, method, "paginationCalls", 10);
-    maxRetries = nothing;
-    (maxRetries, params) = self.handleOptionAndParams(params, method, "maxRetries", 3);
+    maxCalls = 10;
+    (maxCalls, params) = self.handleOptionAndParams(params, method, "paginationCalls", maxCalls);
+    maxRetries = 3;
+    (maxRetries, params) = self.handleOptionAndParams(params, method, "maxRetries", maxRetries);
     (maxEntriesPerRequest, params) = self.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
     i = 0;
     errors = 0;
@@ -8024,7 +7581,7 @@ function fetchPaginatedCallIncremental(self::CcxtExchange, method, symbol=nothin
     while functions.ccxtruthy(functions.ccxt_lt(i, maxCalls))
         try
             params[Symbol(pageKey)] = i + 1;
-            response = getproperty(self, Symbol(method))(self, symbol, since, maxEntriesPerRequest, params);
+            response = getproperty(self, Symbol(method))(symbol, since, maxEntriesPerRequest, params);
             errors = 0;
             responseLength = length(response);
             if functions.ccxtruthy(self.verbose)
@@ -8094,6 +7651,9 @@ function removeRepeatedTradesFromArray(self::CcxtExchange, input)
             amount = safeString(entry, "amount");
             timestamp = safeString(entry, "timestamp");
             side = safeString(entry, "side");
+            if functions.ccxtruthy(timestamp == nothing)
+                throw(ExchangeError(string(self.id, " removeRepeatedTradesFromArray() missing timestamp")));
+            end
             id = string("t_", timestamp, "_", side, "_", price, "_", amount);
         end
         if functions.ccxtruthy(@functions.ccxt_and(id != nothing, !functions.ccxtruthy((ccxt_in(id, uniqueResult)))))
@@ -8258,13 +7818,13 @@ function parseLeverage(self::CcxtExchange, leverage, market=nothing)
 
 end
 function parseConversions(self::CcxtExchange, conversions, code=nothing, fromCurrencyKey=nothing, toCurrencyKey=nothing, since=nothing, limit=nothing, params=Dict())
-    conversions = toArray(conversions);
+    conversionsArray = toArray(conversions);
     result = [];
     fromCurrency = nothing;
     toCurrency = nothing;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(conversions)))
-        entry = get(conversions, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(conversionsArray)))
+        entry = get(conversionsArray, i + 1, nothing);
         fromId = functions.ccxtruthy((fromCurrencyKey == nothing)) ? nothing : safeString(entry, fromCurrencyKey);
         toId = functions.ccxtruthy((toCurrencyKey == nothing)) ? nothing : safeString(entry, toCurrencyKey);
         if functions.ccxtruthy(fromId != nothing)
@@ -8281,6 +7841,9 @@ function parseConversions(self::CcxtExchange, conversions, code=nothing, fromCur
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.safeCurrency(code);
+        if functions.ccxtruthy(currency == nothing)
+            throw(ExchangeError(string(self.id, " parseConversions() could not resolve currency")));
+        end
         code = get(currency, Symbol("code"), nothing);
     end
     if functions.ccxtruthy(code == nothing)
@@ -8293,10 +7856,16 @@ function parseConversions(self::CcxtExchange, conversions, code=nothing, fromCur
 
 end
 function parseConversion(self::CcxtExchange, conversion, fromCurrency=nothing, toCurrency=nothing)
+    if functions.ccxtruthy(conversion == nothing)
+        throw(NotSupported(string(self.id, " parseConversion () is not supported yet")));
+    end
     throw(NotSupported(string(self.id, " parseConversion () is not supported yet")));
 
 end
 function convertExpireDate(self::CcxtExchange, date)
+    if functions.ccxtruthy(date == nothing)
+            return nothing
+    end
     year = functions.ccxt_slice(date, 0, 2);
     month = functions.ccxt_slice(date, 2, 4);
     day = functions.ccxt_slice(date, 4, 6);
@@ -8305,6 +7874,9 @@ function convertExpireDate(self::CcxtExchange, date)
 
 end
 function convertExpireDateToMarketIdDate(self::CcxtExchange, date)
+    if functions.ccxtruthy(date == nothing)
+            return nothing
+    end
     year = functions.ccxt_slice(date, 0, 2);
     monthRaw = functions.ccxt_slice(date, 2, 4);
     month = nothing;
@@ -8354,6 +7926,9 @@ function convertExpireDateToMarketIdDate(self::CcxtExchange, date)
 
 end
 function convertMarketIdExpireDate(self::CcxtExchange, date)
+    if functions.ccxtruthy(date == nothing)
+            return nothing
+    end
     monthMappping = Dict{Symbol, Any}(
         Symbol("JAN") => "01",
         Symbol("FEB") => "02",
@@ -8379,29 +7954,22 @@ function convertMarketIdExpireDate(self::CcxtExchange, date)
     return reconstructedDate
 
 end
-function fetchPositionHistory(self::CcxtExchange, symbol, since=nothing, limit=nothing, params=Dict())
-    if functions.ccxtruthy(get(self.has, Symbol("fetchPositionsHistory"), nothing))
-        positions = self.fetchPositionsHistory([symbol], since, limit, params);
-            return positions
-    else
-        throw(NotSupported(string(self.id, " fetchPositionHistory () is not supported yet")));
-    end
-
-end
 function loadMarketsAndSignIn(self::CcxtExchange, )
     asyncmap(Base.fetch, [self.loadMarkets(), self.signIn()]);
 
 end
-function fetchPositionsHistory(self::CcxtExchange, symbols=nothing, since=nothing, limit=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " fetchPositionsHistory () is not supported yet")));
-
-end
 function parseMarginModification(self::CcxtExchange, data, market=nothing)
+    if functions.ccxtruthy(data == nothing)
+        throw(NotSupported(string(self.id, " parseMarginModification() is not supported yet")));
+    end
     throw(NotSupported(string(self.id, " parseMarginModification() is not supported yet")));
 
 end
 function parseMarginModifications(self::CcxtExchange, response, symbols=nothing, symbolKey=nothing, marketType=nothing)
     marginModifications = [];
+    if functions.ccxtruthy(response == nothing)
+            return marginModifications
+    end
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
         info = get(response, i + 1, nothing);
@@ -8427,24 +7995,12 @@ function unWatchOHLCV(self::CcxtExchange, symbol, timeframe="1m", params=Dict())
     throw(NotSupported(string(self.id, " unWatchOHLCV () is not supported yet")));
 
 end
-function watchMarkPrice(self::CcxtExchange, symbol, params=Dict())
-    throw(NotSupported(string(self.id, " watchMarkPrice () is not supported yet")));
-
-end
-function watchMarkPrices(self::CcxtExchange, symbols=nothing, params=Dict())
-    throw(NotSupported(string(self.id, " watchMarkPrices () is not supported yet")));
-
-end
 function withdrawWs(self::CcxtExchange, code, amount, address, tag=nothing, params=Dict())
     throw(NotSupported(string(self.id, " withdrawWs () is not supported yet")));
 
 end
 function unWatchMyTrades(self::CcxtExchange, symbol=nothing, params=Dict())
     throw(NotSupported(string(self.id, " unWatchMyTrades () is not supported yet")));
-
-end
-function createOrdersWs(self::CcxtExchange, orders, params=Dict())
-    throw(NotSupported(string(self.id, " createOrdersWs () is not supported yet")));
 
 end
 function fetchOrdersByStatusWs(self::CcxtExchange, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -8456,14 +8012,14 @@ function unWatchBidsAsks(self::CcxtExchange, symbols=nothing, params=Dict())
 
 end
 function cleanUnsubscription(self::CcxtExchange, client, subHash, unsubHash, subHashIsPrefix=false)
-    if functions.ccxtruthy(ccxt_in(unsubHash, get(client, Symbol("subscriptions"), nothing)))
-
+    if functions.ccxtruthy(@functions.ccxt_and((unsubHash != nothing), (ccxt_in(unsubHash, get(client, Symbol("subscriptions"), nothing)))))
+                delete!(get(client, Symbol("subscriptions"), nothing), Symbol(unsubHash));
     end
     if functions.ccxtruthy(!functions.ccxtruthy(subHashIsPrefix))
-        if functions.ccxtruthy(ccxt_in(subHash, get(client, Symbol("subscriptions"), nothing)))
-
+        if functions.ccxtruthy(@functions.ccxt_and((subHash != nothing), (ccxt_in(subHash, get(client, Symbol("subscriptions"), nothing)))))
+                        delete!(get(client, Symbol("subscriptions"), nothing), Symbol(subHash));
         end
-        if functions.ccxtruthy(ccxt_in(subHash, get(client, Symbol("futures"), nothing)))
+        if functions.ccxtruthy(@functions.ccxt_and((subHash != nothing), (ccxt_in(subHash, get(client, Symbol("futures"), nothing)))))
             error = UnsubscribeError(string(self.id, " ", subHash));
             reject(client, error, subHash);
         end
@@ -8472,8 +8028,8 @@ function cleanUnsubscription(self::CcxtExchange, client, subHash, unsubHash, sub
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(clientSubscriptions)))
             sub = get(clientSubscriptions, i + 1, nothing);
-            if functions.ccxtruthy(startswith(sub, subHash))
-
+            if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and((sub != nothing), (subHash != nothing)), startswith(sub, subHash)))
+                                delete!(get(client, Symbol("subscriptions"), nothing), Symbol(sub));
             end
             i += 1
         end
@@ -8481,7 +8037,7 @@ function cleanUnsubscription(self::CcxtExchange, client, subHash, unsubHash, sub
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(clientFutures)))
             future = get(clientFutures, i + 1, nothing);
-            if functions.ccxtruthy(startswith(future, subHash))
+            if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and((future != nothing), (subHash != nothing)), startswith(future, subHash)))
                 error = UnsubscribeError(string(self.id, " ", future));
                 reject(client, error, future);
             end
@@ -8502,9 +8058,15 @@ function cleanCache(self::CcxtExchange, subscription)
             symbolAndTimeFrame = get(symbolsAndTimeframes, i + 1, nothing);
             symbol = safeString(symbolAndTimeFrame, 0);
             timeframe = safeString(symbolAndTimeFrame, 1);
+            if functions.ccxtruthy(symbol == nothing)
+                throw(ArgumentsRequired(string(self.id, " cleanCache() requires a symbol argument")));
+            end
+            if functions.ccxtruthy(timeframe == nothing)
+                throw(ArgumentsRequired(string(self.id, " cleanCache() requires a timeframe argument")));
+            end
             if functions.ccxtruthy(@functions.ccxt_and((self.ohlcvs != nothing), (ccxt_in(symbol, self.ohlcvs))))
                 if functions.ccxtruthy(ccxt_in(timeframe, get(self.ohlcvs, Symbol(symbol), nothing)))
-
+                                        delete!(get(self.ohlcvs, Symbol(symbol), nothing), Symbol(timeframe));
                 end
             end
             i += 1
@@ -8516,20 +8078,20 @@ function cleanCache(self::CcxtExchange, subscription)
             symbol = get(symbols, i + 1, nothing);
             if functions.ccxtruthy(topic == "trades")
                 if functions.ccxtruthy(ccxt_in(symbol, self.trades))
-
+                                        delete!(self.trades, Symbol(symbol));
                 end
             elseif functions.ccxtruthy(topic == "orderbook")
                 if functions.ccxtruthy(ccxt_in(symbol, self.orderbooks))
-
+                                        delete!(self.orderbooks, Symbol(symbol));
                 end
             else
                 if functions.ccxtruthy(topic == "ticker")
                     if functions.ccxtruthy(ccxt_in(symbol, self.tickers))
-
+                                                delete!(self.tickers, Symbol(symbol));
                     end
                 elseif functions.ccxtruthy(topic == "bidsasks")
                     if functions.ccxtruthy(ccxt_in(symbol, self.bidsasks))
-
+                                                delete!(self.bidsasks, Symbol(symbol));
                     end
                 end
 
@@ -8550,7 +8112,7 @@ function cleanCache(self::CcxtExchange, subscription)
                     client = get(clients, i + 1, nothing);
                     futures = get(client, Symbol("futures"), nothing);
                     if functions.ccxtruthy(@functions.ccxt_and((futures != nothing), (ccxt_in("fetchPositionsSnapshot", futures))))
-
+                                                delete!(futures, :fetchPositionsSnapshot);
                     end
                     i += 1
                 end
@@ -8561,7 +8123,7 @@ function cleanCache(self::CcxtExchange, subscription)
                 while functions.ccxtruthy(functions.ccxt_lt(i, length(tickerSymbols)))
                     tickerSymbol = get(tickerSymbols, i + 1, nothing);
                     if functions.ccxtruthy(ccxt_in(tickerSymbol, self.tickers))
-
+                                                delete!(self.tickers, Symbol(tickerSymbol));
                     end
                     i += 1
                 end
@@ -8572,7 +8134,7 @@ function cleanCache(self::CcxtExchange, subscription)
                     while functions.ccxtruthy(functions.ccxt_lt(i, length(bidsaskSymbols)))
                         bidsaskSymbol = get(bidsaskSymbols, i + 1, nothing);
                         if functions.ccxtruthy(ccxt_in(bidsaskSymbol, self.bidsasks))
-
+                                                        delete!(self.bidsasks, Symbol(bidsaskSymbol));
                         end
                         i += 1
                     end
@@ -8617,18 +8179,800 @@ function isUTAEnabled(self::CcxtExchange, params=Dict())
 
 end
 
-function Base.getproperty(self::Exchange, name::Symbol)
-    if hasfield(Exchange, name)
-        value = getfield(self, name)
-        if value isa Function
-            return (args...) -> (ccxt_takes_self(value) ? value(self, args...) : value(args...))
+# Property resolution is centralised so every exchange shares one order; see
+# `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
+Base.getproperty(self::Exchange, name::Symbol) = ccxt_getproperty(self, name)
+
+function closePosition(self::CcxtExchange, symbol, side=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " closePosition() is not supported yet")));
+
+end
+function closeAllPositions(self::CcxtExchange, params=Dict())
+    throw(NotSupported(string(self.id, " closeAllPositions() is not supported yet")));
+
+end
+function editOrders(self::CcxtExchange, orders, params=Dict())
+    throw(NotSupported(string(self.id, " editOrders() is not supported yet")));
+
+end
+function fetchCanceledAndClosedOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchCanceledAndClosedOrders() is not supported yet")));
+
+end
+function fetchPositionHistory(self::CcxtExchange, symbol, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(get(self.has, Symbol("fetchPositionsHistory"), nothing))
+        positions = self.fetchPositionsHistory([symbol], since, limit, params);
+            return positions
+    else
+        throw(NotSupported(string(self.id, " fetchPositionHistory () is not supported yet")));
+    end
+
+end
+function fetchPositionsHistory(self::CcxtExchange, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchPositionsHistory () is not supported yet")));
+
+end
+function fetchPositionsRisk(self::CcxtExchange, symbols=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchPositionsRisk() is not supported yet")));
+
+end
+function fetchPositionsForSymbol(self::CcxtExchange, symbol, params=Dict())
+    throw(NotSupported(string(self.id, " fetchPositionsForSymbol() is not supported yet")));
+
+end
+function fetchPositionsForSymbolWs(self::CcxtExchange, symbol, params=Dict())
+    throw(NotSupported(string(self.id, " fetchPositionsForSymbol() is not supported yet")));
+
+end
+function watchPosition(self::CcxtExchange, symbol=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchPosition() is not supported yet")));
+
+end
+function watchMyTradesForSymbols(self::CcxtExchange, symbols, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchMyTradesForSymbols() is not supported yet")));
+
+end
+function watchTradesForSymbols(self::CcxtExchange, symbols, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchTradesForSymbols() is not supported yet")));
+
+end
+function fetchBidsAsks(self::CcxtExchange, symbols=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchBidsAsks() is not supported yet")));
+
+end
+function fetchMarkPrice(self::CcxtExchange, symbol, params=Dict())
+    if functions.ccxtruthy(get(self.has, Symbol("fetchMarkPrices"), nothing))
+        self.loadMarkets();
+        market = self.market(symbol);
+        symbol = get(market, Symbol("symbol"), nothing);
+        tickers = self.fetchMarkPrices([symbol], params);
+        ticker = self.safeDict(tickers, symbol);
+        if functions.ccxtruthy(ticker == nothing)
+            throw(NullResponse(string(self.id, " fetchMarkPrices() could not find a ticker for ", symbol)));
         else
-            return value
+            return ticker
         end
     else
-        error("Property $name not found")
+        throw(NotSupported(string(self.id, " fetchMarkPrices() is not supported yet")));
     end
+
 end
+function fetchMarkPrices(self::CcxtExchange, symbols=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchMarkPrices() is not supported yet")));
+
+end
+function watchBidsAsks(self::CcxtExchange, symbols=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchBidsAsks() is not supported yet")));
+
+end
+function watchMarkPrice(self::CcxtExchange, symbol, params=Dict())
+    throw(NotSupported(string(self.id, " watchMarkPrice () is not supported yet")));
+
+end
+function watchMarkPrices(self::CcxtExchange, symbols=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchMarkPrices () is not supported yet")));
+
+end
+function fetchL3OrderBook(self::CcxtExchange, symbol, limit=nothing, params=Dict())
+    throw(BadRequest(string(self.id, " fetchL3OrderBook() is not supported yet")));
+
+end
+function watchOrderBookForSymbols(self::CcxtExchange, symbols, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchOrderBookForSymbols() is not supported yet")));
+
+end
+function watchOrdersForSymbols(self::CcxtExchange, symbols, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchOrdersForSymbols() is not supported yet")));
+
+end
+function cancelAllOrdersWs(self::CcxtExchange, symbol=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " cancelAllOrdersWs() is not supported yet")));
+
+end
+function cancelOrderWs(self::CcxtExchange, id, symbol=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " cancelOrderWs() is not supported yet")));
+
+end
+function cancelOrdersWs(self::CcxtExchange, ids, symbol=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " cancelOrdersWs() is not supported yet")));
+
+end
+function createLimitBuyOrderWs(self::CcxtExchange, symbol, amount, price, params=Dict())
+    return self.createOrderWs(symbol, "limit", "buy", amount, price, params)
+
+end
+function createLimitOrderWs(self::CcxtExchange, symbol, side, amount, price, params=Dict())
+    return self.createOrderWs(symbol, "limit", side, amount, price, params)
+
+end
+function createLimitSellOrderWs(self::CcxtExchange, symbol, amount, price, params=Dict())
+    return self.createOrderWs(symbol, "limit", "sell", amount, price, params)
+
+end
+function createMarketBuyOrderWs(self::CcxtExchange, symbol, amount, params=Dict())
+    return self.createOrderWs(symbol, "market", "buy", amount, nothing, params)
+
+end
+function createMarketOrderWithCostWs(self::CcxtExchange, symbol, side, cost, params=Dict())
+    if functions.ccxtruthy(@functions.ccxt_or(get(self.has, Symbol("createMarketOrderWithCostWs"), nothing), (@functions.ccxt_and(get(self.has, Symbol("createMarketBuyOrderWithCostWs"), nothing), get(self.has, Symbol("createMarketSellOrderWithCostWs"), nothing)))))
+            return self.createOrderWs(symbol, "market", side, cost, 1, params)
+    end
+    throw(NotSupported(string(self.id, " createMarketOrderWithCostWs() is not supported yet")));
+
+end
+function createMarketOrderWs(self::CcxtExchange, symbol, side, amount, price=nothing, params=Dict())
+    return self.createOrderWs(symbol, "market", side, amount, price, params)
+
+end
+function createMarketSellOrderWs(self::CcxtExchange, symbol, amount, params=Dict())
+    return self.createOrderWs(symbol, "market", "sell", amount, nothing, params)
+
+end
+function createOrderWithTakeProfitAndStopLossWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, takeProfit=nothing, stopLoss=nothing, params=Dict())
+    params = self.setTakeProfitAndStopLossParams(symbol, type_var, side, amount, price, takeProfit, stopLoss, params);
+    if functions.ccxtruthy(get(self.has, Symbol("createOrderWithTakeProfitAndStopLossWs"), nothing))
+            return self.createOrderWs(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")));
+
+end
+function createOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " createOrderWs() is not supported yet")));
+
+end
+function createOrdersWs(self::CcxtExchange, orders, params=Dict())
+    throw(NotSupported(string(self.id, " createOrdersWs () is not supported yet")));
+
+end
+function createPostOnlyOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createPostOnlyOrderWs"), nothing)))
+        throw(NotSupported(string(self.id, " createPostOnlyOrderWs() is not supported yet")));
+    end
+    query = extend(params, Dict{Symbol, Any}(
+        Symbol("postOnly") => true
+    ));
+    return self.createOrderWs(symbol, type_var, side, amount, price, query)
+
+end
+function createReduceOnlyOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createReduceOnlyOrderWs"), nothing)))
+        throw(NotSupported(string(self.id, " createReduceOnlyOrderWs() is not supported yet")));
+    end
+    query = extend(params, Dict{Symbol, Any}(
+        Symbol("reduceOnly") => true
+    ));
+    return self.createOrderWs(symbol, type_var, side, amount, price, query)
+
+end
+function createStopLimitOrderWs(self::CcxtExchange, symbol, side, amount, price, triggerPrice, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopLimitOrderWs"), nothing)))
+        throw(NotSupported(string(self.id, " createStopLimitOrderWs() is not supported yet")));
+    end
+    query = extend(params, Dict{Symbol, Any}(
+        Symbol("stopPrice") => triggerPrice
+    ));
+    return self.createOrderWs(symbol, "limit", side, amount, price, query)
+
+end
+function createStopLossOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, stopLossPrice=nothing, params=Dict())
+    if functions.ccxtruthy(stopLossPrice == nothing)
+        throw(ArgumentsRequired(string(self.id, " createStopLossOrderWs() requires a stopLossPrice argument")));
+    end
+    params = extend(params, Dict{Symbol, Any}(
+    Symbol("stopLossPrice") => stopLossPrice
+));
+    if functions.ccxtruthy(get(self.has, Symbol("createStopLossOrderWs"), nothing))
+            return self.createOrderWs(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createStopLossOrderWs() is not supported yet")));
+
+end
+function createStopMarketOrderWs(self::CcxtExchange, symbol, side, amount, triggerPrice, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopMarketOrderWs"), nothing)))
+        throw(NotSupported(string(self.id, " createStopMarketOrderWs() is not supported yet")));
+    end
+    query = extend(params, Dict{Symbol, Any}(
+        Symbol("stopPrice") => triggerPrice
+    ));
+    return self.createOrderWs(symbol, "market", side, amount, nothing, query)
+
+end
+function createStopOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, triggerPrice=nothing, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopOrderWs"), nothing)))
+        throw(NotSupported(string(self.id, " createStopOrderWs() is not supported yet")));
+    end
+    if functions.ccxtruthy(triggerPrice == nothing)
+        throw(ArgumentsRequired(string(self.id, " createStopOrderWs() requires a stopPrice argument")));
+    end
+    query = extend(params, Dict{Symbol, Any}(
+        Symbol("stopPrice") => triggerPrice
+    ));
+    return self.createOrderWs(symbol, type_var, side, amount, price, query)
+
+end
+function createTakeProfitOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, takeProfitPrice=nothing, params=Dict())
+    if functions.ccxtruthy(takeProfitPrice == nothing)
+        throw(ArgumentsRequired(string(self.id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")));
+    end
+    params = extend(params, Dict{Symbol, Any}(
+    Symbol("takeProfitPrice") => takeProfitPrice
+));
+    if functions.ccxtruthy(get(self.has, Symbol("createTakeProfitOrderWs"), nothing))
+            return self.createOrderWs(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createTakeProfitOrderWs() is not supported yet")));
+
+end
+function createTrailingAmountOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, trailingAmount=nothing, trailingTriggerPrice=nothing, params=Dict())
+    if functions.ccxtruthy(trailingAmount == nothing)
+        throw(ArgumentsRequired(string(self.id, " createTrailingAmountOrderWs() requires a trailingAmount argument")));
+    end
+    params[Symbol("trailingAmount")] = trailingAmount;
+    if functions.ccxtruthy(trailingTriggerPrice != nothing)
+        params[Symbol("trailingTriggerPrice")] = trailingTriggerPrice;
+    end
+    if functions.ccxtruthy(get(self.has, Symbol("createTrailingAmountOrderWs"), nothing))
+            return self.createOrderWs(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createTrailingAmountOrderWs() is not supported yet")));
+
+end
+function createTrailingPercentOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, trailingPercent=nothing, trailingTriggerPrice=nothing, params=Dict())
+    if functions.ccxtruthy(trailingPercent == nothing)
+        throw(ArgumentsRequired(string(self.id, " createTrailingPercentOrderWs() requires a trailingPercent argument")));
+    end
+    params[Symbol("trailingPercent")] = trailingPercent;
+    if functions.ccxtruthy(trailingTriggerPrice != nothing)
+        params[Symbol("trailingTriggerPrice")] = trailingTriggerPrice;
+    end
+    if functions.ccxtruthy(get(self.has, Symbol("createTrailingPercentOrderWs"), nothing))
+            return self.createOrderWs(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createTrailingPercentOrderWs() is not supported yet")));
+
+end
+function createTriggerOrderWs(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, triggerPrice=nothing, params=Dict())
+    if functions.ccxtruthy(triggerPrice == nothing)
+        throw(ArgumentsRequired(string(self.id, " createTriggerOrderWs() requires a triggerPrice argument")));
+    end
+    params = extend(params, Dict{Symbol, Any}(
+    Symbol("triggerPrice") => triggerPrice
+));
+    if functions.ccxtruthy(get(self.has, Symbol("createTriggerOrderWs"), nothing))
+            return self.createOrderWs(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createTriggerOrderWs() is not supported yet")));
+
+end
+function editOrderWs(self::CcxtExchange, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+    self.cancelOrderWs(id, symbol);
+    return self.createOrderWs(symbol, type_var, side, amount, price, params)
+
+end
+function fetchClosedOrdersWs(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(get(self.has, Symbol("fetchOrdersWs"), nothing))
+        orders = self.fetchOrdersWs(symbol, since, limit, params);
+            return filterBy(orders, "status", "closed")
+    end
+    throw(NotSupported(string(self.id, " fetchClosedOrdersWs() is not supported yet")));
+
+end
+function fetchMyTradesWs(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchMyTradesWs() is not supported yet")));
+
+end
+function fetchOpenOrdersWs(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(get(self.has, Symbol("fetchOrdersWs"), nothing))
+        orders = self.fetchOrdersWs(symbol, since, limit, params);
+            return filterBy(orders, "status", "open")
+    end
+    throw(NotSupported(string(self.id, " fetchOpenOrdersWs() is not supported yet")));
+
+end
+function fetchOrderBookWs(self::CcxtExchange, symbol, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchOrderBookWs() is not supported yet")));
+
+end
+function fetchOrderWs(self::CcxtExchange, id, symbol=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchOrderWs() is not supported yet")));
+
+end
+function fetchOrdersWs(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchOrdersWs() is not supported yet")));
+
+end
+function fetchPositionWs(self::CcxtExchange, symbol, params=Dict())
+    throw(NotSupported(string(self.id, " fetchPositionWs() is not supported yet")));
+
+end
+function fetchPositionsWs(self::CcxtExchange, symbols=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchPositions() is not supported yet")));
+
+end
+function fetchTickerWs(self::CcxtExchange, symbol, params=Dict())
+    if functions.ccxtruthy(get(self.has, Symbol("fetchTickersWs"), nothing))
+        self.loadMarkets();
+        market = self.market(symbol);
+        symbol = get(market, Symbol("symbol"), nothing);
+        tickers = self.fetchTickersWs([symbol], params);
+        ticker = self.safeDict(tickers, symbol);
+        if functions.ccxtruthy(ticker == nothing)
+            throw(NullResponse(string(self.id, " fetchTickerWs() could not find a ticker for ", symbol)));
+        else
+            return ticker
+        end
+    else
+        throw(NotSupported(string(self.id, " fetchTickerWs() is not supported yet")));
+    end
+
+end
+function fetchTickersWs(self::CcxtExchange, symbols=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchTickersWs() is not supported yet")));
+
+end
+function fetchTradesWs(self::CcxtExchange, symbol, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchTradesWs() is not supported yet")));
+
+end
+function loadOrderBook(self::CcxtExchange, client, messageHash, symbol, limit=nothing, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(symbol, self.orderbooks))))
+        reject(client, ExchangeError(string(self.id, " loadOrderBook() orderbook is not initiated")), messageHash);
+            return 
+    end
+    maxRetries = self.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
+    tries = 0;
+    error = nothing;
+    try
+        stored = get(self.orderbooks, Symbol(symbol), nothing);
+        while functions.ccxtruthy(functions.ccxt_lt(tries, maxRetries))
+            cache = get(stored, Symbol("cache"), nothing);
+            orderBook = self.fetchRestOrderBookSafe(symbol, limit, params);
+            index = self.getCacheIndex(orderBook, cache);
+            if functions.ccxtruthy(functions.ccxt_ge(index, 0))
+                reset(stored, orderBook);
+                self.handleDeltas(stored, functions.ccxt_slice(cache, index));
+                stored.cache.length = 0;
+                resolve(client, stored, messageHash);
+                    return 
+            end
+            tries += 1;
+        end
+        error = ExchangeError(string(self.id, " nonce is behind the cache after ", maxRetries, " tries."));
+    catch e
+        error = e;
+
+    end
+    reject(client, error, messageHash);
+    delete!(self.clients, Symbol(get(client, Symbol("url"), nothing)));
+    self.orderbooks[Symbol(symbol)] = self.orderBook();
+
+end
+function fetchTrades(self::CcxtExchange, symbol, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchTrades() is not supported yet")));
+
+end
+function watchTrades(self::CcxtExchange, symbol, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchTrades() is not supported yet")));
+
+end
+function fetchOrderBook(self::CcxtExchange, symbol, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchOrderBook() is not supported yet")));
+
+end
+function fetchRestOrderBookSafe(self::CcxtExchange, symbol, limit=nothing, params=Dict())
+    fetchSnapshotMaxRetries = self.handleOption("watchOrderBook", "maxRetries", 3);
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, fetchSnapshotMaxRetries))
+        try
+            orderBook = self.fetchOrderBook(symbol, limit, params);
+            return orderBook
+        catch e
+            if functions.ccxtruthy((i + 1) == fetchSnapshotMaxRetries)
+                throw(e);
+            end
+
+        end
+        i += 1
+    end
+    return nothing
+
+end
+function watchOrderBook(self::CcxtExchange, symbol, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchOrderBook() is not supported yet")));
+
+end
+function fetchOpenInterest(self::CcxtExchange, symbol, params=Dict())
+    if functions.ccxtruthy(get(self.has, Symbol("fetchOpenInterests"), nothing))
+        openInterests = self.fetchOpenInterests([symbol], params);
+            return self.safeDict(openInterests, symbol)
+    else
+        throw(NotSupported(string(self.id, " fetchOpenInterest() is not supported yet")));
+    end
+
+end
+function fetchL2OrderBook(self::CcxtExchange, symbol, limit=nothing, params=Dict())
+    orderbook = self.fetchOrderBook(symbol, limit, params);
+    return extend(orderbook, Dict{Symbol, Any}(
+    Symbol("asks") => sortBy(aggregate(get(orderbook, Symbol("asks"), nothing)), 0),
+    Symbol("bids") => sortBy(aggregate(get(orderbook, Symbol("bids"), nothing)), 0, true)
+))
+
+end
+function editLimitBuyOrder(self::CcxtExchange, id, symbol, amount, price=nothing, params=Dict())
+    return self.editLimitOrder(id, symbol, "buy", amount, price, params)
+
+end
+function editLimitSellOrder(self::CcxtExchange, id, symbol, amount, price=nothing, params=Dict())
+    return self.editLimitOrder(id, symbol, "sell", amount, price, params)
+
+end
+function editLimitOrder(self::CcxtExchange, id, symbol, side, amount, price=nothing, params=Dict())
+    return self.editOrder(id, symbol, "limit", side, amount, price, params)
+
+end
+function editOrder(self::CcxtExchange, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+    self.cancelOrder(id, symbol);
+    return self.createOrder(symbol, type_var, side, amount, price, params)
+
+end
+function editOrderWithClientOrderId(self::CcxtExchange, clientOrderId, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+    extendedParams = extend(params, Dict{Symbol, Any}(
+        Symbol("clientOrderId") => clientOrderId
+    ));
+    return self.editOrder("", symbol, type_var, side, amount, price, extendedParams)
+
+end
+function fetchPosition(self::CcxtExchange, symbol, params=Dict())
+    throw(NotSupported(string(self.id, " fetchPosition() is not supported yet")));
+
+end
+function watchPositions(self::CcxtExchange, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchPositions() is not supported yet")));
+
+end
+function watchPositionForSymbols(self::CcxtExchange, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+    return self.watchPositions(symbols, since, limit, params)
+
+end
+function fetchPositions(self::CcxtExchange, symbols=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchPositions() is not supported yet")));
+
+end
+function fetchTicker(self::CcxtExchange, symbol, params=Dict())
+    if functions.ccxtruthy(get(self.has, Symbol("fetchTickers"), nothing))
+        self.loadMarkets();
+        market = self.market(symbol);
+        symbol = get(market, Symbol("symbol"), nothing);
+        tickers = self.fetchTickers([symbol], params);
+        ticker = self.safeDict(tickers, symbol);
+        if functions.ccxtruthy(ticker == nothing)
+            throw(NullResponse(string(self.id, " fetchTickers() could not find a ticker for ", symbol)));
+        else
+            return ticker
+        end
+    else
+        throw(NotSupported(string(self.id, " fetchTicker() is not supported yet")));
+    end
+
+end
+function watchTicker(self::CcxtExchange, symbol, params=Dict())
+    throw(NotSupported(string(self.id, " watchTicker() is not supported yet")));
+
+end
+function fetchTickers(self::CcxtExchange, symbols=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchTickers() is not supported yet")));
+
+end
+function watchTickers(self::CcxtExchange, symbols=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchTickers() is not supported yet")));
+
+end
+function fetchOrder(self::CcxtExchange, id, symbol=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchOrder() is not supported yet")));
+
+end
+function fetchOrderWithClientOrderId(self::CcxtExchange, clientOrderId, symbol=nothing, params=Dict())
+    extendedParams = extend(params, Dict{Symbol, Any}(
+        Symbol("clientOrderId") => clientOrderId
+    ));
+    return self.fetchOrder("", symbol, extendedParams)
+
+end
+function fetchOrderStatus(self::CcxtExchange, id, symbol=nothing, params=Dict())
+    order = self.fetchOrder(id, symbol, params);
+    return get(order, Symbol("status"), nothing)
+
+end
+function fetchUnifiedOrder(self::CcxtExchange, order, params=Dict())
+    return self.fetchOrder(safeString(order, "id"), safeString(order, "symbol"), params)
+
+end
+function createOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " createOrder() is not supported yet")));
+
+end
+function createTrailingAmountOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, trailingAmount=nothing, trailingTriggerPrice=nothing, params=Dict())
+    if functions.ccxtruthy(trailingAmount == nothing)
+        throw(ArgumentsRequired(string(self.id, " createTrailingAmountOrder() requires a trailingAmount argument")));
+    end
+    params[Symbol("trailingAmount")] = trailingAmount;
+    if functions.ccxtruthy(trailingTriggerPrice != nothing)
+        params[Symbol("trailingTriggerPrice")] = trailingTriggerPrice;
+    end
+    if functions.ccxtruthy(get(self.has, Symbol("createTrailingAmountOrder"), nothing))
+            return self.createOrder(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createTrailingAmountOrder() is not supported yet")));
+
+end
+function createTrailingPercentOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, trailingPercent=nothing, trailingTriggerPrice=nothing, params=Dict())
+    if functions.ccxtruthy(trailingPercent == nothing)
+        throw(ArgumentsRequired(string(self.id, " createTrailingPercentOrder() requires a trailingPercent argument")));
+    end
+    params[Symbol("trailingPercent")] = trailingPercent;
+    if functions.ccxtruthy(trailingTriggerPrice != nothing)
+        params[Symbol("trailingTriggerPrice")] = trailingTriggerPrice;
+    end
+    if functions.ccxtruthy(get(self.has, Symbol("createTrailingPercentOrder"), nothing))
+            return self.createOrder(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createTrailingPercentOrder() is not supported yet")));
+
+end
+function createMarketOrderWithCost(self::CcxtExchange, symbol, side, cost, params=Dict())
+    if functions.ccxtruthy(@functions.ccxt_or(get(self.has, Symbol("createMarketOrderWithCost"), nothing), (@functions.ccxt_and(get(self.has, Symbol("createMarketBuyOrderWithCost"), nothing), get(self.has, Symbol("createMarketSellOrderWithCost"), nothing)))))
+            return self.createOrder(symbol, "market", side, cost, 1, params)
+    end
+    throw(NotSupported(string(self.id, " createMarketOrderWithCost() is not supported yet")));
+
+end
+function createMarketBuyOrderWithCost(self::CcxtExchange, symbol, cost, params=Dict())
+    if functions.ccxtruthy(@functions.ccxt_or(get(self.options, Symbol("createMarketBuyOrderRequiresPrice"), nothing), get(self.has, Symbol("createMarketBuyOrderWithCost"), nothing)))
+            return self.createOrder(symbol, "market", "buy", cost, 1, params)
+    end
+    throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() is not supported yet")));
+
+end
+function createMarketSellOrderWithCost(self::CcxtExchange, symbol, cost, params=Dict())
+    if functions.ccxtruthy(@functions.ccxt_or(get(self.options, Symbol("createMarketSellOrderRequiresPrice"), nothing), get(self.has, Symbol("createMarketSellOrderWithCost"), nothing)))
+            return self.createOrder(symbol, "market", "sell", cost, 1, params)
+    end
+    throw(NotSupported(string(self.id, " createMarketSellOrderWithCost() is not supported yet")));
+
+end
+function createTriggerOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, triggerPrice=nothing, params=Dict())
+    if functions.ccxtruthy(triggerPrice == nothing)
+        throw(ArgumentsRequired(string(self.id, " createTriggerOrder() requires a triggerPrice argument")));
+    end
+    params = extend(params, Dict{Symbol, Any}(
+    Symbol("triggerPrice") => triggerPrice
+));
+    if functions.ccxtruthy(get(self.has, Symbol("createTriggerOrder"), nothing))
+            return self.createOrder(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createTriggerOrder() is not supported yet")));
+
+end
+function createStopLossOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, stopLossPrice=nothing, params=Dict())
+    if functions.ccxtruthy(stopLossPrice == nothing)
+        throw(ArgumentsRequired(string(self.id, " createStopLossOrder() requires a stopLossPrice argument")));
+    end
+    params = extend(params, Dict{Symbol, Any}(
+    Symbol("stopLossPrice") => stopLossPrice
+));
+    if functions.ccxtruthy(get(self.has, Symbol("createStopLossOrder"), nothing))
+            return self.createOrder(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createStopLossOrder() is not supported yet")));
+
+end
+function createTakeProfitOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, takeProfitPrice=nothing, params=Dict())
+    if functions.ccxtruthy(takeProfitPrice == nothing)
+        throw(ArgumentsRequired(string(self.id, " createTakeProfitOrder() requires a takeProfitPrice argument")));
+    end
+    params = extend(params, Dict{Symbol, Any}(
+    Symbol("takeProfitPrice") => takeProfitPrice
+));
+    if functions.ccxtruthy(get(self.has, Symbol("createTakeProfitOrder"), nothing))
+            return self.createOrder(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createTakeProfitOrder() is not supported yet")));
+
+end
+function createOrderWithTakeProfitAndStopLoss(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, takeProfit=nothing, stopLoss=nothing, params=Dict())
+    params = self.setTakeProfitAndStopLossParams(symbol, type_var, side, amount, price, takeProfit, stopLoss, params);
+    if functions.ccxtruthy(get(self.has, Symbol("createOrderWithTakeProfitAndStopLoss"), nothing))
+            return self.createOrder(symbol, type_var, side, amount, price, params)
+    end
+    throw(NotSupported(string(self.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")));
+
+end
+function createOrders(self::CcxtExchange, orders, params=Dict())
+    throw(NotSupported(string(self.id, " createOrders() is not supported yet")));
+
+end
+function cancelOrder(self::CcxtExchange, id, symbol=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " cancelOrder() is not supported yet")));
+
+end
+function cancelOrderWithClientOrderId(self::CcxtExchange, clientOrderId, symbol=nothing, params=Dict())
+    extendedParams = extend(params, Dict{Symbol, Any}(
+        Symbol("clientOrderId") => clientOrderId
+    ));
+    return self.cancelOrder("", symbol, extendedParams)
+
+end
+function cancelOrders(self::CcxtExchange, ids, symbol=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " cancelOrders() is not supported yet")));
+
+end
+function cancelOrdersWithClientOrderIds(self::CcxtExchange, clientOrderIds, symbol=nothing, params=Dict())
+    extendedParams = extend(params, Dict{Symbol, Any}(
+        Symbol("clientOrderIds") => clientOrderIds
+    ));
+    return self.cancelOrders([], symbol, extendedParams)
+
+end
+function cancelAllOrders(self::CcxtExchange, symbol=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " cancelAllOrders() is not supported yet")));
+
+end
+function cancelUnifiedOrder(self::CcxtExchange, order, params=Dict())
+    return self.cancelOrder(safeString(order, "id"), safeString(order, "symbol"), params)
+
+end
+function fetchOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(@functions.ccxt_and(get(self.has, Symbol("fetchOpenOrders"), nothing), get(self.has, Symbol("fetchClosedOrders"), nothing)))
+        throw(NotSupported(string(self.id, " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")));
+    end
+    throw(NotSupported(string(self.id, " fetchOrders() is not supported yet")));
+
+end
+function fetchOrderTrades(self::CcxtExchange, id, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchOrderTrades() is not supported yet")));
+
+end
+function watchOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchOrders() is not supported yet")));
+
+end
+function fetchOpenOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(get(self.has, Symbol("fetchOrders"), nothing))
+        orders = self.fetchOrders(symbol, since, limit, params);
+            return filterBy(orders, "status", "open")
+    end
+    throw(NotSupported(string(self.id, " fetchOpenOrders() is not supported yet")));
+
+end
+function fetchClosedOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    if functions.ccxtruthy(get(self.has, Symbol("fetchOrders"), nothing))
+        orders = self.fetchOrders(symbol, since, limit, params);
+            return filterBy(orders, "status", "closed")
+    end
+    throw(NotSupported(string(self.id, " fetchClosedOrders() is not supported yet")));
+
+end
+function fetchCanceledOrders(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchCanceledOrders() is not supported yet")));
+
+end
+function fetchMyTrades(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " fetchMyTrades() is not supported yet")));
+
+end
+function watchMyTrades(self::CcxtExchange, symbol=nothing, since=nothing, limit=nothing, params=Dict())
+    throw(NotSupported(string(self.id, " watchMyTrades() is not supported yet")));
+
+end
+function createLimitOrder(self::CcxtExchange, symbol, side, amount, price, params=Dict())
+    return self.createOrder(symbol, "limit", side, amount, price, params)
+
+end
+function createMarketOrder(self::CcxtExchange, symbol, side, amount, price=nothing, params=Dict())
+    return self.createOrder(symbol, "market", side, amount, price, params)
+
+end
+function createLimitBuyOrder(self::CcxtExchange, symbol, amount, price, params=Dict())
+    return self.createOrder(symbol, "limit", "buy", amount, price, params)
+
+end
+function createLimitSellOrder(self::CcxtExchange, symbol, amount, price, params=Dict())
+    return self.createOrder(symbol, "limit", "sell", amount, price, params)
+
+end
+function createMarketBuyOrder(self::CcxtExchange, symbol, amount, params=Dict())
+    return self.createOrder(symbol, "market", "buy", amount, nothing, params)
+
+end
+function createMarketSellOrder(self::CcxtExchange, symbol, amount, params=Dict())
+    return self.createOrder(symbol, "market", "sell", amount, nothing, params)
+
+end
+function createPostOnlyOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createPostOnlyOrder"), nothing)))
+        throw(NotSupported(string(self.id, " createPostOnlyOrder() is not supported yet")));
+    end
+    query = extend(params, Dict{Symbol, Any}(
+        Symbol("postOnly") => true
+    ));
+    return self.createOrder(symbol, type_var, side, amount, price, query)
+
+end
+function createReduceOnlyOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createReduceOnlyOrder"), nothing)))
+        throw(NotSupported(string(self.id, " createReduceOnlyOrder() is not supported yet")));
+    end
+    query = extend(params, Dict{Symbol, Any}(
+        Symbol("reduceOnly") => true
+    ));
+    return self.createOrder(symbol, type_var, side, amount, price, query)
+
+end
+function createStopOrder(self::CcxtExchange, symbol, type_var, side, amount, price=nothing, triggerPrice=nothing, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopOrder"), nothing)))
+        throw(NotSupported(string(self.id, " createStopOrder() is not supported yet")));
+    end
+    if functions.ccxtruthy(triggerPrice == nothing)
+        throw(ArgumentsRequired(string(self.id, " create_stop_order() requires a stopPrice argument")));
+    end
+    query = extend(params, Dict{Symbol, Any}(
+        Symbol("stopPrice") => triggerPrice
+    ));
+    return self.createOrder(symbol, type_var, side, amount, price, query)
+
+end
+function createStopLimitOrder(self::CcxtExchange, symbol, side, amount, price, triggerPrice, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopLimitOrder"), nothing)))
+        throw(NotSupported(string(self.id, " createStopLimitOrder() is not supported yet")));
+    end
+    query = extend(params, Dict{Symbol, Any}(
+        Symbol("stopPrice") => triggerPrice
+    ));
+    return self.createOrder(symbol, "limit", side, amount, price, query)
+
+end
+function createStopMarketOrder(self::CcxtExchange, symbol, side, amount, triggerPrice, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("createStopMarketOrder"), nothing)))
+        throw(NotSupported(string(self.id, " createStopMarketOrder() is not supported yet")));
+    end
+    query = extend(params, Dict{Symbol, Any}(
+        Symbol("stopPrice") => triggerPrice
+    ));
+    return self.createOrder(symbol, "market", side, amount, nothing, query)
+
+end
+function fetchTradingFee(self::CcxtExchange, symbol, params=Dict())
+    if functions.ccxtruthy(!functions.ccxtruthy(get(self.has, Symbol("fetchTradingFees"), nothing)))
+        throw(NotSupported(string(self.id, " fetchTradingFee() is not supported yet")));
+    end
+    fees = self.fetchTradingFees(params);
+    return self.safeDict(fees, symbol)
+
+end
+
+# Property resolution is centralised so every exchange shares one order; see
+# `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
+Base.getproperty(self::Exchange, name::Symbol) = ccxt_getproperty(self, name)
 
 export Exchange
 
@@ -8685,6 +9029,9 @@ function Base.get(self::Exchange, key::Symbol, default)
     return default
 end
 
+# The transpiler emits Symbol keys for property access it can see statically,
+# but a key that arrives as data (a fixture key, a `getProperty` argument, an
+# `unCamelCaseProperties` walk) stays a String. Accept both spellings.
 Base.get(self::Exchange, key::AbstractString, default) = get(self, Symbol(key), default)
 Base.getindex(self::Exchange, key::AbstractString) = getindex(self, Symbol(key))
 Base.setindex!(self::Exchange, val, key::AbstractString) = setindex!(self, val, Symbol(key))

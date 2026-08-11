@@ -1069,7 +1069,7 @@
                         "fee": 0,
                         "fees": {},
                         "networks": {
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "chainType": "Arbitrum One",
                                     "confirmation": "120",
@@ -1085,7 +1085,7 @@
                                     "safeConfirmNumber": "3360"
                                 },
                                 "id": "ARBI",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -1102,7 +1102,7 @@
                                     }
                                 }
                             },
-                            "ARBNOVA": {
+                            "ARBITRUM_NOVA": {
                                 "info": {
                                     "chainType": "Arbitrum Nova",
                                     "confirmation": "100",
@@ -1118,7 +1118,7 @@
                                     "safeConfirmNumber": "120"
                                 },
                                 "id": "ARBINOVA",
-                                "network": "ARBNOVA",
+                                "network": "ARBITRUM_NOVA",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -1748,7 +1748,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "chainType": "Arbitrum One(USDT0)",
                                     "confirmation": "120",
@@ -1764,7 +1764,7 @@
                                     "safeConfirmNumber": "3360"
                                 },
                                 "id": "ARBI",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,

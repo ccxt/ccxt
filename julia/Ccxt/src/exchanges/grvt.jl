@@ -204,71 +204,171 @@ function describe(self::Grvt, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("privateEdge") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("auth/api_key/login") => 100,
-                Symbol("auth/wallet/login") => 100
+                Symbol("auth/api_key/login") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("auth/wallet/login") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+)
             )
         ),
         Symbol("publicMarket") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("full/v1/instrument") => 4,
-                Symbol("full/v1/all_instruments") => 4,
-                Symbol("full/v1/instruments") => 4,
-                Symbol("full/v1/currency") => 12,
-                Symbol("full/v1/margin_rules") => 12,
-                Symbol("full/v1/mini") => 4,
-                Symbol("full/v1/ticker") => 4,
-                Symbol("full/v1/book") => 12,
-                Symbol("full/v1/trade") => 12,
-                Symbol("full/v1/trade_history") => 12,
-                Symbol("full/v1/kline") => 12,
-                Symbol("full/v1/funding") => 12
+                Symbol("full/v1/instrument") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("full/v1/all_instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("full/v1/instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("full/v1/currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                Symbol("full/v1/margin_rules") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                Symbol("full/v1/mini") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("full/v1/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("full/v1/book") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                Symbol("full/v1/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                Symbol("full/v1/trade_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                Symbol("full/v1/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                Symbol("full/v1/funding") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+)
             )
         ),
         Symbol("privateTrading") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("full/v1/create_order") => 5,
-                Symbol("full/v1/cancel_order") => 5,
-                Symbol("full/v1/cancel_on_disconnect") => 100,
-                Symbol("full/v1/cancel_all_orders") => 50,
-                Symbol("full/v1/order") => rlOrders,
-                Symbol("full/v1/order_history") => rlOrders,
-                Symbol("full/v1/open_orders") => rlOrders,
-                Symbol("full/v1/fill_history") => rlOrders,
-                Symbol("full/v1/positions") => rlOrders,
-                Symbol("full/v1/funding_payment_history") => rlOthers,
-                Symbol("full/v1/get_sub_accounts") => rlOthers,
-                Symbol("full/v1/account_summary") => rlOthers,
-                Symbol("full/v1/account_history") => rlOthers,
-                Symbol("full/v1/aggregated_account_summary") => rlOthers,
-                Symbol("full/v1/funding_account_summary") => rlOthers,
-                Symbol("full/v1/transfer") => 100,
-                Symbol("full/v1/deposit_history") => 100,
-                Symbol("full/v1/transfer_history") => 100,
-                Symbol("full/v1/withdrawal") => 100,
-                Symbol("full/v1/withdrawal_history") => 100,
-                Symbol("full/v1/add_position_margin") => rlOthers,
-                Symbol("full/v1/get_position_margin_limits") => rlOthers,
-                Symbol("full/v1/set_position_config") => rlOthers,
-                Symbol("full/v1/set_initial_leverage") => rlOthers,
-                Symbol("full/v1/get_all_initial_leverage") => rlOthers,
-                Symbol("full/v1/set_derisk_mm_ratio") => rlOthers,
-                Symbol("full/v1/vault_burn_tokens") => rlOthers,
-                Symbol("full/v1/vault_invest") => rlOthers,
-                Symbol("full/v1/vault_investor_summary") => rlOthers,
-                Symbol("full/v1/vault_redeem") => rlOthers,
-                Symbol("full/v1/vault_redeem_cancel") => rlOthers,
-                Symbol("full/v1/vault_view_redemption_queue") => rlOthers,
-                Symbol("full/v1/vault_manager_investor_history") => rlOthers,
-                Symbol("full/v1/authorize_builder") => rlOthers,
-                Symbol("full/v1/get_authorized_builders") => rlOthers,
-                Symbol("full/v1/builder_fill_history") => rlOthers
+                Symbol("full/v1/create_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("full/v1/cancel_order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("full/v1/cancel_on_disconnect") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("full/v1/cancel_all_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("full/v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOrders
+),
+                Symbol("full/v1/order_history") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOrders
+),
+                Symbol("full/v1/open_orders") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOrders
+),
+                Symbol("full/v1/fill_history") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOrders
+),
+                Symbol("full/v1/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOrders
+),
+                Symbol("full/v1/funding_payment_history") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/get_sub_accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/account_summary") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/account_history") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/aggregated_account_summary") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/funding_account_summary") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("full/v1/deposit_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("full/v1/transfer_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("full/v1/withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("full/v1/withdrawal_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("full/v1/add_position_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/get_position_margin_limits") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/set_position_config") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/set_initial_leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/get_all_initial_leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/set_derisk_mm_ratio") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/vault_burn_tokens") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/vault_invest") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/vault_investor_summary") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/vault_redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/vault_redeem_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/vault_view_redemption_queue") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/vault_manager_investor_history") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/authorize_builder") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/get_authorized_builders") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+),
+                Symbol("full/v1/builder_fill_history") => Dict{Symbol, Any}(
+    Symbol("cost") => rlOthers
+)
             )
         )
     ),
     Symbol("options") => Dict{Symbol, Any}(
         Symbol("accountId") => nothing,
         Symbol("networks") => Dict{Symbol, Any}(
-            Symbol("ARBONE") => "42161",
+            Symbol("ARBITRUM") => "42161",
             Symbol("AVAXC") => "43114",
             Symbol("BASE") => "8453",
             Symbol("BSC") => "56",
@@ -901,9 +1001,12 @@ function fetchTicker(self::Grvt, symbol, params=Dict())
 end
 function parseTicker(self::Grvt, ticker, market=nothing)
     marketId = safeString(ticker, "instrument");
+    timestamp = safeIntegerProduct(ticker, "event_time", 0.000001);
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("info") => ticker,
     Symbol("symbol") => self.safeSymbol(marketId, market),
+    Symbol("timestamp") => timestamp,
+    Symbol("datetime") => self.iso8601(timestamp),
     Symbol("open") => safeString(ticker, "open_price"),
     Symbol("high") => safeString(ticker, "high_price"),
     Symbol("low") => safeString(ticker, "low_price"),
@@ -1117,7 +1220,9 @@ function parseBalance(self::Grvt, response)
         account = self.account();
         account[Symbol("total")] = safeString(balance, "balance");
         account[Symbol("free")] = availableBalance;
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1555,7 +1660,7 @@ function eipMessageForOrder(self::Grvt, order, structureType)
             limitDec = safeString(limitParts, 1, "");
             limitDecLength = length(limitDec) + 0;
             limitDecLengthStr = string(limitDecLength);
-            powerNum = functions.ccxtruthy(limitDecLengthStr == "0") ? 0 : self.convertToBigIntCustom(limitDecLengthStr);
+            powerNum = functions.ccxtruthy((limitDecLengthStr == "0")) ? 0 : self.convertToBigIntCustom(limitDecLengthStr);
             priceInteger = (self.convertToBigIntCustom(replace(price, "." => "")) * self.convertToBigIntCustom(priceMultiplier) / (pow(bigInt10, powerNum)));
             legOrder[Symbol("limitPrice")] = self.parseToInt(priceInteger);
         else
@@ -1980,6 +2085,9 @@ function createSignedRequest(self::Grvt, request, structureType, currencyObj=not
     if functions.ccxtruthy(structureType == "EIP712_TRANSFER_TYPE")
         amountMultiplier = self.convertToBigIntCustom("1000000");
         amountInt = get(request, Symbol("num_tokens"), nothing) * amountMultiplier;
+        if functions.ccxtruthy(currencyObj == nothing)
+            throw(ExchangeError(string(self.id, " createSignedRequest() missing currencyObj")));
+        end
         messageData = Dict{Symbol, Any}(
             Symbol("fromAccount") => get(request, Symbol("from_account_id"), nothing),
             Symbol("fromSubAccount") => get(request, Symbol("from_sub_account_id"), nothing),
@@ -1992,6 +2100,9 @@ function createSignedRequest(self::Grvt, request, structureType, currencyObj=not
         );
     elseif functions.ccxtruthy(structureType == "EIP712_WITHDRAWAL_TYPE")
         amountMultiplier = self.convertToBigIntCustom("1000000");
+        if functions.ccxtruthy(currencyObj == nothing)
+            throw(ExchangeError(string(self.id, " createSignedRequest() missing currencyObj")));
+        end
         messageData = Dict{Symbol, Any}(
             Symbol("fromAccount") => get(request, Symbol("from_account_id"), nothing),
             Symbol("toEthAddress") => get(request, Symbol("to_eth_address"), nothing),
@@ -2087,7 +2198,16 @@ function sign(self::Grvt, path, api="public", method="GET", params=Dict(), heade
             url += string("?", queryString);
         end
     elseif functions.ccxtruthy(method == "POST")
-        body = json(params);
+        headers = Dict{Symbol, Any}(
+            Symbol("Content-Type") => "application/json"
+        );
+        paramsKeys = objectKeys(params);
+        paramsKeysLength = length(paramsKeys);
+        if functions.ccxtruthy(paramsKeysLength == 0)
+            body = "{}";
+        else
+            body = json(params);
+        end
     end
     isPrivate = startswith(api, "private");
     if functions.ccxtruthy(isPrivate)
@@ -2155,81 +2275,81 @@ function handleErrors(self::Grvt, code, reason, url, method, headers, body, resp
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Grvt, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function privateEdgePostAuthApiKeyLogin(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "auth/api_key/login", "privateEdge", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "auth/api_key/login", "privateEdge", "POST", params, nothing, nothing, Dict())
 end
 
 function privateEdgePostAuthWalletLogin(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "auth/wallet/login", "privateEdge", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "auth/wallet/login", "privateEdge", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1Instrument(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/instrument", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "full/v1/instrument", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1AllInstruments(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/all_instruments", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "full/v1/all_instruments", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1Instruments(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/instruments", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "full/v1/instruments", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1Currency(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/currency", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "full/v1/currency", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1MarginRules(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/margin_rules", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "full/v1/margin_rules", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1Mini(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/mini", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "full/v1/mini", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1Ticker(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/ticker", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "full/v1/ticker", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1Book(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/book", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "full/v1/book", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1Trade(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/trade", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "full/v1/trade", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1TradeHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/trade_history", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "full/v1/trade_history", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1Kline(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/kline", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "full/v1/kline", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function publicMarketPostFullV1Funding(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/funding", "publicMarket", "POST", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "full/v1/funding", "publicMarket", "POST", params, nothing, nothing, Dict())
 end
 
 function privateTradingPostFullV1CreateOrder(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/create_order", "privateTrading", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "full/v1/create_order", "privateTrading", "POST", params, nothing, nothing, Dict())
 end
 
 function privateTradingPostFullV1CancelOrder(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/cancel_order", "privateTrading", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "full/v1/cancel_order", "privateTrading", "POST", params, nothing, nothing, Dict())
 end
 
 function privateTradingPostFullV1CancelOnDisconnect(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/cancel_on_disconnect", "privateTrading", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "full/v1/cancel_on_disconnect", "privateTrading", "POST", params, nothing, nothing, Dict())
 end
 
 function privateTradingPostFullV1CancelAllOrders(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/cancel_all_orders", "privateTrading", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "full/v1/cancel_all_orders", "privateTrading", "POST", params, nothing, nothing, Dict())
 end
 
 function privateTradingPostFullV1Order(self::Grvt, params=Dict(), context=Dict())
@@ -2277,23 +2397,23 @@ function privateTradingPostFullV1FundingAccountSummary(self::Grvt, params=Dict()
 end
 
 function privateTradingPostFullV1Transfer(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/transfer", "privateTrading", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "full/v1/transfer", "privateTrading", "POST", params, nothing, nothing, Dict())
 end
 
 function privateTradingPostFullV1DepositHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/deposit_history", "privateTrading", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "full/v1/deposit_history", "privateTrading", "POST", params, nothing, nothing, Dict())
 end
 
 function privateTradingPostFullV1TransferHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/transfer_history", "privateTrading", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "full/v1/transfer_history", "privateTrading", "POST", params, nothing, nothing, Dict())
 end
 
 function privateTradingPostFullV1Withdrawal(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/withdrawal", "privateTrading", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "full/v1/withdrawal", "privateTrading", "POST", params, nothing, nothing, Dict())
 end
 
 function privateTradingPostFullV1WithdrawalHistory(self::Grvt, params=Dict(), context=Dict())
-    return request(self, "full/v1/withdrawal_history", "privateTrading", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "full/v1/withdrawal_history", "privateTrading", "POST", params, nothing, nothing, Dict())
 end
 
 function privateTradingPostFullV1AddPositionMargin(self::Grvt, params=Dict(), context=Dict())
@@ -2362,9 +2482,62 @@ end
 
 function Grvt(; kwargs...)
     inst = Grvt(Exchange(), describe, eipDefinitions, usesPrivateKey, signIn, signInWithApiKey, signInWithPrivateKey, initializeClient, fetchMarkets, parseMarket, fetchCurrencies, parseCurrency, fetchTicker, parseTicker, fetchOrderBook, fetchTrades, parseTrade, fetchOHLCV, parseOHLCV, fetchFundingRateHistory, parseFundingRateHistory, getSubAccountId, fetchBalance, parseBalance, fetchDeposits, fetchWithdrawals, internalFetchTransfers, parseTransaction, fetchTransfers, filterTransfersByType, transfer, parseTransfer, loadAccountInfos, withdraw, createOrder, convertToBigIntCustom, eipMessageForOrder, fetchMyTrades, fetchPositions, parsePosition, fetchLeverages, setLeverage, parseLeverage, fetchMarginModes, parseMarginMode, fetchFundingHistory, parseIncome, fetchOrders, fetchOpenOrders, fetchOrder, parseOrder, parseTimeInForce, timeInForceToInt, parseOrderStatus, cancelAllOrders, cancelOrder, eipDomainData, feeAmountMultiplier, createSignedRequest, formatSignatureRS, defaultSignature, handleUntilOptionString, requestId, sign, handleErrors, privateEdgePostAuthApiKeyLogin, privateEdgePostAuthWalletLogin, publicMarketPostFullV1Instrument, publicMarketPostFullV1AllInstruments, publicMarketPostFullV1Instruments, publicMarketPostFullV1Currency, publicMarketPostFullV1MarginRules, publicMarketPostFullV1Mini, publicMarketPostFullV1Ticker, publicMarketPostFullV1Book, publicMarketPostFullV1Trade, publicMarketPostFullV1TradeHistory, publicMarketPostFullV1Kline, publicMarketPostFullV1Funding, privateTradingPostFullV1CreateOrder, privateTradingPostFullV1CancelOrder, privateTradingPostFullV1CancelOnDisconnect, privateTradingPostFullV1CancelAllOrders, privateTradingPostFullV1Order, privateTradingPostFullV1OrderHistory, privateTradingPostFullV1OpenOrders, privateTradingPostFullV1FillHistory, privateTradingPostFullV1Positions, privateTradingPostFullV1FundingPaymentHistory, privateTradingPostFullV1GetSubAccounts, privateTradingPostFullV1AccountSummary, privateTradingPostFullV1AccountHistory, privateTradingPostFullV1AggregatedAccountSummary, privateTradingPostFullV1FundingAccountSummary, privateTradingPostFullV1Transfer, privateTradingPostFullV1DepositHistory, privateTradingPostFullV1TransferHistory, privateTradingPostFullV1Withdrawal, privateTradingPostFullV1WithdrawalHistory, privateTradingPostFullV1AddPositionMargin, privateTradingPostFullV1GetPositionMarginLimits, privateTradingPostFullV1SetPositionConfig, privateTradingPostFullV1SetInitialLeverage, privateTradingPostFullV1GetAllInitialLeverage, privateTradingPostFullV1SetDeriskMmRatio, privateTradingPostFullV1VaultBurnTokens, privateTradingPostFullV1VaultInvest, privateTradingPostFullV1VaultInvestorSummary, privateTradingPostFullV1VaultRedeem, privateTradingPostFullV1VaultRedeemCancel, privateTradingPostFullV1VaultViewRedemptionQueue, privateTradingPostFullV1VaultManagerInvestorHistory, privateTradingPostFullV1AuthorizeBuilder, privateTradingPostFullV1GetAuthorizedBuilders, privateTradingPostFullV1BuilderFillHistory)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

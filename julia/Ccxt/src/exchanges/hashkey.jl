@@ -189,6 +189,7 @@ function describe(self::Hashkey, )
         Symbol("createMarketOrderWithCost") => false,
         Symbol("createMarketSellOrderWithCost") => false,
         Symbol("createOrder") => true,
+        Symbol("createOrders") => true,
         Symbol("createOrderWithTakeProfitAndStopLoss") => false,
         Symbol("createReduceOnlyOrder") => true,
         Symbol("createStopLimitOrder") => true,
@@ -235,6 +236,7 @@ function describe(self::Hashkey, )
         Symbol("fetchIsolatedBorrowRate") => false,
         Symbol("fetchIsolatedBorrowRates") => false,
         Symbol("fetchIsolatedPositions") => false,
+        Symbol("fetchLastPrices") => true,
         Symbol("fetchLedger") => true,
         Symbol("fetchLeverage") => true,
         Symbol("fetchLeverages") => false,
@@ -331,83 +333,217 @@ function describe(self::Hashkey, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("api/v1/exchangeInfo") => 5,
-                Symbol("quote/v1/depth") => 1,
-                Symbol("quote/v1/trades") => 1,
-                Symbol("quote/v1/klines") => 1,
-                Symbol("quote/v1/ticker/24hr") => 1,
-                Symbol("quote/v1/ticker/price") => 1,
-                Symbol("quote/v1/ticker/bookTicker") => 1,
-                Symbol("quote/v1/depth/merged") => 1,
-                Symbol("quote/v1/markPrice") => 1,
-                Symbol("quote/v1/index") => 1,
-                Symbol("api/v1/futures/fundingRate") => 1,
-                Symbol("api/v1/futures/historyFundingRate") => 1,
-                Symbol("api/v1/ping") => 1,
-                Symbol("api/v1/time") => 1
+                Symbol("api/v1/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("quote/v1/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/depth/merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/markPrice") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("quote/v1/index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/fundingRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/historyFundingRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("api/v1/spot/order") => 1,
-                Symbol("api/v1/spot/openOrders") => 1,
-                Symbol("api/v1/spot/tradeOrders") => 5,
-                Symbol("api/v1/futures/leverage") => 1,
-                Symbol("api/v1/futures/order") => 1,
-                Symbol("api/v1/futures/openOrders") => 1,
-                Symbol("api/v1/futures/userTrades") => 1,
-                Symbol("api/v1/futures/positions") => 1,
-                Symbol("api/v1/futures/historyOrders") => 1,
-                Symbol("api/v1/futures/balance") => 1,
-                Symbol("api/v1/futures/liquidationAssignStatus") => 1,
-                Symbol("api/v1/futures/riskLimit") => 1,
-                Symbol("api/v1/futures/commissionRate") => 1,
-                Symbol("api/v1/futures/getBestOrder") => 1,
-                Symbol("api/v1/coinInfo") => 1,
-                Symbol("api/v1/account/vipInfo") => 1,
-                Symbol("api/v1/account") => 1,
-                Symbol("api/v1/account/trades") => 5,
-                Symbol("api/v1/account/type") => 5,
-                Symbol("api/v1/account/chainType") => 1,
-                Symbol("api/v1/account/checkApiKey") => 1,
-                Symbol("api/v1/account/balanceFlow") => 5,
-                Symbol("api/v1/spot/subAccount/openOrders") => 1,
-                Symbol("api/v1/spot/subAccount/tradeOrders") => 1,
-                Symbol("api/v1/subAccount/trades") => 1,
-                Symbol("api/v1/futures/subAccount/openOrders") => 1,
-                Symbol("api/v1/futures/subAccount/historyOrders") => 1,
-                Symbol("api/v1/futures/subAccount/userTrades") => 1,
-                Symbol("api/v1/account/deposit/address") => 1,
-                Symbol("api/v1/account/depositOrders") => 1,
-                Symbol("api/v1/account/withdrawOrders") => 1
+                Symbol("api/v1/spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/spot/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/spot/tradeOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/futures/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/historyOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/liquidationAssignStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/riskLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/getBestOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/coinInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/vipInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/account/type") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/account/chainType") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/checkApiKey") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/balanceFlow") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/spot/subAccount/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/spot/subAccount/tradeOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/subAccount/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/subAccount/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/subAccount/historyOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/subAccount/userTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/depositOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/withdrawOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("api/v1/userDataStream") => 1,
-                Symbol("api/v1/spot/orderTest") => 1,
-                Symbol("api/v1/spot/order") => 1,
-                Symbol("api/v1.1/spot/order") => 1,
-                Symbol("api/v1/spot/batchOrders") => 5,
-                Symbol("api/v1/futures/leverage") => 1,
-                Symbol("api/v1/futures/order") => 1,
-                Symbol("api/v1/futures/marginType") => 1,
-                Symbol("api/v1/futures/positionMargin") => 1,
-                Symbol("api/v1/futures/position/trading-stop") => 3,
-                Symbol("api/v1/futures/batchOrders") => 5,
-                Symbol("api/v1/account/assetTransfer") => 1,
-                Symbol("api/v1/account/authAddress") => 1,
-                Symbol("api/v1/account/withdraw") => 1
+                Symbol("api/v1/userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/spot/orderTest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1.1/spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/spot/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/futures/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/marginType") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/positionMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/position/trading-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("api/v1/futures/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/account/assetTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/authAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/account/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("api/v1/userDataStream") => 1
+                Symbol("api/v1/userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("api/v1/spot/order") => 1,
-                Symbol("api/v1/spot/openOrders") => 5,
-                Symbol("api/v1/spot/cancelOrderByIds") => 5,
-                Symbol("api/v1/futures/order") => 1,
-                Symbol("api/v1/futures/batchOrders") => 1,
-                Symbol("api/v1/futures/cancelOrderByIds") => 1,
-                Symbol("api/v1/userDataStream") => 1
+                Symbol("api/v1/spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/spot/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/spot/cancelOrderByIds") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api/v1/futures/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/futures/cancelOrderByIds") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api/v1/userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -451,7 +587,7 @@ function describe(self::Hashkey, )
             Symbol("DOT") => "Polkadot",
             Symbol("LTC") => "LTC",
             Symbol("OPTIMISM") => "Optimism",
-            Symbol("ARB") => "Arbitrum",
+            Symbol("ARBITRUM") => "Arbitrum",
             Symbol("DOGE") => "Dogecoin",
             Symbol("TRC20") => "Tron",
             Symbol("ZKSYNC") => "zkSync",
@@ -468,7 +604,7 @@ function describe(self::Hashkey, )
             Symbol("AVAX C-Chain") => "AVAX",
             Symbol("Solana") => "SOL",
             Symbol("Cosmos") => "ATOM",
-            Symbol("Arbitrum") => "ARB",
+            Symbol("Arbitrum") => "ARBITRUM",
             Symbol("Polygon") => "MATIC",
             Symbol("Optimism") => "OPTIMISM",
             Symbol("Polkadot") => "DOT",
@@ -907,26 +1043,28 @@ function parseCurrency(self::Hashkey, rawCurrency)
         network = get(networks, j + 1, nothing);
         networkId = safeString(network, "chainType");
         networkCode = self.networkCodeToId(networkId, code);
-        parsedNetworks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(network, "minWithdrawQuantity"),
-                    Symbol("max") => self.parseNumber(omitZero(safeString(network, "maxWithdrawQuantity")))
+        if functions.ccxtruthy(networkCode != nothing)
+            parsedNetworks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(network, "minWithdrawQuantity"),
+                        Symbol("max") => self.parseNumber(omitZero(safeString(network, "maxWithdrawQuantity")))
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(network, "minDepositQuantity"),
+                        Symbol("max") => nothing
+                    )
                 ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(network, "minDepositQuantity"),
-                    Symbol("max") => nothing
-                )
-            ),
-            Symbol("active") => nothing,
-            Symbol("deposit") => self.safeBool(network, "allowDeposit"),
-            Symbol("withdraw") => self.safeBool(network, "allowWithdraw"),
-            Symbol("fee") => self.safeNumber(network, "withdrawFee"),
-            Symbol("precision") => nothing,
-            Symbol("info") => network
-        );
+                Symbol("active") => nothing,
+                Symbol("deposit") => self.safeBool(network, "allowDeposit"),
+                Symbol("withdraw") => self.safeBool(network, "allowWithdraw"),
+                Symbol("fee") => self.safeNumber(network, "withdrawFee"),
+                Symbol("precision") => nothing,
+                Symbol("info") => network
+            );
+        end
         j += 1
     end
     rawType = safeString(rawCurrency, "tokenType");
@@ -1051,7 +1189,7 @@ function parseTrade(self::Hashkey, trade, market=nothing)
         side = functions.ccxtruthy(isBuyer) ? "buy" : "sell";
     end
     takerOrMaker = nothing;
-    isMaker = self.safeBoolN(trade, ["isMaker", "isMarker"]);
+    isMaker = self.safeBool2(trade, "isMaker", "isMarker");
     if functions.ccxtruthy(isMaker != nothing)
         takerOrMaker = functions.ccxtruthy(isMaker) ? "maker" : "taker";
     end
@@ -1119,7 +1257,8 @@ function fetchOHLCV(self::Hashkey, symbol, timeframe="1m", since=nothing, limit=
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.publicGetQuoteV1Klines(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    ohlcvs = toArray(response);
+    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
 
 end
 function parseOHLCV(self::Hashkey, ohlcv, market=nothing)
@@ -1235,7 +1374,9 @@ function parseBalance(self::Hashkey, balance)
         account[Symbol("total")] = safeString(balanceEntry, "total");
         account[Symbol("free")] = safeString(balanceEntry, "free");
         account[Symbol("used")] = safeString(balanceEntry, "locked");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1252,7 +1393,9 @@ function parseSwapBalance(self::Hashkey, balance)
     result = Dict{Symbol, Any}(
         Symbol("info") => balance
     );
-    result[Symbol(code)] = account;
+    if functions.ccxtruthy(code != nothing)
+        result[Symbol(code)] = account;
+    end
     return self.safeBalance(result)
 
 end
@@ -1672,6 +1815,12 @@ function createSpotOrder(self::Hashkey, symbol, type_var, side, amount, price=no
 
 end
 function createOrderRequest(self::Hashkey, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
             return self.createSpotOrderRequest(symbol, type_var, side, amount, price, params)
@@ -1683,6 +1832,12 @@ function createOrderRequest(self::Hashkey, symbol, type_var, side, amount, price
 
 end
 function createSpotOrderRequest(self::Hashkey, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     type_var = uppercase(type_var);
     request = Dict{Symbol, Any}(
@@ -1872,7 +2027,6 @@ function cancelAllOrders(self::Hashkey, symbol=nothing, params=Dict())
     if functions.ccxtruthy(side != nothing)
         request[Symbol("side")] = side;
     end
-    response = nothing;
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         response = Base.fetch(self.privateDeleteApiV1SpotOpenOrders(extend(request, params)));
     elseif functions.ccxtruthy(get(market, Symbol("swap"), nothing))
@@ -1899,7 +2053,6 @@ function cancelOrders(self::Hashkey, ids, symbol=nothing, params=Dict())
     end
     marketType = "spot";
     (marketType, params) = self.handleMarketTypeAndParams(methodName, market, params, marketType);
-    response = nothing;
     if functions.ccxtruthy(marketType == "spot")
         response = Base.fetch(self.privateDeleteApiV1SpotCancelOrderByIds(request));
     elseif functions.ccxtruthy(marketType == "swap")
@@ -2289,9 +2442,10 @@ function fetchFundingRateHistory(self::Hashkey, symbol=nothing, since=nothing, l
     end
     response = Base.fetch(self.publicGetApiV1FuturesHistoryFundingRate(extend(request, params)));
     rates = [];
+    rows = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        entry = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
+        entry = get(rows, i + 1, nothing);
         timestamp = safeInteger(entry, "settleTime");
         push!(rates, Dict{Symbol, Any}(
     Symbol("info") => entry,
@@ -2678,284 +2832,337 @@ function handleErrors(self::Hashkey, code, reason, url, method, headers, body, r
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Hashkey, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetApiV1ExchangeInfo(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/exchangeInfo", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/exchangeInfo", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuoteV1Depth(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/depth", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/depth", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuoteV1Trades(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuoteV1Klines(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/klines", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/klines", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuoteV1Ticker24hr(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/24hr", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuoteV1TickerPrice(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/ticker/price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuoteV1TickerBookTicker(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuoteV1DepthMerged(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/depth/merged", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/depth/merged", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuoteV1MarkPrice(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/markPrice", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/markPrice", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetQuoteV1Index(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "quote/v1/index", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "quote/v1/index", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1FuturesFundingRate(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/fundingRate", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/fundingRate", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1FuturesHistoryFundingRate(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/historyFundingRate", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/historyFundingRate", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Ping(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/ping", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/ping", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetApiV1Time(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1SpotOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/spot/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1SpotOpenOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/openOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/spot/openOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1SpotTradeOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/tradeOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/spot/tradeOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesLeverage(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/leverage", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/leverage", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesOpenOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/openOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/openOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesUserTrades(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/userTrades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/userTrades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesPositions(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesHistoryOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/historyOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/historyOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesBalance(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesLiquidationAssignStatus(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/liquidationAssignStatus", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/liquidationAssignStatus", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesRiskLimit(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/riskLimit", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/riskLimit", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesCommissionRate(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/commissionRate", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/commissionRate", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesGetBestOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/getBestOrder", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/getBestOrder", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1CoinInfo(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/coinInfo", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/coinInfo", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountVipInfo(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/vipInfo", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/vipInfo", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1Account(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountTrades(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/account/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountType(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/type", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/account/type", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountChainType(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/chainType", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/chainType", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountCheckApiKey(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/checkApiKey", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/checkApiKey", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountBalanceFlow(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/balanceFlow", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/account/balanceFlow", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1SpotSubAccountOpenOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/subAccount/openOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/spot/subAccount/openOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1SpotSubAccountTradeOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/subAccount/tradeOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/spot/subAccount/tradeOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1SubAccountTrades(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/subAccount/trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/subAccount/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesSubAccountOpenOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/subAccount/openOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/subAccount/openOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesSubAccountHistoryOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/subAccount/historyOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/subAccount/historyOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1FuturesSubAccountUserTrades(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/subAccount/userTrades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/subAccount/userTrades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountDepositAddress(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/deposit/address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/deposit/address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountDepositOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/depositOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/depositOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiV1AccountWithdrawOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/withdrawOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/withdrawOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1UserDataStream(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/userDataStream", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/userDataStream", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1SpotOrderTest(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/orderTest", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/spot/orderTest", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1SpotOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/spot/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV11SpotOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1.1/spot/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1.1/spot/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1SpotBatchOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/batchOrders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/spot/batchOrders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1FuturesLeverage(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1FuturesOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1FuturesMarginType(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/marginType", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/marginType", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1FuturesPositionMargin(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/positionMargin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/positionMargin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1FuturesPositionTradingStop(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/position/trading-stop", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "api/v1/futures/position/trading-stop", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1FuturesBatchOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/batchOrders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/futures/batchOrders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1AccountAssetTransfer(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/assetTransfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/assetTransfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1AccountAuthAddress(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/authAddress", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/authAddress", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostApiV1AccountWithdraw(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/account/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/account/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePutApiV1UserDataStream(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/userDataStream", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/userDataStream", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV1SpotOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/spot/order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV1SpotOpenOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/openOrders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/spot/openOrders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV1SpotCancelOrderByIds(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/spot/cancelOrderByIds", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api/v1/spot/cancelOrderByIds", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV1FuturesOrder(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV1FuturesBatchOrders(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/batchOrders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/batchOrders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV1FuturesCancelOrderByIds(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/futures/cancelOrderByIds", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/futures/cancelOrderByIds", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteApiV1UserDataStream(self::Hashkey, params=Dict(), context=Dict())
-    return request(self, "api/v1/userDataStream", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "api/v1/userDataStream", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Hashkey(; kwargs...)
     inst = Hashkey(Exchange(), describe, fetchTime, fetchStatus, fetchMarkets, parseMarket, fetchCurrencies, parseCurrency, fetchOrderBook, fetchTrades, fetchMyTrades, parseTrade, fetchOHLCV, parseOHLCV, fetchTicker, fetchTickers, parseTicker, fetchLastPrices, parseLastPrice, fetchBalance, parseBalance, parseSwapBalance, fetchDepositAddress, parseDepositAddress, fetchDeposits, fetchWithdrawals, withdraw, parseTransaction, parseTransactionStatus, transfer, parseTransfer, fetchAccounts, parseAccount, parseAccountType, encodeAccountType, encodeFlowType, fetchLedger, parseLedgerEntryType, parseLedgerEntry, createOrder, createMarketBuyOrderWithCost, createSpotOrder, createOrderRequest, createSpotOrderRequest, createSwapOrderRequest, createSwapOrder, createOrders, cancelOrder, cancelAllOrders, cancelOrders, fetchOrder, fetchOpenOrders, fetchOpenSpotOrders, fetchOpenSwapOrders, fetchCanceledAndClosedOrders, checkTypeParam, handleTriggerOptionAndParams, parseOrder, parseOrderSideAndReduceOnly, parseOrderStatus, parseOrderTypeTimeInForceAndPostOnly, parseOrderType, fetchFundingRate, fetchFundingRates, parseFundingRate, fetchFundingRateHistory, fetchPositions, fetchPositionsForSymbol, parsePosition, fetchLeverage, parseLeverage, setLeverage, setMarginMode, addMargin, reduceMargin, modifyMarginHelper, parseMarginModification, fetchLeverageTiers, parseMarketLeverageTiers, fetchTradingFee, fetchTradingFees, parseTradingFee, sign, customUrlencode, handleErrors, publicGetApiV1ExchangeInfo, publicGetQuoteV1Depth, publicGetQuoteV1Trades, publicGetQuoteV1Klines, publicGetQuoteV1Ticker24hr, publicGetQuoteV1TickerPrice, publicGetQuoteV1TickerBookTicker, publicGetQuoteV1DepthMerged, publicGetQuoteV1MarkPrice, publicGetQuoteV1Index, publicGetApiV1FuturesFundingRate, publicGetApiV1FuturesHistoryFundingRate, publicGetApiV1Ping, publicGetApiV1Time, privateGetApiV1SpotOrder, privateGetApiV1SpotOpenOrders, privateGetApiV1SpotTradeOrders, privateGetApiV1FuturesLeverage, privateGetApiV1FuturesOrder, privateGetApiV1FuturesOpenOrders, privateGetApiV1FuturesUserTrades, privateGetApiV1FuturesPositions, privateGetApiV1FuturesHistoryOrders, privateGetApiV1FuturesBalance, privateGetApiV1FuturesLiquidationAssignStatus, privateGetApiV1FuturesRiskLimit, privateGetApiV1FuturesCommissionRate, privateGetApiV1FuturesGetBestOrder, privateGetApiV1CoinInfo, privateGetApiV1AccountVipInfo, privateGetApiV1Account, privateGetApiV1AccountTrades, privateGetApiV1AccountType, privateGetApiV1AccountChainType, privateGetApiV1AccountCheckApiKey, privateGetApiV1AccountBalanceFlow, privateGetApiV1SpotSubAccountOpenOrders, privateGetApiV1SpotSubAccountTradeOrders, privateGetApiV1SubAccountTrades, privateGetApiV1FuturesSubAccountOpenOrders, privateGetApiV1FuturesSubAccountHistoryOrders, privateGetApiV1FuturesSubAccountUserTrades, privateGetApiV1AccountDepositAddress, privateGetApiV1AccountDepositOrders, privateGetApiV1AccountWithdrawOrders, privatePostApiV1UserDataStream, privatePostApiV1SpotOrderTest, privatePostApiV1SpotOrder, privatePostApiV11SpotOrder, privatePostApiV1SpotBatchOrders, privatePostApiV1FuturesLeverage, privatePostApiV1FuturesOrder, privatePostApiV1FuturesMarginType, privatePostApiV1FuturesPositionMargin, privatePostApiV1FuturesPositionTradingStop, privatePostApiV1FuturesBatchOrders, privatePostApiV1AccountAssetTransfer, privatePostApiV1AccountAuthAddress, privatePostApiV1AccountWithdraw, privatePutApiV1UserDataStream, privateDeleteApiV1SpotOrder, privateDeleteApiV1SpotOpenOrders, privateDeleteApiV1SpotCancelOrderByIds, privateDeleteApiV1FuturesOrder, privateDeleteApiV1FuturesBatchOrders, privateDeleteApiV1FuturesCancelOrderByIds, privateDeleteApiV1UserDataStream)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

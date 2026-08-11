@@ -88,29 +88,45 @@
 
 # Generated REST endpoint fields
     publicGetInfo::Function = publicGetInfo
+    publicGetInfoFees::Function = publicGetInfoFees
     publicGetInfoPrices::Function = publicGetInfoPrices
     publicGetKline::Function = publicGetKline
     publicGetKlineMark::Function = publicGetKlineMark
     publicGetBook::Function = publicGetBook
     publicGetTrades::Function = publicGetTrades
     publicGetFundingRateHistory::Function = publicGetFundingRateHistory
+    publicGetLoanPool::Function = publicGetLoanPool
     publicGetAccount::Function = publicGetAccount
+    publicGetAccountLoan::Function = publicGetAccountLoan
     publicGetAccountSettings::Function = publicGetAccountSettings
     publicGetPositions::Function = publicGetPositions
     publicGetTradesHistory::Function = publicGetTradesHistory
     publicGetFundingHistory::Function = publicGetFundingHistory
     publicGetPortfolio::Function = publicGetPortfolio
     publicGetAccountBalanceHistory::Function = publicGetAccountBalanceHistory
+    publicGetAccountSpotBalanceHistory::Function = publicGetAccountSpotBalanceHistory
+    publicGetAccountSpotAssetDepositHistory::Function = publicGetAccountSpotAssetDepositHistory
+    publicGetAccountSpotAssetWithdrawHistory::Function = publicGetAccountSpotAssetWithdrawHistory
+    publicGetAccountSpotAssetWithdrawPending::Function = publicGetAccountSpotAssetWithdrawPending
     publicGetOrders::Function = publicGetOrders
     publicGetOrdersHistory::Function = publicGetOrdersHistory
     publicGetOrdersHistoryById::Function = publicGetOrdersHistoryById
+    publicGetSpotAssets::Function = publicGetSpotAssets
+    publicGetSpotAssetsBridgeInfo::Function = publicGetSpotAssetsBridgeInfo
+    publicGetSpotAssetsBridgeParametersSymbol::Function = publicGetSpotAssetsBridgeParametersSymbol
+    publicGetLakeList::Function = publicGetLakeList
     publicGetAccountBuilderCodesApprovals::Function = publicGetAccountBuilderCodesApprovals
     privatePostAccountLeverage::Function = privatePostAccountLeverage
     privatePostAccountMargin::Function = privatePostAccountMargin
     privatePostAccountWithdraw::Function = privatePostAccountWithdraw
+    privatePostAccountSettingsAutoLendDisabled::Function = privatePostAccountSettingsAutoLendDisabled
+    privatePostAccountSettingsSpot::Function = privatePostAccountSettingsSpot
+    privatePostAccountSpotAssetWithdraw::Function = privatePostAccountSpotAssetWithdraw
     privatePostAccountSubaccountCreate::Function = privatePostAccountSubaccountCreate
     privatePostAccountSubaccountList::Function = privatePostAccountSubaccountList
     privatePostAccountSubaccountTransfer::Function = privatePostAccountSubaccountTransfer
+    privatePostAccountSubaccountSpotAssetTransfer::Function = privatePostAccountSubaccountSpotAssetTransfer
+    privatePostPositionsAddIsolatedMargin::Function = privatePostPositionsAddIsolatedMargin
     privatePostOrdersCreate::Function = privatePostOrdersCreate
     privatePostOrdersCreateMarket::Function = privatePostOrdersCreateMarket
     privatePostOrdersStopCreate::Function = privatePostOrdersStopCreate
@@ -126,6 +142,18 @@
     privatePostAccountApiKeysCreate::Function = privatePostAccountApiKeysCreate
     privatePostAccountApiKeysRevoke::Function = privatePostAccountApiKeysRevoke
     privatePostAccountApiKeys::Function = privatePostAccountApiKeys
+    privatePostLakeAddBlacklist::Function = privatePostLakeAddBlacklist
+    privatePostLakeAddMaxLeverage::Function = privatePostLakeAddMaxLeverage
+    privatePostLakeAddWhitelist::Function = privatePostLakeAddWhitelist
+    privatePostLakeClaimManager::Function = privatePostLakeClaimManager
+    privatePostLakeClaimReferralCode::Function = privatePostLakeClaimReferralCode
+    privatePostLakeCreate::Function = privatePostLakeCreate
+    privatePostLakeDeposit::Function = privatePostLakeDeposit
+    privatePostLakeRemoveBlacklist::Function = privatePostLakeRemoveBlacklist
+    privatePostLakeRemoveMaxLeverage::Function = privatePostLakeRemoveMaxLeverage
+    privatePostLakeRemoveWhitelist::Function = privatePostLakeRemoveWhitelist
+    privatePostLakeUpdateDepositCap::Function = privatePostLakeUpdateDepositCap
+    privatePostLakeWithdraw::Function = privatePostLakeWithdraw
 
 end
 function describe(self::Pacifica, )
@@ -135,13 +163,13 @@ function describe(self::Pacifica, )
     Symbol("countries") => [],
     Symbol("version") => "v1",
     Symbol("isSandboxModeEnabled") => false,
-    Symbol("rateLimit") => 50,
+    Symbol("rateLimit") => 600,
     Symbol("certified") => false,
     Symbol("pro") => true,
     Symbol("dex") => true,
     Symbol("has") => Dict{Symbol, Any}(
         Symbol("CORS") => nothing,
-        Symbol("spot") => false,
+        Symbol("spot") => true,
         Symbol("margin") => false,
         Symbol("swap") => true,
         Symbol("future") => false,
@@ -166,7 +194,7 @@ function describe(self::Pacifica, )
         Symbol("createStopOrder") => true,
         Symbol("editOrder") => true,
         Symbol("editOrders") => false,
-        Symbol("fetchAccounts") => true,
+        Symbol("fetchAccounts") => false,
         Symbol("fetchBalance") => true,
         Symbol("fetchBorrowInterest") => false,
         Symbol("fetchBorrowRateHistories") => false,
@@ -180,7 +208,7 @@ function describe(self::Pacifica, )
         Symbol("fetchDepositAddress") => false,
         Symbol("fetchDepositAddresses") => false,
         Symbol("fetchDeposits") => false,
-        Symbol("fetchDepositWithdrawFee") => "emulated",
+        Symbol("fetchDepositWithdrawFee") => false,
         Symbol("fetchDepositWithdrawFees") => false,
         Symbol("fetchFundingHistory") => true,
         Symbol("fetchFundingRate") => false,
@@ -245,7 +273,9 @@ function describe(self::Pacifica, )
         Symbol("4h") => "4h",
         Symbol("8h") => "8h",
         Symbol("12h") => "12h",
-        Symbol("1d") => "1d"
+        Symbol("1d") => "1d",
+        Symbol("1w") => "1w",
+        Symbol("1M") => "1M"
     ),
     Symbol("hostname") => "pacifica.fi",
     Symbol("urls") => Dict{Symbol, Any}(
@@ -266,54 +296,220 @@ function describe(self::Pacifica, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("info") => 1,
-                Symbol("info/prices") => 1,
-                Symbol("kline") => 12,
-                Symbol("kline/mark") => 12,
-                Symbol("book") => 1,
-                Symbol("trades") => 1,
-                Symbol("funding_rate/history") => 1,
-                Symbol("account") => 1,
-                Symbol("account/settings") => 1,
-                Symbol("positions") => 1,
-                Symbol("trades/history") => 12,
-                Symbol("funding/history") => 1,
-                Symbol("portfolio") => 1,
-                Symbol("account/balance/history") => 12,
-                Symbol("orders") => 1,
-                Symbol("orders/history") => 12,
-                Symbol("orders/history_by_id") => 1,
-                Symbol("account/builder_codes/approvals") => 1
+                Symbol("info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("info/fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("info/prices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                Symbol("kline/mark") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                Symbol("book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("funding_rate/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("loan_pool") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/loan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                Symbol("funding/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("portfolio") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/balance/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                Symbol("account/spot_balance/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/spot_asset/deposit/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/spot_asset/withdraw/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/spot_asset/withdraw/pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 12
+),
+                Symbol("orders/history_by_id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot_assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot_assets/bridge/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot_assets/bridge/parameters/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/builder_codes/approvals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("account/leverage") => 1,
-                Symbol("account/margin") => 1,
-                Symbol("account/withdraw") => 1,
-                Symbol("account/subaccount/create") => 1,
-                Symbol("account/subaccount/list") => 1,
-                Symbol("account/subaccount/transfer") => 1,
-                Symbol("orders/create") => 1,
-                Symbol("orders/create_market") => 1,
-                Symbol("orders/stop/create") => 1,
-                Symbol("positions/tpsl") => 1,
-                Symbol("orders/cancel") => 0.5,
-                Symbol("orders/cancel_all") => 0.5,
-                Symbol("orders/stop/cancel") => 0.5,
-                Symbol("orders/edit") => 1,
-                Symbol("orders/batch") => 1,
-                Symbol("account/builder_codes/approve") => 1,
-                Symbol("account/builder_codes/revoke") => 1,
-                Symbol("agent/bind") => 1,
-                Symbol("account/api_keys/create") => 1,
-                Symbol("account/api_keys/revoke") => 1,
-                Symbol("account/api_keys") => 1
+                Symbol("account/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/settings/auto_lend_disabled") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/settings/spot") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/spot_asset/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/subaccount/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/subaccount/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/subaccount/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/subaccount/spot_asset/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positions/add_isolated_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/create_market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/stop/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positions/tpsl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("orders/cancel_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("orders/stop/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("orders/edit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/builder_codes/approve") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/builder_codes/revoke") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("agent/bind") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/api_keys/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/api_keys/revoke") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("account/api_keys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/add_blacklist") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/add_max_leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/add_whitelist") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/claim_manager") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/claim_referral_code") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/remove_blacklist") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/remove_max_leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/remove_whitelist") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/update_deposit_cap") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("lake/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
     Symbol("fees") => Dict{Symbol, Any}(
         Symbol("swap") => Dict{Symbol, Any}(
+            Symbol("taker") => self.parseNumber("0.0004"),
+            Symbol("maker") => self.parseNumber("0.00015")
+        ),
+        Symbol("spot") => Dict{Symbol, Any}(
             Symbol("taker") => self.parseNumber("0.0004"),
             Symbol("maker") => self.parseNumber("0.00015")
         )
@@ -326,10 +522,131 @@ function describe(self::Pacifica, )
     ),
     Symbol("exceptions") => Dict{Symbol, Any}(
         Symbol("exact") => Dict{Symbol, Any}(
+            Symbol("0") => ExchangeError,
+            Symbol("1") => ExchangeError,
+            Symbol("2") => ExchangeError,
+            Symbol("3") => ExchangeError,
+            Symbol("4") => InvalidOrder,
+            Symbol("5") => InsufficientFunds,
+            Symbol("6") => OrderNotFound,
+            Symbol("7") => InvalidOrder,
+            Symbol("8") => InvalidOrder,
+            Symbol("9") => InsufficientFunds,
+            Symbol("10") => InvalidOrder,
+            Symbol("11") => ExchangeError,
+            Symbol("12") => ExchangeError,
+            Symbol("13") => ExchangeError,
+            Symbol("14") => ExchangeError,
+            Symbol("15") => BadRequest,
+            Symbol("16") => InvalidOrder,
+            Symbol("17") => InvalidOrder,
+            Symbol("18") => InvalidOrder,
+            Symbol("19") => InvalidOrder,
+            Symbol("20") => InvalidOrder,
+            Symbol("21") => InvalidOrder,
+            Symbol("22") => InvalidOrder,
+            Symbol("23") => InvalidOrder,
+            Symbol("24") => ExchangeError,
+            Symbol("25") => InvalidOrder,
+            Symbol("26") => ExchangeError,
+            Symbol("27") => ExchangeError,
+            Symbol("28") => InvalidOrder,
+            Symbol("29") => InvalidOrder,
+            Symbol("30") => InvalidOrder,
+            Symbol("31") => PermissionDenied,
+            Symbol("32") => PermissionDenied,
+            Symbol("33") => BadRequest,
+            Symbol("34") => PermissionDenied,
+            Symbol("35") => PermissionDenied,
+            Symbol("36") => InvalidOrder,
+            Symbol("37") => InvalidOrder,
+            Symbol("38") => PermissionDenied,
+            Symbol("39") => BadRequest,
+            Symbol("40") => PermissionDenied,
+            Symbol("41") => InvalidOrder,
+            Symbol("42") => ExchangeError,
+            Symbol("43") => InvalidOrder,
+            Symbol("44") => InvalidOrder,
+            Symbol("45") => InvalidOrder,
+            Symbol("46") => InvalidOrder,
+            Symbol("47") => OrderNotFound,
+            Symbol("48") => InvalidOrder,
+            Symbol("49") => InvalidOrder,
+            Symbol("50") => BadRequest,
+            Symbol("51") => NotSupported,
+            Symbol("52") => InvalidOrder,
+            Symbol("53") => InvalidOrder,
+            Symbol("54") => ExchangeError,
+            Symbol("55") => ExchangeError,
+            Symbol("56") => ExchangeError,
+            Symbol("59") => InvalidOrder,
+            Symbol("61") => InsufficientFunds,
+            Symbol("62") => InsufficientFunds,
+            Symbol("63") => ExchangeError,
+            Symbol("64") => BadRequest,
+            Symbol("65") => InsufficientFunds,
+            Symbol("66") => ExchangeError,
+            Symbol("67") => ExchangeError,
+            Symbol("68") => InvalidOrder,
+            Symbol("69") => InvalidOrder,
+            Symbol("70") => InsufficientFunds,
+            Symbol("71") => ExchangeError,
+            Symbol("72") => PermissionDenied,
+            Symbol("73") => PermissionDenied,
+            Symbol("74") => PermissionDenied,
+            Symbol("75") => InvalidOrder,
+            Symbol("76") => PermissionDenied,
+            Symbol("77") => BadRequest,
+            Symbol("78") => InsufficientFunds,
+            Symbol("79") => ExchangeError,
+            Symbol("80") => InvalidOrder,
+            Symbol("81") => BadRequest,
+            Symbol("82") => InvalidOrder,
+            Symbol("83") => ExchangeNotAvailable,
+            Symbol("84") => BadRequest,
+            Symbol("85") => BadRequest,
+            Symbol("86") => BadRequest,
+            Symbol("87") => PermissionDenied,
+            Symbol("88") => BadRequest,
+            Symbol("89") => BadRequest,
+            Symbol("90") => BadRequest,
+            Symbol("91") => ExchangeError,
+            Symbol("92") => ExchangeNotAvailable,
+            Symbol("93") => BadRequest,
+            Symbol("94") => InvalidOrder,
+            Symbol("95") => ExchangeError,
+            Symbol("96") => ExchangeError,
+            Symbol("97") => ExchangeError,
+            Symbol("99") => InvalidOrder,
+            Symbol("100") => PermissionDenied,
+            Symbol("101") => ExchangeNotAvailable,
+            Symbol("102") => BadRequest,
+            Symbol("103") => PermissionDenied,
+            Symbol("104") => InvalidOrder,
+            Symbol("105") => InvalidOrder,
+            Symbol("106") => NotSupported,
+            Symbol("107") => NotSupported,
+            Symbol("108") => NotSupported,
+            Symbol("109") => NotSupported,
+            Symbol("110") => BadRequest,
+            Symbol("111") => ExchangeNotAvailable,
+            Symbol("112") => InvalidOrder,
+            Symbol("113") => ExchangeError,
+            Symbol("114") => ExchangeError,
+            Symbol("115") => ExchangeError,
+            Symbol("116") => ExchangeError,
+            Symbol("117") => ExchangeError,
+            Symbol("118") => ExchangeError,
+            Symbol("119") => ExchangeNotAvailable,
+            Symbol("120") => PermissionDenied,
+            Symbol("121") => InvalidOrder,
             Symbol("400") => BadRequest,
+            Symbol("401") => AuthenticationError,
+            Symbol("402") => AuthenticationError,
             Symbol("403") => PermissionDenied,
             Symbol("404") => BadRequest,
             Symbol("409") => ExchangeError,
+            Symbol("420") => ExchangeError,
             Symbol("422") => ExchangeError,
             Symbol("429") => RateLimitExceeded,
             Symbol("500") => ExchangeError,
@@ -362,7 +679,7 @@ function describe(self::Pacifica, )
         Symbol("defaultType") => "swap",
         Symbol("defaultSlippage") => "0.5",
         Symbol("expiryWindow") => 5000,
-        Symbol("maxCostHugeWithApiKey") => 3,
+        Symbol("maxCostHugeWithApiKey") => 4,
         Symbol("marketHelperProps") => [],
         Symbol("defaultMarginMode") => "cross",
         Symbol("builderSupportOperations") => Dict{Symbol, Any}(
@@ -523,48 +840,63 @@ function handleBuilderFeeApproval(self::Pacifica, )
 
 end
 function fetchMarkets(self::Pacifica, params=Dict())
-    if functions.ccxtruthy(self.checkRequiredCredentials(false))
-        Base.fetch(self.initializeClient());
-        Base.fetch(self.loadAccountSettings());
-    end
-    swapMarkets = Base.fetch(self.fetchSwapMarkets(params));
-    return swapMarkets
+    response = Base.fetch(self.publicGetInfo(params));
+    markets = self.safeList(response, "data", []);
+    return self.parseMarkets(markets)
 
 end
 function fetchSwapMarkets(self::Pacifica, params=Dict())
-    response = Base.fetch(self.publicGetInfo(params));
-    meta = self.safeList(response, "data", []);
-    results = [];
-    i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(meta)))
-        push!(results, get(meta, i + 1, nothing));
-        i += 1
-    end
-    return self.parseMarkets(results)
+    markets = Base.fetch(self.fetchMarkets(params));
+    return filterBy(markets, "type", "swap")
 
 end
 function parseMarket(self::Pacifica, market)
-    quoteId = "usdc";
-    settleId = "usdc";
     id = safeString(market, "symbol");
-    baseId = lowercase(id);
-    baseName = uppercase(id);
-    base = self.safeCurrencyCode(baseName);
+    baseId = safeString(market, "base_asset", id);
+    instrumentType = safeString(market, "instrument_type");
+    isSpot = (instrumentType == "spot");
+    isSwap = !functions.ccxtruthy(isSpot);
+    quoteId = "USDC";
+    settleId = nothing;
+    type_var = "spot";
+    linear = nothing;
+    inverse = nothing;
+    contractSize = nothing;
+    minLeverage = nothing;
+    maxLeverage = nothing;
+    crossMargin = nothing;
+    isolatedMargin = nothing;
+    if functions.ccxtruthy(id == nothing)
+        throw(ExchangeError(string(self.id, " parseMarket() missing id")));
+    end
+    if functions.ccxtruthy(isSpot)
+        idParts = split(id, "-");
+        quoteId = safeString(idParts, 1, quoteId);
+    end
+    isolatedOnly = self.safeBool(market, "isolated_only", false);
+    if functions.ccxtruthy(isSwap)
+        settleId = quoteId;
+        type_var = "swap";
+        linear = true;
+        inverse = false;
+        contractSize = self.parseNumber("1");
+        minLeverage = 1;
+        maxLeverage = safeInteger(market, "max_leverage");
+        crossMargin = !functions.ccxtruthy(isolatedOnly);
+        isolatedMargin = true;
+    end
+    base = self.safeCurrencyCode(baseId);
     quote_var = self.safeCurrencyCode(quoteId);
     settle = self.safeCurrencyCode(settleId);
     symbol = string(base, "/", quote_var);
-    contract = true;
-    swap = true;
-    if functions.ccxtruthy(contract)
-        if functions.ccxtruthy(swap)
-            symbol = string(symbol, ":", settle);
-        end
+    if functions.ccxtruthy(isSwap)
+        symbol = string(symbol, ":", settle);
     end
-    fees = self.safeDict(self.fees, "swap", Dict{Symbol, Any}());
+    fees = self.safeDict(self.fees, type_var, Dict{Symbol, Any}());
     taker = self.safeNumber(fees, "taker");
     maker = self.safeNumber(fees, "maker");
-    amountPrecisionStr = safeString(market, "lot_size");
-    pricePrecisionStr = safeString(market, "tick_size");
+    amountPrecision = self.safeNumber(market, "lot_size");
+    pricePrecision = self.safeNumber(market, "tick_size");
     active = true;
     return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
@@ -573,52 +905,51 @@ function parseMarket(self::Pacifica, market)
     Symbol("quote") => quote_var,
     Symbol("settle") => settle,
     Symbol("baseId") => baseId,
-    Symbol("baseName") => baseName,
     Symbol("quoteId") => quoteId,
     Symbol("settleId") => settleId,
-    Symbol("type") => "swap",
-    Symbol("spot") => false,
-    Symbol("margin") => nothing,
-    Symbol("swap") => swap,
+    Symbol("type") => type_var,
+    Symbol("spot") => isSpot,
+    Symbol("margin") => false,
+    Symbol("swap") => isSwap,
     Symbol("future") => false,
     Symbol("option") => false,
     Symbol("active") => active,
-    Symbol("contract") => contract,
-    Symbol("linear") => true,
-    Symbol("inverse") => false,
+    Symbol("contract") => isSwap,
+    Symbol("linear") => linear,
+    Symbol("inverse") => inverse,
     Symbol("taker") => taker,
     Symbol("maker") => maker,
-    Symbol("contractSize") => self.parseNumber("1"),
+    Symbol("contractSize") => contractSize,
     Symbol("expiry") => nothing,
     Symbol("expiryDatetime") => nothing,
     Symbol("strike") => nothing,
     Symbol("optionType") => nothing,
     Symbol("precision") => Dict{Symbol, Any}(
-        Symbol("amount") => self.parseNumber(amountPrecisionStr),
-        Symbol("price") => self.parseNumber(pricePrecisionStr)
+        Symbol("amount") => amountPrecision,
+        Symbol("price") => pricePrecision
     ),
     Symbol("limits") => Dict{Symbol, Any}(
         Symbol("leverage") => Dict{Symbol, Any}(
-            Symbol("min") => 1,
-            Symbol("max") => safeInteger(market, "max_leverage")
+            Symbol("min") => minLeverage,
+            Symbol("max") => maxLeverage
         ),
         Symbol("amount") => Dict{Symbol, Any}(
             Symbol("min") => nothing,
             Symbol("max") => nothing
         ),
         Symbol("price") => Dict{Symbol, Any}(
-            Symbol("min") => safeString(market, "min_tick"),
-            Symbol("max") => safeString(market, "max_tick")
+            Symbol("min") => self.safeNumber(market, "min_tick"),
+            Symbol("max") => self.safeNumber(market, "max_tick")
         ),
         Symbol("cost") => Dict{Symbol, Any}(
-            Symbol("min") => nothing,
-            Symbol("max") => nothing
+            Symbol("min") => self.safeNumber(market, "min_order_size"),
+            Symbol("max") => self.safeNumber(market, "max_order_size")
         )
     ),
-    Symbol("created") => nothing,
+    Symbol("created") => safeInteger(market, "created_at"),
     Symbol("marginModes") => Dict{Symbol, Any}(
-        Symbol("cross") => true,
-        Symbol("isolated") => true
+        Symbol("cross") => crossMargin,
+        Symbol("isolated") => isolatedMargin
     ),
     Symbol("info") => market
 ))
@@ -661,14 +992,14 @@ function fetchLeverage(self::Pacifica, symbol, params=Dict())
     cacheAddress = self.walletAddress;
     settings = nothing;
     if functions.ccxtruthy(userAccount == cacheAddress)
-        settings = self.handleOption("fetchLeverage", "settings", nothing);
+        settings = self.handleOption("fetchLeverage", "settings");
     else
         request = Dict{Symbol, Any}(
             Symbol("account") => userAccount
         );
         settings = Base.fetch(self.fetchAccountSettings(extend(request, params)));
     end
-    setting = self.safeDict(settings, symbol, nothing);
+    setting = self.safeDict(settings, symbol);
     if functions.ccxtruthy(setting == nothing)
             return self.parseLeverageFromMarket(market)
     else
@@ -712,7 +1043,7 @@ function fetchAccountSettings(self::Pacifica, params=Dict())
 
 end
 function loadAccountSettings(self::Pacifica, refresh=false, params=Dict())
-    settings = self.handleOption("loadAccountSettings", "settings", nothing);
+    settings = self.handleOption("loadAccountSettings", "settings");
     if functions.ccxtruthy(@functions.ccxt_or((settings == nothing), (refresh)))
         self.options[Symbol("settings")] = self.createSafeDictionary();
         settings = Base.fetch(self.fetchAccountSettings(params));
@@ -744,14 +1075,14 @@ function fetchMarginMode(self::Pacifica, symbol, params=Dict())
     cacheAddress = self.walletAddress;
     settings = nothing;
     if functions.ccxtruthy(userAccount == cacheAddress)
-        settings = self.handleOption("fetchMarginMode", "settings", nothing);
+        settings = self.handleOption("fetchMarginMode", "settings");
     else
         request = Dict{Symbol, Any}(
             Symbol("account") => userAccount
         );
         settings = Base.fetch(self.fetchAccountSettings(extend(request, params)));
     end
-    setting = self.safeDict(settings, symbol, nothing);
+    setting = self.safeDict(settings, symbol);
     if functions.ccxtruthy(setting == nothing)
             return Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
@@ -1013,6 +1344,12 @@ function createOrder(self::Pacifica, symbol, type_var, side, amount, price=nothi
 
 end
 function createOrderRequest(self::Pacifica, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     sigPayload = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
@@ -1090,7 +1427,7 @@ function createOrderRequest(self::Pacifica, symbol, type_var, side, amount, pric
     if functions.ccxtruthy(@functions.ccxt_and(amount != nothing, (@functions.ccxt_and(operationType != "create_stop_order", operationType != "set_position_tpsl"))))
         sigPayload[Symbol("amount")] = self.amountToPrecision(symbol, amount);
     end
-    clientOrderId = safeStringN(params, ["clientOrderId"]);
+    clientOrderId = safeString(params, "clientOrderId");
     if functions.ccxtruthy(clientOrderId != nothing)
         sigPayload[Symbol("client_order_id")] = clientOrderId;
     end
@@ -1153,7 +1490,7 @@ function createOrders(self::Pacifica, orders, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(results)))
         order = get(results, i + 1, nothing);
-        error = safeString(order, "error", nothing);
+        error = safeString(order, "error");
         success = self.safeBool(order, "success", false);
         status = nothing;
         if functions.ccxtruthy(@functions.ccxt_or((error != nothing), (!functions.ccxtruthy(success))))
@@ -1189,7 +1526,7 @@ function cancelOrders(self::Pacifica, ids, symbol=nothing, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(results)))
         order = get(results, i + 1, nothing);
-        error = safeString(order, "error", nothing);
+        error = safeString(order, "error");
         success = self.safeBool(order, "success", false);
         status = nothing;
         if functions.ccxtruthy(@functions.ccxt_or((error != nothing), (!functions.ccxtruthy(success))))
@@ -1336,6 +1673,9 @@ function editOrder(self::Pacifica, id, symbol, type_var, side, amount=nothing, p
 
 end
 function editOrderRequest(self::Pacifica, id, symbol, type_var, side, amount, price, market, params=Dict())
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     if functions.ccxtruthy(amount == nothing)
         throw(ArgumentsRequired(string(self.id, " editOrder() requires an amount!")));
     end
@@ -1416,7 +1756,9 @@ function fetchTickers(self::Pacifica, symbols=nothing, params=Dict())
         info = get(data, i + 1, nothing);
         ticker = self.parseTicker(info);
         symbol = safeString(ticker, "symbol");
-        result[Symbol(symbol)] = ticker;
+        if functions.ccxtruthy(symbol != nothing)
+            result[Symbol(symbol)] = ticker;
+        end
         i += 1
     end
     return self.filterByArrayTickers(result, "symbol", symbols)
@@ -1576,7 +1918,7 @@ function mapTimeInForce(self::Pacifica, tifRaw)
     if functions.ccxtruthy(tifRaw != nothing)
         tif = uppercase(tifRaw);
     end
-    return safeString(tifMap, tif, nothing)
+    return safeString(tifMap, tif)
 
 end
 function mapSide(self::Pacifica, sideRaw)
@@ -1978,7 +2320,7 @@ end
 function createSubAccount(self::Pacifica, name, params=Dict())
     finalHeaders = Dict{Symbol, Any}();
     agentAddress = nothing;
-    (agentAddress, params) = self.handleOption("createSubAccount", "agentAddress", nothing);
+    (agentAddress, params) = self.handleOption("createSubAccount", "agentAddress");
     originAddress = nothing;
     (originAddress, params) = self.handleOriginAndSingleAddress("createSubAccount", params);
     if functions.ccxtruthy(originAddress == nothing)
@@ -2140,7 +2482,7 @@ function sign(self::Pacifica, path, api="public", method="GET", params=Dict(), h
     if functions.ccxtruthy(method == "POST")
         body = json(params);
     end
-    if functions.ccxtruthy(self.handleOption("sign", "apiKey", nothing) != nothing)
+    if functions.ccxtruthy(self.handleOption("sign", "apiKey") != nothing)
         headers[Symbol("PF-API-KEY")] = get(self.options, Symbol("apiKey"), nothing);
     end
     return Dict{Symbol, Any}(
@@ -2155,7 +2497,7 @@ function calculateRateLimiterCost(self::Pacifica, api, method, path, params, con
     cost = safeString(config, "cost", "1");
     costNumber = self.parseNumber(cost);
     if functions.ccxtruthy(functions.ccxt_gt(costNumber, 1))
-        if functions.ccxtruthy(self.handleOption(method, "apiKey", nothing) != nothing)
+        if functions.ccxtruthy(self.handleOption(method, "apiKey") != nothing)
             costWithKey = self.handleOption(method, "maxCostHugeWithApiKey", 3);
                 return costWithKey
         end
@@ -2258,172 +2600,337 @@ function postActionRequest(self::Pacifica, operationType, sigPayload, params)
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Pacifica, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetInfo(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "info", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "info", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetInfoFees(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "info/fees", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetInfoPrices(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "info/prices", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "info/prices", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetKline(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetKlineMark(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "kline/mark", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "kline/mark", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetBook(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "book", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "book", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTrades(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetFundingRateHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "funding_rate/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "funding_rate/history", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetLoanPool(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "loan_pool", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAccount(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetAccountLoan(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "account/loan", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAccountSettings(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/settings", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/settings", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPositions(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "positions", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positions", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradesHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "trades/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "trades/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetFundingHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "funding/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "funding/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPortfolio(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "portfolio", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "portfolio", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAccountBalanceHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/balance/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "account/balance/history", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetAccountSpotBalanceHistory(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "account/spot_balance/history", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetAccountSpotAssetDepositHistory(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "account/spot_asset/deposit/history", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetAccountSpotAssetWithdrawHistory(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "account/spot_asset/withdraw/history", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetAccountSpotAssetWithdrawPending(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "account/spot_asset/withdraw/pending", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrders(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrdersHistory(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 12))
+    return request(self, "orders/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOrdersHistoryById(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/history_by_id", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/history_by_id", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetSpotAssets(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "spot_assets", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetSpotAssetsBridgeInfo(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "spot_assets/bridge/info", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetSpotAssetsBridgeParametersSymbol(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "spot_assets/bridge/parameters/{symbol}", "public", "GET", params, nothing, nothing, Dict())
+end
+
+function publicGetLakeList(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/list", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAccountBuilderCodesApprovals(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/builder_codes/approvals", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/builder_codes/approvals", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountLeverage(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountMargin(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountWithdraw(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/withdraw", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostAccountSettingsAutoLendDisabled(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "account/settings/auto_lend_disabled", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostAccountSettingsSpot(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "account/settings/spot", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostAccountSpotAssetWithdraw(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "account/spot_asset/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountSubaccountCreate(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/subaccount/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/subaccount/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountSubaccountList(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/subaccount/list", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/subaccount/list", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountSubaccountTransfer(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/subaccount/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/subaccount/transfer", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostAccountSubaccountSpotAssetTransfer(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "account/subaccount/spot_asset/transfer", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostPositionsAddIsolatedMargin(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "positions/add_isolated_margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersCreate(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersCreateMarket(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/create_market", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/create_market", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersStopCreate(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/stop/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/stop/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPositionsTpsl(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "positions/tpsl", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "positions/tpsl", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersCancel(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "orders/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersCancelAll(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/cancel_all", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "orders/cancel_all", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersStopCancel(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/stop/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "orders/stop/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersEdit(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/edit", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/edit", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersBatch(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/batch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountBuilderCodesApprove(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/builder_codes/approve", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/builder_codes/approve", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountBuilderCodesRevoke(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/builder_codes/revoke", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/builder_codes/revoke", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAgentBind(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "agent/bind", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "agent/bind", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountApiKeysCreate(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/api_keys/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/api_keys/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountApiKeysRevoke(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/api_keys/revoke", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/api_keys/revoke", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountApiKeys(self::Pacifica, params=Dict(), context=Dict())
-    return request(self, "account/api_keys", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/api_keys", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeAddBlacklist(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/add_blacklist", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeAddMaxLeverage(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/add_max_leverage", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeAddWhitelist(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/add_whitelist", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeClaimManager(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/claim_manager", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeClaimReferralCode(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/claim_referral_code", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeCreate(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/create", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeDeposit(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/deposit", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeRemoveBlacklist(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/remove_blacklist", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeRemoveMaxLeverage(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/remove_max_leverage", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeRemoveWhitelist(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/remove_whitelist", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeUpdateDepositCap(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/update_deposit_cap", "private", "POST", params, nothing, nothing, Dict())
+end
+
+function privatePostLakeWithdraw(self::Pacifica, params=Dict(), context=Dict())
+    return request(self, "lake/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Pacifica(; kwargs...)
-    inst = Pacifica(Exchange(), describe, initializeClient, handleBuilderFeeApproval, fetchMarkets, fetchSwapMarkets, parseMarket, fetchBalance, fetchLeverage, parseLeverageFromSetting, parseLeverageFromMarket, fetchAccountSettings, loadAccountSettings, parseAccountSettings, fetchMarginMode, parseMarginModeFromSetting, fetchOrderBook, fetchFundingRates, parseFundingRate, fetchOHLCV, parseOHLCV, fetchTrades, fetchMyTrades, parseTrade, createOrder, createOrderRequest, batchOrdersRequest, createOrdersRequest, createOrders, cancelOrders, cancelOrdersRequest, cancelAllOrders, cancelAllOrdersRequest, cancelOrder, cancelOrderRequest, editOrder, editOrderRequest, fetchFundingRateHistory, fetchTickers, parseTicker, fetchClosedOrders, fetchCanceledOrders, fetchCanceledAndClosedOrders, fetchOpenOrders, fetchOrders, addPaginationCursorToResult, fetchOrder, parseOrderStatus, mapTimeInForce, mapSide, parseOrderType, parseOrder, fetchPosition, fetchPositions, parsePosition, setMarginMode, setLeverage, withdraw, fetchTradingFee, parseTradingFee, fetchOpenInterests, fetchOpenInterest, parseOpenInterest, fetchLedger, parseLedgerEntry, parseLedgerEntryType, fetchFundingHistory, parseIncome, transfer, parseTransfer, createSubAccount, bindAgentWallet, createApiKey, revokeApiKey, fetchApiKeys, approveBuilderCode, fetchBuilderApprovals, revokeBuilderCode, handleOriginAndSingleAddress, handleErrors, sign, calculateRateLimiterCost, sortJsonKeys, prepareMessage, signMessage, postActionRequest, publicGetInfo, publicGetInfoPrices, publicGetKline, publicGetKlineMark, publicGetBook, publicGetTrades, publicGetFundingRateHistory, publicGetAccount, publicGetAccountSettings, publicGetPositions, publicGetTradesHistory, publicGetFundingHistory, publicGetPortfolio, publicGetAccountBalanceHistory, publicGetOrders, publicGetOrdersHistory, publicGetOrdersHistoryById, publicGetAccountBuilderCodesApprovals, privatePostAccountLeverage, privatePostAccountMargin, privatePostAccountWithdraw, privatePostAccountSubaccountCreate, privatePostAccountSubaccountList, privatePostAccountSubaccountTransfer, privatePostOrdersCreate, privatePostOrdersCreateMarket, privatePostOrdersStopCreate, privatePostPositionsTpsl, privatePostOrdersCancel, privatePostOrdersCancelAll, privatePostOrdersStopCancel, privatePostOrdersEdit, privatePostOrdersBatch, privatePostAccountBuilderCodesApprove, privatePostAccountBuilderCodesRevoke, privatePostAgentBind, privatePostAccountApiKeysCreate, privatePostAccountApiKeysRevoke, privatePostAccountApiKeys)
+    inst = Pacifica(Exchange(), describe, initializeClient, handleBuilderFeeApproval, fetchMarkets, fetchSwapMarkets, parseMarket, fetchBalance, fetchLeverage, parseLeverageFromSetting, parseLeverageFromMarket, fetchAccountSettings, loadAccountSettings, parseAccountSettings, fetchMarginMode, parseMarginModeFromSetting, fetchOrderBook, fetchFundingRates, parseFundingRate, fetchOHLCV, parseOHLCV, fetchTrades, fetchMyTrades, parseTrade, createOrder, createOrderRequest, batchOrdersRequest, createOrdersRequest, createOrders, cancelOrders, cancelOrdersRequest, cancelAllOrders, cancelAllOrdersRequest, cancelOrder, cancelOrderRequest, editOrder, editOrderRequest, fetchFundingRateHistory, fetchTickers, parseTicker, fetchClosedOrders, fetchCanceledOrders, fetchCanceledAndClosedOrders, fetchOpenOrders, fetchOrders, addPaginationCursorToResult, fetchOrder, parseOrderStatus, mapTimeInForce, mapSide, parseOrderType, parseOrder, fetchPosition, fetchPositions, parsePosition, setMarginMode, setLeverage, withdraw, fetchTradingFee, parseTradingFee, fetchOpenInterests, fetchOpenInterest, parseOpenInterest, fetchLedger, parseLedgerEntry, parseLedgerEntryType, fetchFundingHistory, parseIncome, transfer, parseTransfer, createSubAccount, bindAgentWallet, createApiKey, revokeApiKey, fetchApiKeys, approveBuilderCode, fetchBuilderApprovals, revokeBuilderCode, handleOriginAndSingleAddress, handleErrors, sign, calculateRateLimiterCost, sortJsonKeys, prepareMessage, signMessage, postActionRequest, publicGetInfo, publicGetInfoFees, publicGetInfoPrices, publicGetKline, publicGetKlineMark, publicGetBook, publicGetTrades, publicGetFundingRateHistory, publicGetLoanPool, publicGetAccount, publicGetAccountLoan, publicGetAccountSettings, publicGetPositions, publicGetTradesHistory, publicGetFundingHistory, publicGetPortfolio, publicGetAccountBalanceHistory, publicGetAccountSpotBalanceHistory, publicGetAccountSpotAssetDepositHistory, publicGetAccountSpotAssetWithdrawHistory, publicGetAccountSpotAssetWithdrawPending, publicGetOrders, publicGetOrdersHistory, publicGetOrdersHistoryById, publicGetSpotAssets, publicGetSpotAssetsBridgeInfo, publicGetSpotAssetsBridgeParametersSymbol, publicGetLakeList, publicGetAccountBuilderCodesApprovals, privatePostAccountLeverage, privatePostAccountMargin, privatePostAccountWithdraw, privatePostAccountSettingsAutoLendDisabled, privatePostAccountSettingsSpot, privatePostAccountSpotAssetWithdraw, privatePostAccountSubaccountCreate, privatePostAccountSubaccountList, privatePostAccountSubaccountTransfer, privatePostAccountSubaccountSpotAssetTransfer, privatePostPositionsAddIsolatedMargin, privatePostOrdersCreate, privatePostOrdersCreateMarket, privatePostOrdersStopCreate, privatePostPositionsTpsl, privatePostOrdersCancel, privatePostOrdersCancelAll, privatePostOrdersStopCancel, privatePostOrdersEdit, privatePostOrdersBatch, privatePostAccountBuilderCodesApprove, privatePostAccountBuilderCodesRevoke, privatePostAgentBind, privatePostAccountApiKeysCreate, privatePostAccountApiKeysRevoke, privatePostAccountApiKeys, privatePostLakeAddBlacklist, privatePostLakeAddMaxLeverage, privatePostLakeAddWhitelist, privatePostLakeClaimManager, privatePostLakeClaimReferralCode, privatePostLakeCreate, privatePostLakeDeposit, privatePostLakeRemoveBlacklist, privatePostLakeRemoveMaxLeverage, privatePostLakeRemoveWhitelist, privatePostLakeUpdateDepositCap, privatePostLakeWithdraw)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

@@ -156,7 +156,7 @@ function describe(self::Kraken, )
         Symbol("cancelOrders") => true,
         Symbol("createDepositAddress") => true,
         Symbol("createMarketBuyOrderWithCost") => true,
-        Symbol("createMarketOrderWithCost") => false,
+        Symbol("createMarketOrderWithCost") => true,
         Symbol("createMarketSellOrderWithCost") => false,
         Symbol("createOrder") => true,
         Symbol("createOrders") => true,
@@ -249,73 +249,198 @@ function describe(self::Kraken, )
     Symbol("handleContentTypeApplicationZip") => true,
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("zendesk") => Dict{Symbol, Any}(
-            Symbol("get") => ["360000292886", "201893608"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("360000292886") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("201893608") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("Time") => 1,
-                Symbol("SystemStatus") => 1,
-                Symbol("Assets") => 1,
-                Symbol("AssetPairs") => 1,
-                Symbol("Ticker") => 1,
-                Symbol("OHLC") => 1.2,
-                Symbol("Depth") => 1.2,
-                Symbol("GroupedBook") => 1.2,
-                Symbol("Trades") => 1.2,
-                Symbol("Spread") => 1,
-                Symbol("PreTrade") => 1,
-                Symbol("PostTrade") => 1
+                Symbol("Time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("SystemStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("AssetPairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("Ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("OHLC") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.2
+),
+                Symbol("Depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.2
+),
+                Symbol("GroupedBook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.2
+),
+                Symbol("Trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.2
+),
+                Symbol("Spread") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("PreTrade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("PostTrade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("Level3") => 1.2,
-                Symbol("Balance") => 3,
-                Symbol("BalanceEx") => 3,
-                Symbol("CreditLines") => 3,
-                Symbol("TradeBalance") => 3,
-                Symbol("OpenOrders") => 3,
-                Symbol("ClosedOrders") => 3,
-                Symbol("QueryOrders") => 3,
-                Symbol("OrderAmends") => 3,
-                Symbol("TradesHistory") => 6,
-                Symbol("QueryTrades") => 3,
-                Symbol("OpenPositions") => 3,
-                Symbol("Ledgers") => 6,
-                Symbol("QueryLedgers") => 3,
-                Symbol("TradeVolume") => 3,
-                Symbol("AddExport") => 3,
-                Symbol("ExportStatus") => 3,
-                Symbol("RetrieveExport") => 3,
-                Symbol("RemoveExport") => 3,
-                Symbol("GetApiKeyInfo") => 3,
-                Symbol("AddOrder") => 0,
-                Symbol("AmendOrder") => 0,
-                Symbol("CancelOrder") => 0,
-                Symbol("CancelAll") => 3,
-                Symbol("CancelAllOrdersAfter") => 3,
-                Symbol("GetWebSocketsToken") => 3,
-                Symbol("AddOrderBatch") => 0,
-                Symbol("CancelOrderBatch") => 0,
-                Symbol("EditOrder") => 0,
-                Symbol("DepositMethods") => 3,
-                Symbol("DepositAddresses") => 3,
-                Symbol("DepositStatus") => 3,
-                Symbol("WithdrawMethods") => 3,
-                Symbol("WithdrawAddresses") => 3,
-                Symbol("WithdrawInfo") => 3,
-                Symbol("Withdraw") => 3,
-                Symbol("WithdrawStatus") => 3,
-                Symbol("WithdrawCancel") => 3,
-                Symbol("WalletTransfer") => 3,
-                Symbol("CreateSubaccount") => 3,
-                Symbol("AccountTransfer") => 3,
-                Symbol("Earn/Allocate") => 3,
-                Symbol("Earn/Deallocate") => 3,
-                Symbol("Earn/AllocateStatus") => 3,
-                Symbol("Earn/DeallocateStatus") => 3,
-                Symbol("Earn/Strategies") => 3,
-                Symbol("Earn/Allocations") => 3
+                Symbol("Level3") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.2
+),
+                Symbol("Balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("BalanceEx") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("CreditLines") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("TradeBalance") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("OpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("ClosedOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("QueryOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("OrderAmends") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("TradesHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                Symbol("QueryTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("OpenPositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("Ledgers") => Dict{Symbol, Any}(
+    Symbol("cost") => 6
+),
+                Symbol("QueryLedgers") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("TradeVolume") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("AddExport") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("ExportStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("RetrieveExport") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("RemoveExport") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("GetApiKeyInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("AddOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 0
+),
+                Symbol("AmendOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 0
+),
+                Symbol("CancelOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 0
+),
+                Symbol("CancelAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("CancelAllOrdersAfter") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("GetWebSocketsToken") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("AddOrderBatch") => Dict{Symbol, Any}(
+    Symbol("cost") => 0
+),
+                Symbol("CancelOrderBatch") => Dict{Symbol, Any}(
+    Symbol("cost") => 0
+),
+                Symbol("EditOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 0
+),
+                Symbol("DepositMethods") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("DepositAddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("DepositStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("WithdrawMethods") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("WithdrawAddresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("WithdrawInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("Withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("WithdrawStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("WithdrawCancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("WalletTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("CreateSubaccount") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("AccountTransfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("Earn/Allocate") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("Earn/Deallocate") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("Earn/AllocateStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("Earn/DeallocateStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("Earn/Strategies") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("Earn/Allocations") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+)
             )
         )
     ),
@@ -660,7 +785,7 @@ function describe(self::Kraken, )
 
 end
 function feeToPrecision(self::Kraken, symbol, fee)
-    return decimalToPrecision(fee, TRUNCATE, get(get(get(self.markets, Symbol(symbol), nothing), Symbol("precision"), nothing), Symbol("amount"), nothing), self.precisionMode)
+    return decimalToPrecision(fee, TRUNCATE, get(get(self.market(symbol), Symbol("precision"), nothing), Symbol("amount"), nothing), self.precisionMode)
 
 end
 function fetchMarkets(self::Kraken, params=Dict())
@@ -669,7 +794,7 @@ function fetchMarkets(self::Kraken, params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
                 push!(promises, self.loadTimeDifference());
     end
-    responses = asyncmap(Base.fetch, promises);
+    responses = Base.fetch(asyncmap(Base.fetch, promises));
     assetsResponse = get(responses, 1, nothing);
     markets = self.safeDict(assetsResponse, "result", Dict{Symbol, Any}());
     cachedCurrencies = self.safeDict(self.options, "cachedCurrencies", Dict{Symbol, Any}());
@@ -708,9 +833,15 @@ function fetchMarkets(self::Kraken, params=Dict())
         precisionPrice = self.parseNumber(self.parsePrecision(safeString(market, "pair_decimals")));
         precisionAmount = self.parseNumber(self.parsePrecision(safeString(market, "lot_decimals")));
         spot = true;
+        if functions.ccxtruthy(base == nothing)
+            throw(ExchangeError(string(self.id, " method() missing base")));
+        end
         if functions.ccxtruthy(@functions.ccxt_and(spot, (ccxt_in(base, cachedCurrencies))))
-            currency = get(cachedCurrencies, Symbol(base), nothing);
+            currency = safeValue(cachedCurrencies, base);
             currencyPrecision = self.safeNumber(currency, "precision");
+            if functions.ccxtruthy(currencyPrecision == nothing)
+                throw(ExchangeError(string(self.id, " method() missing currencyPrecision")));
+            end
             if functions.ccxtruthy(functions.ccxt_gt(currencyPrecision, precisionAmount))
                 precisionAmount = currencyPrecision;
             end
@@ -778,7 +909,7 @@ function fetchMarkets(self::Kraken, params=Dict())
 
 end
 function fetchStatus(self::Kraken, params=Dict())
-    response = self.publicGetSystemStatus(params);
+    response = Base.fetch(self.publicGetSystemStatus(params));
     result = self.safeDict(response, "result");
     statusRaw = safeString(result, "status");
     return Dict{Symbol, Any}(
@@ -791,7 +922,7 @@ function fetchStatus(self::Kraken, params=Dict())
 
 end
 function fetchCurrencies(self::Kraken, params=Dict())
-    response = self.publicGetAssets(params);
+    response = Base.fetch(self.publicGetAssets(params));
     currencies = self.safeDict(response, "result", Dict{Symbol, Any}());
     enhancedArray = self.addKeyInArrayItems(currencies, "_coin_id");
     return self.parseCurrencies(enhancedArray)
@@ -800,14 +931,25 @@ end
 function parseCurrency(self::Kraken, rawCurrency)
     id = safeString(rawCurrency, "_coin_id");
     code = self.safeCurrencyCode(id);
+    if functions.ccxtruthy(id == nothing)
+        throw(ExchangeError(string(self.id, " parseCurrency() missing id")));
+    end
     if functions.ccxtruthy(findfirst(".", id) === nothing)
         altName = safeString(rawCurrency, "altname");
+        if functions.ccxtruthy(id == nothing)
+            throw(ExchangeError(string(self.id, " parseCurrency() missing id")));
+        end
         if functions.ccxtruthy(@functions.ccxt_and(id != altName, (@functions.ccxt_or(startswith(id, "X"), startswith(id, "Z")))))
             code = self.safeCurrencyCode(altName);
-            self.commonCurrencies[Symbol(id)] = code;
+            if functions.ccxtruthy(@functions.ccxt_and((id != nothing), (code != nothing)))
+                self.commonCurrencies[Symbol(id)] = code;
+            end
         else
             code = self.safeCurrencyCode(id);
         end
+    end
+    if functions.ccxtruthy(code == nothing)
+        throw(ExchangeError(string(self.id, " parseCurrency() missing code")));
     end
     isFiat = findfirst(".HOLD", code) !== nothing;
     rawCurrency = omit(rawCurrency, "_coin_id");
@@ -851,14 +993,14 @@ function safeCurrencyCode(self::Kraken, currencyId, currency=nothing)
 end
 function fetchTradingFee(self::Kraken, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("pair") => get(market, Symbol("id"), nothing),
         Symbol("fee-info") => true
     );
-    response = self.privatePostTradeVolume(extend(request, params));
+    response = Base.fetch(self.privatePostTradeVolume(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
     return self.parseTradingFee(result, market)
 
@@ -887,7 +1029,7 @@ function parseOrderBookBidAsk(self::Kraken, bidask, priceKey=0, amountKey=1, cou
 end
 function fetchOrderBook(self::Kraken, symbol, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -896,7 +1038,7 @@ function fetchOrderBook(self::Kraken, symbol, limit=nothing, params=Dict())
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("count")] = limit;
     end
-    response = self.publicGetDepth(extend(request, params));
+    response = Base.fetch(self.publicGetDepth(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
     orderbook = safeValue(result, get(market, Symbol("id"), nothing));
     marketInfo = safeValue(market, "info", Dict{Symbol, Any}());
@@ -946,7 +1088,7 @@ function parseTicker(self::Kraken, ticker, market=nothing)
 end
 function fetchTickers(self::Kraken, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
@@ -955,7 +1097,7 @@ function fetchTickers(self::Kraken, symbols=nothing, params=Dict())
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
             symbol = get(symbols, i + 1, nothing);
-            market = get(self.markets, Symbol(symbol), nothing);
+            market = self.market(symbol);
             if functions.ccxtruthy(get(market, Symbol("active"), nothing))
                                 push!(marketIds, get(market, Symbol("id"), nothing));
             end
@@ -964,8 +1106,8 @@ function fetchTickers(self::Kraken, symbols=nothing, params=Dict())
 
         request[Symbol("pair")] =         join(marketIds, ",");
     end
-    response = self.publicGetTicker(extend(request, params));
-    tickers = get(response, Symbol("result"), nothing);
+    response = Base.fetch(self.publicGetTicker(extend(request, params)));
+    tickers = self.safeDict(response, "result", Dict{Symbol, Any}());
     ids = objectKeys(tickers);
     result = Dict{Symbol, Any}();
     i = 0
@@ -982,14 +1124,15 @@ function fetchTickers(self::Kraken, symbols=nothing, params=Dict())
 end
 function fetchTicker(self::Kraken, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("pair") => get(market, Symbol("id"), nothing)
     );
-    response = self.publicGetTicker(extend(request, params));
-    ticker = get(get(response, Symbol("result"), nothing), Symbol(get(market, Symbol("id"), nothing)), nothing);
+    response = Base.fetch(self.publicGetTicker(extend(request, params)));
+    tickerResult = self.safeDict(response, "result", Dict{Symbol, Any}());
+    ticker = safeValue(tickerResult, get(market, Symbol("id"), nothing));
     return self.parseTicker(ticker, market)
 
 end
@@ -999,12 +1142,12 @@ function parseOHLCV(self::Kraken, ohlcv, market=nothing)
 end
 function fetchOHLCV(self::Kraken, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 720)
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 720))
     end
     market = self.market(symbol);
     parsedTimeframe = safeInteger(self.timeframes, timeframe);
@@ -1018,10 +1161,13 @@ function fetchOHLCV(self::Kraken, symbol, timeframe="1m", since=nothing, limit=n
     end
     if functions.ccxtruthy(since != nothing)
         scaledSince = self.parseToInt(since / 1000);
+        if functions.ccxtruthy(parsedTimeframe == nothing)
+            throw(ExchangeError(string(self.id, " fetchOHLCV() missing parsedTimeframe")));
+        end
         timeFrameInSeconds = parsedTimeframe * 60;
         request[Symbol("since")] = numberToString(scaledSince - timeFrameInSeconds);
     end
-    response = self.publicGetOHLC(extend(request, params));
+    response = Base.fetch(self.publicGetOHLC(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
     ohlcvs = self.safeList(result, get(market, Symbol("id"), nothing), []);
     return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
@@ -1080,7 +1226,7 @@ function parseLedgerEntry(self::Kraken, item, currency=nothing)
 end
 function fetchLedger(self::Kraken, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -1091,13 +1237,13 @@ function fetchLedger(self::Kraken, code=nothing, since=nothing, limit=nothing, p
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start")] = self.parseToInt(since / 1000);
     end
-    until = safeStringN(params, ["until", "till"]);
+    until = safeString2(params, "until", "till");
     if functions.ccxtruthy(until != nothing)
         params = omit(params, ["until", "till"]);
         untilDivided = stringDiv(until, "1000");
         request[Symbol("end")] = self.parseToInt(stringAdd(untilDivided, "1"));
     end
-    response = self.privatePostLedgers(extend(request, params));
+    response = Base.fetch(self.privatePostLedgers(extend(request, params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
     ledger = safeValue(result, "ledger", Dict{Symbol, Any}());
     keys_var = objectKeys(ledger);
@@ -1115,14 +1261,14 @@ function fetchLedger(self::Kraken, code=nothing, since=nothing, limit=nothing, p
 end
 function fetchLedgerEntriesByIds(self::Kraken, ids, code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     ids = join(ids, ",");
     request = extend(Dict{Symbol, Any}(
         Symbol("id") => ids
     ), params);
-    response = self.privatePostQueryLedgers(request);
-    result = get(response, Symbol("result"), nothing);
+    response = Base.fetch(self.privatePostQueryLedgers(request));
+    result = self.safeDict(response, "result", Dict{Symbol, Any}());
     keys_var = objectKeys(result);
     items = [];
     i = 0
@@ -1137,7 +1283,7 @@ function fetchLedgerEntriesByIds(self::Kraken, ids, code=nothing, params=Dict())
 
 end
 function fetchLedgerEntry(self::Kraken, id, code=nothing, params=Dict())
-    items = self.fetchLedgerEntriesByIds([id], code, params);
+    items = Base.fetch(self.fetchLedgerEntriesByIds([id], code, params));
     return get(items, 1, nothing)
 
 end
@@ -1234,7 +1380,7 @@ function parseTrade(self::Kraken, trade, market=nothing)
 end
 function fetchTrades(self::Kraken, symbol, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     id = get(market, Symbol("id"), nothing);
@@ -1247,9 +1393,9 @@ function fetchTrades(self::Kraken, symbol, since=nothing, limit=nothing, params=
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("count")] = limit;
     end
-    response = self.publicGetTrades(extend(request, params));
-    result = get(response, Symbol("result"), nothing);
-    trades = get(result, Symbol(id), nothing);
+    response = Base.fetch(self.publicGetTrades(extend(request, params)));
+    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    trades = safeValue(result, id);
     len = length(trades);
     if functions.ccxtruthy(functions.ccxt_le(len, 0))
             return []
@@ -1277,7 +1423,9 @@ function parseBalance(self::Kraken, response)
         account = self.account();
         account[Symbol("used")] = safeString(balance, "hold_trade");
         account[Symbol("total")] = safeString(balance, "balance");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1285,32 +1433,32 @@ function parseBalance(self::Kraken, response)
 end
 function fetchBalance(self::Kraken, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    response = self.privatePostBalanceEx(params);
+    response = Base.fetch(self.privatePostBalanceEx(params));
     return self.parseBalance(response)
 
 end
 function createMarketOrderWithCost(self::Kraken, symbol, side, cost, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return self.createOrder(symbol, "market", side, cost, nothing, extend(req, params))
+    return Base.fetch(self.createOrder(symbol, "market", side, cost, nothing, extend(req, params)))
 
 end
 function createMarketBuyOrderWithCost(self::Kraken, symbol, cost, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    return self.createMarketOrderWithCost(symbol, "buy", cost, params)
+    return Base.fetch(self.createMarketOrderWithCost(symbol, "buy", cost, params))
 
 end
 function createOrder(self::Kraken, symbol, type_var, side, amount, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1322,7 +1470,7 @@ function createOrder(self::Kraken, symbol, type_var, side, amount, price=nothing
     orderRequest = self.orderRequest("createOrder", symbol, type_var, request, amount, price, params);
     flags = safeString(get(orderRequest, 1, nothing), "oflags", "");
     isUsingCost = findfirst("viqc", flags) !== nothing;
-    response = self.privatePostAddOrder(extend(get(orderRequest, 1, nothing), get(orderRequest, 2, nothing)));
+    response = Base.fetch(self.privatePostAddOrder(extend(get(orderRequest, 1, nothing), get(orderRequest, 2, nothing))));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     result[Symbol("usingCost")] = isUsingCost;
     return self.parseOrder(result)
@@ -1330,7 +1478,7 @@ function createOrder(self::Kraken, symbol, type_var, side, amount, price=nothing
 end
 function createOrders(self::Kraken, orders, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     ordersRequests = [];
     orderSymbols = [];
@@ -1371,7 +1519,7 @@ function createOrders(self::Kraken, orders, params=Dict())
         Symbol("pair") => safeString(market, "id")
     );
     request = extend(request, params);
-    response = self.privatePostAddOrderBatch(request);
+    response = Base.fetch(self.privatePostAddOrderBatch(request));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     return self.parseOrders(self.safeList(result, "orders"))
 
@@ -1626,7 +1774,7 @@ function orderRequest(self::Kraken, method, symbol, type_var, request, amount, p
     trailingLimitPercent = safeString(params, "trailingLimitPercent");
     isTrailingAmountOrder = trailingAmount != nothing;
     isTrailingPercentOrder = trailingPercent != nothing;
-    isLimitOrder = endswith(type_var, "limit");
+    isLimitOrder = @functions.ccxt_and((type_var != nothing), endswith(type_var, "limit"));
     isMarketOrder = type_var == "market";
     cost = safeString(params, "cost");
     flags = safeString(params, "oflags");
@@ -1733,7 +1881,7 @@ function orderRequest(self::Kraken, method, symbol, type_var, request, amount, p
 end
 function editOrder(self::Kraken, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
@@ -1771,14 +1919,14 @@ function editOrder(self::Kraken, id, symbol, type_var, side, amount=nothing, pri
             request[Symbol("trigger_price")] = self.priceToPrecision(symbol, allTriggerPrices);
         end
     end
-    response = self.privatePostAmendOrder(extend(request, params));
+    response = Base.fetch(self.privatePostAmendOrder(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     return self.parseOrder(result, market)
 
 end
 function fetchOrder(self::Kraken, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     clientOrderId = safeValue2(params, "userref", "clientOrderId");
     request = Dict{Symbol, Any}(
@@ -1790,7 +1938,7 @@ function fetchOrder(self::Kraken, id, symbol=nothing, params=Dict())
         request[Symbol("userref")] = clientOrderId;
         query = omit(params, ["userref", "clientOrderId"]);
     end
-    response = self.privatePostQueryOrders(extend(request, query));
+    response = Base.fetch(self.privatePostQueryOrders(extend(request, query)));
     result = safeValue(response, "result", []);
     if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(id, result))))
         throw(OrderNotFound(string(self.id, " fetchOrder() could not find order id ", id)));
@@ -1818,7 +1966,7 @@ function fetchOrderTrades(self::Kraken, id, symbol=nothing, since=nothing, limit
         end
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     if functions.ccxtruthy(symbol != nothing)
         symbol = self.symbol(symbol);
@@ -1843,7 +1991,7 @@ function fetchOrderTrades(self::Kraken, id, symbol=nothing, since=nothing, limit
         request = Dict{Symbol, Any}(
             Symbol("txid") => join(requestIds, ",")
         );
-        response = self.privatePostQueryTrades(request);
+        response = Base.fetch(self.privatePostQueryTrades(request));
         rawTrades = safeValue(response, "result");
         ids = objectKeys(rawTrades);
         i = 0
@@ -1861,12 +2009,12 @@ function fetchOrderTrades(self::Kraken, id, symbol=nothing, since=nothing, limit
 end
 function fetchOrdersByIds(self::Kraken, ids, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    response = self.privatePostQueryOrders(extend(Dict{Symbol, Any}(
+    response = Base.fetch(self.privatePostQueryOrders(extend(Dict{Symbol, Any}(
         Symbol("trades") => true,
         Symbol("txid") => join(ids, ",")
-    ), params));
+    ), params)));
     result = safeValue(response, "result", Dict{Symbol, Any}());
     orders = [];
     orderIds = objectKeys(result);
@@ -1885,20 +2033,21 @@ function fetchOrdersByIds(self::Kraken, ids, symbol=nothing, params=Dict())
 end
 function fetchMyTrades(self::Kraken, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start")] = self.parseToInt(since / 1000);
     end
-    until = safeStringN(params, ["until", "till"]);
+    until = safeString2(params, "until", "till");
     if functions.ccxtruthy(until != nothing)
         params = omit(params, ["until", "till"]);
         untilDivided = stringDiv(until, "1000");
         request[Symbol("end")] = self.parseToInt(stringAdd(untilDivided, "1"));
     end
-    response = self.privatePostTradesHistory(extend(request, params));
-    trades = get(get(response, Symbol("result"), nothing), Symbol("trades"), nothing);
+    response = Base.fetch(self.privatePostTradesHistory(extend(request, params)));
+    tradesResult = self.safeDict(response, "result", Dict{Symbol, Any}());
+    trades = self.safeDict(tradesResult, "trades", Dict{Symbol, Any}());
     ids = objectKeys(trades);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(ids)))
@@ -1909,12 +2058,13 @@ function fetchMyTrades(self::Kraken, symbol=nothing, since=nothing, limit=nothin
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
     end
-    return self.parseTrades(trades, market, since, limit)
+    tradesList = toArray(trades);
+    return self.parseTrades(tradesList, market, since, limit)
 
 end
 function cancelOrder(self::Kraken, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     response = nothing;
     requestId = safeValue(params, "userref", id);
@@ -1929,7 +2079,7 @@ function cancelOrder(self::Kraken, id, symbol=nothing, params=Dict())
         request = omit(request, "txid");
     end
     try
-        response = self.privatePostCancelOrder(extend(request, params));
+        response = Base.fetch(self.privatePostCancelOrder(extend(request, params)));
     catch e
         if functions.ccxtruthy(self.last_http_response)
             if functions.ccxtruthy(findfirst("EOrder:Unknown order", self.last_http_response) !== nothing)
@@ -1948,7 +2098,7 @@ function cancelOrders(self::Kraken, ids, symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("orders") => ids
     );
-    response = self.privatePostCancelOrderBatch(extend(request, params));
+    response = Base.fetch(self.privatePostCancelOrderBatch(extend(request, params)));
     return [self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response
 ))]
@@ -1956,31 +2106,37 @@ function cancelOrders(self::Kraken, ids, symbol=nothing, params=Dict())
 end
 function cancelAllOrders(self::Kraken, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    response = self.privatePostCancelAll(params);
+    response = Base.fetch(self.privatePostCancelAll(params));
     return [self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response
 ))]
 
 end
 function cancelAllOrdersAfter(self::Kraken, timeout, params=Dict())
+    if functions.ccxtruthy(timeout == nothing)
+        throw(ExchangeError(string(self.id, " cancelAllOrdersAfter() missing timeout")));
+    end
     if functions.ccxtruthy(functions.ccxt_gt(timeout, 86400000))
         throw(BadRequest(string(self.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
+    end
+    if functions.ccxtruthy(timeout == nothing)
+        throw(ExchangeError(string(self.id, " cancelAllOrdersAfter() missing timeout")));
     end
     request = Dict{Symbol, Any}(
         Symbol("timeout") => functions.ccxtruthy((functions.ccxt_gt(timeout, 0))) ? (self.parseToInt(timeout / 1000)) : 0
     );
-    response = self.privatePostCancelAllOrdersAfter(extend(request, params));
+    response = Base.fetch(self.privatePostCancelAllOrdersAfter(extend(request, params)));
     return response
 
 end
 function fetchOpenOrders(self::Kraken, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(since != nothing)
@@ -1996,7 +2152,7 @@ function fetchOpenOrders(self::Kraken, symbol=nothing, since=nothing, limit=noth
         request[Symbol("cl_ord_id")] = clientOrderId;
         params = omit(params, "clientOrderId");
     end
-    response = self.privatePostOpenOrders(extend(request, params));
+    response = Base.fetch(self.privatePostOpenOrders(extend(request, params)));
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
@@ -2019,7 +2175,7 @@ function fetchOpenOrders(self::Kraken, symbol=nothing, since=nothing, limit=noth
 end
 function fetchClosedOrders(self::Kraken, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(since != nothing)
@@ -2036,7 +2192,7 @@ function fetchClosedOrders(self::Kraken, symbol=nothing, since=nothing, limit=no
         params = omit(params, "clientOrderId");
     end
     (request, params) = self.handleUntilOption("end", request, params);
-    response = self.privatePostClosedOrders(extend(request, params));
+    response = Base.fetch(self.privatePostClosedOrders(extend(request, params)));
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
         market = self.market(symbol);
@@ -2139,7 +2295,7 @@ function parseTransactionsByType(self::Kraken, type_var, transactions, code=noth
 end
 function fetchDeposits(self::Kraken, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(code != nothing)
@@ -2150,31 +2306,32 @@ function fetchDeposits(self::Kraken, code=nothing, since=nothing, limit=nothing,
         sinceString = numberToString(since);
         request[Symbol("start")] = stringDiv(sinceString, "1000");
     end
-    until = safeStringN(params, ["until", "till"]);
+    until = safeString2(params, "until", "till");
     if functions.ccxtruthy(until != nothing)
         params = omit(params, ["until", "till"]);
         untilDivided = stringDiv(until, "1000");
         request[Symbol("end")] = stringAdd(untilDivided, "1");
     end
-    response = self.privatePostDepositStatus(extend(request, params));
-    return self.parseTransactionsByType("deposit", get(response, Symbol("result"), nothing), code, since, limit)
+    response = Base.fetch(self.privatePostDepositStatus(extend(request, params)));
+    depositResult = self.safeList(response, "result", []);
+    return self.parseTransactionsByType("deposit", depositResult, code, since, limit)
 
 end
 function fetchTime(self::Kraken, params=Dict())
-    response = self.publicGetTime(params);
+    response = Base.fetch(self.publicGetTime(params));
     result = safeValue(response, "result", Dict{Symbol, Any}());
     return safeTimestamp(result, "unixtime")
 
 end
 function fetchWithdrawals(self::Kraken, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
         params[Symbol("cursor")] = true;
-            return self.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "next_cursor", "cursor")
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "next_cursor", "cursor"))
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(code != nothing)
@@ -2185,13 +2342,13 @@ function fetchWithdrawals(self::Kraken, code=nothing, since=nothing, limit=nothi
         sinceString = numberToString(since);
         request[Symbol("start")] = stringDiv(sinceString, "1000");
     end
-    until = safeStringN(params, ["until", "till"]);
+    until = safeString2(params, "until", "till");
     if functions.ccxtruthy(until != nothing)
         params = omit(params, ["until", "till"]);
         untilDivided = stringDiv(until, "1000");
         request[Symbol("end")] = stringAdd(untilDivided, "1");
     end
-    response = self.privatePostWithdrawStatus(extend(request, params));
+    response = Base.fetch(self.privatePostWithdrawStatus(extend(request, params)));
     rawWithdrawals = nothing;
     result = safeValue(response, "result");
     if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(result)))
@@ -2218,24 +2375,24 @@ function createDepositAddress(self::Kraken, code, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("new") => "true"
     );
-    return self.fetchDepositAddress(code, extend(request, params))
+    return Base.fetch(self.fetchDepositAddress(code, extend(request, params)))
 
 end
 function fetchDepositMethods(self::Kraken, code, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("asset") => get(currency, Symbol("id"), nothing)
     );
-    response = self.privatePostDepositMethods(extend(request, params));
+    response = Base.fetch(self.privatePostDepositMethods(extend(request, params)));
     return safeValue(response, "result")
 
 end
 function fetchDepositAddress(self::Kraken, code, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     network = safeStringUpper(params, "network");
@@ -2249,11 +2406,14 @@ function fetchDepositAddress(self::Kraken, code, params=Dict())
     defaultDepositMethod = safeString(defaultDepositMethods, code);
     depositMethod = safeString(params, "method", defaultDepositMethod);
     if functions.ccxtruthy(depositMethod == nothing)
-        depositMethods = self.fetchDepositMethods(code);
+        depositMethods = Base.fetch(self.fetchDepositMethods(code));
         if functions.ccxtruthy(network != nothing)
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(depositMethods)))
                 entry = safeString(get(depositMethods, i + 1, nothing), "method");
+                if functions.ccxtruthy(entry == nothing)
+                    throw(ExchangeError(string(self.id, " fetchDepositAddress() missing entry")));
+                end
                 if functions.ccxtruthy(findfirst(network, entry) !== nothing)
                     depositMethod = entry;
                     break
@@ -2271,7 +2431,7 @@ function fetchDepositAddress(self::Kraken, code, params=Dict())
         Symbol("asset") => get(currency, Symbol("id"), nothing),
         Symbol("method") => depositMethod
     );
-    response = self.privatePostDepositAddresses(extend(request, params));
+    response = Base.fetch(self.privatePostDepositAddresses(extend(request, params)));
     result = safeValue(response, "result", []);
     firstResult = safeValue(result, 0, Dict{Symbol, Any}());
     if functions.ccxtruthy(firstResult == nothing)
@@ -2298,7 +2458,7 @@ end
 function withdraw(self::Kraken, code, amount, address, tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     if functions.ccxtruthy(ccxt_in("key", params))
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
         currency = self.currency(code);
         request = Dict{Symbol, Any}(
             Symbol("asset") => get(currency, Symbol("id"), nothing),
@@ -2308,7 +2468,7 @@ function withdraw(self::Kraken, code, amount, address, tag=nothing, params=Dict(
             request[Symbol("address")] = address;
             self.checkAddress(address);
         end
-        response = self.privatePostWithdraw(extend(request, params));
+        response = Base.fetch(self.privatePostWithdraw(extend(request, params)));
         result = self.safeDict(response, "result", Dict{Symbol, Any}());
             return self.parseTransaction(result, currency)
     end
@@ -2317,13 +2477,13 @@ function withdraw(self::Kraken, code, amount, address, tag=nothing, params=Dict(
 end
 function fetchPositions(self::Kraken, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("docalcs") => "true",
         Symbol("consolidation") => "market"
     );
-    response = self.privatePostOpenPositions(extend(request, params));
+    response = Base.fetch(self.privatePostOpenPositions(extend(request, params)));
     symbols = self.marketSymbols(symbols);
     result = self.safeList(response, "result");
     results = self.parsePositions(result, symbols);
@@ -2376,12 +2536,12 @@ function parseAccountType(self::Kraken, account)
 
 end
 function transferOut(self::Kraken, code, amount, params=Dict())
-    return self.transfer(code, amount, "spot", "swap", params)
+    return Base.fetch(self.transfer(code, amount, "spot", "swap", params))
 
 end
 function transfer(self::Kraken, code, amount, fromAccount, toAccount, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     fromAccountParsed = self.parseAccountType(fromAccount);
@@ -2395,7 +2555,7 @@ function transfer(self::Kraken, code, amount, fromAccount, toAccount, params=Dic
     if functions.ccxtruthy(fromAccountParsed != "Spot Wallet")
         throw(BadRequest(string(self.id, " transfer cannot transfer from ", fromAccountParsed, " to ", toAccountParsed, ". Use krakenfutures instead to transfer from the futures account.")));
     end
-    response = self.privatePostWalletTransfer(extend(request, params));
+    response = Base.fetch(self.privatePostWalletTransfer(extend(request, params)));
     transfer = self.parseTransfer(response, currency);
     return extend(transfer, Dict{Symbol, Any}(
     Symbol("amount") => amount,
@@ -2538,239 +2698,239 @@ function zendeskGet201893608(self::Kraken, params=Dict(), context=Dict())
 end
 
 function publicGetTime(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "Time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSystemStatus(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "SystemStatus", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "SystemStatus", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAssets(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Assets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "Assets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetAssetPairs(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "AssetPairs", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "AssetPairs", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTicker(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "Ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOHLC(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "OHLC", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.2))
+    return request(self, "OHLC", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDepth(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Depth", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.2))
+    return request(self, "Depth", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetGroupedBook(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "GroupedBook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.2))
+    return request(self, "GroupedBook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTrades(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.2))
+    return request(self, "Trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpread(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Spread", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "Spread", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPreTrade(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "PreTrade", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "PreTrade", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPostTrade(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "PostTrade", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "PostTrade", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostLevel3(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Level3", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1.2))
+    return request(self, "Level3", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBalance(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Balance", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "Balance", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostBalanceEx(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "BalanceEx", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "BalanceEx", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCreditLines(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "CreditLines", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "CreditLines", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeBalance(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "TradeBalance", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "TradeBalance", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenOrders(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "OpenOrders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "OpenOrders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostClosedOrders(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "ClosedOrders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "ClosedOrders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostQueryOrders(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "QueryOrders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "QueryOrders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrderAmends(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "OrderAmends", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "OrderAmends", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradesHistory(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "TradesHistory", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "TradesHistory", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostQueryTrades(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "QueryTrades", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "QueryTrades", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenPositions(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "OpenPositions", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "OpenPositions", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostLedgers(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Ledgers", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 6))
+    return request(self, "Ledgers", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostQueryLedgers(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "QueryLedgers", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "QueryLedgers", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostTradeVolume(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "TradeVolume", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "TradeVolume", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAddExport(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "AddExport", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "AddExport", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostExportStatus(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "ExportStatus", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "ExportStatus", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRetrieveExport(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "RetrieveExport", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "RetrieveExport", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostRemoveExport(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "RemoveExport", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "RemoveExport", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetApiKeyInfo(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "GetApiKeyInfo", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "GetApiKeyInfo", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAddOrder(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "AddOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0))
+    return request(self, "AddOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAmendOrder(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "AmendOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0))
+    return request(self, "AmendOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelOrder(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "CancelOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0))
+    return request(self, "CancelOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelAll(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "CancelAll", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "CancelAll", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelAllOrdersAfter(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "CancelAllOrdersAfter", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "CancelAllOrdersAfter", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGetWebSocketsToken(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "GetWebSocketsToken", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "GetWebSocketsToken", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAddOrderBatch(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "AddOrderBatch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0))
+    return request(self, "AddOrderBatch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCancelOrderBatch(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "CancelOrderBatch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0))
+    return request(self, "CancelOrderBatch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEditOrder(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "EditOrder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 0))
+    return request(self, "EditOrder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDepositMethods(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "DepositMethods", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "DepositMethods", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDepositAddresses(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "DepositAddresses", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "DepositAddresses", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostDepositStatus(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "DepositStatus", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "DepositStatus", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawMethods(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "WithdrawMethods", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "WithdrawMethods", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawAddresses(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "WithdrawAddresses", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "WithdrawAddresses", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawInfo(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "WithdrawInfo", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "WithdrawInfo", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdraw(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "Withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawStatus(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "WithdrawStatus", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "WithdrawStatus", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWithdrawCancel(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "WithdrawCancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "WithdrawCancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletTransfer(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "WalletTransfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "WalletTransfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostCreateSubaccount(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "CreateSubaccount", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "CreateSubaccount", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountTransfer(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "AccountTransfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "AccountTransfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEarnAllocate(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Earn/Allocate", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "Earn/Allocate", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEarnDeallocate(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Earn/Deallocate", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "Earn/Deallocate", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEarnAllocateStatus(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Earn/AllocateStatus", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "Earn/AllocateStatus", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEarnDeallocateStatus(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Earn/DeallocateStatus", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "Earn/DeallocateStatus", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEarnStrategies(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Earn/Strategies", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "Earn/Strategies", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostEarnAllocations(self::Kraken, params=Dict(), context=Dict())
-    return request(self, "Earn/Allocations", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "Earn/Allocations", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Kraken(; kwargs...)
@@ -2782,17 +2942,29 @@ function Kraken(; kwargs...)
     # wholesale would drop the base defaults an exchange does not restate —
     # e.g. `options.defaultNetworkCodeReplacements`, which every
     # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
         key = Symbol(k)
-        if v isa AbstractDict
+        if v isa AbstractDict && key !== :features
             inst[key] = deepExtend(get(inst, key, nothing), v)
         else
             inst[key] = v
         end
     end
     for (k, v) in kwargs
-        if v isa AbstractDict
+        if v isa AbstractDict && k !== :features
             inst[k] = deepExtend(get(inst, k, nothing), v)
         else
             inst[k] = v
@@ -2811,8 +2983,12 @@ function Kraken(; kwargs...)
     end
     newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
     inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
     inst.afterConstruct()
-    if ccxtruthy(inst.safeBool2(inst.options, "sandbox", "testnet", false))
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
         inst.setSandboxMode(true)
     end
     inst.loadExchangeSpecificFiles()

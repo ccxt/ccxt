@@ -289,129 +289,331 @@ function describe(self::Poloniex, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("markets") => 20,
-                Symbol("markets/{symbol}") => 1,
-                Symbol("currencies") => 20,
-                Symbol("currencies/{currency}") => 20,
-                Symbol("v2/currencies") => 20,
-                Symbol("v2/currencies/{currency}") => 20,
-                Symbol("timestamp") => 1,
-                Symbol("markets/price") => 1,
-                Symbol("markets/{symbol}/price") => 1,
-                Symbol("markets/markPrice") => 1,
-                Symbol("markets/{symbol}/markPrice") => 1,
-                Symbol("markets/{symbol}/markPriceComponents") => 1,
-                Symbol("markets/{symbol}/orderBook") => 1,
-                Symbol("markets/{symbol}/candles") => 1,
-                Symbol("markets/{symbol}/trades") => 20,
-                Symbol("markets/ticker24h") => 20,
-                Symbol("markets/{symbol}/ticker24h") => 20,
-                Symbol("markets/collateralInfo") => 1,
-                Symbol("markets/{currency}/collateralInfo") => 1,
-                Symbol("markets/borrowRatesInfo") => 1
+                Symbol("markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("markets/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("currencies/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v2/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v2/currencies/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("timestamp") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{symbol}/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/markPrice") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{symbol}/markPrice") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{symbol}/markPriceComponents") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{symbol}/orderBook") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{symbol}/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{symbol}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("markets/ticker24h") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("markets/{symbol}/ticker24h") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("markets/collateralInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/{currency}/collateralInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("markets/borrowRatesInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("accounts") => 4,
-                Symbol("accounts/balances") => 4,
-                Symbol("accounts/{id}/balances") => 4,
-                Symbol("accounts/activity") => 20,
-                Symbol("accounts/transfer") => 20,
-                Symbol("accounts/transfer/{id}") => 4,
-                Symbol("feeinfo") => 20,
-                Symbol("accounts/interest/history") => 1,
-                Symbol("subaccounts") => 4,
-                Symbol("subaccounts/balances") => 20,
-                Symbol("subaccounts/{id}/balances") => 4,
-                Symbol("subaccounts/transfer") => 20,
-                Symbol("subaccounts/transfer/{id}") => 4,
-                Symbol("wallets/addresses") => 20,
-                Symbol("wallets/addresses/{currency}") => 20,
-                Symbol("wallets/activity") => 20,
-                Symbol("margin/accountMargin") => 4,
-                Symbol("margin/borrowStatus") => 4,
-                Symbol("margin/maxSize") => 4,
-                Symbol("orders") => 20,
-                Symbol("orders/{id}") => 4,
-                Symbol("orders/killSwitchStatus") => 4,
-                Symbol("smartorders") => 20,
-                Symbol("smartorders/{id}") => 4,
-                Symbol("orders/history") => 20,
-                Symbol("smartorders/history") => 20,
-                Symbol("trades") => 20,
-                Symbol("orders/{id}/trades") => 4
+                Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("accounts/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("accounts/{id}/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("accounts/activity") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("accounts/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("accounts/transfer/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("feeinfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("accounts/interest/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("subaccounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("subaccounts/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("subaccounts/{id}/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("subaccounts/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("subaccounts/transfer/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("wallets/addresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("wallets/addresses/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("wallets/activity") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("margin/accountMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("margin/borrowStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("margin/maxSize") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("orders/killSwitchStatus") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("smartorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("smartorders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("smartorders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("orders/{id}/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("accounts/transfer") => 4,
-                Symbol("subaccounts/transfer") => 20,
-                Symbol("wallets/address") => 20,
-                Symbol("wallets/withdraw") => 20,
-                Symbol("v2/wallets/withdraw") => 20,
-                Symbol("orders") => 4,
-                Symbol("orders/batch") => 20,
-                Symbol("orders/killSwitch") => 4,
-                Symbol("smartorders") => 4
+                Symbol("accounts/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("subaccounts/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("wallets/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("wallets/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v2/wallets/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("orders/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("orders/killSwitch") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("smartorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("orders/{id}") => 4,
-                Symbol("orders/cancelByIds") => 20,
-                Symbol("orders") => 20,
-                Symbol("smartorders/{id}") => 4,
-                Symbol("smartorders/cancelByIds") => 20,
-                Symbol("smartorders") => 20
+                Symbol("orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("orders/cancelByIds") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("smartorders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("smartorders/cancelByIds") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("smartorders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("orders/{id}") => 20,
-                Symbol("smartorders/{id}") => 20
+                Symbol("orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("smartorders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
             )
         ),
         Symbol("swapPublic") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v3/market/allInstruments") => 2 / 3,
-                Symbol("v3/market/instruments") => 2 / 3,
-                Symbol("v3/market/orderBook") => 2 / 3,
-                Symbol("v3/market/candles") => 10,
-                Symbol("v3/market/indexPriceCandlesticks") => 10,
-                Symbol("v3/market/premiumIndexCandlesticks") => 10,
-                Symbol("v3/market/markPriceCandlesticks") => 10,
-                Symbol("v3/market/trades") => 2 / 3,
-                Symbol("v3/market/liquidationOrder") => 2 / 3,
-                Symbol("v3/market/tickers") => 2 / 3,
-                Symbol("v3/market/markPrice") => 2 / 3,
-                Symbol("v3/market/indexPrice") => 2 / 3,
-                Symbol("v3/market/indexPriceComponents") => 2 / 3,
-                Symbol("v3/market/fundingRate") => 2 / 3,
-                Symbol("v3/market/openInterest") => 2 / 3,
-                Symbol("v3/market/insurance") => 2 / 3,
-                Symbol("v3/market/riskLimit") => 2 / 3
+                Symbol("v3/market/allInstruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/orderBook") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v3/market/indexPriceCandlesticks") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v3/market/premiumIndexCandlesticks") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v3/market/markPriceCandlesticks") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v3/market/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/liquidationOrder") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/markPrice") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/indexPrice") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/indexPriceComponents") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/fundingRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/openInterest") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/insurance") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("v3/market/riskLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+)
             )
         ),
         Symbol("swapPrivate") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v3/account/balance") => 4,
-                Symbol("v3/account/bills") => 20,
-                Symbol("v3/trade/order/opens") => 20,
-                Symbol("v3/trade/order/trades") => 20,
-                Symbol("v3/trade/order/history") => 20,
-                Symbol("v3/trade/position/opens") => 20,
-                Symbol("v3/trade/position/history") => 20,
-                Symbol("v3/position/leverages") => 20,
-                Symbol("v3/position/mode") => 20
+                Symbol("v3/account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("v3/account/bills") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/trade/order/opens") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/trade/order/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/trade/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/trade/position/opens") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/trade/position/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/position/leverages") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/position/mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("v3/trade/order") => 4,
-                Symbol("v3/trade/orders") => 40,
-                Symbol("v3/trade/position") => 20,
-                Symbol("v3/trade/positionAll") => 100,
-                Symbol("v3/position/leverage") => 20,
-                Symbol("v3/position/mode") => 20,
-                Symbol("v3/trade/position/margin") => 20
+                Symbol("v3/trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 4
+),
+                Symbol("v3/trade/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("v3/trade/position") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/trade/positionAll") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("v3/position/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/position/mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/trade/position/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("v3/trade/order") => 2,
-                Symbol("v3/trade/batchOrders") => 20,
-                Symbol("v3/trade/allOrders") => 20
+                Symbol("v3/trade/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("v3/trade/batchOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                Symbol("v3/trade/allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
             )
         )
     ),
@@ -744,7 +946,11 @@ function fetchOHLCV(self::Poloniex, symbol, timeframe="1m", since=nothing, limit
             return self.parseOHLCVs(data, market, timeframe, since, limit)
     end
     response = Base.fetch(self.publicGetMarketsSymbolCandles(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    candles = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        candles = response;
+    end
+    return self.parseOHLCVs(candles, market, timeframe, since, limit)
 
 end
 function loadMarkets(self::Poloniex, reload=false, params=Dict())
@@ -790,7 +996,7 @@ function parseSpotMarket(self::Poloniex, market)
     state = safeString(market, "state");
     active = state == "NORMAL";
     symbolTradeLimit = safeValue(market, "symbolTradeLimit");
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => string(base, "/", quote_var),
     Symbol("base") => base,
@@ -834,7 +1040,7 @@ function parseSpotMarket(self::Poloniex, market)
     ),
     Symbol("created") => safeInteger(market, "tradableStartTime"),
     Symbol("info") => market
-)
+))
 
 end
 function parseSwapMarket(self::Poloniex, market)
@@ -860,7 +1066,7 @@ function parseSwapMarket(self::Poloniex, market)
         type_var = "future";
     end
     marketType = functions.ccxtruthy((type_var == "future")) ? "future" : "swap";
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -910,7 +1116,7 @@ function parseSwapMarket(self::Poloniex, market)
     ),
     Symbol("created") => safeInteger(market, "oDate"),
     Symbol("info") => market
-)
+))
 
 end
 function fetchTime(self::Poloniex, params=Dict())
@@ -992,27 +1198,29 @@ function parseCurrency(self::Poloniex, currency)
         chain = get(chains, j + 1, nothing);
         chainId = safeString(chain, "blockchain");
         networkCode = self.networkIdToCode(chainId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => chain,
-            Symbol("id") => chainId,
-            Symbol("name") => nothing,
-            Symbol("code") => networkCode,
-            Symbol("active") => nothing,
-            Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
-            Symbol("deposit") => self.safeBool(chain, "depositEnable"),
-            Symbol("withdraw") => self.safeBool(chain, "withdrawalEnable"),
-            Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chain, "decimals"))),
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(chain, "withdrawMin"),
-                    Symbol("max") => nothing
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => chain,
+                Symbol("id") => chainId,
+                Symbol("name") => nothing,
+                Symbol("code") => networkCode,
+                Symbol("active") => nothing,
+                Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
+                Symbol("deposit") => self.safeBool(chain, "depositEnable"),
+                Symbol("withdraw") => self.safeBool(chain, "withdrawalEnable"),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chain, "decimals"))),
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(chain, "withdrawMin"),
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -1095,7 +1303,7 @@ function fetchTrades(self::Poloniex, symbol, since=nothing, limit=nothing, param
     end
     if functions.ccxtruthy(get(market, Symbol("contract"), nothing))
         response = Base.fetch(self.swapPublicGetV3MarketTrades(extend(request, params)));
-        tradesList = self.safeList(response, "data");
+        tradesList = self.safeList(response, "data", []);
             return self.parseTrades(tradesList, market, since, limit)
     end
     trades = Base.fetch(self.publicGetMarketsSymbolTrades(extend(request, params)));
@@ -1131,7 +1339,7 @@ function fetchMyTrades(self::Poloniex, symbol=nothing, since=nothing, limit=noth
     (request, params) = self.handleUntilOption(endKey, request, params);
     if functions.ccxtruthy(isContract)
         raw = Base.fetch(self.swapPrivateGetV3TradeOrderTrades(extend(request, params)));
-        data = self.safeList(raw, "data");
+        data = self.safeList(raw, "data", []);
             return self.parseTrades(data, market, since, limit)
     end
     response = Base.fetch(self.privateGetTrades(extend(request, params)));
@@ -1552,7 +1760,9 @@ function parseBalance(self::Poloniex, response)
             account = self.account();
             account[Symbol("total")] = safeString(balance, "avail");
             account[Symbol("used")] = safeString(balance, "im");
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
             i += 1
         end
 
@@ -1570,7 +1780,9 @@ function parseBalance(self::Poloniex, response)
             newAccount = self.account();
             newAccount[Symbol("free")] = safeString(balance, "available");
             newAccount[Symbol("used")] = safeString(balance, "hold");
-            result[Symbol(code)] = newAccount;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = newAccount;
+            end
             j += 1
         end
         i += 1
@@ -1598,9 +1810,10 @@ function fetchTradingFees(self::Poloniex, params=Dict())
     Base.fetch(self.loadMarkets());
     response = Base.fetch(self.privateGetFeeinfo(params));
     result = Dict{Symbol, Any}();
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         result[Symbol(symbol)] = Dict{Symbol, Any}(
             Symbol("info") => response,
             Symbol("symbol") => symbol,
@@ -1699,7 +1912,7 @@ function prepareRequestForDepositAddress(self::Poloniex, code, params=Dict())
     end
     exchangeNetworkId = nothing;
     networkCode = self.networkIdToCode(networkCode, code);
-    networkEntry = self.safeDict(get(currency, Symbol("networks"), nothing), networkCode);
+    networkEntry = functions.ccxtruthy((networkCode == nothing)) ? nothing : self.safeDict(get(currency, Symbol("networks"), nothing), networkCode);
     if functions.ccxtruthy(networkEntry != nothing)
         exchangeNetworkId = get(networkEntry, Symbol("id"), nothing);
     else
@@ -1831,9 +2044,13 @@ function fetchDepositWithdrawFees(self::Poloniex, codes=nothing, params=Dict())
         Symbol("includeMultiChainCurrencies") => true
     ))));
     data = Dict{Symbol, Any}();
+    entries = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        entries = response;
+    end
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        entry = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(entries)))
+        entry = get(entries, i + 1, nothing);
         currencies = objectKeys(entry);
         currencyId = safeString(currencies, 0);
         data[Symbol(currencyId)] = get(entry, Symbol(currencyId), nothing);
@@ -1851,7 +2068,7 @@ function parseDepositWithdrawFees(self::Poloniex, response, codes=nothing, curre
         currencyId = get(responseKeys, i + 1, nothing);
         code = self.safeCurrencyCode(currencyId);
         feeInfo = get(response, Symbol(currencyId), nothing);
-        if functions.ccxtruthy(@functions.ccxt_or((codes == nothing), (inArray(code, codes))))
+        if functions.ccxtruthy(@functions.ccxt_and((code != nothing), (@functions.ccxt_or((codes == nothing), (inArray(code, codes))))))
             currency = self.currency(code);
             depositWithdrawFees[Symbol(code)] = self.parseDepositWithdrawFee(feeInfo, currency);
             childChains = safeValue(feeInfo, "childChains");
@@ -1865,16 +2082,18 @@ function parseDepositWithdrawFees(self::Poloniex, response, codes=nothing, curre
                     networkInfo = safeValue(response, networkId);
                     networkObject = Dict{Symbol, Any}();
                     withdrawFee = self.safeNumber(networkInfo, "withdrawalFee");
-                    networkObject[Symbol(networkCode)] = Dict{Symbol, Any}(
-                        Symbol("withdraw") => Dict{Symbol, Any}(
-                            Symbol("fee") => withdrawFee,
-                            Symbol("percentage") => functions.ccxtruthy((withdrawFee != nothing)) ? false : nothing
-                        ),
-                        Symbol("deposit") => Dict{Symbol, Any}(
-                            Symbol("fee") => nothing,
-                            Symbol("percentage") => nothing
-                        )
-                    );
+                    if functions.ccxtruthy(networkCode != nothing)
+                        networkObject[Symbol(networkCode)] = Dict{Symbol, Any}(
+                            Symbol("withdraw") => Dict{Symbol, Any}(
+                                Symbol("fee") => withdrawFee,
+                                Symbol("percentage") => functions.ccxtruthy((withdrawFee != nothing)) ? false : nothing
+                            ),
+                            Symbol("deposit") => Dict{Symbol, Any}(
+                                Symbol("fee") => nothing,
+                                Symbol("percentage") => nothing
+                            )
+                        );
+                    end
                     depositWithdrawFees[Symbol(code)][Symbol("networks")] = extend(get(get(depositWithdrawFees, Symbol(code), nothing), Symbol("networks"), nothing), networkObject);
                     j += 1
                 end
@@ -1903,10 +2122,12 @@ function parseDepositWithdrawFee(self::Poloniex, fee, currency=nothing)
     depositWithdrawFee[Symbol("withdraw")] = withdrawResult;
     depositWithdrawFee[Symbol("deposit")] = depositResult;
     networkCode = self.networkIdToCode(networkId, safeString(currency, "code"));
-    depositWithdrawFee[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-        Symbol("withdraw") => withdrawResult,
-        Symbol("deposit") => depositResult
-    );
+    if functions.ccxtruthy(networkCode != nothing)
+        depositWithdrawFee[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+            Symbol("withdraw") => withdrawResult,
+            Symbol("deposit") => depositResult
+        );
+    end
     return depositWithdrawFee
 
 end
@@ -2249,269 +2470,269 @@ function handleErrors(self::Poloniex, code, reason, url, method, headers, body, 
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Poloniex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetMarkets(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "markets", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsSymbol(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrencies(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "currencies", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "currencies", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCurrenciesCurrency(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "currencies/{currency}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "currencies/{currency}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV2Currencies(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v2/currencies", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/currencies", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV2CurrenciesCurrency(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v2/currencies/{currency}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/currencies/{currency}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTimestamp(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "timestamp", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "timestamp", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsPrice(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsSymbolPrice(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/{symbol}/price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsMarkPrice(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/markPrice", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/markPrice", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsSymbolMarkPrice(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/markPrice", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/{symbol}/markPrice", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsSymbolMarkPriceComponents(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/markPriceComponents", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/{symbol}/markPriceComponents", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsSymbolOrderBook(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/orderBook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/{symbol}/orderBook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsSymbolCandles(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/candles", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/{symbol}/candles", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsSymbolTrades(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "markets/{symbol}/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsTicker24h(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/ticker24h", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "markets/ticker24h", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsSymbolTicker24h(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{symbol}/ticker24h", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "markets/{symbol}/ticker24h", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsCollateralInfo(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/collateralInfo", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/collateralInfo", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsCurrencyCollateralInfo(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/{currency}/collateralInfo", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/{currency}/collateralInfo", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMarketsBorrowRatesInfo(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "markets/borrowRatesInfo", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "markets/borrowRatesInfo", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccounts(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "accounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountsBalances(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/balances", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "accounts/balances", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountsIdBalances(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}/balances", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "accounts/{id}/balances", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountsActivity(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/activity", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "accounts/activity", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountsTransfer(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/transfer", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "accounts/transfer", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountsTransferId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/transfer/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "accounts/transfer/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFeeinfo(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "feeinfo", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "feeinfo", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountsInterestHistory(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/interest/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accounts/interest/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubaccounts(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "subaccounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubaccountsBalances(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts/balances", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "subaccounts/balances", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubaccountsIdBalances(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts/{id}/balances", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "subaccounts/{id}/balances", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubaccountsTransfer(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfer", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "subaccounts/transfer", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubaccountsTransferId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfer/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "subaccounts/transfer/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletsAddresses(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "wallets/addresses", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "wallets/addresses", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletsAddressesCurrency(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "wallets/addresses/{currency}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "wallets/addresses/{currency}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletsActivity(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "wallets/activity", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "wallets/activity", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginAccountMargin(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "margin/accountMargin", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "margin/accountMargin", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginBorrowStatus(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "margin/borrowStatus", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "margin/borrowStatus", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginMaxSize(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "margin/maxSize", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "margin/maxSize", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "orders/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersKillSwitchStatus(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/killSwitchStatus", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "orders/killSwitchStatus", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSmartorders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "smartorders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSmartordersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "smartorders/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersHistory(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "orders/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSmartordersHistory(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "smartorders/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetTrades(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersIdTrades(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/{id}/trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "orders/{id}/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostAccountsTransfer(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "accounts/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "accounts/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubaccountsTransfer(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "subaccounts/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "subaccounts/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletsAddress(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "wallets/address", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "wallets/address", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletsWithdraw(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "wallets/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "wallets/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV2WalletsWithdraw(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v2/wallets/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v2/wallets/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersBatch(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/batch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "orders/batch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersKillSwitch(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/killSwitch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "orders/killSwitch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSmartorders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "smartorders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "orders/{id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersCancelByIds(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/cancelByIds", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "orders/cancelByIds", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteSmartordersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders/{id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "smartorders/{id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteSmartordersCancelByIds(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders/cancelByIds", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "smartorders/cancelByIds", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteSmartorders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "smartorders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privatePutOrdersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "orders/{id}", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "orders/{id}", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutSmartordersId(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "smartorders/{id}", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "smartorders/{id}", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function swapPublicGetV3MarketAllInstruments(self::Poloniex, params=Dict(), context=Dict())
@@ -2527,19 +2748,19 @@ function swapPublicGetV3MarketOrderBook(self::Poloniex, params=Dict(), context=D
 end
 
 function swapPublicGetV3MarketCandles(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/candles", "swapPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v3/market/candles", "swapPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPublicGetV3MarketIndexPriceCandlesticks(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/indexPriceCandlesticks", "swapPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v3/market/indexPriceCandlesticks", "swapPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPublicGetV3MarketPremiumIndexCandlesticks(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/premiumIndexCandlesticks", "swapPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v3/market/premiumIndexCandlesticks", "swapPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPublicGetV3MarketMarkPriceCandlesticks(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/market/markPriceCandlesticks", "swapPublic", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v3/market/markPriceCandlesticks", "swapPublic", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPublicGetV3MarketTrades(self::Poloniex, params=Dict(), context=Dict())
@@ -2583,86 +2804,139 @@ function swapPublicGetV3MarketRiskLimit(self::Poloniex, params=Dict(), context=D
 end
 
 function swapPrivateGetV3AccountBalance(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/account/balance", "swapPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/account/balance", "swapPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPrivateGetV3AccountBills(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/account/bills", "swapPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/account/bills", "swapPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPrivateGetV3TradeOrderOpens(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order/opens", "swapPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/trade/order/opens", "swapPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPrivateGetV3TradeOrderTrades(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order/trades", "swapPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/trade/order/trades", "swapPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPrivateGetV3TradeOrderHistory(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order/history", "swapPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/trade/order/history", "swapPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPrivateGetV3TradePositionOpens(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/position/opens", "swapPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/trade/position/opens", "swapPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPrivateGetV3TradePositionHistory(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/position/history", "swapPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/trade/position/history", "swapPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPrivateGetV3PositionLeverages(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/position/leverages", "swapPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/position/leverages", "swapPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPrivateGetV3PositionMode(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/position/mode", "swapPrivate", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/position/mode", "swapPrivate", "GET", params, nothing, nothing, Dict())
 end
 
 function swapPrivatePostV3TradeOrder(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order", "swapPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 4))
+    return request(self, "v3/trade/order", "swapPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function swapPrivatePostV3TradeOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/orders", "swapPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "v3/trade/orders", "swapPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function swapPrivatePostV3TradePosition(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/position", "swapPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/trade/position", "swapPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function swapPrivatePostV3TradePositionAll(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/positionAll", "swapPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "v3/trade/positionAll", "swapPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function swapPrivatePostV3PositionLeverage(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/position/leverage", "swapPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/position/leverage", "swapPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function swapPrivatePostV3PositionMode(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/position/mode", "swapPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/position/mode", "swapPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function swapPrivatePostV3TradePositionMargin(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/position/margin", "swapPrivate", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/trade/position/margin", "swapPrivate", "POST", params, nothing, nothing, Dict())
 end
 
 function swapPrivateDeleteV3TradeOrder(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/order", "swapPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "v3/trade/order", "swapPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function swapPrivateDeleteV3TradeBatchOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/batchOrders", "swapPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/trade/batchOrders", "swapPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function swapPrivateDeleteV3TradeAllOrders(self::Poloniex, params=Dict(), context=Dict())
-    return request(self, "v3/trade/allOrders", "swapPrivate", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "v3/trade/allOrders", "swapPrivate", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Poloniex(; kwargs...)
     inst = Poloniex(Exchange(), describe, parseOHLCV, fetchOHLCV, loadMarkets, fetchMarkets, fetchSpotMarkets, fetchSwapMarkets, parseMarket, parseSpotMarket, parseSwapMarket, fetchTime, parseTicker, fetchTickers, fetchCurrencies, parseCurrency, fetchTicker, parseTrade, fetchTrades, fetchMyTrades, parseOrderStatus, parseOrder, parseOrderType, parseOpenOrders, fetchOpenOrders, fetchClosedOrders, createOrder, orderRequest, editOrder, cancelOrder, cancelAllOrders, fetchOrder, fetchOrderStatus, fetchOrderTrades, parseBalance, fetchBalance, fetchTradingFees, fetchOrderBook, createDepositAddress, fetchDepositAddress, prepareRequestForDepositAddress, parseDepositAddressSpecial, transfer, parseTransfer, withdraw, fetchTransactionsHelper, fetchDepositsWithdrawals, fetchWithdrawals, fetchDepositWithdrawFees, parseDepositWithdrawFees, parseDepositWithdrawFee, fetchDeposits, parseTransactionStatus, parseTransaction, setLeverage, fetchLeverage, parseLeverage, fetchPositionMode, setPositionMode, fetchPositions, parsePosition, modifyMarginHelper, parseMarginModification, reduceMargin, addMargin, nonce, sign, handleErrors, publicGetMarkets, publicGetMarketsSymbol, publicGetCurrencies, publicGetCurrenciesCurrency, publicGetV2Currencies, publicGetV2CurrenciesCurrency, publicGetTimestamp, publicGetMarketsPrice, publicGetMarketsSymbolPrice, publicGetMarketsMarkPrice, publicGetMarketsSymbolMarkPrice, publicGetMarketsSymbolMarkPriceComponents, publicGetMarketsSymbolOrderBook, publicGetMarketsSymbolCandles, publicGetMarketsSymbolTrades, publicGetMarketsTicker24h, publicGetMarketsSymbolTicker24h, publicGetMarketsCollateralInfo, publicGetMarketsCurrencyCollateralInfo, publicGetMarketsBorrowRatesInfo, privateGetAccounts, privateGetAccountsBalances, privateGetAccountsIdBalances, privateGetAccountsActivity, privateGetAccountsTransfer, privateGetAccountsTransferId, privateGetFeeinfo, privateGetAccountsInterestHistory, privateGetSubaccounts, privateGetSubaccountsBalances, privateGetSubaccountsIdBalances, privateGetSubaccountsTransfer, privateGetSubaccountsTransferId, privateGetWalletsAddresses, privateGetWalletsAddressesCurrency, privateGetWalletsActivity, privateGetMarginAccountMargin, privateGetMarginBorrowStatus, privateGetMarginMaxSize, privateGetOrders, privateGetOrdersId, privateGetOrdersKillSwitchStatus, privateGetSmartorders, privateGetSmartordersId, privateGetOrdersHistory, privateGetSmartordersHistory, privateGetTrades, privateGetOrdersIdTrades, privatePostAccountsTransfer, privatePostSubaccountsTransfer, privatePostWalletsAddress, privatePostWalletsWithdraw, privatePostV2WalletsWithdraw, privatePostOrders, privatePostOrdersBatch, privatePostOrdersKillSwitch, privatePostSmartorders, privateDeleteOrdersId, privateDeleteOrdersCancelByIds, privateDeleteOrders, privateDeleteSmartordersId, privateDeleteSmartordersCancelByIds, privateDeleteSmartorders, privatePutOrdersId, privatePutSmartordersId, swapPublicGetV3MarketAllInstruments, swapPublicGetV3MarketInstruments, swapPublicGetV3MarketOrderBook, swapPublicGetV3MarketCandles, swapPublicGetV3MarketIndexPriceCandlesticks, swapPublicGetV3MarketPremiumIndexCandlesticks, swapPublicGetV3MarketMarkPriceCandlesticks, swapPublicGetV3MarketTrades, swapPublicGetV3MarketLiquidationOrder, swapPublicGetV3MarketTickers, swapPublicGetV3MarketMarkPrice, swapPublicGetV3MarketIndexPrice, swapPublicGetV3MarketIndexPriceComponents, swapPublicGetV3MarketFundingRate, swapPublicGetV3MarketOpenInterest, swapPublicGetV3MarketInsurance, swapPublicGetV3MarketRiskLimit, swapPrivateGetV3AccountBalance, swapPrivateGetV3AccountBills, swapPrivateGetV3TradeOrderOpens, swapPrivateGetV3TradeOrderTrades, swapPrivateGetV3TradeOrderHistory, swapPrivateGetV3TradePositionOpens, swapPrivateGetV3TradePositionHistory, swapPrivateGetV3PositionLeverages, swapPrivateGetV3PositionMode, swapPrivatePostV3TradeOrder, swapPrivatePostV3TradeOrders, swapPrivatePostV3TradePosition, swapPrivatePostV3TradePositionAll, swapPrivatePostV3PositionLeverage, swapPrivatePostV3PositionMode, swapPrivatePostV3TradePositionMargin, swapPrivateDeleteV3TradeOrder, swapPrivateDeleteV3TradeBatchOrders, swapPrivateDeleteV3TradeAllOrders)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

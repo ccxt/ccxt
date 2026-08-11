@@ -303,113 +303,257 @@ function describe(self::Coinsph, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("openapi/v1/ping") => 1,
-                Symbol("openapi/v1/time") => 1,
-                Symbol("openapi/v1/user/ip") => 1,
+                Symbol("openapi/v1/ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/user/ip") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("openapi/quote/v1/ticker/24hr") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbolAndNoSymbols") => 40,
-                    Symbol("byNumberOfSymbols") => [[101, 40], [21, 20], [0, 1]]
-                ),
+    Symbol("cost") => 1,
+    Symbol("noSymbolAndNoSymbols") => 40,
+    Symbol("byNumberOfSymbols") => [[101, 40], [21, 20], [0, 1]]
+),
                 Symbol("openapi/quote/v1/ticker/price") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 2
-                ),
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 2
+),
                 Symbol("openapi/quote/v1/ticker/bookTicker") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("noSymbol") => 2
-                ),
-                Symbol("openapi/v1/exchangeInfo") => 10,
+    Symbol("cost") => 1,
+    Symbol("noSymbol") => 2
+),
+                Symbol("openapi/v1/exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
                 Symbol("openapi/quote/v1/depth") => Dict{Symbol, Any}(
-                    Symbol("cost") => 1,
-                    Symbol("byLimit") => [[101, 5], [0, 1]]
-                ),
-                Symbol("openapi/quote/v1/klines") => 1,
-                Symbol("openapi/quote/v1/trades") => 1,
-                Symbol("openapi/v1/pairs") => 1,
-                Symbol("openapi/quote/v1/avgPrice") => 1
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[101, 5], [0, 1]]
+),
+                Symbol("openapi/quote/v1/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/quote/v1/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/quote/v1/avgPrice") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("openapi/v1/check-sys-status") => 1,
-                Symbol("openapi/wallet/v1/config/getall") => 10,
-                Symbol("openapi/wallet/v1/deposit/address") => 10,
-                Symbol("openapi/wallet/v1/deposit/history") => 1,
-                Symbol("openapi/wallet/v1/withdraw/history") => 1,
-                Symbol("openapi/wallet/v1/withdraw/address-whitelist") => 1,
-                Symbol("openapi/v1/account") => 10,
-                Symbol("openapi/v1/api-keys") => 1,
+                Symbol("openapi/v1/check-sys-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/wallet/v1/config/getall") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("openapi/wallet/v1/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("openapi/wallet/v1/deposit/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/wallet/v1/withdraw/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/wallet/v1/withdraw/address-whitelist") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("openapi/v1/api-keys") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
                 Symbol("openapi/v1/openOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 3,
-                    Symbol("noSymbol") => 40
-                ),
-                Symbol("openapi/v1/asset/tradeFee") => 1,
-                Symbol("openapi/v1/order") => 2,
+    Symbol("cost") => 3,
+    Symbol("noSymbol") => 40
+),
+                Symbol("openapi/v1/asset/tradeFee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
                 Symbol("openapi/v1/historyOrders") => Dict{Symbol, Any}(
-                    Symbol("cost") => 10,
-                    Symbol("noSymbol") => 40
-                ),
-                Symbol("openapi/v1/myTrades") => 10,
-                Symbol("openapi/v1/capital/deposit/history") => 1,
-                Symbol("openapi/v1/capital/withdraw/history") => 1,
-                Symbol("openapi/v3/payment-request/get-payment-request") => 1,
-                Symbol("merchant-api/v1/get-invoices") => 1,
-                Symbol("openapi/account/v3/crypto-accounts") => 1,
-                Symbol("openapi/transfer/v3/transfers/{id}") => 1,
-                Symbol("openapi/v1/sub-account/list") => 10,
-                Symbol("openapi/v1/sub-account/asset") => 10,
-                Symbol("openapi/v1/sub-account/transfer/universal-transfer-history") => 10,
-                Symbol("openapi/v1/sub-account/transfer/sub-history") => 10,
-                Symbol("openapi/v1/sub-account/apikey/ip-restriction") => 10,
-                Symbol("openapi/v1/sub-account/wallet/deposit/address") => 1,
-                Symbol("openapi/v1/sub-account/wallet/deposit/history") => 1,
-                Symbol("openapi/v1/fund-collect/get-fund-record") => 1,
-                Symbol("openapi/v1/asset/transaction/history") => 20
+    Symbol("cost") => 10,
+    Symbol("noSymbol") => 40
+),
+                Symbol("openapi/v1/myTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("openapi/v1/capital/deposit/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/capital/withdraw/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v3/payment-request/get-payment-request") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("merchant-api/v1/get-invoices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/account/v3/crypto-accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/transfer/v3/transfers/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/sub-account/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("openapi/v1/sub-account/asset") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("openapi/v1/sub-account/transfer/universal-transfer-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("openapi/v1/sub-account/transfer/sub-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("openapi/v1/sub-account/apikey/ip-restriction") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("openapi/v1/sub-account/wallet/deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/sub-account/wallet/deposit/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/fund-collect/get-fund-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/asset/transaction/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("openapi/wallet/v1/withdraw/apply") => 600,
-                Symbol("openapi/v1/order/test") => 1,
-                Symbol("openapi/v1/order") => 1,
-                Symbol("openapi/v1/order/cancelReplace") => 1,
-                Symbol("openapi/v1/capital/withdraw/apply") => 1,
-                Symbol("openapi/v1/capital/deposit/apply") => 1,
-                Symbol("openapi/v3/payment-request/payment-requests") => 1,
-                Symbol("openapi/v3/payment-request/delete-payment-request") => 1,
-                Symbol("openapi/v3/payment-request/payment-request-reminder") => 1,
-                Symbol("openapi/v1/userDataStream") => 1,
-                Symbol("merchant-api/v1/invoices") => 1,
-                Symbol("merchant-api/v1/invoices-cancel") => 1,
-                Symbol("openapi/convert/v1/get-supported-trading-pairs") => 1,
-                Symbol("openapi/convert/v1/get-quote") => 1,
-                Symbol("openapi/convert/v1/accept-quote") => 1,
-                Symbol("openapi/convert/v1/query-order-history") => 1,
-                Symbol("openapi/otc-trade/v1/get-supported-trading-pairs") => 1,
-                Symbol("openapi/otc-trade/v1/create-rfq") => 1,
-                Symbol("openapi/otc-trade/v1/accept-rfq") => 1,
-                Symbol("openapi/otc-trade/v1/manual-settle") => 1,
-                Symbol("openapi/otc-trade/v1/query-order-history") => 1,
-                Symbol("openapi/fiat/v1/support-channel") => 1,
-                Symbol("openapi/fiat/v1/cash-out") => 1,
-                Symbol("openapi/fiat/v1/history") => 1,
-                Symbol("openapi/migration/v4/sellorder") => 1,
-                Symbol("openapi/migration/v4/validate-field") => 1,
-                Symbol("openapi/transfer/v3/transfers") => 1,
-                Symbol("openapi/transfer/v4/transfers") => 1,
-                Symbol("openapi/v1/sub-account/create") => 30,
-                Symbol("openapi/v1/sub-account/transfer/universal-transfer") => 100,
-                Symbol("openapi/v1/sub-account/transfer/sub-to-master") => 100,
-                Symbol("openapi/v1/sub-account/apikey/add-ip-restriction") => 30,
-                Symbol("openapi/v1/sub-account/apikey/delete-ip-restriction") => 30,
-                Symbol("openapi/v1/fund-collect/collect-from-sub-account") => 1
+                Symbol("openapi/wallet/v1/withdraw/apply") => Dict{Symbol, Any}(
+    Symbol("cost") => 600
+),
+                Symbol("openapi/v1/order/test") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/order/cancelReplace") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/capital/withdraw/apply") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/capital/deposit/apply") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v3/payment-request/payment-requests") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v3/payment-request/delete-payment-request") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v3/payment-request/payment-request-reminder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("merchant-api/v1/invoices") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("merchant-api/v1/invoices-cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/convert/v1/get-supported-trading-pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/convert/v1/get-quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/convert/v1/accept-quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/convert/v1/query-order-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/otc-trade/v1/get-supported-trading-pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/otc-trade/v1/create-rfq") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/otc-trade/v1/accept-rfq") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/otc-trade/v1/manual-settle") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/otc-trade/v1/query-order-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/fiat/v1/support-channel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/fiat/v1/cash-out") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/fiat/v1/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/migration/v4/sellorder") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/migration/v4/validate-field") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/transfer/v3/transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/transfer/v4/transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/sub-account/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("openapi/v1/sub-account/transfer/universal-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("openapi/v1/sub-account/transfer/sub-to-master") => Dict{Symbol, Any}(
+    Symbol("cost") => 100
+),
+                Symbol("openapi/v1/sub-account/apikey/add-ip-restriction") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("openapi/v1/sub-account/apikey/delete-ip-restriction") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("openapi/v1/fund-collect/collect-from-sub-account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("openapi/v1/userDataStream") => 1
+                Symbol("openapi/v1/userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("openapi/v1/order") => 1,
-                Symbol("openapi/v1/openOrders") => 1,
-                Symbol("openapi/v1/userDataStream") => 1
+                Symbol("openapi/v1/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("openapi/v1/userDataStream") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -452,7 +596,7 @@ function describe(self::Coinsph, )
             Symbol("TRC20") => "TRX",
             Symbol("ERC20") => "ETH",
             Symbol("BEP20") => "BSC",
-            Symbol("ARB") => "ARBITRUM"
+            Symbol("ARBITRUM") => "ARBITRUM"
         )
     ),
     Symbol("features") => Dict{Symbol, Any}(
@@ -665,26 +809,28 @@ function parseCurrency(self::Coinsph, rawCurrency)
         networkItem = get(networkList, j + 1, nothing);
         network = safeString(networkItem, "network");
         networkCode = self.networkIdToCode(network, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => networkItem,
-            Symbol("id") => network,
-            Symbol("network") => networkCode,
-            Symbol("active") => nothing,
-            Symbol("deposit") => self.safeBool(networkItem, "depositEnable"),
-            Symbol("withdraw") => self.safeBool(networkItem, "withdrawEnable"),
-            Symbol("fee") => self.safeNumber(networkItem, "withdrawFee"),
-            Symbol("precision") => self.safeNumber(networkItem, "withdrawIntegerMultiple"),
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(networkItem, "withdrawMin"),
-                    Symbol("max") => self.safeNumber(networkItem, "withdrawMax")
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => networkItem,
+                Symbol("id") => network,
+                Symbol("network") => networkCode,
+                Symbol("active") => nothing,
+                Symbol("deposit") => self.safeBool(networkItem, "depositEnable"),
+                Symbol("withdraw") => self.safeBool(networkItem, "withdrawEnable"),
+                Symbol("fee") => self.safeNumber(networkItem, "withdrawFee"),
+                Symbol("precision") => self.safeNumber(networkItem, "withdrawIntegerMultiple"),
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(networkItem, "withdrawMin"),
+                        Symbol("max") => self.safeNumber(networkItem, "withdrawMax")
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -713,7 +859,7 @@ function calculateRateLimiterCost(self::Coinsph, api, method, path, params, conf
         if functions.ccxtruthy(@functions.ccxt_and((ccxt_in("byNumberOfSymbols", config)), (ccxt_in("symbols", params))))
             symbols = get(params, Symbol("symbols"), nothing);
             symbolsAmount = length(symbols);
-            byNumberOfSymbols = get(config, Symbol("byNumberOfSymbols"), nothing);
+            byNumberOfSymbols = self.safeList(config, "byNumberOfSymbols", []);
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(byNumberOfSymbols)))
                 entry = get(byNumberOfSymbols, i + 1, nothing);
@@ -725,7 +871,7 @@ function calculateRateLimiterCost(self::Coinsph, api, method, path, params, conf
 
         elseif functions.ccxtruthy(@functions.ccxt_and((ccxt_in("byLimit", config)), (ccxt_in("limit", params))))
             limit = get(params, Symbol("limit"), nothing);
-            byLimit = get(config, Symbol("byLimit"), nothing);
+            byLimit = self.safeList(config, "byLimit", []);
             i = 0
             while functions.ccxtruthy(functions.ccxt_lt(i, length(byLimit)))
                 entry = get(byLimit, i + 1, nothing);
@@ -972,7 +1118,8 @@ function fetchOHLCV(self::Coinsph, symbol, timeframe="1m", since=nothing, limit=
     request[Symbol("limit")] = limit;
     params = omit(params, "until");
     response = Base.fetch(self.publicGetOpenapiQuoteV1Klines(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    ohlcvs = toArray(response);
+    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
 
 end
 function parseOHLCV(self::Coinsph, ohlcv, market=nothing)
@@ -1102,7 +1249,9 @@ function parseBalance(self::Coinsph, response)
         account = self.account();
         account[Symbol("free")] = safeString(balance, "free");
         account[Symbol("used")] = safeString(balance, "locked");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1400,9 +1549,10 @@ function fetchTradingFees(self::Coinsph, params=Dict())
     end
     response = Base.fetch(self.privateGetOpenapiV1AssetTradeFee(params));
     result = Dict{Symbol, Any}();
+    fees = toArray(response);
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        fee = self.parseTradingFee(get(response, i + 1, nothing));
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(fees)))
+        fee = self.parseTradingFee(get(fees, i + 1, nothing));
         symbol = get(fee, Symbol("symbol"), nothing);
         if functions.ccxtruthy(symbol != nothing)
             result[Symbol(symbol)] = fee;
@@ -1681,328 +1831,381 @@ function handleErrors(self::Coinsph, code, reason, url, method, headers, body, r
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Coinsph, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetOpenapiV1Ping(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/ping", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/ping", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOpenapiV1Time(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOpenapiV1UserIp(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/user/ip", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/user/ip", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOpenapiQuoteV1Ticker24hr(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/ticker/24hr", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbolAndNoSymbols") => 40))
+    return request(self, "openapi/quote/v1/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOpenapiQuoteV1TickerPrice(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/ticker/price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 2))
+    return request(self, "openapi/quote/v1/ticker/price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOpenapiQuoteV1TickerBookTicker(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1, Symbol("noSymbol") => 2))
+    return request(self, "openapi/quote/v1/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOpenapiV1ExchangeInfo(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/exchangeInfo", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "openapi/v1/exchangeInfo", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOpenapiQuoteV1Depth(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/depth", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/quote/v1/depth", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOpenapiQuoteV1Klines(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/klines", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/quote/v1/klines", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOpenapiQuoteV1Trades(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/quote/v1/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOpenapiV1Pairs(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/pairs", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/pairs", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetOpenapiQuoteV1AvgPrice(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/quote/v1/avgPrice", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/quote/v1/avgPrice", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1CheckSysStatus(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/check-sys-status", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/check-sys-status", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiWalletV1ConfigGetall(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/config/getall", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "openapi/wallet/v1/config/getall", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiWalletV1DepositAddress(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/deposit/address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "openapi/wallet/v1/deposit/address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiWalletV1DepositHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/deposit/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/wallet/v1/deposit/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiWalletV1WithdrawHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/withdraw/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/wallet/v1/withdraw/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiWalletV1WithdrawAddressWhitelist(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/withdraw/address-whitelist", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/wallet/v1/withdraw/address-whitelist", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1Account(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "openapi/v1/account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1ApiKeys(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/api-keys", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/api-keys", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1OpenOrders(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/openOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 3, Symbol("noSymbol") => 40))
+    return request(self, "openapi/v1/openOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1AssetTradeFee(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/asset/tradeFee", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/asset/tradeFee", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1Order(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "openapi/v1/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1HistoryOrders(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/historyOrders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10, Symbol("noSymbol") => 40))
+    return request(self, "openapi/v1/historyOrders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1MyTrades(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/myTrades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "openapi/v1/myTrades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1CapitalDepositHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/capital/deposit/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/capital/deposit/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1CapitalWithdrawHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/capital/withdraw/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/capital/withdraw/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV3PaymentRequestGetPaymentRequest(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v3/payment-request/get-payment-request", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v3/payment-request/get-payment-request", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMerchantApiV1GetInvoices(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "merchant-api/v1/get-invoices", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "merchant-api/v1/get-invoices", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiAccountV3CryptoAccounts(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/account/v3/crypto-accounts", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/account/v3/crypto-accounts", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiTransferV3TransfersId(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/transfer/v3/transfers/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/transfer/v3/transfers/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1SubAccountList(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "openapi/v1/sub-account/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1SubAccountAsset(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/asset", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "openapi/v1/sub-account/asset", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1SubAccountTransferUniversalTransferHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/transfer/universal-transfer-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "openapi/v1/sub-account/transfer/universal-transfer-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1SubAccountTransferSubHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/transfer/sub-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "openapi/v1/sub-account/transfer/sub-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1SubAccountApikeyIpRestriction(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/apikey/ip-restriction", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "openapi/v1/sub-account/apikey/ip-restriction", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1SubAccountWalletDepositAddress(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/wallet/deposit/address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/sub-account/wallet/deposit/address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1SubAccountWalletDepositHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/wallet/deposit/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/sub-account/wallet/deposit/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1FundCollectGetFundRecord(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/fund-collect/get-fund-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/fund-collect/get-fund-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOpenapiV1AssetTransactionHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/asset/transaction/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "openapi/v1/asset/transaction/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiWalletV1WithdrawApply(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/wallet/v1/withdraw/apply", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 600))
+    return request(self, "openapi/wallet/v1/withdraw/apply", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1OrderTest(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/order/test", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/order/test", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1Order(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1OrderCancelReplace(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/order/cancelReplace", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/order/cancelReplace", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1CapitalWithdrawApply(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/capital/withdraw/apply", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/capital/withdraw/apply", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1CapitalDepositApply(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/capital/deposit/apply", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/capital/deposit/apply", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV3PaymentRequestPaymentRequests(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v3/payment-request/payment-requests", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v3/payment-request/payment-requests", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV3PaymentRequestDeletePaymentRequest(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v3/payment-request/delete-payment-request", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v3/payment-request/delete-payment-request", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV3PaymentRequestPaymentRequestReminder(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v3/payment-request/payment-request-reminder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v3/payment-request/payment-request-reminder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1UserDataStream(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/userDataStream", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/userDataStream", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMerchantApiV1Invoices(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "merchant-api/v1/invoices", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "merchant-api/v1/invoices", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMerchantApiV1InvoicesCancel(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "merchant-api/v1/invoices-cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "merchant-api/v1/invoices-cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiConvertV1GetSupportedTradingPairs(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/convert/v1/get-supported-trading-pairs", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/convert/v1/get-supported-trading-pairs", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiConvertV1GetQuote(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/convert/v1/get-quote", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/convert/v1/get-quote", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiConvertV1AcceptQuote(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/convert/v1/accept-quote", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/convert/v1/accept-quote", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiConvertV1QueryOrderHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/convert/v1/query-order-history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/convert/v1/query-order-history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiOtcTradeV1GetSupportedTradingPairs(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/otc-trade/v1/get-supported-trading-pairs", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/otc-trade/v1/get-supported-trading-pairs", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiOtcTradeV1CreateRfq(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/otc-trade/v1/create-rfq", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/otc-trade/v1/create-rfq", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiOtcTradeV1AcceptRfq(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/otc-trade/v1/accept-rfq", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/otc-trade/v1/accept-rfq", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiOtcTradeV1ManualSettle(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/otc-trade/v1/manual-settle", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/otc-trade/v1/manual-settle", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiOtcTradeV1QueryOrderHistory(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/otc-trade/v1/query-order-history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/otc-trade/v1/query-order-history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiFiatV1SupportChannel(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/fiat/v1/support-channel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/fiat/v1/support-channel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiFiatV1CashOut(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/fiat/v1/cash-out", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/fiat/v1/cash-out", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiFiatV1History(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/fiat/v1/history", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/fiat/v1/history", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiMigrationV4Sellorder(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/migration/v4/sellorder", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/migration/v4/sellorder", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiMigrationV4ValidateField(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/migration/v4/validate-field", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/migration/v4/validate-field", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiTransferV3Transfers(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/transfer/v3/transfers", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/transfer/v3/transfers", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiTransferV4Transfers(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/transfer/v4/transfers", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/transfer/v4/transfers", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1SubAccountCreate(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "openapi/v1/sub-account/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1SubAccountTransferUniversalTransfer(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/transfer/universal-transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "openapi/v1/sub-account/transfer/universal-transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1SubAccountTransferSubToMaster(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/transfer/sub-to-master", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 100))
+    return request(self, "openapi/v1/sub-account/transfer/sub-to-master", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1SubAccountApikeyAddIpRestriction(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/apikey/add-ip-restriction", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "openapi/v1/sub-account/apikey/add-ip-restriction", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/sub-account/apikey/delete-ip-restriction", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "openapi/v1/sub-account/apikey/delete-ip-restriction", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOpenapiV1FundCollectCollectFromSubAccount(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/fund-collect/collect-from-sub-account", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/fund-collect/collect-from-sub-account", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePutOpenapiV1UserDataStream(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/userDataStream", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/userDataStream", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOpenapiV1Order(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOpenapiV1OpenOrders(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/openOrders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/openOrders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOpenapiV1UserDataStream(self::Coinsph, params=Dict(), context=Dict())
-    return request(self, "openapi/v1/userDataStream", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "openapi/v1/userDataStream", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Coinsph(; kwargs...)
     inst = Coinsph(Exchange(), describe, fetchCurrencies, parseCurrency, calculateRateLimiterCost, fetchStatus, fetchTime, fetchMarkets, fetchTickers, fetchTicker, parseTicker, fetchOrderBook, fetchOHLCV, parseOHLCV, fetchTrades, fetchMyTrades, fetchOrderTrades, parseTrade, fetchBalance, parseBalance, createOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders, cancelOrder, cancelAllOrders, parseOrder, parseOrderSide, encodeOrderSide, parseOrderType, encodeOrderType, parseOrderStatus, parseOrderTimeInForce, fetchTradingFee, fetchTradingFees, parseTradingFee, withdraw, fetchDeposits, fetchWithdrawals, parseTransaction, parseTransactionStatus, fetchDepositAddress, parseDepositAddress, urlEncodeQuery, parseArrayParam, sign, handleErrors, publicGetOpenapiV1Ping, publicGetOpenapiV1Time, publicGetOpenapiV1UserIp, publicGetOpenapiQuoteV1Ticker24hr, publicGetOpenapiQuoteV1TickerPrice, publicGetOpenapiQuoteV1TickerBookTicker, publicGetOpenapiV1ExchangeInfo, publicGetOpenapiQuoteV1Depth, publicGetOpenapiQuoteV1Klines, publicGetOpenapiQuoteV1Trades, publicGetOpenapiV1Pairs, publicGetOpenapiQuoteV1AvgPrice, privateGetOpenapiV1CheckSysStatus, privateGetOpenapiWalletV1ConfigGetall, privateGetOpenapiWalletV1DepositAddress, privateGetOpenapiWalletV1DepositHistory, privateGetOpenapiWalletV1WithdrawHistory, privateGetOpenapiWalletV1WithdrawAddressWhitelist, privateGetOpenapiV1Account, privateGetOpenapiV1ApiKeys, privateGetOpenapiV1OpenOrders, privateGetOpenapiV1AssetTradeFee, privateGetOpenapiV1Order, privateGetOpenapiV1HistoryOrders, privateGetOpenapiV1MyTrades, privateGetOpenapiV1CapitalDepositHistory, privateGetOpenapiV1CapitalWithdrawHistory, privateGetOpenapiV3PaymentRequestGetPaymentRequest, privateGetMerchantApiV1GetInvoices, privateGetOpenapiAccountV3CryptoAccounts, privateGetOpenapiTransferV3TransfersId, privateGetOpenapiV1SubAccountList, privateGetOpenapiV1SubAccountAsset, privateGetOpenapiV1SubAccountTransferUniversalTransferHistory, privateGetOpenapiV1SubAccountTransferSubHistory, privateGetOpenapiV1SubAccountApikeyIpRestriction, privateGetOpenapiV1SubAccountWalletDepositAddress, privateGetOpenapiV1SubAccountWalletDepositHistory, privateGetOpenapiV1FundCollectGetFundRecord, privateGetOpenapiV1AssetTransactionHistory, privatePostOpenapiWalletV1WithdrawApply, privatePostOpenapiV1OrderTest, privatePostOpenapiV1Order, privatePostOpenapiV1OrderCancelReplace, privatePostOpenapiV1CapitalWithdrawApply, privatePostOpenapiV1CapitalDepositApply, privatePostOpenapiV3PaymentRequestPaymentRequests, privatePostOpenapiV3PaymentRequestDeletePaymentRequest, privatePostOpenapiV3PaymentRequestPaymentRequestReminder, privatePostOpenapiV1UserDataStream, privatePostMerchantApiV1Invoices, privatePostMerchantApiV1InvoicesCancel, privatePostOpenapiConvertV1GetSupportedTradingPairs, privatePostOpenapiConvertV1GetQuote, privatePostOpenapiConvertV1AcceptQuote, privatePostOpenapiConvertV1QueryOrderHistory, privatePostOpenapiOtcTradeV1GetSupportedTradingPairs, privatePostOpenapiOtcTradeV1CreateRfq, privatePostOpenapiOtcTradeV1AcceptRfq, privatePostOpenapiOtcTradeV1ManualSettle, privatePostOpenapiOtcTradeV1QueryOrderHistory, privatePostOpenapiFiatV1SupportChannel, privatePostOpenapiFiatV1CashOut, privatePostOpenapiFiatV1History, privatePostOpenapiMigrationV4Sellorder, privatePostOpenapiMigrationV4ValidateField, privatePostOpenapiTransferV3Transfers, privatePostOpenapiTransferV4Transfers, privatePostOpenapiV1SubAccountCreate, privatePostOpenapiV1SubAccountTransferUniversalTransfer, privatePostOpenapiV1SubAccountTransferSubToMaster, privatePostOpenapiV1SubAccountApikeyAddIpRestriction, privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction, privatePostOpenapiV1FundCollectCollectFromSubAccount, privatePutOpenapiV1UserDataStream, privateDeleteOpenapiV1Order, privateDeleteOpenapiV1OpenOrders, privateDeleteOpenapiV1UserDataStream)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

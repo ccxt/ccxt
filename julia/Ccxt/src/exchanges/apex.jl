@@ -188,7 +188,7 @@ function describe(self::Apex, )
         Symbol("setLeverage") => true,
         Symbol("setMarginMode") => false,
         Symbol("setPositionMode") => false,
-        Symbol("transfer") => false,
+        Symbol("transfer") => true,
         Symbol("withdraw") => false
     ),
     Symbol("timeframes") => Dict{Symbol, Any}(
@@ -224,39 +224,93 @@ function describe(self::Apex, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v3/symbols") => 1,
-                Symbol("v3/history-funding") => 1,
-                Symbol("v3/ticker") => 1,
-                Symbol("v3/klines") => 1,
-                Symbol("v3/trades") => 1,
-                Symbol("v3/depth") => 1,
-                Symbol("v3/time") => 1,
-                Symbol("v3/data/all-ticker-info") => 1
+                Symbol("v3/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/history-funding") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/data/all-ticker-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v3/account") => 1,
-                Symbol("v3/account-balance") => 1,
-                Symbol("v3/fills") => 1,
-                Symbol("v3/order-fills") => 1,
-                Symbol("v3/order") => 1,
-                Symbol("v3/history-orders") => 1,
-                Symbol("v3/order-by-client-order-id") => 1,
-                Symbol("v3/funding") => 1,
-                Symbol("v3/historical-pnl") => 1,
-                Symbol("v3/open-orders") => 1,
-                Symbol("v3/transfers") => 1,
-                Symbol("v3/transfer") => 1
+                Symbol("v3/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/account-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/order-fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/history-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/order-by-client-order-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/funding") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/historical-pnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/open-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("v3/delete-open-orders") => 1,
-                Symbol("v3/delete-client-order-id") => 1,
-                Symbol("v3/delete-order") => 1,
-                Symbol("v3/order") => 1,
-                Symbol("v3/set-initial-margin-rate") => 1,
-                Symbol("v3/transfer-out") => 1,
-                Symbol("v3/contract-transfer-out") => 1
+                Symbol("v3/delete-open-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/delete-client-order-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/delete-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/set-initial-margin-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/transfer-out") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/contract-transfer-out") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -422,6 +476,7 @@ function fetchCurrencies(self::Apex, params=Dict())
     chains = self.safeList(multiChain, "chains", []);
     self.options[Symbol("_temp_currencies_chains")] = chains;
     result = self.parseCurrencies(rows);
+    delete!(self.options, :_temp_currencies_chains);
     return result
 
 end
@@ -442,26 +497,28 @@ function parseCurrency(self::Apex, currency)
             if functions.ccxtruthy(tokenName == currencyId)
                 networkId = safeString(chain, "chainId");
                 networkCode = self.networkIdToCode(networkId, code);
-                networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-                    Symbol("info") => chain,
-                    Symbol("id") => networkId,
-                    Symbol("network") => networkCode,
-                    Symbol("active") => nothing,
-                    Symbol("deposit") => !functions.ccxtruthy(self.safeBool(chain, "depositDisable")),
-                    Symbol("withdraw") => self.safeBool(token, "withdrawEnable"),
-                    Symbol("fee") => self.safeNumber(token, "minFee"),
-                    Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(token, "decimals"))),
-                    Symbol("limits") => Dict{Symbol, Any}(
-                        Symbol("withdraw") => Dict{Symbol, Any}(
-                            Symbol("min") => self.safeNumber(token, "minWithdraw"),
-                            Symbol("max") => nothing
-                        ),
-                        Symbol("deposit") => Dict{Symbol, Any}(
-                            Symbol("min") => self.safeNumber(chain, "minDeposit"),
-                            Symbol("max") => nothing
+                if functions.ccxtruthy(networkCode != nothing)
+                    networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                        Symbol("info") => chain,
+                        Symbol("id") => networkId,
+                        Symbol("network") => networkCode,
+                        Symbol("active") => nothing,
+                        Symbol("deposit") => !functions.ccxtruthy(self.safeBool(chain, "depositDisable")),
+                        Symbol("withdraw") => self.safeBool(token, "withdrawEnable"),
+                        Symbol("fee") => self.safeNumber(token, "minFee"),
+                        Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(token, "decimals"))),
+                        Symbol("limits") => Dict{Symbol, Any}(
+                            Symbol("withdraw") => Dict{Symbol, Any}(
+                                Symbol("min") => self.safeNumber(token, "minWithdraw"),
+                                Symbol("max") => nothing
+                            ),
+                            Symbol("deposit") => Dict{Symbol, Any}(
+                                Symbol("min") => self.safeNumber(chain, "minDeposit"),
+                                Symbol("max") => nothing
+                            )
                         )
-                    )
-                );
+                    );
+                end
             end
             f += 1
         end
@@ -618,7 +675,7 @@ function fetchTicker(self::Apex, symbol, params=Dict())
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
-        Symbol("symbol") => get(market, Symbol("id2"), nothing)
+        Symbol("symbol") => safeString(market, "id2")
     );
     response = Base.fetch(self.publicGetV3Ticker(extend(request, params)));
     tickers = self.safeList(response, "data", []);
@@ -642,7 +699,7 @@ function fetchOHLCV(self::Apex, symbol, timeframe="1m", since=nothing, limit=not
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("interval") => safeString(self.timeframes, timeframe, timeframe),
-        Symbol("symbol") => get(market, Symbol("id2"), nothing)
+        Symbol("symbol") => safeString(market, "id2")
     );
     if functions.ccxtruthy(limit == nothing)
         limit = 200;
@@ -654,12 +711,12 @@ function fetchOHLCV(self::Apex, symbol, timeframe="1m", since=nothing, limit=not
     end
     response = Base.fetch(self.publicGetV3Klines(extend(request, params)));
     data = self.safeDict(response, "data", Dict{Symbol, Any}());
-    OHLCVs = self.safeList(data, get(market, Symbol("id2"), nothing), []);
+    OHLCVs = self.safeList(data, safeString(market, "id2"), []);
     return self.parseOHLCVs(OHLCVs, market, timeframe, since, limit)
 
 end
 function parseOHLCV(self::Apex, ohlcv, market=nothing)
-    return [safeIntegerN(ohlcv, ["start", "t"]), self.safeNumberN(ohlcv, ["open", "o"]), self.safeNumberN(ohlcv, ["high", "h"]), self.safeNumberN(ohlcv, ["low", "l"]), self.safeNumberN(ohlcv, ["close", "c"]), self.safeNumberN(ohlcv, ["volume", "v"])]
+    return [safeInteger2(ohlcv, "start", "t"), self.safeNumber2(ohlcv, "open", "o"), self.safeNumber2(ohlcv, "high", "h"), self.safeNumber2(ohlcv, "low", "l"), self.safeNumber2(ohlcv, "close", "c"), self.safeNumber2(ohlcv, "volume", "v")]
 
 end
 function fetchOrderBook(self::Apex, symbol, limit=nothing, params=Dict())
@@ -668,7 +725,7 @@ function fetchOrderBook(self::Apex, symbol, limit=nothing, params=Dict())
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
-        Symbol("symbol") => get(market, Symbol("id2"), nothing)
+        Symbol("symbol") => safeString(market, "id2")
     );
     if functions.ccxtruthy(limit == nothing)
         limit = 100;
@@ -688,7 +745,7 @@ function fetchTrades(self::Apex, symbol, since=nothing, limit=nothing, params=Di
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
-        Symbol("symbol") => get(market, Symbol("id2"), nothing)
+        Symbol("symbol") => safeString(market, "id2")
     );
     if functions.ccxtruthy(limit == nothing)
         limit = 500;
@@ -700,15 +757,15 @@ function fetchTrades(self::Apex, symbol, since=nothing, limit=nothing, params=Di
 
 end
 function parseTrade(self::Apex, trade, market=nothing)
-    marketId = safeStringN(trade, ["s", "symbol"]);
+    marketId = safeString2(trade, "s", "symbol");
     market = self.safeMarket(marketId, market);
-    id = safeStringN(trade, ["i", "id"]);
+    id = safeString2(trade, "i", "id");
     timestamp = safeIntegerN(trade, ["t", "T", "createdAt"]);
-    priceString = safeStringN(trade, ["p", "price"]);
-    amountString = safeStringN(trade, ["v", "size"]);
-    side = safeStringLowerN(trade, ["S", "side"]);
-    type_var = safeStringN(trade, ["type"]);
-    fee = safeStringN(trade, ["fee"]);
+    priceString = safeString2(trade, "p", "price");
+    amountString = safeString2(trade, "v", "size");
+    side = safeStringLower2(trade, "S", "side");
+    type_var = safeString(trade, "type");
+    fee = safeString(trade, "fee");
     return self.safeTrade(Dict{Symbol, Any}(
     Symbol("info") => trade,
     Symbol("id") => id,
@@ -732,7 +789,7 @@ function fetchOpenInterest(self::Apex, symbol, params=Dict())
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
-        Symbol("symbol") => get(market, Symbol("id2"), nothing)
+        Symbol("symbol") => safeString(market, "id2")
     );
     response = Base.fetch(self.publicGetV3Ticker(extend(request, params)));
     tickers = self.safeList(response, "data", []);
@@ -886,18 +943,20 @@ function parseOrderType(self::Apex, type_var)
 end
 function safeMarket(self::Apex, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     if functions.ccxtruthy(@functions.ccxt_and(market == nothing, marketId != nothing))
-        if functions.ccxtruthy(ccxt_in(marketId, self.markets))
-            market = get(self.markets, Symbol(marketId), nothing);
-        elseif functions.ccxtruthy(ccxt_in(marketId, self.markets_by_id))
-            market = get(self.markets_by_id, Symbol(marketId), nothing);
+        marketsMap = self.markets;
+        marketsById = self.markets_by_id;
+        if functions.ccxtruthy(@functions.ccxt_and((marketsMap != nothing), (ccxt_in(marketId, marketsMap))))
+            market = get(marketsMap, Symbol(marketId), nothing);
+        elseif functions.ccxtruthy(@functions.ccxt_and((marketsById != nothing), (ccxt_in(marketId, marketsById))))
+            market = get(marketsById, Symbol(marketId), nothing);
         else
             newMarketId = self.addHyphenBeforeUsdt(marketId);
-            if functions.ccxtruthy(ccxt_in(newMarketId, self.markets_by_id))
-                markets = get(self.markets_by_id, Symbol(newMarketId), nothing);
+            if functions.ccxtruthy(@functions.ccxt_and((marketsById != nothing), (ccxt_in(newMarketId, marketsById))))
+                markets = get(marketsById, Symbol(newMarketId), nothing);
                 numMarkets = length(markets);
                 if functions.ccxtruthy(functions.ccxt_gt(numMarkets, 0))
-                    if functions.ccxtruthy(get(get(get(self.markets_by_id, Symbol(newMarketId), nothing), 1, nothing), Symbol("id2"), nothing) == marketId)
-                        market = get(get(self.markets_by_id, Symbol(newMarketId), nothing), 1, nothing);
+                    if functions.ccxtruthy(get(get(get(marketsById, Symbol(newMarketId), nothing), 1, nothing), Symbol("id2"), nothing) == marketId)
+                        market = get(get(marketsById, Symbol(newMarketId), nothing), 1, nothing);
                     end
                 end
             end
@@ -916,7 +975,7 @@ function addHyphenBeforeUsdt(self::Apex, symbol)
     index = ccxt_indexOf("USDT", uppercaseSymbol);
     symbolChar = safeString(symbol, index - 1);
     if functions.ccxtruthy(@functions.ccxt_and(functions.ccxt_gt(index, 0), symbolChar != "-"))
-            return string(symbol[0 + 1:index], "-", symbol[index + 1:end])
+            return string(functions.ccxt_slice(symbol, 0, index), "-", functions.ccxt_slice(symbol, index))
     end
     return symbol
 
@@ -944,6 +1003,9 @@ function createOrder(self::Apex, symbol, type_var, side, amount, price=nothing, 
     end
     market = self.market(symbol);
     orderType = uppercase(type_var);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
+    end
     orderSide = uppercase(side);
     orderSize = self.amountToPrecision(symbol, amount);
     orderPrice = "0";
@@ -1071,7 +1133,8 @@ function transfer(self::Apex, code, amount, fromAccount, toAccount, params=Dict(
     end
     tokenId = safeString(currency, "tokenId", "");
     decimalsNum = self.safeNumber(currency, "decimals", 0);
-    mathPowResult = (pow(10, decimalsNum));
+    decimalsNumber = functions.ccxtruthy((decimalsNum == nothing)) ? 0 : decimalsNum;
+    mathPowResult = (pow(10, decimalsNumber));
     amountNumber = self.parseToInt(amount * mathPowResult);
     timestampSeconds = self.parseToInt(milliseconds() / 1000);
     clientOrderId = safeStringN(params, ["clientId", "clientOrderId", "client_order_id"]);
@@ -1167,7 +1230,7 @@ function parseTransfer(self::Apex, transfer, currency=nothing)
     toAccount = safeString(transfer, "toAccount");
     return Dict{Symbol, Any}(
     Symbol("info") => transfer,
-    Symbol("id") => safeStringN(transfer, ["transferId", "id"]),
+    Symbol("id") => safeString2(transfer, "transferId", "id"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
@@ -1390,7 +1453,7 @@ function parsePosition(self::Apex, position, market=nothing)
     quantity = safeString(position, "size");
     timestamp = safeInteger(position, "updatedTime");
     leverage = 20;
-    customInitialMarginRate = safeStringN(position, ["customInitialMarginRate", "customImr"], "0");
+    customInitialMarginRate = safeString2(position, "customInitialMarginRate", "customImr", "0");
     if functions.ccxtruthy(precisionFromString(customInitialMarginRate) != 0)
         leverage = self.parseToInt(stringDiv("1", customInitialMarginRate, 4));
     end
@@ -1477,124 +1540,177 @@ function handleErrors(self::Apex, code, reason, url, method, headers, body, resp
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Apex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetV3Symbols(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/symbols", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/symbols", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV3HistoryFunding(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/history-funding", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/history-funding", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV3Ticker(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV3Klines(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/klines", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/klines", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV3Trades(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV3Depth(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/depth", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/depth", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV3Time(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV3DataAllTickerInfo(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/data/all-ticker-info", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/data/all-ticker-info", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3Account(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3AccountBalance(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/account-balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/account-balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3Fills(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/fills", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/fills", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3OrderFills(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/order-fills", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/order-fills", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3Order(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3HistoryOrders(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/history-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/history-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3OrderByClientOrderId(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/order-by-client-order-id", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/order-by-client-order-id", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3Funding(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/funding", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/funding", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3HistoricalPnl(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/historical-pnl", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/historical-pnl", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3OpenOrders(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/open-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/open-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3Transfers(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/transfers", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/transfers", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV3Transfer(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/transfer", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/transfer", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostV3DeleteOpenOrders(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/delete-open-orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/delete-open-orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV3DeleteClientOrderId(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/delete-client-order-id", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/delete-client-order-id", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV3DeleteOrder(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/delete-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/delete-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV3Order(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV3SetInitialMarginRate(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/set-initial-margin-rate", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/set-initial-margin-rate", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV3TransferOut(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/transfer-out", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/transfer-out", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV3ContractTransferOut(self::Apex, params=Dict(), context=Dict())
-    return request(self, "v3/contract-transfer-out", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/contract-transfer-out", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Apex(; kwargs...)
     inst = Apex(Exchange(), describe, fetchTime, parseBalance, fetchBalance, parseAccount, fetchAccount, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, parseTicker, fetchTicker, fetchTickers, fetchOHLCV, parseOHLCV, fetchOrderBook, fetchTrades, parseTrade, fetchOpenInterest, parseOpenInterest, fetchFundingRateHistory, parseOrder, parseTimeInForce, parseOrderStatus, parseOrderType, safeMarket, generateRandomClientIdOmni, addHyphenBeforeUsdt, getSeeds, getAccountId, createOrder, transfer, parseTransfer, cancelAllOrders, cancelOrder, fetchOrder, fetchOpenOrders, fetchOrders, fetchOrderTrades, fetchMyTrades, fetchFundingHistory, parseIncome, setLeverage, fetchPositions, parsePosition, sign, handleErrors, publicGetV3Symbols, publicGetV3HistoryFunding, publicGetV3Ticker, publicGetV3Klines, publicGetV3Trades, publicGetV3Depth, publicGetV3Time, publicGetV3DataAllTickerInfo, privateGetV3Account, privateGetV3AccountBalance, privateGetV3Fills, privateGetV3OrderFills, privateGetV3Order, privateGetV3HistoryOrders, privateGetV3OrderByClientOrderId, privateGetV3Funding, privateGetV3HistoricalPnl, privateGetV3OpenOrders, privateGetV3Transfers, privateGetV3Transfer, privatePostV3DeleteOpenOrders, privatePostV3DeleteClientOrderId, privatePostV3DeleteOrder, privatePostV3Order, privatePostV3SetInitialMarginRate, privatePostV3TransferOut, privatePostV3ContractTransferOut)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

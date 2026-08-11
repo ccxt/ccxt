@@ -70,8 +70,6 @@
     fetchPositions::Function = fetchPositions
     fetchPosition::Function = fetchPosition
     parsePosition::Function = parsePosition
-    fetchCrossBorrowRate::Function = fetchCrossBorrowRate
-    parseBorrowRate::Function = parseBorrowRate
     isFiat::Function = isFiat
     fetchFundingRateHistory::Function = fetchFundingRateHistory
     parseFundingRateHistory::Function = parseFundingRateHistory
@@ -101,7 +99,7 @@ function describe(self::Whitebit, )
         Symbol("createConvertTrade") => true,
         Symbol("createDepositAddress") => true,
         Symbol("createMarketBuyOrderWithCost") => true,
-        Symbol("createMarketOrderWithCost") => false,
+        Symbol("createMarketOrderWithCost") => true,
         Symbol("createMarketSellOrderWithCost") => false,
         Symbol("createOrder") => true,
         Symbol("createPostOnlyOrder") => true,
@@ -112,13 +110,14 @@ function describe(self::Whitebit, )
         Symbol("editOrder") => true,
         Symbol("fetchAccounts") => true,
         Symbol("fetchBalance") => true,
+        Symbol("fetchBorrowInterest") => true,
         Symbol("fetchBorrowRateHistories") => false,
         Symbol("fetchBorrowRateHistory") => false,
         Symbol("fetchClosedOrders") => true,
         Symbol("fetchConvertQuote") => true,
         Symbol("fetchConvertTrade") => false,
         Symbol("fetchConvertTradeHistory") => true,
-        Symbol("fetchCrossBorrowRate") => true,
+        Symbol("fetchCrossBorrowRate") => false,
         Symbol("fetchCrossBorrowRates") => false,
         Symbol("fetchCurrencies") => true,
         Symbol("fetchDeposit") => true,
@@ -210,27 +209,366 @@ function describe(self::Whitebit, )
     ),
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("web") => Dict{Symbol, Any}(
-            Symbol("get") => ["v1/healthcheck"]
+            Symbol("get") => Dict{Symbol, Any}(
+                Symbol("v1/healthcheck") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+            )
         ),
         Symbol("v1") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
-                Symbol("get") => ["markets", "tickers", "ticker", "symbols", "depth/result", "history", "kline"]
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("depth/result") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             ),
             Symbol("private") => Dict{Symbol, Any}(
-                Symbol("post") => ["account/balance", "order/new", "order/cancel", "orders", "account/order_history", "account/executed_history", "account/executed_history/all", "account/order"]
+                Symbol("post") => Dict{Symbol, Any}(
+                    Symbol("account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/new") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("account/order_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("account/executed_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("account/executed_history/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("account/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             )
         ),
         Symbol("v2") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
-                Symbol("get") => ["markets", "ticker", "assets", "fee", "depth/{market}", "trades/{market}"]
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("depth/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trades/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             )
         ),
         Symbol("v4") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
-                Symbol("get") => ["assets", "collateral/markets", "fee", "funding-history/{market}", "orderbook/depth/{market}", "orderbook/{market}", "ticker", "trades/{market}", "time", "ping", "markets", "futures", "platform/status", "mining-pool"]
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("collateral/markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("funding-history/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orderbook/depth/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orderbook/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trades/{market}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("markets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("platform/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mining-pool") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             ),
             Symbol("private") => Dict{Symbol, Any}(
-                Symbol("post") => ["collateral-account/balance", "collateral-account/balance-summary", "collateral-account/positions/history", "collateral-account/leverage", "collateral-account/positions/open", "collateral-account/summary", "collateral-account/funding-history", "main-account/address", "main-account/balance", "main-account/create-new-address", "main-account/codes", "main-account/codes/apply", "main-account/codes/my", "main-account/codes/history", "main-account/fiat-deposit-url", "main-account/history", "main-account/withdraw", "main-account/withdraw-pay", "main-account/transfer", "main-account/smart/plans", "main-account/smart/investment", "main-account/smart/investment/close", "main-account/smart/investments", "main-account/fee", "main-account/smart/interest-payment-history", "trade-account/balance", "trade-account/executed-history", "trade-account/order/history", "trade-account/order", "order/collateral/limit", "order/collateral/market", "order/collateral/stop-limit", "order/collateral/trigger-market", "order/collateral/bulk", "order/new", "order/market", "order/stock_market", "order/stop_limit", "order/stop_market", "order/cancel", "order/cancel/all", "order/kill-switch", "order/kill-switch/status", "order/bulk", "order/modify", "order/conditional-cancel", "orders", "oco-orders", "order/collateral/oco", "order/oco-cancel", "order/oto-cancel", "profile/websocket_token", "convert/estimate", "convert/confirm", "convert/history", "sub-account/create", "sub-account/delete", "sub-account/edit", "sub-account/list", "sub-account/transfer", "sub-account/block", "sub-account/unblock", "sub-account/balances", "sub-account/transfer/history", "sub-account/api-key/create", "sub-account/api-key/edit", "sub-account/api-key/delete", "sub-account/api-key/list", "sub-account/api-key/reset", "sub-account/api-key/ip-address/list", "sub-account/api-key/ip-address/create", "sub-account/api-key/ip-address/delete", "mining/rewards", "market/fee", "conditional-orders"]
+                Symbol("post") => Dict{Symbol, Any}(
+                    Symbol("collateral-account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("collateral-account/balance-summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("collateral-account/positions/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("collateral-account/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("collateral-account/positions/open") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("collateral-account/summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("collateral-account/funding-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/create-new-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/codes") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/codes/apply") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/codes/my") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/codes/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/fiat-deposit-url") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/withdraw-pay") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/smart/plans") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/smart/investment") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/smart/investment/close") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/smart/investments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("main-account/smart/interest-payment-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trade-account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trade-account/executed-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trade-account/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trade-account/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/collateral/limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/collateral/market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/collateral/stop-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/collateral/trigger-market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/collateral/bulk") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/new") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/stock_market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/stop_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/stop_market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/cancel/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/kill-switch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/kill-switch/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/bulk") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/modify") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/conditional-cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("oco-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/collateral/oco") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/oco-cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/oto-cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("profile/websocket_token") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("convert/estimate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("convert/confirm") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("convert/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/delete") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/edit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/block") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/unblock") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/transfer/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/api-key/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/api-key/edit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/api-key/delete") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/api-key/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/api-key/reset") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/api-key/ip-address/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/api-key/ip-address/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub-account/api-key/ip-address/delete") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("mining/rewards") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("conditional-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             )
         )
     ),
@@ -414,7 +752,6 @@ function parseMarket(self::Whitebit, market)
     margin = @functions.ccxt_and(isCollateral, !functions.ccxtruthy(swap));
     contract = false;
     amountPrecision = self.parseNumber(self.parsePrecision(safeString(market, "stockPrec")));
-    contractSize = amountPrecision;
     linear = nothing;
     inverse = nothing;
     if functions.ccxtruthy(swap)
@@ -433,7 +770,7 @@ function parseMarket(self::Whitebit, market)
     makerFeeRate = safeString(market, "makerFee");
     maker = stringDiv(makerFeeRate, "100");
     isSpot = !functions.ccxtruthy(swap);
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("symbol") => symbol,
     Symbol("base") => base,
@@ -454,7 +791,7 @@ function parseMarket(self::Whitebit, market)
     Symbol("inverse") => inverse,
     Symbol("taker") => self.parseNumber(taker),
     Symbol("maker") => self.parseNumber(maker),
-    Symbol("contractSize") => functions.ccxtruthy(isSpot) ? nothing : contractSize,
+    Symbol("contractSize") => functions.ccxtruthy(isSpot) ? nothing : self.parseNumber("1"),
     Symbol("expiry") => nothing,
     Symbol("expiryDatetime") => nothing,
     Symbol("strike") => nothing,
@@ -483,7 +820,7 @@ function parseMarket(self::Whitebit, market)
     ),
     Symbol("created") => nothing,
     Symbol("info") => market
-)
+))
 
 end
 function fetchCurrencies(self::Whitebit, params=Dict())
@@ -510,25 +847,27 @@ function parseCurrency(self::Whitebit, rawCurrency)
         networkCode = self.networkIdToCode(networkId, code);
         networkDepositLimits = self.safeDict(depositLimits, networkId, Dict{Symbol, Any}());
         networkWithdrawLimits = self.safeDict(withdrawLimits, networkId, Dict{Symbol, Any}());
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("active") => nothing,
-            Symbol("deposit") => inArray(networkId, depositsNetworks),
-            Symbol("withdraw") => inArray(networkId, withdrawsNetworks),
-            Symbol("fee") => nothing,
-            Symbol("precision") => nothing,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(networkDepositLimits, "min"),
-                    Symbol("max") => self.safeNumber(networkDepositLimits, "max")
-                ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(networkWithdrawLimits, "min"),
-                    Symbol("max") => self.safeNumber(networkWithdrawLimits, "max")
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("active") => nothing,
+                Symbol("deposit") => inArray(networkId, depositsNetworks),
+                Symbol("withdraw") => inArray(networkId, withdrawsNetworks),
+                Symbol("fee") => nothing,
+                Symbol("precision") => nothing,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(networkDepositLimits, "min"),
+                        Symbol("max") => self.safeNumber(networkDepositLimits, "max")
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(networkWithdrawLimits, "min"),
+                        Symbol("max") => self.safeNumber(networkWithdrawLimits, "max")
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -571,12 +910,16 @@ function fetchTransactionFees(self::Whitebit, codes=nothing, params=Dict())
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(currenciesIds)))
         currency = get(currenciesIds, i + 1, nothing);
-        data = get(response, Symbol(currency), nothing);
+        data = self.safeDict(response, currency, Dict{Symbol, Any}());
         code = self.safeCurrencyCode(currency);
         withdraw = safeValue(data, "withdraw", Dict{Symbol, Any}());
-        withdrawFees[Symbol(code)] = safeString(withdraw, "fixed");
+        if functions.ccxtruthy(code != nothing)
+            withdrawFees[Symbol(code)] = safeString(withdraw, "fixed");
+        end
         deposit = safeValue(data, "deposit", Dict{Symbol, Any}());
-        depositFees[Symbol(code)] = safeString(deposit, "fixed");
+        if functions.ccxtruthy(code != nothing)
+            depositFees[Symbol(code)] = safeString(deposit, "fixed");
+        end
         i += 1
     end
     return Dict{Symbol, Any}(
@@ -605,7 +948,7 @@ function parseDepositWithdrawFees(self::Whitebit, response, codes=nothing, curre
         currencyId = get(splitEntry, 1, nothing);
         feeInfo = get(response, Symbol(entry), nothing);
         code = self.safeCurrencyCode(currencyId);
-        if functions.ccxtruthy(@functions.ccxt_or((codes == nothing), (inArray(code, codes))))
+        if functions.ccxtruthy(@functions.ccxt_and((code != nothing), (@functions.ccxt_or((codes == nothing), (inArray(code, codes))))))
             depositWithdrawFee = safeValue(depositWithdrawFees, code);
             if functions.ccxtruthy(depositWithdrawFee == nothing)
                 depositWithdrawFees[Symbol(code)] = self.depositWithdrawFee(Dict{Symbol, Any}());
@@ -626,12 +969,14 @@ function parseDepositWithdrawFees(self::Whitebit, response, codes=nothing, curre
             );
             if functions.ccxtruthy(networkId != nothing)
                 networkLength = length(networkId);
-                networkId = networkId[1 + 1:networkLength - 1];
+                networkId = functions.ccxt_slice(networkId, 1, networkLength - 1);
                 networkCode = self.networkIdToCode(networkId, code);
-                depositWithdrawFees[Symbol(code)][Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-                    Symbol("withdraw") => withdrawResult,
-                    Symbol("deposit") => depositResult
-                );
+                if functions.ccxtruthy(networkCode != nothing)
+                    depositWithdrawFees[Symbol(code)][Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                        Symbol("withdraw") => withdrawResult,
+                        Symbol("deposit") => depositResult
+                    );
+                end
             else
                 depositWithdrawFees[Symbol(code)][Symbol("withdraw")] = withdrawResult;
                 depositWithdrawFees[Symbol(code)][Symbol("deposit")] = depositResult;
@@ -656,9 +1001,10 @@ function fetchTradingFees(self::Whitebit, params=Dict())
     end
     response = Base.fetch(self.v4PublicGetAssets(params));
     result = Dict{Symbol, Any}();
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         market = self.market(symbol);
         fee = safeValue(response, get(market, Symbol("baseId"), nothing), Dict{Symbol, Any}());
         makerFee = safeString(fee, "maker_fee");
@@ -683,11 +1029,15 @@ function fetchTradingLimits(self::Whitebit, symbols=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     result = Dict{Symbol, Any}();
-    marketIds = objectKeys(self.markets);
+    markets = self.markets;
+    if functions.ccxtruthy(markets == nothing)
+        throw(ExchangeError(string(self.id, " markets not loaded")));
+    end
+    marketIds = objectKeys(markets);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
-        market = get(self.markets, Symbol(marketId), nothing);
+        market = get(markets, Symbol(marketId), nothing);
         if functions.ccxtruthy(@functions.ccxt_or(!functions.ccxtruthy(market), !functions.ccxtruthy(get(market, Symbol("symbol"), nothing))))
             i += 1; continue
         end
@@ -760,21 +1110,22 @@ function fetchFundingLimits(self::Whitebit, codes=nothing, params=Dict())
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(feeKeys)))
             feeKey = get(feeKeys, j + 1, nothing);
-            fee = get(feesData, Symbol(feeKey), nothing);
+            fee = self.safeDict(feesData, feeKey);
             if functions.ccxtruthy(@functions.ccxt_and(fee, get(fee, Symbol("ticker"), nothing) == code))
                 feeData = fee;
                 break
             end
             j += 1
         end
+        currencyLimits = self.safeDict(currency, "limits", Dict{Symbol, Any}());
         limits = Dict{Symbol, Any}(
             Symbol("deposit") => Dict{Symbol, Any}(
-                Symbol("min") => get(get(get(currency, Symbol("limits"), nothing), Symbol("deposit"), nothing), Symbol("min"), nothing),
-                Symbol("max") => get(get(get(currency, Symbol("limits"), nothing), Symbol("deposit"), nothing), Symbol("max"), nothing)
+                Symbol("min") => get(get(currencyLimits, Symbol("deposit"), nothing), Symbol("min"), nothing),
+                Symbol("max") => get(get(currencyLimits, Symbol("deposit"), nothing), Symbol("max"), nothing)
             ),
             Symbol("withdraw") => Dict{Symbol, Any}(
-                Symbol("min") => get(get(get(currency, Symbol("limits"), nothing), Symbol("withdraw"), nothing), Symbol("min"), nothing),
-                Symbol("max") => get(get(get(currency, Symbol("limits"), nothing), Symbol("withdraw"), nothing), Symbol("max"), nothing)
+                Symbol("min") => get(get(currencyLimits, Symbol("withdraw"), nothing), Symbol("min"), nothing),
+                Symbol("max") => get(get(currencyLimits, Symbol("withdraw"), nothing), Symbol("max"), nothing)
             )
         );
         if functions.ccxtruthy(feeData)
@@ -868,6 +1219,7 @@ function fetchOrder(self::Whitebit, id, symbol=nothing, params=Dict())
     end
     checkActive = self.safeBool(params, "checkActive", true);
     checkExecuted = self.safeBool(params, "checkExecuted", true);
+    params = omit(params, ["checkActive", "checkExecuted"]);
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
@@ -879,9 +1231,10 @@ function fetchOrder(self::Whitebit, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(checkActive)
         try
             response = Base.fetch(self.v4PrivatePostOrders(extend(request, params)));
+            orders = toArray(response);
             i = 0
-            while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-                order = get(response, i + 1, nothing);
+            while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
+                order = get(orders, i + 1, nothing);
                 orderId = safeString(order, "orderId");
                 if functions.ccxtruthy(orderId == id)
                     marketId = safeString(order, "market");
@@ -905,10 +1258,10 @@ function fetchOrder(self::Whitebit, id, symbol=nothing, params=Dict())
             while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
                 marketId = get(marketIds, i + 1, nothing);
                 marketNew = self.safeMarket(marketId, nothing, "_");
-                orders = get(response, Symbol(marketId), nothing);
+                marketOrders = self.safeList(response, marketId, []);
                 j = 0
-                while functions.ccxtruthy(functions.ccxt_lt(j, length(orders)))
-                    order = get(orders, j + 1, nothing);
+                while functions.ccxtruthy(functions.ccxt_lt(j, length(marketOrders)))
+                    order = get(marketOrders, j + 1, nothing);
                     orderId = safeString(order, "id");
                     if functions.ccxtruthy(orderId == id)
                             return self.parseOrder(order, marketNew)
@@ -1174,15 +1527,29 @@ function createOrder(self::Whitebit, symbol, type_var, side, amount, price=nothi
     isMarketOrder = type_var == "market";
     triggerPrice = self.safeNumberN(params, ["triggerPrice", "stopPrice", "activation_price"]);
     isStopOrder = (triggerPrice != nothing);
+    timeInForce = safeStringUpper(params, "timeInForce");
+    if functions.ccxtruthy(@functions.ccxt_and(@functions.ccxt_and(@functions.ccxt_and((timeInForce != nothing), (timeInForce != "GTC")), (timeInForce != "IOC")), (timeInForce != "PO")))
+        throw(NotSupported(string(self.id, " createOrder() does not support timeInForce ", timeInForce, ", only GTC, IOC and PO are allowed")));
+    end
     postOnly = self.isPostOnly(isMarketOrder, false, params);
+    ioc = (timeInForce == "IOC");
+    if functions.ccxtruthy(@functions.ccxt_and(isStopOrder, (@functions.ccxt_or(postOnly, ioc))))
+        throw(NotSupported(string(self.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")));
+    end
+    if functions.ccxtruthy(@functions.ccxt_and(ioc, !functions.ccxtruthy(isLimitOrder)))
+        throw(NotSupported(string(self.id, " createOrder() timeInForce IOC is only supported for limit orders")));
+    end
     (marginMode, query) = self.handleMarginModeAndParams("createOrder", params);
     if functions.ccxtruthy(postOnly)
         request[Symbol("postOnly")] = true;
     end
+    if functions.ccxtruthy(ioc)
+        request[Symbol("ioc")] = true;
+    end
     if functions.ccxtruthy(@functions.ccxt_and(marginMode != nothing, marginMode != "cross"))
         throw(NotSupported(string(self.id, " createOrder() is only available for cross margin")));
     end
-    params = omit(query, ["postOnly", "triggerPrice", "stopPrice"]);
+    params = omit(query, ["postOnly", "triggerPrice", "stopPrice", "timeInForce"]);
     useCollateralEndpoint = @functions.ccxt_or(marginMode != nothing, marketType == "swap");
     if functions.ccxtruthy(isStopOrder)
         request[Symbol("activation_price")] = self.priceToPrecision(symbol, triggerPrice);
@@ -1318,7 +1685,7 @@ function fetchOrders(self::Whitebit, symbol=nothing, since=nothing, limit=nothin
     allOrders = arrayConcat(openOrders, closedOrders);
     sortedOrders = sortBy(allOrders, "timestamp", true);
     if functions.ccxtruthy(@functions.ccxt_and(limit != nothing, functions.ccxt_gt(length(sortedOrders), limit)))
-            return sortedOrders[0 + 1:limit]
+            return functions.ccxt_slice(sortedOrders, 0, limit)
     end
     return sortedOrders
 
@@ -1333,6 +1700,9 @@ function cancelAllOrdersAfter(self::Whitebit, timeout, params=Dict())
     end
     market = self.market(symbol);
     params = omit(params, "symbol");
+    if functions.ccxtruthy(timeout == nothing)
+        throw(ExchangeError(string(self.id, " cancelAllOrdersAfter() missing timeout")));
+    end
     isBiggerThanZero = (functions.ccxt_gt(timeout, 0));
     request = Dict{Symbol, Any}(
         Symbol("market") => get(market, Symbol("id"), nothing)
@@ -1359,11 +1729,15 @@ function parseBalance(self::Whitebit, response)
             account[Symbol("free")] = safeString2(balance, "available", "main_balance");
             account[Symbol("used")] = safeString(balance, "freeze");
             account[Symbol("total")] = safeString(balance, "main_balance");
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
         else
             account = self.account();
             account[Symbol("total")] = balance;
-            result[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = account;
+            end
         end
         i += 1
     end
@@ -1432,7 +1806,7 @@ function fetchClosedOrders(self::Whitebit, symbol=nothing, since=nothing, limit=
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
         marketNew = self.safeMarket(marketId, nothing, "_");
-        orders = get(response, Symbol(marketId), nothing);
+        orders = self.safeList(response, marketId, []);
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(orders)))
             order = self.parseOrder(get(orders, j + 1, nothing), marketNew);
@@ -1495,6 +1869,14 @@ function parseOrder(self::Whitebit, order, market=nothing)
     end
     timestamp = safeTimestamp2(order, "ctime", "timestamp");
     lastTradeTimestamp = safeTimestamp(order, "ftime");
+    postOnly = self.safeBool(order, "postOnly");
+    ioc = self.safeBool(order, "ioc");
+    timeInForce = nothing;
+    if functions.ccxtruthy(ioc)
+        timeInForce = "IOC";
+    elseif functions.ccxtruthy(postOnly)
+        timeInForce = "PO";
+    end
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => order,
     Symbol("id") => orderId,
@@ -1503,8 +1885,8 @@ function parseOrder(self::Whitebit, order, market=nothing)
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
     Symbol("lastTradeTimestamp") => lastTradeTimestamp,
-    Symbol("timeInForce") => nothing,
-    Symbol("postOnly") => nothing,
+    Symbol("timeInForce") => timeInForce,
+    Symbol("postOnly") => postOnly,
     Symbol("status") => self.parseOrderStatus(safeString(order, "status")),
     Symbol("side") => side,
     Symbol("price") => price,
@@ -1594,7 +1976,8 @@ function fetchTransactions(self::Whitebit, code=nothing, since=nothing, limit=no
         request[Symbol("limit")] = limit;
     end
     response = Base.fetch(self.v4PrivatePostMainAccountHistory(extend(request, params)));
-    return self.parseTransactions(response, currency, since, limit)
+    records = self.safeList(response, "records", []);
+    return self.parseTransactions(records, currency, since, limit)
 
 end
 function fetchDepositAddress(self::Whitebit, code, params=Dict())
@@ -1865,7 +2248,11 @@ function fetchDeposits(self::Whitebit, code=nothing, since=nothing, limit=nothin
     end
     response = Base.fetch(self.v4PrivatePostMainAccountHistory(extend(request, params)));
     records = self.safeList(response, "records", []);
-    return self.parseTransactions(records, currency, since, limit)
+    recordsList = [];
+    if functions.ccxtruthy(records != nothing)
+        recordsList = records;
+    end
+    return self.parseTransactions(recordsList, currency, since, limit)
 
 end
 function fetchBorrowInterest(self::Whitebit, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
@@ -2012,7 +2399,11 @@ function fetchDepositsWithdrawals(self::Whitebit, code=nothing, since=nothing, l
     end
     response = Base.fetch(self.v4PrivatePostMainAccountHistory(extend(request, params)));
     records = self.safeList(response, "records");
-    return self.parseTransactions(records, currency, since, limit)
+    recordsList = [];
+    if functions.ccxtruthy(records != nothing)
+        recordsList = records;
+    end
+    return self.parseTransactions(recordsList, currency, since, limit)
 
 end
 function fetchConvertQuote(self::Whitebit, fromCode, toCode, amount=nothing, params=Dict())
@@ -2168,32 +2559,6 @@ function parsePosition(self::Whitebit, position, market=nothing)
 ))
 
 end
-function fetchCrossBorrowRate(self::Whitebit, code, params=Dict())
-    if functions.ccxtruthy(self.markets == nothing)
-        Base.fetch(self.loadMarkets());
-    end
-    currency = self.currency(code);
-    request = Dict{Symbol, Any}(
-        Symbol("ticker") => get(currency, Symbol("id"), nothing)
-    );
-    response = Base.fetch(self.v4PrivatePostMainAccountSmartPlans(extend(request, params)));
-    data = self.safeList(response, 0, []);
-    return self.parseBorrowRate(data, currency)
-
-end
-function parseBorrowRate(self::Whitebit, info, currency=nothing)
-    currencyId = safeString(info, "ticker");
-    percent = safeString(info, "percent");
-    return Dict{Symbol, Any}(
-    Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
-    Symbol("rate") => self.parseNumber(stringDiv(percent, "100")),
-    Symbol("period") => safeInteger(info, "duration"),
-    Symbol("timestamp") => nothing,
-    Symbol("datetime") => nothing,
-    Symbol("info") => info
-)
-
-end
 function isFiat(self::Whitebit, currency)
     fiatCurrencies = safeValue(self.options, "fiatCurrencies", []);
     return inArray(currency, fiatCurrencies)
@@ -2342,15 +2707,68 @@ function handleErrors(self::Whitebit, code, reason, url, method, headers, body, 
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Whitebit, name::Symbol) = ccxt_getproperty(self, name)
 
 function Whitebit(; kwargs...)
-    inst = Whitebit(Exchange(), describe, fetchMarkets, parseMarket, fetchCurrencies, parseCurrency, fetchTransactionFees, fetchDepositWithdrawFees, parseDepositWithdrawFees, fetchTradingFees, fetchTradingLimits, fetchFundingLimits, fetchTicker, parseTicker, fetchOrder, fetchTickers, fetchOrderBook, fetchTrades, fetchMyTrades, parseTrade, fetchOHLCV, parseOHLCV, fetchStatus, fetchTime, createMarketOrderWithCost, createMarketBuyOrderWithCost, createOrder, editOrder, cancelOrder, cancelAllOrders, fetchOrders, cancelAllOrdersAfter, parseBalance, fetchBalance, fetchOpenOrders, fetchClosedOrders, parseOrderType, parseOrder, parseOrderStatus, fetchOrderTrades, fetchWithdrawals, fetchTransactions, fetchDepositAddress, createDepositAddress, parseDepositAddress, fetchAccounts, setLeverage, transfer, parseTransfer, withdraw, parseTransaction, parseTransactionStatus, fetchDeposit, fetchDeposits, fetchBorrowInterest, parseBorrowInterest, fetchFundingRate, fetchFundingRates, parseFundingRate, fetchFundingHistory, parseFundingHistory, parseFundingHistories, fetchDepositsWithdrawals, fetchConvertQuote, createConvertTrade, fetchConvertTradeHistory, parseConversion, fetchPositionHistory, fetchPositions, fetchPosition, parsePosition, fetchCrossBorrowRate, parseBorrowRate, isFiat, fetchFundingRateHistory, parseFundingRateHistory, nonce, sign, handleErrors)
+    inst = Whitebit(Exchange(), describe, fetchMarkets, parseMarket, fetchCurrencies, parseCurrency, fetchTransactionFees, fetchDepositWithdrawFees, parseDepositWithdrawFees, fetchTradingFees, fetchTradingLimits, fetchFundingLimits, fetchTicker, parseTicker, fetchOrder, fetchTickers, fetchOrderBook, fetchTrades, fetchMyTrades, parseTrade, fetchOHLCV, parseOHLCV, fetchStatus, fetchTime, createMarketOrderWithCost, createMarketBuyOrderWithCost, createOrder, editOrder, cancelOrder, cancelAllOrders, fetchOrders, cancelAllOrdersAfter, parseBalance, fetchBalance, fetchOpenOrders, fetchClosedOrders, parseOrderType, parseOrder, parseOrderStatus, fetchOrderTrades, fetchWithdrawals, fetchTransactions, fetchDepositAddress, createDepositAddress, parseDepositAddress, fetchAccounts, setLeverage, transfer, parseTransfer, withdraw, parseTransaction, parseTransactionStatus, fetchDeposit, fetchDeposits, fetchBorrowInterest, parseBorrowInterest, fetchFundingRate, fetchFundingRates, parseFundingRate, fetchFundingHistory, parseFundingHistory, parseFundingHistories, fetchDepositsWithdrawals, fetchConvertQuote, createConvertTrade, fetchConvertTradeHistory, parseConversion, fetchPositionHistory, fetchPositions, fetchPosition, parsePosition, isFiat, fetchFundingRateHistory, parseFundingRateHistory, nonce, sign, handleErrors)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

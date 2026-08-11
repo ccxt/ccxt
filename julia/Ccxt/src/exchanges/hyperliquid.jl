@@ -17,6 +17,7 @@
     fetchBalance::Function = fetchBalance
     fetchOrderBook::Function = fetchOrderBook
     fetchTickers::Function = fetchTickers
+    fetchFundingRate::Function = fetchFundingRate
     fetchFundingRates::Function = fetchFundingRates
     parseFundingRate::Function = parseFundingRate
     parseTicker::Function = parseTicker
@@ -171,7 +172,7 @@ function describe(self::Hyperliquid, )
         Symbol("fetchDepositWithdrawFee") => "emulated",
         Symbol("fetchDepositWithdrawFees") => false,
         Symbol("fetchFundingHistory") => true,
-        Symbol("fetchFundingRate") => false,
+        Symbol("fetchFundingRate") => true,
         Symbol("fetchFundingRateHistory") => true,
         Symbol("fetchFundingRates") => true,
         Symbol("fetchIndexOHLCV") => false,
@@ -258,22 +259,24 @@ function describe(self::Hyperliquid, )
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
                 Symbol("info") => Dict{Symbol, Any}(
-                    Symbol("cost") => 20,
-                    Symbol("byType") => Dict{Symbol, Any}(
-                        Symbol("l2Book") => 2,
-                        Symbol("allMids") => 2,
-                        Symbol("clearinghouseState") => 2,
-                        Symbol("orderStatus") => 2,
-                        Symbol("spotClearinghouseState") => 2,
-                        Symbol("exchangeStatus") => 2,
-                        Symbol("candleSnapshot") => 4
-                    )
-                )
+    Symbol("cost") => 20,
+    Symbol("byType") => Dict{Symbol, Any}(
+        Symbol("l2Book") => 2,
+        Symbol("allMids") => 2,
+        Symbol("clearinghouseState") => 2,
+        Symbol("orderStatus") => 2,
+        Symbol("spotClearinghouseState") => 2,
+        Symbol("exchangeStatus") => 2,
+        Symbol("candleSnapshot") => 4
+    )
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("exchange") => 1
+                Symbol("exchange") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         )
     ),
@@ -466,6 +469,9 @@ function setSandboxMode(self::Hyperliquid, enabled)
 
 end
 function market(self::Hyperliquid, symbol)
+    if functions.ccxtruthy(symbol == nothing)
+        throw(ArgumentsRequired(string(self.id, " market() requires a symbol argument")));
+    end
     if functions.ccxtruthy(self.markets == nothing)
         throw(ExchangeError(string(self.id, " markets not loaded")));
     end
@@ -562,7 +568,9 @@ function parseCurrency(self::Hyperliquid, rawCurrency)
             end
 
             baseCode = self.safeCurrencyCode(nameWithoutU);
-            self.options[Symbol("spotCurrencyMapping")][Symbol(code)] = baseCode;
+            if functions.ccxtruthy(code != nothing)
+                self.options[Symbol("spotCurrencyMapping")][Symbol(code)] = baseCode;
+            end
         end
     end
     return result
@@ -604,7 +612,7 @@ function fetchHip3Markets(self::Hyperliquid, params=Dict())
     perpDexesOffset = Dict{Symbol, Any}();
     i = 1
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fetchDexes)))
-        dex = get(fetchDexes, i + 1, nothing);
+        dex = self.safeDict(fetchDexes, i, Dict{Symbol, Any}());
         secondPart = (i - 1) * 10000;
         offset = self.sum(110000, secondPart);
         perpDexesOffset[Symbol(dex[Symbol("name")])] = offset;
@@ -672,9 +680,10 @@ function fetchHip3Markets(self::Hyperliquid, params=Dict())
                 collateralTokenCode = safeString(cachedCurrencies, collateralToken);
                 data[Symbol("collateralTokenName")] = collateralTokenCode;
                 safeCode = self.safeCurrencyCode(name);
+                hip3Code = functions.ccxtruthy((safeCode == nothing)) ? name : replace(safeCode, ":" => "-");
                 self.options[Symbol("hip3TokensByName")][Symbol(name)] = Dict{Symbol, Any}(
                     Symbol("quote") => collateralTokenCode,
-                    Symbol("code") => replace(safeCode, ":" => "-")
+                    Symbol("code") => hip3Code
                 );
             end
             push!(result, data);
@@ -843,6 +852,9 @@ function parseMarket(self::Hyperliquid, market)
     settleId = functions.ccxtruthy((collateralTokenCode == nothing)) ? "USDC" : collateralTokenCode;
     baseName = safeString(market, "name");
     base = self.safeCurrencyCode(baseName);
+    if functions.ccxtruthy(base == nothing)
+        throw(ExchangeError(string(self.id, " parseMarket() missing base currency")));
+    end
     base = replace(base, ":" => "-");
     quote_var = self.safeCurrencyCode(quoteId);
     baseId = safeString(market, "baseId");
@@ -965,7 +977,9 @@ function fetchBalance(self::Hyperliquid, params=Dict())
             used = safeString(balance, "hold");
             account[Symbol("total")] = total;
             account[Symbol("used")] = used;
-            spotBalances[Symbol(code)] = account;
+            if functions.ccxtruthy(code != nothing)
+                spotBalances[Symbol(code)] = account;
+            end
             i += 1
         end
 
@@ -997,7 +1011,7 @@ function fetchOrderBook(self::Hyperliquid, symbol, limit=nothing, params=Dict())
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("type") => "l2Book",
-        Symbol("coin") => functions.ccxtruthy(get(market, Symbol("swap"), nothing)) ? get(market, Symbol("baseName"), nothing) : get(market, Symbol("id"), nothing)
+        Symbol("coin") => functions.ccxtruthy(get(market, Symbol("swap"), nothing)) ? safeString(market, "baseName") : get(market, Symbol("id"), nothing)
     );
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
     data = self.safeList(response, "levels", []);
@@ -1052,6 +1066,17 @@ function fetchTickers(self::Hyperliquid, symbols=nothing, params=Dict())
         i += 1
     end
     return self.filterByArrayTickers(result, "symbol", symbols)
+
+end
+function fetchFundingRate(self::Hyperliquid, symbol, params=Dict())
+    Base.fetch(self.loadMarkets());
+    market = self.market(symbol);
+    rates = Base.fetch(self.fetchFundingRates([get(market, Symbol("symbol"), nothing)], params));
+    rate = self.safeDict(rates, get(market, Symbol("symbol"), nothing));
+    if functions.ccxtruthy(rate == nothing)
+        throw(BadSymbol(string(self.id, " fetchFundingRate() could not find a funding rate for ", symbol)));
+    end
+    return rate
 
 end
 function fetchFundingRates(self::Hyperliquid, symbols=nothing, params=Dict())
@@ -1145,14 +1170,18 @@ function fetchOHLCV(self::Hyperliquid, symbol, timeframe="1m", since=nothing, li
     request = Dict{Symbol, Any}(
         Symbol("type") => "candleSnapshot",
         Symbol("req") => Dict{Symbol, Any}(
-            Symbol("coin") => functions.ccxtruthy(get(market, Symbol("swap"), nothing)) ? get(market, Symbol("baseName"), nothing) : get(market, Symbol("id"), nothing),
+            Symbol("coin") => functions.ccxtruthy(get(market, Symbol("swap"), nothing)) ? safeString(market, "baseName") : get(market, Symbol("id"), nothing),
             Symbol("interval") => safeString(self.timeframes, timeframe, timeframe),
             Symbol("startTime") => since,
             Symbol("endTime") => until
         )
     );
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    return self.parseOHLCVs(response, market, timeframe, originalSince, limit, useTail)
+    candles = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        candles = response;
+    end
+    return self.parseOHLCVs(candles, market, timeframe, originalSince, limit, useTail)
 
 end
 function parseOHLCV(self::Hyperliquid, ohlcv, market=nothing)
@@ -1184,7 +1213,11 @@ function fetchTrades(self::Hyperliquid, symbol, since=nothing, limit=nothing, pa
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    fills = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        fills = response;
+    end
+    return self.parseTrades(fills, market, since, limit)
 
 end
 function amountToPrecision(self::Hyperliquid, symbol, amount)
@@ -1208,7 +1241,7 @@ function hashMessage(self::Hyperliquid, message)
 
 end
 function signHash(self::Hyperliquid, hash, privateKey)
-    signature = ecdsa(hash[-64 + 1:end], privateKey[-64 + 1:end], secp256k1, nothing);
+    signature = ecdsa(functions.ccxt_slice(hash, -64), functions.ccxt_slice(privateKey, -64), secp256k1, nothing);
     return Dict{Symbol, Any}(
     Symbol("r") => string("0x", get(signature, Symbol("r"), nothing)),
     Symbol("s") => string("0x", get(signature, Symbol("s"), nothing)),
@@ -1217,7 +1250,7 @@ function signHash(self::Hyperliquid, hash, privateKey)
 
 end
 function signMessage(self::Hyperliquid, message, privateKey)
-    return self.signHash(self.hashMessage(message), privateKey[-64 + 1:end])
+    return self.signHash(self.hashMessage(message), functions.ccxt_slice(privateKey, -64))
 
 end
 function constructPhantomAgent(self::Hyperliquid, hash, isTestnet=true)
@@ -1501,7 +1534,10 @@ function isUnifiedEnabled(self::Hyperliquid, method, address=nothing, shouldRefr
         );
         response = nothing;
         try
-            response = Base.fetch(self.publicPostInfo(extend(request, params)));
+            rawResponse = Base.fetch(self.publicPostInfo(extend(request, params)));
+            if functions.ccxtruthy(isa(rawResponse, AbstractString))
+                response = rawResponse;
+            end
         catch e
             if functions.ccxtruthy(isa(e, InvalidProxySettings))
                 throw(e);
@@ -1686,6 +1722,12 @@ function createOrders(self::Hyperliquid, orders, params=Dict())
 
 end
 function createOrderRequest(self::Hyperliquid, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     type_var = uppercase(type_var);
     side = uppercase(side);
@@ -1803,12 +1845,12 @@ function createOrdersRequest(self::Hyperliquid, orders, params=Dict())
         orderParams = omit(orderParams, ["stopLoss", "takeProfit"]);
         mainOrderObj = self.createOrderRequest(symbol, type_var, side, amount, price, orderParams);
         if functions.ccxtruthy(@functions.ccxt_or(hasStopLoss, hasTakeProfit))
-            stopLossOrderTriggerPrice = safeStringN(stopLoss, ["triggerPrice", "stopPrice"]);
+            stopLossOrderTriggerPrice = safeString2(stopLoss, "triggerPrice", "stopPrice");
             stopLossOrderType = safeString(stopLoss, "type", "limit");
-            stopLossOrderLimitPrice = safeStringN(stopLoss, ["price", "stopLossPrice"], stopLossOrderTriggerPrice);
-            takeProfitOrderTriggerPrice = safeStringN(takeProfit, ["triggerPrice", "stopPrice"]);
+            stopLossOrderLimitPrice = safeString2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
+            takeProfitOrderTriggerPrice = safeString2(takeProfit, "triggerPrice", "stopPrice");
             takeProfitOrderType = safeString(takeProfit, "type", "limit");
-            takeProfitOrderLimitPrice = safeStringN(takeProfit, ["price", "takeProfitPrice"], takeProfitOrderTriggerPrice);
+            takeProfitOrderLimitPrice = safeString2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
             grouping = safeString(orderParams, "grouping", "normalTpsl");
             if functions.ccxtruthy(grouping == "positionTpsl")
                 amount = "0";
@@ -2282,7 +2324,7 @@ function fetchFundingRateHistory(self::Hyperliquid, symbol=nothing, since=nothin
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("type") => "fundingHistory",
-        Symbol("coin") => get(market, Symbol("baseName"), nothing)
+        Symbol("coin") => safeString(market, "baseName")
     );
     if functions.ccxtruthy(since != nothing)
         request[Symbol("startTime")] = since;
@@ -2297,9 +2339,13 @@ function fetchFundingRateHistory(self::Hyperliquid, symbol=nothing, since=nothin
     end
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
     result = [];
+    fundings = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        fundings = response;
+    end
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        entry = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(fundings)))
+        entry = get(fundings, i + 1, nothing);
         timestamp = safeInteger(entry, "time");
         push!(result, Dict{Symbol, Any}(
     Symbol("info") => entry,
@@ -2346,9 +2392,13 @@ function fetchOpenOrders(self::Hyperliquid, symbol=nothing, since=nothing, limit
     end
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
     orderWithStatus = [];
+    rawOrders = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        rawOrders = response;
+    end
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        order = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rawOrders)))
+        order = get(rawOrders, i + 1, nothing);
         extendOrder = Dict{Symbol, Any}();
         if functions.ccxtruthy(safeString(order, "status") == nothing)
             extendOrder[Symbol("ccxtStatus")] = "open";
@@ -2406,9 +2456,13 @@ function fetchOrders(self::Hyperliquid, symbol=nothing, since=nothing, limit=not
     end
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
     deduplicatedByOid = Dict{Symbol, Any}();
+    historicalOrders = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        historicalOrders = response;
+    end
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(response)))
-        rawOrder = get(response, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(historicalOrders)))
+        rawOrder = get(historicalOrders, i + 1, nothing);
         entry = self.safeDict(rawOrder, "order");
         if functions.ccxtruthy(entry == nothing)
             entry = rawOrder;
@@ -2478,7 +2532,7 @@ function parseOrder(self::Hyperliquid, order, market=nothing)
         marketId = self.coinToMarketId(coin);
     end
     if functions.ccxtruthy(safeString(entry, "id") == nothing)
-        market = self.safeMarket(marketId, nothing);
+        market = self.safeMarket(marketId);
     else
         market = self.safeMarket(marketId, market);
     end
@@ -2498,6 +2552,16 @@ function parseOrder(self::Hyperliquid, order, market=nothing)
         postOnly = (tif == "ALO");
     end
     triggerPx = functions.ccxtruthy(self.safeBool(entry, "isTrigger")) ? self.safeNumber(entry, "triggerPx") : nothing;
+    orderTypeRaw = safeStringLower(entry, "orderType", "");
+    stopLossPrice = nothing;
+    takeProfitPrice = nothing;
+    if functions.ccxtruthy(triggerPx != nothing)
+        if functions.ccxtruthy(findfirst("stop", orderTypeRaw) !== nothing)
+            stopLossPrice = triggerPx;
+        elseif functions.ccxtruthy(findfirst("take profit", orderTypeRaw) !== nothing)
+            takeProfitPrice = triggerPx;
+        end
+    end
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => order,
     Symbol("id") => safeString(entry, "oid"),
@@ -2514,6 +2578,8 @@ function parseOrder(self::Hyperliquid, order, market=nothing)
     Symbol("side") => side,
     Symbol("price") => safeString(entry, "limitPx"),
     Symbol("triggerPrice") => triggerPx,
+    Symbol("stopLossPrice") => stopLossPrice,
+    Symbol("takeProfitPrice") => takeProfitPrice,
     Symbol("amount") => totalAmount,
     Symbol("cost") => nothing,
     Symbol("average") => safeString(entry, "avgPx"),
@@ -2579,7 +2645,11 @@ function fetchMyTrades(self::Hyperliquid, symbol=nothing, since=nothing, limit=n
         request[Symbol("endTime")] = until;
     end
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    return self.parseTrades(response, market, since, limit)
+    myFills = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        myFills = response;
+    end
+    return self.parseTrades(myFills, market, since, limit)
 
 end
 function parseTrade(self::Hyperliquid, trade, market=nothing)
@@ -2588,7 +2658,7 @@ function parseTrade(self::Hyperliquid, trade, market=nothing)
     amount = safeString(trade, "sz");
     coin = safeString(trade, "coin");
     marketId = self.coinToMarketId(coin);
-    market = self.safeMarket(marketId, nothing);
+    market = self.safeMarket(marketId);
     symbol = get(market, Symbol("symbol"), nothing);
     id = safeString(trade, "tid");
     side = safeString(trade, "side");
@@ -2687,7 +2757,7 @@ function parsePosition(self::Hyperliquid, position, market=nothing)
     entry = self.safeDict(position, "position", Dict{Symbol, Any}());
     coin = safeString(entry, "coin");
     marketId = self.coinToMarketId(coin);
-    market = self.safeMarket(marketId, nothing);
+    market = self.safeMarket(marketId);
     symbol = get(market, Symbol("symbol"), nothing);
     leverage = self.safeDict(entry, "leverage", Dict{Symbol, Any}());
     marginMode = safeString(leverage, "type");
@@ -2924,7 +2994,10 @@ function transfer(self::Hyperliquid, code, amount, fromAccount, toAccount, param
         throw(NotSupported(string(self.id, " transfer() only support main <> subaccount transfer")));
     end
     self.checkAddress(subAccountAddress);
-    if functions.ccxtruthy(@functions.ccxt_or(code == nothing, uppercase(code) == "USDC"))
+    transferType = safeString(params, "type");
+    params = omit(params, "type");
+    isUsdc = @functions.ccxt_or((code == nothing), (uppercase(code) == "USDC"));
+    if functions.ccxtruthy(@functions.ccxt_and(isUsdc, (transferType != "spot")))
         usd = self.parseToInt(stringMul(numberToString(amount), "1000000"));
         action = Dict{Symbol, Any}(
             Symbol("type") => "subAccountTransfer",
@@ -2941,12 +3014,19 @@ function transfer(self::Hyperliquid, code, amount, fromAccount, toAccount, param
         response = Base.fetch(self.privatePostExchange(request));
             return self.parseTransfer(response)
     else
-        symbol = self.symbol(code);
+        if functions.ccxtruthy(code == nothing)
+            throw(ArgumentsRequired(string(self.id, " transfer() requires a currency code for spot sub-account transfers")));
+        end
+        currency = self.currency(code);
+        currencyInfo = self.safeDict(currency, "info", Dict{Symbol, Any}());
+        tokenName = safeString(currencyInfo, "name");
+        tokenId = safeString(currencyInfo, "tokenId");
+        token = string(tokenName, ":", tokenId);
         action = Dict{Symbol, Any}(
             Symbol("type") => "subAccountSpotTransfer",
             Symbol("subAccountUser") => subAccountAddress,
             Symbol("isDeposit") => isDeposit,
-            Symbol("token") => symbol,
+            Symbol("token") => token,
             Symbol("amount") => numberToString(amount)
         );
         sig = self.signL1Action(action, nonce);
@@ -3182,7 +3262,11 @@ function fetchDeposits(self::Hyperliquid, code=nothing, since=nothing, limit=not
         params = omit(params, ["until"]);
     end
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    records = self.extractTypeFromDelta(response);
+    depositLedger = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        depositLedger = response;
+    end
+    records = self.extractTypeFromDelta(depositLedger);
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams(params, "fetchDepositsWithdrawals", "vaultAddress");
     vaultAddress = self.formatVaultAddress(vaultAddress);
@@ -3225,7 +3309,11 @@ function fetchWithdrawals(self::Hyperliquid, code=nothing, since=nothing, limit=
         params = omit(params, ["until"]);
     end
     response = Base.fetch(self.publicPostInfo(extend(request, params)));
-    records = self.extractTypeFromDelta(response);
+    withdrawalLedger = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(response))
+        withdrawalLedger = response;
+    end
+    records = self.extractTypeFromDelta(withdrawalLedger);
     vaultAddress = nothing;
     (vaultAddress, params) = self.handleOptionAndParams(params, "fetchDepositsWithdrawals", "vaultAddress");
     vaultAddress = self.formatVaultAddress(vaultAddress);
@@ -3528,24 +3616,77 @@ function parseCreateEditOrderArgs(self::Hyperliquid, id, symbol, type_var, side,
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Hyperliquid, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicPostInfo(self::Hyperliquid, params=Dict(), context=Dict())
-    return request(self, "info", "public", "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "info", "public", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostExchange(self::Hyperliquid, params=Dict(), context=Dict())
-    return request(self, "exchange", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "exchange", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Hyperliquid(; kwargs...)
-    inst = Hyperliquid(Exchange(), describe, setSandboxMode, market, fetchStatus, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, fetchHip3Markets, fetchSwapMarkets, calculatePricePrecision, fetchSpotMarkets, parseMarket, updateSpotCurrencyCode, fetchBalance, fetchOrderBook, fetchTickers, fetchFundingRates, parseFundingRate, parseTicker, fetchOHLCV, parseOHLCV, fetchTrades, amountToPrecision, priceToPrecision, hashMessage, signHash, signMessage, constructPhantomAgent, actionHash, signL1Action, signUserSignedAction, buildUsdSendSig, buildUsdClassSendSig, buildWithdrawSig, buildUserDexAbstractionSig, buildUserAbstractionSig, buildApproveBuilderFeeSig, setRef, approveBuilderFee, initializeClient, handleBuilderFeeApproval, isUnifiedEnabled, setUserAbstraction, enableUserDexAbstraction, setAgentAbstraction, createOrder, createTwapOrder, createOrders, createOrderRequest, createOrdersRequest, cancelOrder, cancelOrders, cancelTwapOrder, cancelOrdersRequest, cancelOrdersForSymbols, cancelAllOrdersAfter, editOrdersRequest, editOrder, editOrders, createVault, fetchFundingRateHistory, getDexFromHip3Symbol, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchCanceledAndClosedOrders, fetchOrders, fetchOrder, parseOrder, parseOrderStatus, parseOrderType, fetchMyTrades, parseTrade, fetchPosition, getDexFromSymbols, fetchPositions, parsePosition, setMarginMode, setLeverage, addMargin, reduceMargin, modifyMarginHelper, parseMarginModification, transfer, parseTransfer, withdraw, parseTransaction, fetchTradingFee, parseTradingFee, fetchLedger, parseLedgerEntry, parseLedgerEntryType, fetchDeposits, fetchWithdrawals, fetchOpenInterests, fetchOpenInterest, parseOpenInterest, fetchFundingHistory, parseIncome, reserveRequestWeight, createSubAccount, extractTypeFromDelta, formatVaultAddress, handlePublicAddress, coinToMarketId, handleErrors, sign, calculateRateLimiterCost, parseCreateEditOrderArgs, publicPostInfo, privatePostExchange)
+    inst = Hyperliquid(Exchange(), describe, setSandboxMode, market, fetchStatus, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, fetchHip3Markets, fetchSwapMarkets, calculatePricePrecision, fetchSpotMarkets, parseMarket, updateSpotCurrencyCode, fetchBalance, fetchOrderBook, fetchTickers, fetchFundingRate, fetchFundingRates, parseFundingRate, parseTicker, fetchOHLCV, parseOHLCV, fetchTrades, amountToPrecision, priceToPrecision, hashMessage, signHash, signMessage, constructPhantomAgent, actionHash, signL1Action, signUserSignedAction, buildUsdSendSig, buildUsdClassSendSig, buildWithdrawSig, buildUserDexAbstractionSig, buildUserAbstractionSig, buildApproveBuilderFeeSig, setRef, approveBuilderFee, initializeClient, handleBuilderFeeApproval, isUnifiedEnabled, setUserAbstraction, enableUserDexAbstraction, setAgentAbstraction, createOrder, createTwapOrder, createOrders, createOrderRequest, createOrdersRequest, cancelOrder, cancelOrders, cancelTwapOrder, cancelOrdersRequest, cancelOrdersForSymbols, cancelAllOrdersAfter, editOrdersRequest, editOrder, editOrders, createVault, fetchFundingRateHistory, getDexFromHip3Symbol, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchCanceledAndClosedOrders, fetchOrders, fetchOrder, parseOrder, parseOrderStatus, parseOrderType, fetchMyTrades, parseTrade, fetchPosition, getDexFromSymbols, fetchPositions, parsePosition, setMarginMode, setLeverage, addMargin, reduceMargin, modifyMarginHelper, parseMarginModification, transfer, parseTransfer, withdraw, parseTransaction, fetchTradingFee, parseTradingFee, fetchLedger, parseLedgerEntry, parseLedgerEntryType, fetchDeposits, fetchWithdrawals, fetchOpenInterests, fetchOpenInterest, parseOpenInterest, fetchFundingHistory, parseIncome, reserveRequestWeight, createSubAccount, extractTypeFromDelta, formatVaultAddress, handlePublicAddress, coinToMarketId, handleErrors, sign, calculateRateLimiterCost, parseCreateEditOrderArgs, publicPostInfo, privatePostExchange)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

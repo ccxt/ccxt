@@ -347,6 +347,7 @@
     privateGetV5AffiliateAffUserList::Function = privateGetV5AffiliateAffUserList
     privateGetV5AffiliateAffiliateSubList::Function = privateGetV5AffiliateAffiliateSubList
     privateGetV5SpotLeverTokenOrderRecord::Function = privateGetV5SpotLeverTokenOrderRecord
+    privateGetV5SpotMarginTradeFlexibleAvailableInventory::Function = privateGetV5SpotMarginTradeFlexibleAvailableInventory
     privateGetV5SpotMarginTradeInterestRateHistory::Function = privateGetV5SpotMarginTradeInterestRateHistory
     privateGetV5SpotMarginTradeState::Function = privateGetV5SpotMarginTradeState
     privateGetV5SpotMarginTradeMaxBorrowable::Function = privateGetV5SpotMarginTradeMaxBorrowable
@@ -594,9 +595,9 @@ function describe(self::Bybit, )
         Symbol("fetchAllGreeks") => true,
         Symbol("fetchBalance") => true,
         Symbol("fetchBidsAsks") => "emulated",
-        Symbol("fetchBorrowInterest") => false,
+        Symbol("fetchBorrowInterest") => true,
         Symbol("fetchBorrowRateHistories") => false,
-        Symbol("fetchBorrowRateHistory") => false,
+        Symbol("fetchBorrowRateHistory") => true,
         Symbol("fetchCanceledAndClosedOrders") => true,
         Symbol("fetchCanceledOrders") => true,
         Symbol("fetchClosedOrder") => true,
@@ -645,7 +646,7 @@ function describe(self::Bybit, )
         Symbol("fetchOptionChain") => true,
         Symbol("fetchOrder") => true,
         Symbol("fetchOrderBook") => true,
-        Symbol("fetchOrders") => false,
+        Symbol("fetchOrders") => true,
         Symbol("fetchOrderTrades") => true,
         Symbol("fetchPosition") => true,
         Symbol("fetchPositionADLRank") => true,
@@ -721,415 +722,1224 @@ function describe(self::Bybit, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("spot/v3/public/symbols") => 1,
-                Symbol("spot/v3/public/quote/depth") => 1,
-                Symbol("spot/v3/public/quote/depth/merged") => 1,
-                Symbol("spot/v3/public/quote/trades") => 1,
-                Symbol("spot/v3/public/quote/kline") => 1,
-                Symbol("spot/v3/public/quote/ticker/24hr") => 1,
-                Symbol("spot/v3/public/quote/ticker/price") => 1,
-                Symbol("spot/v3/public/quote/ticker/bookTicker") => 1,
-                Symbol("spot/v3/public/server-time") => 1,
-                Symbol("spot/v3/public/infos") => 1,
-                Symbol("spot/v3/public/margin-product-infos") => 1,
-                Symbol("spot/v3/public/margin-ensure-tokens") => 1,
-                Symbol("v3/public/time") => 1,
-                Symbol("contract/v3/public/copytrading/symbol/list") => 1,
-                Symbol("derivatives/v3/public/order-book/L2") => 1,
-                Symbol("derivatives/v3/public/kline") => 1,
-                Symbol("derivatives/v3/public/tickers") => 1,
-                Symbol("derivatives/v3/public/instruments-info") => 1,
-                Symbol("derivatives/v3/public/mark-price-kline") => 1,
-                Symbol("derivatives/v3/public/index-price-kline") => 1,
-                Symbol("derivatives/v3/public/funding/history-funding-rate") => 1,
-                Symbol("derivatives/v3/public/risk-limit/list") => 1,
-                Symbol("derivatives/v3/public/delivery-price") => 1,
-                Symbol("derivatives/v3/public/recent-trade") => 1,
-                Symbol("derivatives/v3/public/open-interest") => 1,
-                Symbol("derivatives/v3/public/insurance") => 1,
-                Symbol("v5/announcements/index") => 5,
-                Symbol("v5/system/status") => 5,
-                Symbol("v5/market/time") => 5,
-                Symbol("v5/market/kline") => 5,
-                Symbol("v5/market/mark-price-kline") => 5,
-                Symbol("v5/market/index-price-kline") => 5,
-                Symbol("v5/market/premium-index-price-kline") => 5,
-                Symbol("v5/market/instruments-info") => 5,
-                Symbol("v5/market/orderbook") => 5,
-                Symbol("v5/market/rpi_orderbook") => 5,
-                Symbol("v5/market/full_orderbook") => 5,
-                Symbol("v5/market/tickers") => 5,
-                Symbol("v5/market/funding/history") => 5,
-                Symbol("v5/market/recent-trade") => 5,
-                Symbol("v5/market/open-interest") => 5,
-                Symbol("v5/market/historical-volatility") => 5,
-                Symbol("v5/market/insurance") => 5,
-                Symbol("v5/market/risk-limit") => 5,
-                Symbol("v5/market/delivery-price") => 5,
-                Symbol("v5/market/new-delivery-price") => 5,
-                Symbol("v5/market/account-ratio") => 5,
-                Symbol("v5/market/index-price-components") => 5,
-                Symbol("v5/market/price-limit") => 5,
-                Symbol("v5/market/adlAlert") => 5,
-                Symbol("v5/market/fee-group-info") => 5,
-                Symbol("v5/spot-lever-token/info") => 5,
-                Symbol("v5/spot-lever-token/reference") => 5,
-                Symbol("v5/spot-margin-trade/data") => 5,
-                Symbol("v5/spot-margin-trade/collateral") => 5,
-                Symbol("v5/spot-cross-margin-trade/data") => 5,
-                Symbol("v5/spot-cross-margin-trade/pledge-token") => 5,
-                Symbol("v5/spot-cross-margin-trade/borrow-token") => 5,
-                Symbol("v5/crypto-loan/collateral-data") => 5,
-                Symbol("v5/crypto-loan/loanable-data") => 5,
-                Symbol("v5/crypto-loan-common/loanable-data") => 5,
-                Symbol("v5/crypto-loan-common/collateral-data") => 5,
-                Symbol("v5/crypto-loan-fixed/supply-order-quote") => 5,
-                Symbol("v5/crypto-loan-fixed/borrow-order-quote") => 5,
-                Symbol("v5/ins-loan/product-infos") => 5,
-                Symbol("v5/ins-loan/ensure-tokens-convert") => 5,
-                Symbol("v5/earn/product") => 5
+                Symbol("spot/v3/public/symbols") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/v3/public/quote/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/v3/public/quote/depth/merged") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/v3/public/quote/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/v3/public/quote/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/v3/public/quote/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/v3/public/quote/ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/v3/public/quote/ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/v3/public/server-time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/v3/public/infos") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/v3/public/margin-product-infos") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/v3/public/margin-ensure-tokens") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v3/public/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/public/copytrading/symbol/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/order-book/L2") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/instruments-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/mark-price-kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/index-price-kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/funding/history-funding-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/risk-limit/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/delivery-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/recent-trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/open-interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("derivatives/v3/public/insurance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/announcements/index") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/system/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/mark-price-kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/index-price-kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/premium-index-price-kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/instruments-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/rpi_orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/full_orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/funding/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/recent-trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/open-interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/historical-volatility") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/insurance") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/risk-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/delivery-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/new-delivery-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/account-ratio") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/index-price-components") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/price-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/adlAlert") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/market/fee-group-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-lever-token/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-lever-token/reference") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/data") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/collateral") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-cross-margin-trade/data") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-cross-margin-trade/pledge-token") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-cross-margin-trade/borrow-token") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan/collateral-data") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan/loanable-data") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan-common/loanable-data") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan-common/collateral-data") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan-fixed/supply-order-quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan-fixed/borrow-order-quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/ins-loan/product-infos") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/ins-loan/ensure-tokens-convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/earn/product") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("v5/market/instruments-info") => 5,
-                Symbol("v2/private/wallet/fund/records") => 25,
-                Symbol("spot/v3/private/order") => 2.5,
-                Symbol("spot/v3/private/open-orders") => 2.5,
-                Symbol("spot/v3/private/history-orders") => 2.5,
-                Symbol("spot/v3/private/my-trades") => 2.5,
-                Symbol("spot/v3/private/account") => 2.5,
-                Symbol("spot/v3/private/reference") => 2.5,
-                Symbol("spot/v3/private/record") => 2.5,
-                Symbol("spot/v3/private/cross-margin-orders") => 10,
-                Symbol("spot/v3/private/cross-margin-account") => 10,
-                Symbol("spot/v3/private/cross-margin-loan-info") => 10,
-                Symbol("spot/v3/private/cross-margin-repay-history") => 10,
-                Symbol("spot/v3/private/margin-loan-infos") => 10,
-                Symbol("spot/v3/private/margin-repaid-infos") => 10,
-                Symbol("spot/v3/private/margin-ltv") => 10,
-                Symbol("asset/v3/private/transfer/inter-transfer/list/query") => 50,
-                Symbol("asset/v3/private/transfer/sub-member/list/query") => 50,
-                Symbol("asset/v3/private/transfer/sub-member-transfer/list/query") => 50,
-                Symbol("asset/v3/private/transfer/universal-transfer/list/query") => 25,
-                Symbol("asset/v3/private/coin-info/query") => 25,
-                Symbol("asset/v3/private/deposit/address/query") => 10,
-                Symbol("contract/v3/private/copytrading/order/list") => 30,
-                Symbol("contract/v3/private/copytrading/position/list") => 40,
-                Symbol("contract/v3/private/copytrading/wallet/balance") => 25,
-                Symbol("contract/v3/private/position/limit-info") => 25,
-                Symbol("contract/v3/private/order/unfilled-orders") => 1,
-                Symbol("contract/v3/private/order/list") => 1,
-                Symbol("contract/v3/private/position/list") => 1,
-                Symbol("contract/v3/private/execution/list") => 1,
-                Symbol("contract/v3/private/position/closed-pnl") => 1,
-                Symbol("contract/v3/private/account/wallet/balance") => 1,
-                Symbol("contract/v3/private/account/fee-rate") => 1,
-                Symbol("contract/v3/private/account/wallet/fund-records") => 1,
-                Symbol("unified/v3/private/order/unfilled-orders") => 1,
-                Symbol("unified/v3/private/order/list") => 1,
-                Symbol("unified/v3/private/position/list") => 1,
-                Symbol("unified/v3/private/execution/list") => 1,
-                Symbol("unified/v3/private/delivery-record") => 1,
-                Symbol("unified/v3/private/settlement-record") => 1,
-                Symbol("unified/v3/private/account/wallet/balance") => 1,
-                Symbol("unified/v3/private/account/transaction-log") => 1,
-                Symbol("unified/v3/private/account/borrow-history") => 1,
-                Symbol("unified/v3/private/account/borrow-rate") => 1,
-                Symbol("unified/v3/private/account/info") => 1,
-                Symbol("user/v3/private/frozen-sub-member") => 10,
-                Symbol("user/v3/private/query-sub-members") => 5,
-                Symbol("user/v3/private/query-api") => 5,
-                Symbol("user/v3/private/get-member-type") => 1,
-                Symbol("asset/v3/private/transfer/transfer-coin/list/query") => 50,
-                Symbol("asset/v3/private/transfer/account-coin/balance/query") => 50,
-                Symbol("asset/v3/private/transfer/account-coins/balance/query") => 25,
-                Symbol("asset/v3/private/transfer/asset-info/query") => 50,
-                Symbol("asset/v3/public/deposit/allowed-deposit-list/query") => 0.17,
-                Symbol("asset/v3/private/deposit/record/query") => 10,
-                Symbol("asset/v3/private/withdraw/record/query") => 10,
-                Symbol("v5/order/realtime") => 5,
-                Symbol("v5/order/history") => 5,
-                Symbol("v5/order/spot-borrow-check") => 1,
-                Symbol("v5/position/list") => 5,
-                Symbol("v5/execution/list") => 5,
-                Symbol("v5/position/closed-pnl") => 5,
-                Symbol("v5/position/get-closed-positions") => 5,
-                Symbol("v5/position/move-history") => 5,
-                Symbol("v5/position/symbol-info") => 5,
-                Symbol("v5/pre-upgrade/order/history") => 5,
-                Symbol("v5/pre-upgrade/execution/list") => 5,
-                Symbol("v5/pre-upgrade/position/closed-pnl") => 5,
-                Symbol("v5/pre-upgrade/account/transaction-log") => 5,
-                Symbol("v5/pre-upgrade/asset/delivery-record") => 5,
-                Symbol("v5/pre-upgrade/asset/settlement-record") => 5,
-                Symbol("v5/account/wallet-balance") => 1,
-                Symbol("v5/account/borrow-history") => 1,
-                Symbol("v5/account/instruments-info") => 1,
-                Symbol("v5/account/collateral-info") => 1,
-                Symbol("v5/account/option-asset-info") => 1,
-                Symbol("v5/asset/coin-greeks") => 1,
-                Symbol("v5/account/fee-rate") => 10,
-                Symbol("v5/account/info") => 5,
-                Symbol("v5/account/transaction-log") => 1.66,
-                Symbol("v5/account/contract-transaction-log") => 1,
-                Symbol("v5/account/query-dcp-info") => 5,
-                Symbol("v5/account/user-setting-config") => 5,
-                Symbol("v5/account/pay-info") => 5,
-                Symbol("v5/account/trade-info-for-analysis") => 5,
-                Symbol("v5/account/smp-group") => 1,
-                Symbol("v5/account/mmp-state") => 5,
-                Symbol("v5/account/withdrawal") => 5,
-                Symbol("v5/asset/asset-overview") => 5,
-                Symbol("v5/asset/exchange/query-coin-list") => 0.5,
-                Symbol("v5/asset/exchange/convert-result-query") => 0.5,
-                Symbol("v5/asset/exchange/query-convert-history") => 0.5,
-                Symbol("v5/asset/exchange/order-record") => 5,
-                Symbol("v5/asset/fundinghistory") => 5,
-                Symbol("v5/asset/portfolio-margin") => 5,
-                Symbol("v5/asset/total-members-assets") => 5,
-                Symbol("v5/asset/delivery-record") => 5,
-                Symbol("v5/asset/settlement-record") => 5,
-                Symbol("v5/asset/transfer/query-asset-info") => 50,
-                Symbol("v5/asset/transfer/query-account-coins-balance") => 25,
-                Symbol("v5/asset/transfer/query-account-coin-balance") => 50,
-                Symbol("v5/asset/transfer/query-transfer-coin-list") => 50,
-                Symbol("v5/asset/transfer/query-inter-transfer-list") => 50,
-                Symbol("v5/asset/transfer/query-sub-member-list") => 50,
-                Symbol("v5/asset/transfer/query-universal-transfer-list") => 25,
-                Symbol("v5/asset/deposit/query-allowed-list") => 5,
-                Symbol("v5/asset/deposit/query-record") => 10,
-                Symbol("v5/asset/deposit/query-sub-member-record") => 10,
-                Symbol("v5/asset/deposit/query-internal-record") => 5,
-                Symbol("v5/asset/deposit/query-address") => 10,
-                Symbol("v5/asset/deposit/query-sub-member-address") => 10,
-                Symbol("v5/asset/coin/query-info") => 28,
-                Symbol("v5/asset/withdraw/query-address") => 10,
-                Symbol("v5/asset/withdraw/query-record") => 10,
-                Symbol("v5/asset/withdraw/withdrawable-amount") => 5,
-                Symbol("v5/asset/withdraw/vasp/list") => 5,
-                Symbol("v5/asset/covert/small-balance-list") => 5,
-                Symbol("v5/asset/covert/small-balance-history") => 5,
-                Symbol("v5/asset/convert/small-balance-list") => 5,
-                Symbol("v5/asset/convert/small-balance-history") => 5,
-                Symbol("v5/fiat/query-coin-list") => 5,
-                Symbol("v5/fiat/reference-price") => 5,
-                Symbol("v5/fiat/trade-query") => 5,
-                Symbol("v5/fiat/query-trade-history") => 5,
-                Symbol("v5/fiat/balance-query") => 5,
-                Symbol("v5/user/query-sub-members") => 5,
-                Symbol("v5/user/query-api") => 5,
-                Symbol("v5/user/sub-apikeys") => 5,
-                Symbol("v5/user/get-member-type") => 5,
-                Symbol("v5/user/aff-customer-info") => 5,
-                Symbol("v5/user/del-submember") => 5,
-                Symbol("v5/user/submembers") => 5,
-                Symbol("v5/user/escrow_sub_members") => 5,
-                Symbol("v5/user/invitation/referrals") => 5,
-                Symbol("v5/affiliate/aff-user-list") => 5,
-                Symbol("v5/affiliate/affiliate-sub-list") => 5,
-                Symbol("v5/spot-lever-token/order-record") => 1,
-                Symbol("v5/spot-margin-trade/interest-rate-history") => 5,
-                Symbol("v5/spot-margin-trade/state") => 5,
-                Symbol("v5/spot-margin-trade/max-borrowable") => 5,
-                Symbol("v5/spot-margin-trade/position-tiers") => 5,
-                Symbol("v5/spot-margin-trade/coinstate") => 5,
-                Symbol("v5/spot-margin-trade/currency-data") => 5,
-                Symbol("v5/spot-margin-trade/fixedborrow-contract-info") => 5,
-                Symbol("v5/spot-margin-trade/fixedborrow-order-info") => 5,
-                Symbol("v5/spot-margin-trade/fixedborrow-order-quote") => 5,
-                Symbol("v5/spot-margin-trade/liability") => 5,
-                Symbol("v5/spot-margin-trade/repayment-available-amount") => 5,
-                Symbol("v5/spot-margin-trade/get-auto-repay-mode") => 5,
-                Symbol("v5/spot-cross-margin-trade/loan-info") => 1,
-                Symbol("v5/spot-cross-margin-trade/account") => 1,
-                Symbol("v5/spot-cross-margin-trade/orders") => 1,
-                Symbol("v5/spot-cross-margin-trade/repay-history") => 1,
-                Symbol("v5/crypto-loan/borrowable-collateralisable-number") => 5,
-                Symbol("v5/crypto-loan/ongoing-orders") => 5,
-                Symbol("v5/crypto-loan/repayment-history") => 5,
-                Symbol("v5/crypto-loan/borrow-history") => 5,
-                Symbol("v5/crypto-loan/max-collateral-amount") => 5,
-                Symbol("v5/crypto-loan/adjustment-history") => 5,
-                Symbol("v5/crypto-loan-common/max-collateral-amount") => 10,
-                Symbol("v5/crypto-loan-common/adjustment-history") => 10,
-                Symbol("v5/crypto-loan-common/position") => 10,
-                Symbol("v5/crypto-loan-flexible/ongoing-coin") => 10,
-                Symbol("v5/crypto-loan-flexible/borrow-history") => 10,
-                Symbol("v5/crypto-loan-flexible/repayment-history") => 10,
-                Symbol("v5/crypto-loan-fixed/borrow-contract-info") => 10,
-                Symbol("v5/crypto-loan-fixed/supply-contract-info") => 10,
-                Symbol("v5/crypto-loan-fixed/borrow-order-info") => 10,
-                Symbol("v5/crypto-loan-fixed/renew-info") => 10,
-                Symbol("v5/crypto-loan-fixed/supply-order-info") => 10,
-                Symbol("v5/crypto-loan-fixed/repayment-history") => 10,
-                Symbol("v5/ins-loan/product-infos") => 5,
-                Symbol("v5/ins-loan/ensure-tokens") => 5,
-                Symbol("v5/ins-loan/ensure-tokens-convert") => 5,
-                Symbol("v5/ins-loan/loan-order") => 5,
-                Symbol("v5/ins-loan/repaid-history") => 5,
-                Symbol("v5/ins-loan/ltv") => 5,
-                Symbol("v5/ins-loan/ltv-convert") => 5,
-                Symbol("v5/ins-loan/coin-delta-amount") => 5,
-                Symbol("v5/lending/info") => 5,
-                Symbol("v5/lending/history-order") => 5,
-                Symbol("v5/lending/account") => 5,
-                Symbol("v5/broker/earning-record") => 5,
-                Symbol("v5/broker/earnings-info") => 5,
-                Symbol("v5/broker/account-info") => 5,
-                Symbol("v5/broker/asset/query-sub-member-deposit-record") => 10,
-                Symbol("v5/earn/product") => 5,
-                Symbol("v5/earn/order") => 5,
-                Symbol("v5/earn/position") => 5,
-                Symbol("v5/earn/yield") => 5,
-                Symbol("v5/earn/hourly-yield") => 5
+                Symbol("v5/market/instruments-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v2/private/wallet/fund/records") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("spot/v3/private/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/open-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/history-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/my-trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/reference") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/record") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/cross-margin-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("spot/v3/private/cross-margin-account") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("spot/v3/private/cross-margin-loan-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("spot/v3/private/cross-margin-repay-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("spot/v3/private/margin-loan-infos") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("spot/v3/private/margin-repaid-infos") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("spot/v3/private/margin-ltv") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("asset/v3/private/transfer/inter-transfer/list/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("asset/v3/private/transfer/sub-member/list/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("asset/v3/private/transfer/sub-member-transfer/list/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("asset/v3/private/transfer/universal-transfer/list/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("asset/v3/private/coin-info/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("asset/v3/private/deposit/address/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("contract/v3/private/copytrading/order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("contract/v3/private/copytrading/position/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("contract/v3/private/copytrading/wallet/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("contract/v3/private/position/limit-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("contract/v3/private/order/unfilled-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/position/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/execution/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/position/closed-pnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/account/wallet/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/account/fee-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/account/wallet/fund-records") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/order/unfilled-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/position/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/execution/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/delivery-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/settlement-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/account/wallet/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/account/transaction-log") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/account/borrow-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/account/borrow-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("user/v3/private/frozen-sub-member") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("user/v3/private/query-sub-members") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/v3/private/query-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("user/v3/private/get-member-type") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("asset/v3/private/transfer/transfer-coin/list/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("asset/v3/private/transfer/account-coin/balance/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("asset/v3/private/transfer/account-coins/balance/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("asset/v3/private/transfer/asset-info/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("asset/v3/public/deposit/allowed-deposit-list/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.17
+),
+                Symbol("asset/v3/private/deposit/record/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("asset/v3/private/withdraw/record/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/order/realtime") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/order/spot-borrow-check") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/position/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/execution/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/closed-pnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/get-closed-positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/move-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/symbol-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/pre-upgrade/order/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/pre-upgrade/execution/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/pre-upgrade/position/closed-pnl") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/pre-upgrade/account/transaction-log") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/pre-upgrade/asset/delivery-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/pre-upgrade/asset/settlement-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/wallet-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/account/borrow-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/account/instruments-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/account/collateral-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/account/option-asset-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/asset/coin-greeks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/account/fee-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/transaction-log") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.66
+),
+                Symbol("v5/account/contract-transaction-log") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/account/query-dcp-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/user-setting-config") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/pay-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/trade-info-for-analysis") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/smp-group") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/account/mmp-state") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/withdrawal") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/asset-overview") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/exchange/query-coin-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("v5/asset/exchange/convert-result-query") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("v5/asset/exchange/query-convert-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.5
+),
+                Symbol("v5/asset/exchange/order-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/fundinghistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/portfolio-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/total-members-assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/delivery-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/settlement-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/transfer/query-asset-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/asset/transfer/query-account-coins-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("v5/asset/transfer/query-account-coin-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/asset/transfer/query-transfer-coin-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/asset/transfer/query-inter-transfer-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/asset/transfer/query-sub-member-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/asset/transfer/query-universal-transfer-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("v5/asset/deposit/query-allowed-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/deposit/query-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/asset/deposit/query-sub-member-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/asset/deposit/query-internal-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/deposit/query-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/asset/deposit/query-sub-member-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/asset/coin/query-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 28
+),
+                Symbol("v5/asset/withdraw/query-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/asset/withdraw/query-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/asset/withdraw/withdrawable-amount") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/withdraw/vasp/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/covert/small-balance-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/covert/small-balance-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/convert/small-balance-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/convert/small-balance-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/fiat/query-coin-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/fiat/reference-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/fiat/trade-query") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/fiat/query-trade-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/fiat/balance-query") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/user/query-sub-members") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/user/query-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/user/sub-apikeys") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/user/get-member-type") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/user/aff-customer-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/user/del-submember") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/user/submembers") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/user/escrow_sub_members") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/user/invitation/referrals") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/affiliate/aff-user-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/affiliate/affiliate-sub-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-lever-token/order-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/spot-margin-trade/flexible-available-inventory") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/interest-rate-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/state") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/max-borrowable") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/position-tiers") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/coinstate") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/currency-data") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/fixedborrow-contract-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/fixedborrow-order-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/fixedborrow-order-quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/liability") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/repayment-available-amount") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/get-auto-repay-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-cross-margin-trade/loan-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/spot-cross-margin-trade/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/spot-cross-margin-trade/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/spot-cross-margin-trade/repay-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/crypto-loan/borrowable-collateralisable-number") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan/ongoing-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan/repayment-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan/borrow-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan/max-collateral-amount") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan/adjustment-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan-common/max-collateral-amount") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-common/adjustment-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-common/position") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-flexible/ongoing-coin") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-flexible/borrow-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-flexible/repayment-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-fixed/borrow-contract-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-fixed/supply-contract-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-fixed/borrow-order-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-fixed/renew-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-fixed/supply-order-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-fixed/repayment-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/ins-loan/product-infos") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/ins-loan/ensure-tokens") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/ins-loan/ensure-tokens-convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/ins-loan/loan-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/ins-loan/repaid-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/ins-loan/ltv") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/ins-loan/ltv-convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/ins-loan/coin-delta-amount") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/lending/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/lending/history-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/lending/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/broker/earning-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/broker/earnings-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/broker/account-info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/broker/asset/query-sub-member-deposit-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/earn/product") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/earn/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/earn/position") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/earn/yield") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/earn/hourly-yield") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("spot/v3/private/order") => 2.5,
-                Symbol("spot/v3/private/cancel-order") => 2.5,
-                Symbol("spot/v3/private/cancel-orders") => 2.5,
-                Symbol("spot/v3/private/cancel-orders-by-ids") => 2.5,
-                Symbol("spot/v3/private/purchase") => 2.5,
-                Symbol("spot/v3/private/redeem") => 2.5,
-                Symbol("spot/v3/private/cross-margin-loan") => 10,
-                Symbol("spot/v3/private/cross-margin-repay") => 10,
-                Symbol("asset/v3/private/transfer/inter-transfer") => 150,
-                Symbol("asset/v3/private/withdraw/create") => 300,
-                Symbol("asset/v3/private/withdraw/cancel") => 50,
-                Symbol("asset/v3/private/transfer/sub-member-transfer") => 150,
-                Symbol("asset/v3/private/transfer/transfer-sub-member-save") => 150,
-                Symbol("asset/v3/private/transfer/universal-transfer") => 10,
-                Symbol("user/v3/private/create-sub-member") => 10,
-                Symbol("user/v3/private/create-sub-api") => 10,
-                Symbol("user/v3/private/update-api") => 10,
-                Symbol("user/v3/private/delete-api") => 10,
-                Symbol("user/v3/private/update-sub-api") => 10,
-                Symbol("user/v3/private/delete-sub-api") => 10,
-                Symbol("contract/v3/private/copytrading/order/create") => 30,
-                Symbol("contract/v3/private/copytrading/order/cancel") => 30,
-                Symbol("contract/v3/private/copytrading/order/close") => 30,
-                Symbol("contract/v3/private/copytrading/position/close") => 40,
-                Symbol("contract/v3/private/copytrading/position/set-leverage") => 40,
-                Symbol("contract/v3/private/copytrading/wallet/transfer") => 25,
-                Symbol("contract/v3/private/copytrading/order/trading-stop") => 2.5,
-                Symbol("contract/v3/private/order/create") => 1,
-                Symbol("contract/v3/private/order/cancel") => 1,
-                Symbol("contract/v3/private/order/cancel-all") => 1,
-                Symbol("contract/v3/private/order/replace") => 1,
-                Symbol("contract/v3/private/position/set-auto-add-margin") => 1,
-                Symbol("contract/v3/private/position/switch-isolated") => 1,
-                Symbol("contract/v3/private/position/switch-mode") => 1,
-                Symbol("contract/v3/private/position/switch-tpsl-mode") => 1,
-                Symbol("contract/v3/private/position/set-leverage") => 1,
-                Symbol("contract/v3/private/position/trading-stop") => 1,
-                Symbol("contract/v3/private/position/set-risk-limit") => 1,
-                Symbol("contract/v3/private/account/setMarginMode") => 1,
-                Symbol("unified/v3/private/order/create") => 30,
-                Symbol("unified/v3/private/order/replace") => 30,
-                Symbol("unified/v3/private/order/cancel") => 30,
-                Symbol("unified/v3/private/order/create-batch") => 30,
-                Symbol("unified/v3/private/order/replace-batch") => 30,
-                Symbol("unified/v3/private/order/cancel-batch") => 30,
-                Symbol("unified/v3/private/order/cancel-all") => 30,
-                Symbol("unified/v3/private/position/set-leverage") => 2.5,
-                Symbol("unified/v3/private/position/tpsl/switch-mode") => 2.5,
-                Symbol("unified/v3/private/position/set-risk-limit") => 2.5,
-                Symbol("unified/v3/private/position/trading-stop") => 2.5,
-                Symbol("unified/v3/private/account/upgrade-unified-account") => 2.5,
-                Symbol("unified/v3/private/account/setMarginMode") => 2.5,
-                Symbol("fht/compliance/tax/v3/private/registertime") => 50,
-                Symbol("fht/compliance/tax/v3/private/create") => 50,
-                Symbol("fht/compliance/tax/v3/private/status") => 50,
-                Symbol("fht/compliance/tax/v3/private/url") => 50,
-                Symbol("v5/order/create") => 2.5,
-                Symbol("v5/order/amend") => 5,
-                Symbol("v5/order/cancel") => 2.5,
-                Symbol("v5/order/cancel-all") => 50,
-                Symbol("v5/order/create-batch") => 5,
-                Symbol("v5/order/amend-batch") => 5,
-                Symbol("v5/order/cancel-batch") => 5,
-                Symbol("v5/order/disconnected-cancel-all") => 5,
-                Symbol("v5/order/pre-check") => 5,
-                Symbol("v5/position/set-leverage") => 5,
-                Symbol("v5/position/switch-isolated") => 5,
-                Symbol("v5/position/set-tpsl-mode") => 5,
-                Symbol("v5/position/switch-mode") => 5,
-                Symbol("v5/position/set-risk-limit") => 5,
-                Symbol("v5/position/trading-stop") => 5,
-                Symbol("v5/position/set-auto-add-margin") => 5,
-                Symbol("v5/position/add-margin") => 5,
-                Symbol("v5/position/move-positions") => 5,
-                Symbol("v5/position/confirm-pending-mmr") => 5,
-                Symbol("v5/account/upgrade-to-uta") => 5,
-                Symbol("v5/account/quick-repayment") => 5,
-                Symbol("v5/account/set-margin-mode") => 5,
-                Symbol("v5/account/set-hedging-mode") => 5,
-                Symbol("v5/account/mmp-modify") => 5,
-                Symbol("v5/account/mmp-reset") => 5,
-                Symbol("v5/account/borrow") => 5,
-                Symbol("v5/account/repay") => 5,
-                Symbol("v5/account/no-convert-repay") => 5,
-                Symbol("v5/account/set-limit-px-action") => 5,
-                Symbol("v5/account/set-delta-mode") => 5,
-                Symbol("v5/asset/exchange/quote-apply") => 1,
-                Symbol("v5/asset/exchange/convert-execute") => 1,
-                Symbol("v5/asset/transfer/inter-transfer") => 50,
-                Symbol("v5/asset/transfer/save-transfer-sub-member") => 150,
-                Symbol("v5/asset/transfer/universal-transfer") => 10,
-                Symbol("v5/asset/deposit/deposit-to-account") => 5,
-                Symbol("v5/asset/travel-rule/deposit/submit") => 5,
-                Symbol("v5/asset/withdraw/create") => 50,
-                Symbol("v5/asset/withdraw/cancel") => 50,
-                Symbol("v5/asset/covert/get-quote") => 10,
-                Symbol("v5/asset/covert/small-balance-execute") => 10,
-                Symbol("v5/fiat/quote-apply") => 10,
-                Symbol("v5/fiat/trade-execute") => 10,
-                Symbol("v5/user/create-sub-member") => 10,
-                Symbol("v5/user/create-sub-api") => 10,
-                Symbol("v5/user/frozen-sub-member") => 10,
-                Symbol("v5/user/update-api") => 10,
-                Symbol("v5/user/update-sub-api") => 10,
-                Symbol("v5/user/delete-api") => 10,
-                Symbol("v5/user/delete-sub-api") => 10,
-                Symbol("v5/user/agreement") => 10,
-                Symbol("v5/user/create-demo-member") => 10,
-                Symbol("v5/spot-lever-token/purchase") => 2.5,
-                Symbol("v5/spot-lever-token/redeem") => 2.5,
-                Symbol("v5/spot-margin-trade/switch-mode") => 5,
-                Symbol("v5/spot-margin-trade/set-leverage") => 5,
-                Symbol("v5/spot-margin-trade/set-auto-repay-mode") => 5,
-                Symbol("v5/spot-margin-trade/fixedborrow") => 5,
-                Symbol("v5/spot-margin-trade/fixedborrow-renew") => 5,
-                Symbol("v5/spot-cross-margin-trade/loan") => 2.5,
-                Symbol("v5/spot-cross-margin-trade/repay") => 2.5,
-                Symbol("v5/spot-cross-margin-trade/switch") => 2.5,
-                Symbol("v5/crypto-loan/borrow") => 5,
-                Symbol("v5/crypto-loan/repay") => 5,
-                Symbol("v5/crypto-loan/adjust-ltv") => 5,
-                Symbol("v5/crypto-loan-common/adjust-ltv") => 50,
-                Symbol("v5/crypto-loan-common/max-loan") => 10,
-                Symbol("v5/crypto-loan-flexible/borrow") => 50,
-                Symbol("v5/crypto-loan-flexible/repay") => 50,
-                Symbol("v5/crypto-loan-flexible/repay-collateral") => 50,
-                Symbol("v5/crypto-loan-fixed/borrow") => 50,
-                Symbol("v5/crypto-loan-fixed/renew") => 50,
-                Symbol("v5/crypto-loan-fixed/supply") => 50,
-                Symbol("v5/crypto-loan-fixed/borrow-order-cancel") => 50,
-                Symbol("v5/crypto-loan-fixed/supply-order-cancel") => 50,
-                Symbol("v5/crypto-loan-fixed/fully-repay") => 50,
-                Symbol("v5/crypto-loan-fixed/repay-collateral") => 50,
-                Symbol("v5/ins-loan/association-uid") => 5,
-                Symbol("v5/ins-loan/repay-loan") => 5,
-                Symbol("v5/lending/purchase") => 5,
-                Symbol("v5/lending/redeem") => 5,
-                Symbol("v5/lending/redeem-cancel") => 5,
-                Symbol("v5/account/set-collateral-switch") => 5,
-                Symbol("v5/account/set-collateral-switch-batch") => 5,
-                Symbol("v5/account/demo-apply-money") => 5,
-                Symbol("v5/broker/award/info") => 5,
-                Symbol("v5/broker/award/distribute-award") => 5,
-                Symbol("v5/broker/award/distribution-record") => 5,
-                Symbol("v5/earn/place-order") => 5
+                Symbol("spot/v3/private/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/cancel-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/cancel-orders-by-ids") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/purchase") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("spot/v3/private/cross-margin-loan") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("spot/v3/private/cross-margin-repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("asset/v3/private/transfer/inter-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("asset/v3/private/withdraw/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 300
+),
+                Symbol("asset/v3/private/withdraw/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("asset/v3/private/transfer/sub-member-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("asset/v3/private/transfer/transfer-sub-member-save") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("asset/v3/private/transfer/universal-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("user/v3/private/create-sub-member") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("user/v3/private/create-sub-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("user/v3/private/update-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("user/v3/private/delete-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("user/v3/private/update-sub-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("user/v3/private/delete-sub-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("contract/v3/private/copytrading/order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("contract/v3/private/copytrading/order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("contract/v3/private/copytrading/order/close") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("contract/v3/private/copytrading/position/close") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("contract/v3/private/copytrading/position/set-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                Symbol("contract/v3/private/copytrading/wallet/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("contract/v3/private/copytrading/order/trading-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("contract/v3/private/order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/order/cancel-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/order/replace") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/position/set-auto-add-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/position/switch-isolated") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/position/switch-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/position/switch-tpsl-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/position/set-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/position/trading-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/position/set-risk-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("contract/v3/private/account/setMarginMode") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("unified/v3/private/order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("unified/v3/private/order/replace") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("unified/v3/private/order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("unified/v3/private/order/create-batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("unified/v3/private/order/replace-batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("unified/v3/private/order/cancel-batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("unified/v3/private/order/cancel-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("unified/v3/private/position/set-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("unified/v3/private/position/tpsl/switch-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("unified/v3/private/position/set-risk-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("unified/v3/private/position/trading-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("unified/v3/private/account/upgrade-unified-account") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("unified/v3/private/account/setMarginMode") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("fht/compliance/tax/v3/private/registertime") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("fht/compliance/tax/v3/private/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("fht/compliance/tax/v3/private/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("fht/compliance/tax/v3/private/url") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("v5/order/amend") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("v5/order/cancel-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/order/create-batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/order/amend-batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/order/cancel-batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/order/disconnected-cancel-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/order/pre-check") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/set-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/switch-isolated") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/set-tpsl-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/switch-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/set-risk-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/trading-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/set-auto-add-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/add-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/move-positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/position/confirm-pending-mmr") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/upgrade-to-uta") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/quick-repayment") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/set-margin-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/set-hedging-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/mmp-modify") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/mmp-reset") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/no-convert-repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/set-limit-px-action") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/set-delta-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/exchange/quote-apply") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/asset/exchange/convert-execute") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("v5/asset/transfer/inter-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/asset/transfer/save-transfer-sub-member") => Dict{Symbol, Any}(
+    Symbol("cost") => 150
+),
+                Symbol("v5/asset/transfer/universal-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/asset/deposit/deposit-to-account") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/travel-rule/deposit/submit") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/asset/withdraw/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/asset/withdraw/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/asset/covert/get-quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/asset/covert/small-balance-execute") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/fiat/quote-apply") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/fiat/trade-execute") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/user/create-sub-member") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/user/create-sub-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/user/frozen-sub-member") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/user/update-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/user/update-sub-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/user/delete-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/user/delete-sub-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/user/agreement") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/user/create-demo-member") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/spot-lever-token/purchase") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("v5/spot-lever-token/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("v5/spot-margin-trade/switch-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/set-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/set-auto-repay-mode") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/fixedborrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-margin-trade/fixedborrow-renew") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/spot-cross-margin-trade/loan") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("v5/spot-cross-margin-trade/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("v5/spot-cross-margin-trade/switch") => Dict{Symbol, Any}(
+    Symbol("cost") => 2.5
+),
+                Symbol("v5/crypto-loan/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan/adjust-ltv") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/crypto-loan-common/adjust-ltv") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/crypto-loan-common/max-loan") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("v5/crypto-loan-flexible/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/crypto-loan-flexible/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/crypto-loan-flexible/repay-collateral") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/crypto-loan-fixed/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/crypto-loan-fixed/renew") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/crypto-loan-fixed/supply") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/crypto-loan-fixed/borrow-order-cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/crypto-loan-fixed/supply-order-cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/crypto-loan-fixed/fully-repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/crypto-loan-fixed/repay-collateral") => Dict{Symbol, Any}(
+    Symbol("cost") => 50
+),
+                Symbol("v5/ins-loan/association-uid") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/ins-loan/repay-loan") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/lending/purchase") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/lending/redeem") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/lending/redeem-cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/set-collateral-switch") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/set-collateral-switch-batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/account/demo-apply-money") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/broker/award/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/broker/award/distribute-award") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/broker/award/distribution-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("v5/earn/place-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         )
     ),
@@ -1655,8 +2465,8 @@ function describe(self::Bybit, )
             Symbol("ADA") => "ADA",
             Symbol("ALGO") => "ALGO",
             Symbol("APT") => "APTOS",
-            Symbol("ARBONE") => "ARBI",
-            Symbol("ARBNOVA") => "ARBINOVA",
+            Symbol("ARBITRUM") => "ARBI",
+            Symbol("ARBITRUM_NOVA") => "ARBINOVA",
             Symbol("AVAXC") => "CAVAX",
             Symbol("AVAXX") => "XAVAX",
             Symbol("COSMOS") => "ATOM",
@@ -1713,7 +2523,8 @@ function describe(self::Bybit, )
             Symbol("TRX") => "TRC20",
             Symbol("BSC") => "BEP20",
             Symbol("OP") => "OP",
-            Symbol("MATIC") => "MATIC"
+            Symbol("MATIC") => "MATIC",
+            Symbol("SPL") => "SOL"
         ),
         Symbol("defaultNetwork") => "ERC20",
         Symbol("defaultNetworks") => Dict{Symbol, Any}(
@@ -1900,7 +2711,7 @@ function isUnifiedEnabled(self::Bybit, params=Dict())
                 return [get(self.options, Symbol("enableUnifiedMargin"), nothing), get(self.options, Symbol("enableUnifiedAccount"), nothing)]
         end
         rawPromises = [self.privateGetV5UserQueryApi(params), self.privateGetV5AccountInfo(params)];
-        promises = asyncmap(Base.fetch, rawPromises);
+        promises = Base.fetch(asyncmap(Base.fetch, rawPromises));
         response = get(promises, 1, nothing);
         accountInfo = get(promises, 2, nothing);
         result = self.safeDict(response, "result", Dict{Symbol, Any}());
@@ -1913,7 +2724,7 @@ function isUnifiedEnabled(self::Bybit, params=Dict())
 
 end
 function upgradeUnifiedTradeAccount(self::Bybit, params=Dict())
-    return self.privatePostV5AccountUpgradeToUta(params)
+    return Base.fetch(self.privatePostV5AccountUpgradeToUta(params))
 
 end
 function createExpiredOptionMarket(self::Bybit, symbol)
@@ -1927,6 +2738,9 @@ function createExpiredOptionMarket(self::Bybit, symbol)
         base = safeString(symbolBase, 0);
         expiry = safeString(optionParts, 1);
         symbolQuoteAndSettle = safeString(symbolBase, 1);
+        if functions.ccxtruthy(symbolQuoteAndSettle == nothing)
+            throw(ExchangeError(string(self.id, " createExpiredOptionMarket() missing symbolQuoteAndSettle")));
+        end
         splitQuote = split(symbolQuoteAndSettle, ":");
         quoteAndSettle = safeString(splitQuote, 0);
         quote_var = quoteAndSettle;
@@ -1973,8 +2787,9 @@ function createExpiredOptionMarket(self::Bybit, symbol)
     Symbol("settleId") => settle,
     Symbol("active") => false,
     Symbol("type") => "option",
-    Symbol("linear") => nothing,
-    Symbol("inverse") => nothing,
+    Symbol("subType") => functions.ccxtruthy((base == settle)) ? "inverse" : "linear",
+    Symbol("linear") => (base != settle),
+    Symbol("inverse") => (base == settle),
     Symbol("spot") => false,
     Symbol("swap") => false,
     Symbol("future") => false,
@@ -2010,7 +2825,7 @@ function createExpiredOptionMarket(self::Bybit, symbol)
 end
 function safeMarket(self::Bybit, marketId=nothing, market=nothing, delimiter=nothing, marketType=nothing)
     isOption = @functions.ccxt_and((marketId != nothing), (@functions.ccxt_or((findfirst("-C", marketId) !== nothing), (findfirst("-P", marketId) !== nothing))));
-    if functions.ccxtruthy(@functions.ccxt_and(isOption, !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))
+    if functions.ccxtruthy(@functions.ccxt_and(isOption, (@functions.ccxt_or((self.markets_by_id == nothing), !functions.ccxtruthy((ccxt_in(marketId, self.markets_by_id)))))))
             return self.createExpiredOptionMarket(marketId)
     end
     return safeMarket(self.parent, marketId, market, delimiter, marketType)
@@ -2059,7 +2874,7 @@ function getCost(self::Bybit, symbol, cost)
 
 end
 function fetchStatus(self::Bybit, params=Dict())
-    response = self.publicGetV5SystemStatus(params);
+    response = Base.fetch(self.publicGetV5SystemStatus(params));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     list = self.safeList(result, "list", []);
     status = "ok";
@@ -2090,7 +2905,7 @@ function fetchStatus(self::Bybit, params=Dict())
 
 end
 function fetchTime(self::Bybit, params=Dict())
-    response = self.publicGetV5MarketTime(params);
+    response = Base.fetch(self.publicGetV5MarketTime(params));
     return safeInteger(response, "time")
 
 end
@@ -2101,7 +2916,7 @@ function fetchCurrencies(self::Bybit, params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("enableDemoTrading"), nothing))
             return Dict{Symbol, Any}()
     end
-    response = self.privateGetV5AssetCoinQueryInfo(params);
+    response = Base.fetch(self.privateGetV5AssetCoinQueryInfo(params));
     data = self.safeDict(response, "result", Dict{Symbol, Any}());
     rows = self.safeList(data, "rows", []);
     return self.parseCurrencies(rows)
@@ -2118,26 +2933,28 @@ function parseCurrency(self::Bybit, currency)
         chain = get(chains, j + 1, nothing);
         networkId = safeString(chain, "chain");
         networkCode = self.networkIdToCode(networkId, code);
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => chain,
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("active") => nothing,
-            Symbol("deposit") => safeInteger(chain, "chainDeposit") == 1,
-            Symbol("withdraw") => safeInteger(chain, "chainWithdraw") == 1,
-            Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
-            Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chain, "minAccuracy"))),
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(chain, "withdrawMin"),
-                    Symbol("max") => nothing
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(chain, "depositMin"),
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => chain,
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("active") => nothing,
+                Symbol("deposit") => safeInteger(chain, "chainDeposit") == 1,
+                Symbol("withdraw") => safeInteger(chain, "chainWithdraw") == 1,
+                Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
+                Symbol("precision") => self.parseNumber(self.parsePrecision(safeString(chain, "minAccuracy"))),
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(chain, "withdrawMin"),
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(chain, "depositMin"),
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -2171,7 +2988,7 @@ function parseCurrency(self::Bybit, currency)
 end
 function fetchMarkets(self::Bybit, params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
-        self.loadTimeDifference();
+        Base.fetch(self.loadTimeDifference());
     end
     promisesUnresolved = [];
     types = nothing;
@@ -2213,7 +3030,7 @@ function fetchMarkets(self::Bybit, params=Dict())
         end
         i += 1
     end
-    promises = asyncmap(Base.fetch, promisesUnresolved);
+    promises = Base.fetch(asyncmap(Base.fetch, promisesUnresolved));
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(promises)))
@@ -2230,9 +3047,9 @@ function fetchSpotMarkets(self::Bybit, params)
     );
     usePrivateInstrumentsInfo = self.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
     if functions.ccxtruthy(usePrivateInstrumentsInfo)
-        response = self.privateGetV5MarketInstrumentsInfo(extend(request, params));
+        response = Base.fetch(self.privateGetV5MarketInstrumentsInfo(extend(request, params)));
     else
-        response = self.publicGetV5MarketInstrumentsInfo(extend(request, params));
+        response = Base.fetch(self.publicGetV5MarketInstrumentsInfo(extend(request, params)));
     end
     responseResult = self.safeDict(response, "result", Dict{Symbol, Any}());
     markets = self.safeList(responseResult, "list", []);
@@ -2318,12 +3135,12 @@ function fetchFutureMarkets(self::Bybit, params=Dict())
     usePrivateInstrumentsInfo = self.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
     response = nothing;
     if functions.ccxtruthy(usePrivateInstrumentsInfo)
-        response = self.privateGetV5MarketInstrumentsInfo(params);
+        response = Base.fetch(self.privateGetV5MarketInstrumentsInfo(params));
     else
         linearPromises = [self.publicGetV5MarketInstrumentsInfo(params), self.publicGetV5MarketInstrumentsInfo(extend(params, Dict{Symbol, Any}(
             Symbol("status") => "PreLaunch"
         )))];
-        promises = asyncmap(Base.fetch, linearPromises);
+        promises = Base.fetch(asyncmap(Base.fetch, linearPromises));
         response = self.safeDict(promises, 0, Dict{Symbol, Any}());
         preLaunchMarkets = self.safeDict(promises, 1, Dict{Symbol, Any}());
     end
@@ -2335,9 +3152,9 @@ function fetchFutureMarkets(self::Bybit, params=Dict())
             params[Symbol("cursor")] = paginationCursor;
             
             if functions.ccxtruthy(usePrivateInstrumentsInfo)
-                responseInner = self.privateGetV5MarketInstrumentsInfo(params);
+                responseInner = Base.fetch(self.privateGetV5MarketInstrumentsInfo(params));
             else
-                responseInner = self.publicGetV5MarketInstrumentsInfo(params);
+                responseInner = Base.fetch(self.publicGetV5MarketInstrumentsInfo(params));
             end
             dataNew = self.safeDict(responseInner, "result", Dict{Symbol, Any}());
             rawMarkets = self.safeList(dataNew, "list", []);
@@ -2470,9 +3287,9 @@ function fetchOptionMarkets(self::Bybit, params)
     );
     usePrivateInstrumentsInfo = self.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
     if functions.ccxtruthy(usePrivateInstrumentsInfo)
-        response = self.privateGetV5MarketInstrumentsInfo(extend(request, params));
+        response = Base.fetch(self.privateGetV5MarketInstrumentsInfo(extend(request, params)));
     else
-        response = self.publicGetV5MarketInstrumentsInfo(extend(request, params));
+        response = Base.fetch(self.publicGetV5MarketInstrumentsInfo(extend(request, params)));
     end
     data = self.safeDict(response, "result", Dict{Symbol, Any}());
     markets = self.safeList(data, "list", []);
@@ -2485,9 +3302,9 @@ function fetchOptionMarkets(self::Bybit, params)
                 request[Symbol("cursor")] = paginationCursor;
                 
                 if functions.ccxtruthy(usePrivateInstrumentsInfo)
-                    responseInner = self.privateGetV5MarketInstrumentsInfo(extend(request, params));
+                    responseInner = Base.fetch(self.privateGetV5MarketInstrumentsInfo(extend(request, params)));
                 else
-                    responseInner = self.publicGetV5MarketInstrumentsInfo(extend(request, params));
+                    responseInner = Base.fetch(self.publicGetV5MarketInstrumentsInfo(extend(request, params)));
                 end
                 dataNew = self.safeDict(responseInner, "result", Dict{Symbol, Any}());
                 rawMarkets = self.safeList(dataNew, "list", []);
@@ -2516,6 +3333,9 @@ function fetchOptionMarkets(self::Bybit, params)
         priceFilter = self.safeDict(market, "priceFilter", Dict{Symbol, Any}());
         status = safeString(market, "status");
         expiry = safeInteger(market, "deliveryTime");
+        if functions.ccxtruthy(id == nothing)
+            throw(ExchangeError(string(self.id, " method() missing id")));
+        end
         splitId = split(id, "-");
         strike = safeString(splitId, 2);
         optionLetter = safeString(splitId, 3);
@@ -2629,7 +3449,7 @@ function fetchTicker(self::Bybit, symbol, params=Dict())
         throw(ArgumentsRequired(string(self.id, " fetchTicker() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -2638,16 +3458,16 @@ function fetchTicker(self::Bybit, symbol, params=Dict())
     category = nothing;
     (category, params) = self.getBybitType("fetchTicker", market, params);
     request[Symbol("category")] = category;
-    response = self.publicGetV5MarketTickers(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     tickers = self.safeList(result, "list", []);
-    rawTicker = self.safeDict(tickers, 0);
+    rawTicker = self.safeDict(tickers, 0, Dict{Symbol, Any}());
     return self.parseTicker(rawTicker, market)
 
 end
 function fetchTickers(self::Bybit, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     code = safeStringN(params, ["code", "currency", "baseCoin"]);
     market = nothing;
@@ -2696,14 +3516,14 @@ function fetchTickers(self::Bybit, symbols=nothing, params=Dict())
         end
         request[Symbol("baseCoin")] = code;
     end
-    response = self.publicGetV5MarketTickers(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     tickerList = self.safeList(result, "list", []);
     return self.parseTickers(tickerList, parsedSymbols)
 
 end
 function fetchBidsAsks(self::Bybit, symbols=nothing, params=Dict())
-    return self.fetchTickers(symbols, params)
+    return Base.fetch(self.fetchTickers(symbols, params))
 
 end
 function parseOHLCV(self::Bybit, ohlcv, market=nothing)
@@ -2717,12 +3537,12 @@ function fetchOHLCV(self::Bybit, symbol, timeframe="1m", since=nothing, limit=no
         throw(ArgumentsRequired(string(self.id, " fetchOHLCV() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000)
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -2732,7 +3552,9 @@ function fetchOHLCV(self::Bybit, symbol, timeframe="1m", since=nothing, limit=no
         limit = 200;
     end
     if functions.ccxtruthy(since != nothing)
-        request[Symbol("start")] = since;
+        duration = self.parseTimeframe(timeframe) * 1000;
+        rounded = self.parseToInt(since / duration) * duration;
+        request[Symbol("start")] = functions.ccxtruthy((rounded == since)) ? since : self.sum(rounded, duration);
     end
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
@@ -2741,7 +3563,7 @@ function fetchOHLCV(self::Bybit, symbol, timeframe="1m", since=nothing, limit=no
     request[Symbol("interval")] = safeString(self.timeframes, timeframe, timeframe);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
         request[Symbol("category")] = "spot";
-        response = self.publicGetV5MarketKline(extend(request, params));
+        response = Base.fetch(self.publicGetV5MarketKline(extend(request, params)));
     else
         price = safeString(params, "price");
         params = omit(params, "price");
@@ -2753,14 +3575,14 @@ function fetchOHLCV(self::Bybit, symbol, timeframe="1m", since=nothing, limit=no
             throw(NotSupported(string(self.id, " fetchOHLCV() is not supported for option markets")));
         end
         if functions.ccxtruthy(price == "mark")
-            response = self.publicGetV5MarketMarkPriceKline(extend(request, params));
+            response = Base.fetch(self.publicGetV5MarketMarkPriceKline(extend(request, params)));
         elseif functions.ccxtruthy(price == "index")
-            response = self.publicGetV5MarketIndexPriceKline(extend(request, params));
+            response = Base.fetch(self.publicGetV5MarketIndexPriceKline(extend(request, params)));
         else
             if functions.ccxtruthy(price == "premiumIndex")
-                response = self.publicGetV5MarketPremiumIndexPriceKline(extend(request, params));
+                response = Base.fetch(self.publicGetV5MarketPremiumIndexPriceKline(extend(request, params)));
             else
-                response = self.publicGetV5MarketKline(extend(request, params));
+                response = Base.fetch(self.publicGetV5MarketKline(extend(request, params)));
             end
 
         end
@@ -2810,7 +3632,7 @@ function parseFundingRate(self::Bybit, ticker, market=nothing)
 end
 function fetchFundingRates(self::Bybit, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -2831,7 +3653,7 @@ function fetchFundingRates(self::Bybit, symbols=nothing, params=Dict())
         (subType, params) = self.handleSubTypeAndParams("fetchFundingRates", market, params, "linear");
         request[Symbol("category")] = subType;
     end
-    response = self.publicGetV5MarketTickers(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
     data = self.safeDict(response, "result", Dict{Symbol, Any}());
     tickerList = self.safeList(data, "list", []);
     timestamp = safeInteger(response, "time");
@@ -2848,12 +3670,12 @@ function fetchFundingRateHistory(self::Bybit, symbol=nothing, since=nothing, lim
         throw(ArgumentsRequired(string(self.id, " fetchFundingRateHistory() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, params, 200)
+            return Base.fetch(self.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, params, 200))
     end
     if functions.ccxtruthy(limit == nothing)
         limit = 200;
@@ -2888,7 +3710,7 @@ function fetchFundingRateHistory(self::Bybit, symbol=nothing, since=nothing, lim
             request[Symbol("endTime")] = self.sum(since, limit * fundingInterval);
         end
     end
-    response = self.publicGetV5MarketFundingHistory(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketFundingHistory(extend(request, params)));
     rates = [];
     result = self.safeDict(response, "result");
     resultList = self.safeList(result, "list", []);
@@ -3004,7 +3826,7 @@ function fetchTrades(self::Bybit, symbol, since=nothing, limit=nothing, params=D
         throw(ArgumentsRequired(string(self.id, " fetchTrades() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -3016,7 +3838,7 @@ function fetchTrades(self::Bybit, symbol, since=nothing, limit=nothing, params=D
     type_var = nothing;
     (type_var, params) = self.getBybitType("fetchTrades", market, params);
     request[Symbol("category")] = type_var;
-    response = self.publicGetV5MarketRecentTrade(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketRecentTrade(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     trades = self.safeList(result, "list", []);
     return self.parseTrades(trades, market, since, limit)
@@ -3027,7 +3849,7 @@ function fetchOrderBook(self::Bybit, symbol, limit=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " fetchOrderBook() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -3050,7 +3872,7 @@ function fetchOrderBook(self::Bybit, symbol, limit=nothing, params=Dict())
         end
     end
     request[Symbol("limit")] = functions.ccxtruthy((limit != nothing)) ? limit : defaultLimit;
-    response = self.publicGetV5MarketOrderbook(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketOrderbook(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     timestamp = safeInteger(result, "ts");
     return self.parseOrderBook(result, symbol, timestamp, "b", "a")
@@ -3101,7 +3923,9 @@ function parseBalance(self::Bybit, response)
                     end
                     currencyId = safeString(coinEntry, "coin");
                     code = self.safeCurrencyCode(currencyId);
-                    result[Symbol(code)] = account;
+                    if functions.ccxtruthy(code != nothing)
+                        result[Symbol(code)] = account;
+                    end
                     j += 1
                 end
 
@@ -3117,7 +3941,9 @@ function parseBalance(self::Bybit, response)
                 account[Symbol("used")] = safeString(entry, "locked");
                 currencyId = safeStringN(entry, ["tokenId", "coin", "currencyCoin"]);
                 code = self.safeCurrencyCode(currencyId);
-                result[Symbol(code)] = account;
+                if functions.ccxtruthy(code != nothing)
+                    result[Symbol(code)] = account;
+                end
             end
             i += 1
         end
@@ -3127,10 +3953,10 @@ function parseBalance(self::Bybit, response)
 end
 function fetchBalance(self::Bybit, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
-    (enableUnifiedMargin, enableUnifiedAccount) = (self.isUnifiedEnabled());
+    (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     type_var = nothing;
     (type_var, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
@@ -3165,13 +3991,13 @@ function fetchBalance(self::Bybit, params=Dict())
     marginMode = nothing;
     (marginMode, params) = self.handleMarginModeAndParams("fetchBalance", params);
     if functions.ccxtruthy(@functions.ccxt_and(isSpot, (marginMode != nothing)))
-        response = self.privateGetV5SpotCrossMarginTradeAccount(extend(request, params));
+        response = Base.fetch(self.privateGetV5SpotCrossMarginTradeAccount(extend(request, params)));
     elseif functions.ccxtruthy(isFunding)
         request[Symbol("accountType")] = "FUND";
-        response = self.privateGetV5AssetTransferQueryAccountCoinsBalance(extend(request, params));
+        response = Base.fetch(self.privateGetV5AssetTransferQueryAccountCoinsBalance(extend(request, params)));
     else
         request[Symbol("accountType")] = unifiedType;
-        response = self.privateGetV5AccountWalletBalance(extend(request, params));
+        response = Base.fetch(self.privateGetV5AccountWalletBalance(extend(request, params)));
     end
     return self.parseBalance(response)
 
@@ -3238,16 +4064,18 @@ function parseOrder(self::Bybit, order, market=nothing)
     market = self.safeMarket(marketId, market, nothing, marketType);
     symbol = get(market, Symbol("symbol"), nothing);
     timestamp = safeInteger2(order, "createdTime", "createdAt");
-    marketUnit = safeString(order, "marketUnit", "baseCoin");
+    marketUnit = safeString(order, "marketUnit");
     id = safeString(order, "orderId");
     type_var = safeStringLower(order, "orderType");
     price = safeString(order, "price");
+    side = safeStringLower(order, "side");
     amount = nothing;
     cost = nothing;
-    if functions.ccxtruthy(marketUnit == "baseCoin")
-        amount = safeString(order, "qty");
+    qtyIsQuote = @functions.ccxt_and(@functions.ccxt_and(get(market, Symbol("spot"), nothing), (type_var == "market")), (@functions.ccxt_or((marketUnit == "quoteCoin"), (@functions.ccxt_and((marketUnit == nothing), (side == "buy"))))));
+    if functions.ccxtruthy(qtyIsQuote)
         cost = safeString(order, "cumExecValue");
     else
+        amount = safeString(order, "qty");
         cost = safeString(order, "cumExecValue");
     end
     filled = safeString(order, "cumExecQty");
@@ -3255,7 +4083,6 @@ function parseOrder(self::Bybit, order, market=nothing)
     lastTradeTimestamp = safeInteger2(order, "updatedTime", "updatedAt");
     rawStatus = safeString(order, "orderStatus");
     status = self.parseOrderStatus(rawStatus);
-    side = safeStringLower(order, "side");
     fee = nothing;
     cumFeeDetail = self.safeDict(order, "cumFeeDetail", Dict{Symbol, Any}());
     feeCoins = objectKeys(cumFeeDetail);
@@ -3327,7 +4154,7 @@ function parseOrder(self::Bybit, order, market=nothing)
 end
 function createMarketBuyOrderWithCost(self::Bybit, symbol, cost, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
@@ -3336,14 +4163,14 @@ function createMarketBuyOrderWithCost(self::Bybit, symbol, cost, params=Dict())
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return self.createOrder(symbol, "market", "buy", -1, nothing, extend(req, params))
+    return Base.fetch(self.createOrder(symbol, "market", "buy", -1, nothing, extend(req, params)))
 
 end
 function createMarketSellOrderWithCost(self::Bybit, symbol, cost, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    types = self.isUnifiedEnabled();
+    types = Base.fetch(self.isUnifiedEnabled());
     enableUnifiedAccount = get(types, 2, nothing);
     if functions.ccxtruthy(!functions.ccxtruthy(enableUnifiedAccount))
         throw(NotSupported(string(self.id, " createMarketSellOrderWithCost() supports UTA accounts only")));
@@ -3355,15 +4182,15 @@ function createMarketSellOrderWithCost(self::Bybit, symbol, cost, params=Dict())
     req = Dict{Symbol, Any}(
         Symbol("cost") => cost
     );
-    return self.createOrder(symbol, "market", "sell", -1, nothing, extend(req, params))
+    return Base.fetch(self.createOrder(symbol, "market", "sell", -1, nothing, extend(req, params)))
 
 end
 function createOrder(self::Bybit, symbol, type_var, side, amount, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    parts = self.isUnifiedEnabled();
+    parts = Base.fetch(self.isUnifiedEnabled());
     enableUnifiedAccount = get(parts, 2, nothing);
     isTrailingOrder = safeString2(params, "trailingAmount", "trailingStop") != nothing;
     isStopLossOrder = safeString(params, "stopLossPrice") != nothing;
@@ -3379,15 +4206,21 @@ function createOrder(self::Bybit, symbol, type_var, side, amount, price=nothing,
     method = nothing;
     (method, params) = self.handleOptionAndParams(params, "createOrder", "method", defaultMethod);
     if functions.ccxtruthy(method == "privatePostV5PositionTradingStop")
-        response = self.privatePostV5PositionTradingStop(orderRequest);
+        response = Base.fetch(self.privatePostV5PositionTradingStop(orderRequest));
     else
-        response = self.privatePostV5OrderCreate(orderRequest);
+        response = Base.fetch(self.privatePostV5OrderCreate(orderRequest));
     end
     order = self.safeDict(response, "result", Dict{Symbol, Any}());
     return self.parseOrder(order, market)
 
 end
 function createOrderRequest(self::Bybit, symbol, type_var, side, amount, price=nothing, params=Dict(), isUTA=true)
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     symbol = get(market, Symbol("symbol"), nothing);
     lowerCaseType = lowercase(type_var);
@@ -3647,9 +4480,9 @@ function createOrderRequest(self::Bybit, symbol, type_var, side, amount, price=n
 end
 function createOrders(self::Bybit, orders, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    accounts = self.isUnifiedEnabled();
+    accounts = Base.fetch(self.isUnifiedEnabled());
     isUta = get(accounts, 2, nothing);
     ordersRequests = [];
     orderSymbols = [];
@@ -3680,7 +4513,7 @@ function createOrders(self::Bybit, orders, params=Dict())
         Symbol("category") => category,
         Symbol("request") => ordersRequests
     );
-    response = self.privatePostV5OrderCreateBatch(extend(request, params));
+    response = Base.fetch(self.privatePostV5OrderCreateBatch(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     data = self.safeList(result, "list", []);
     retInfo = self.safeDict(response, "retExtInfo", Dict{Symbol, Any}());
@@ -3698,6 +4531,12 @@ function createOrders(self::Bybit, orders, params=Dict())
 
 end
 function editOrderRequest(self::Bybit, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
@@ -3757,14 +4596,14 @@ function editOrderRequest(self::Bybit, id, symbol, type_var, side, amount=nothin
 end
 function editOrder(self::Bybit, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     if functions.ccxtruthy(symbol == nothing)
         throw(ArgumentsRequired(string(self.id, " editOrder() requires a symbol argument")));
     end
     market = self.market(symbol);
     request = self.editOrderRequest(id, symbol, type_var, side, amount, price, params);
-    response = self.privatePostV5OrderAmend(extend(request, params));
+    response = Base.fetch(self.privatePostV5OrderAmend(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => response,
@@ -3775,7 +4614,7 @@ function editOrder(self::Bybit, id, symbol, type_var, side, amount=nothing, pric
 end
 function editOrders(self::Bybit, orders, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     ordersRequests = [];
     orderSymbols = [];
@@ -3807,7 +4646,7 @@ function editOrders(self::Bybit, orders, params=Dict())
         Symbol("category") => category,
         Symbol("request") => ordersRequests
     );
-    response = self.privatePostV5OrderAmendBatch(extend(request, params));
+    response = Base.fetch(self.privatePostV5OrderAmendBatch(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     data = self.safeList(result, "list", []);
     retInfo = self.safeDict(response, "retExtInfo", Dict{Symbol, Any}());
@@ -3848,11 +4687,11 @@ function cancelOrder(self::Bybit, id, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " cancelOrder() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     requestExtended = self.cancelOrderRequest(id, symbol, params);
-    response = self.privatePostV5OrderCancel(requestExtended);
+    response = Base.fetch(self.privatePostV5OrderCancel(requestExtended));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     return self.parseOrder(result, market)
 
@@ -3862,10 +4701,10 @@ function cancelOrders(self::Bybit, ids, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " cancelOrders() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    types = self.isUnifiedEnabled();
+    types = Base.fetch(self.isUnifiedEnabled());
     enableUnifiedAccount = get(types, 2, nothing);
     if functions.ccxtruthy(!functions.ccxtruthy(enableUnifiedAccount))
         throw(NotSupported(string(self.id, " cancelOrders() supports UTA accounts only")));
@@ -3898,7 +4737,7 @@ function cancelOrders(self::Bybit, ids, symbol=nothing, params=Dict())
         Symbol("category") => category,
         Symbol("request") => ordersRequests
     );
-    response = self.privatePostV5OrderCancelBatch(extend(request, params));
+    response = Base.fetch(self.privatePostV5OrderCancelBatch(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     row = self.safeList(result, "list", []);
     return self.parseOrders(row, market)
@@ -3906,7 +4745,10 @@ function cancelOrders(self::Bybit, ids, symbol=nothing, params=Dict())
 end
 function cancelAllOrdersAfter(self::Bybit, timeout, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
+    end
+    if functions.ccxtruthy(timeout == nothing)
+        throw(ExchangeError(string(self.id, " cancelAllOrdersAfter() missing timeout")));
     end
     request = Dict{Symbol, Any}(
         Symbol("timeWindow") => self.parseToInt(timeout / 1000)
@@ -3920,15 +4762,15 @@ function cancelAllOrdersAfter(self::Bybit, timeout, params=Dict())
     );
     product = safeString(productMap, type_var, type_var);
     request[Symbol("product")] = product;
-    response = self.privatePostV5OrderDisconnectedCancelAll(extend(request, params));
+    response = Base.fetch(self.privatePostV5OrderDisconnectedCancelAll(extend(request, params)));
     return response
 
 end
 function cancelOrdersForSymbols(self::Bybit, orders, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    types = self.isUnifiedEnabled();
+    types = Base.fetch(self.isUnifiedEnabled());
     enableUnifiedAccount = get(types, 2, nothing);
     if functions.ccxtruthy(!functions.ccxtruthy(enableUnifiedAccount))
         throw(NotSupported(string(self.id, " cancelOrdersForSymbols() supports UTA accounts only")));
@@ -3966,7 +4808,7 @@ function cancelOrdersForSymbols(self::Bybit, orders, params=Dict())
         Symbol("category") => category,
         Symbol("request") => ordersRequests
     );
-    response = self.privatePostV5OrderCancelBatch(extend(request, params));
+    response = Base.fetch(self.privatePostV5OrderCancelBatch(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     row = self.safeList(result, "list", []);
     return self.parseOrders(row)
@@ -3974,9 +4816,9 @@ function cancelOrdersForSymbols(self::Bybit, orders, params=Dict())
 end
 function cancelAllOrders(self::Bybit, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    (enableUnifiedMargin, enableUnifiedAccount) = (self.isUnifiedEnabled());
+    (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     market = nothing;
     request = Dict{Symbol, Any}();
@@ -4002,7 +4844,7 @@ function cancelAllOrders(self::Bybit, symbol=nothing, params=Dict())
     if functions.ccxtruthy(isTrigger)
         request[Symbol("orderFilter")] = "StopOrder";
     end
-    response = self.privatePostV5OrderCancelAll(extend(request, params));
+    response = Base.fetch(self.privatePostV5OrderCancelAll(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     orders = self.safeList(result, "list");
     if functions.ccxtruthy(!functions.ccxtruthy(functions.ccxt_isArray(orders)))
@@ -4018,7 +4860,7 @@ function fetchOrderClassic(self::Bybit, id, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " fetchOrder() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
@@ -4027,10 +4869,10 @@ function fetchOrderClassic(self::Bybit, id, symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
-    result = self.fetchOrders(symbol, nothing, nothing, extend(request, params));
+    result = Base.fetch(self.fetchOrders(symbol, nothing, nothing, extend(request, params)));
     len = length(result);
     if functions.ccxtruthy(len == 0)
-        isTrigger = self.safeBoolN(params, ["trigger", "stop"], false);
+        isTrigger = self.safeBool2(params, "trigger", "stop", false);
         extra = functions.ccxtruthy(isTrigger) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
         throw(OrderNotFound(string("Order ", id, " was not found.", extra)));
     end
@@ -4042,12 +4884,12 @@ function fetchOrderClassic(self::Bybit, id, symbol=nothing, params=Dict())
 end
 function fetchOrder(self::Bybit, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    (enableUnifiedMargin, enableUnifiedAccount) = (self.isUnifiedEnabled());
+    (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     if functions.ccxtruthy(!functions.ccxtruthy(isUnifiedAccount))
-            return self.fetchOrderClassic(id, symbol, params)
+            return Base.fetch(self.fetchOrderClassic(id, symbol, params))
     end
     acknowledge = false;
     (acknowledge, params) = self.handleOptionAndParams(params, "fetchOrder", "acknowledged");
@@ -4067,10 +4909,11 @@ function fetchOrder(self::Bybit, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(isTrigger)
         request[Symbol("orderFilter")] = "StopOrder";
     end
-    response = self.privateGetV5OrderRealtime(extend(request, params));
+    response = Base.fetch(self.privateGetV5OrderRealtime(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     innerList = self.safeList(result, "list", []);
-    if functions.ccxtruthy(length(innerList) == 0)
+    innerListLength = length(innerList);
+    if functions.ccxtruthy(innerListLength == 0)
         extra = functions.ccxtruthy(isTrigger) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
         throw(OrderNotFound(string("Order ", id, " was not found.", extra)));
     end
@@ -4079,22 +4922,22 @@ function fetchOrder(self::Bybit, id, symbol=nothing, params=Dict())
 
 end
 function fetchOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    res = self.isUnifiedEnabled();
+    res = Base.fetch(self.isUnifiedEnabled());
     enableUnifiedAccount = self.safeBool(res, 1);
     if functions.ccxtruthy(enableUnifiedAccount)
         throw(NotSupported(string(self.id, " fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders")));
     end
-    return self.fetchOrdersClassic(symbol, since, limit, params)
+    return Base.fetch(self.fetchOrdersClassic(symbol, since, limit, params))
 
 end
 function fetchOrdersClassic(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 50)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -4108,7 +4951,7 @@ function fetchOrdersClassic(self::Bybit, symbol=nothing, since=nothing, limit=no
         throw(NotSupported(string(self.id, " fetchOrders() is not supported for spot markets")));
     end
     request[Symbol("category")] = type_var;
-    isTrigger = self.safeBoolN(params, ["trigger", "stop"], false);
+    isTrigger = self.safeBool2(params, "trigger", "stop", false);
     params = omit(params, ["trigger", "stop"]);
     if functions.ccxtruthy(isTrigger)
         request[Symbol("orderFilter")] = "StopOrder";
@@ -4125,22 +4968,22 @@ function fetchOrdersClassic(self::Bybit, symbol=nothing, since=nothing, limit=no
     if functions.ccxtruthy(endTime != nothing)
         request[Symbol("endTime")] = endTime;
     end
-    response = self.privateGetV5OrderHistory(extend(request, params));
+    response = Base.fetch(self.privateGetV5OrderHistory(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
     return self.parseOrders(data, market, since, limit)
 
 end
 function fetchClosedOrder(self::Bybit, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
-    result = self.fetchClosedOrders(symbol, nothing, nothing, extend(request, params));
+    result = Base.fetch(self.fetchClosedOrders(symbol, nothing, nothing, extend(request, params)));
     len = length(result);
     if functions.ccxtruthy(len == 0)
-        isTrigger = self.safeBoolN(params, ["trigger", "stop"], false);
+        isTrigger = self.safeBool2(params, "trigger", "stop", false);
         extra = functions.ccxtruthy(isTrigger) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
         throw(OrderNotFound(string("Order ", id, " was not found.", extra)));
     end
@@ -4152,15 +4995,15 @@ function fetchClosedOrder(self::Bybit, id, symbol=nothing, params=Dict())
 end
 function fetchOpenOrder(self::Bybit, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderId") => id
     );
-    result = self.fetchOpenOrders(symbol, nothing, nothing, extend(request, params));
+    result = Base.fetch(self.fetchOpenOrders(symbol, nothing, nothing, extend(request, params)));
     len = length(result);
     if functions.ccxtruthy(len == 0)
-        isTrigger = self.safeBoolN(params, ["trigger", "stop"], false);
+        isTrigger = self.safeBool2(params, "trigger", "stop", false);
         extra = functions.ccxtruthy(isTrigger) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
         throw(OrderNotFound(string("Order ", id, " was not found.", extra)));
     end
@@ -4172,12 +5015,12 @@ function fetchOpenOrder(self::Bybit, id, symbol=nothing, params=Dict())
 end
 function fetchCanceledAndClosedOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 50)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -4188,7 +5031,7 @@ function fetchCanceledAndClosedOrders(self::Bybit, symbol=nothing, since=nothing
     type_var = nothing;
     (type_var, params) = self.getBybitType("fetchCanceledAndClosedOrders", market, params);
     request[Symbol("category")] = type_var;
-    isTrigger = self.safeBoolN(params, ["trigger", "stop"], false);
+    isTrigger = self.safeBool2(params, "trigger", "stop", false);
     params = omit(params, ["trigger", "stop"]);
     if functions.ccxtruthy(isTrigger)
         request[Symbol("orderFilter")] = "StopOrder";
@@ -4205,39 +5048,39 @@ function fetchCanceledAndClosedOrders(self::Bybit, symbol=nothing, since=nothing
     if functions.ccxtruthy(endTime != nothing)
         request[Symbol("endTime")] = endTime;
     end
-    response = self.privateGetV5OrderHistory(extend(request, params));
+    response = Base.fetch(self.privateGetV5OrderHistory(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
     return self.parseOrders(data, market, since, limit)
 
 end
 function fetchClosedOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderStatus") => "Filled"
     );
-    return self.fetchCanceledAndClosedOrders(symbol, since, limit, extend(request, params))
+    return Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, extend(request, params)))
 
 end
 function fetchCanceledOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("orderStatus") => "Cancelled"
     );
-    return self.fetchCanceledAndClosedOrders(symbol, since, limit, extend(request, params))
+    return Base.fetch(self.fetchCanceledAndClosedOrders(symbol, since, limit, extend(request, params)))
 
 end
 function fetchOpenOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 50)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -4264,7 +5107,7 @@ function fetchOpenOrders(self::Bybit, symbol=nothing, since=nothing, limit=nothi
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    response = self.privateGetV5OrderRealtime(extend(request, params));
+    response = Base.fetch(self.privateGetV5OrderRealtime(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
     return self.parseOrders(data, market, since, limit)
 
@@ -4278,17 +5121,17 @@ function fetchOrderTrades(self::Bybit, id, symbol=nothing, since=nothing, limit=
         request[Symbol("orderId")] = id;
     end
     params = omit(params, ["clientOrderId", "orderLinkId"]);
-    return self.fetchMyTrades(symbol, since, limit, extend(request, params))
+    return Base.fetch(self.fetchMyTrades(symbol, since, limit, extend(request, params)))
 
 end
 function fetchMyTrades(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 100)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 100))
     end
     request = Dict{Symbol, Any}(
         Symbol("execType") => "Trade"
@@ -4308,7 +5151,7 @@ function fetchMyTrades(self::Bybit, symbol=nothing, since=nothing, limit=nothing
         request[Symbol("startTime")] = since;
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
-    response = self.privateGetV5ExecutionList(extend(request, params));
+    response = Base.fetch(self.privateGetV5ExecutionList(extend(request, params)));
     trades = self.addPaginationCursorToResult(response);
     return self.parseTrades(trades, market, since, limit)
 
@@ -4329,7 +5172,7 @@ function parseDepositAddress(self::Bybit, depositAddress, currency=nothing)
 end
 function fetchDepositAddressesByNetwork(self::Bybit, code, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -4340,7 +5183,7 @@ function fetchDepositAddressesByNetwork(self::Bybit, code, params=Dict())
     if functions.ccxtruthy(networkCode != nothing)
         request[Symbol("chainType")] = self.networkCodeToId(networkCode, code);
     end
-    response = self.privateGetV5AssetDepositQueryAddress(extend(request, params));
+    response = Base.fetch(self.privateGetV5AssetDepositQueryAddress(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     chains = self.safeList(result, "chains", []);
     coin = safeString(result, "coin");
@@ -4353,23 +5196,23 @@ function fetchDepositAddressesByNetwork(self::Bybit, code, params=Dict())
 end
 function fetchDepositAddress(self::Bybit, code, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     (networkCode, paramsOmited) = self.handleNetworkCodeAndParams(params);
-    indexedAddresses = self.fetchDepositAddressesByNetwork(code, paramsOmited);
+    indexedAddresses = Base.fetch(self.fetchDepositAddressesByNetwork(code, paramsOmited));
     selectedNetworkCode = self.selectNetworkCodeFromUnifiedNetworks(get(currency, Symbol("code"), nothing), networkCode, indexedAddresses);
-    return get(indexedAddresses, selectedNetworkCode + 1, nothing)
+    return safeValue(indexedAddresses, selectedNetworkCode)
 
 end
 function fetchDeposits(self::Bybit, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDeposits", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -4384,19 +5227,19 @@ function fetchDeposits(self::Bybit, code=nothing, since=nothing, limit=nothing, 
         request[Symbol("limit")] = limit;
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
-    response = self.privateGetV5AssetDepositQueryRecord(extend(request, params));
+    response = Base.fetch(self.privateGetV5AssetDepositQueryRecord(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
     return self.parseTransactions(data, currency, since, limit)
 
 end
 function fetchWithdrawals(self::Bybit, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
     end
     request = Dict{Symbol, Any}();
     currency = nothing;
@@ -4411,7 +5254,7 @@ function fetchWithdrawals(self::Bybit, code=nothing, since=nothing, limit=nothin
         request[Symbol("limit")] = limit;
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
-    response = self.privateGetV5AssetWithdrawQueryRecord(extend(request, params));
+    response = Base.fetch(self.privateGetV5AssetWithdrawQueryRecord(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
     return self.parseTransactions(data, currency, since, limit)
 
@@ -4476,15 +5319,15 @@ function parseTransaction(self::Bybit, transaction, currency=nothing)
 end
 function fetchLedger(self::Bybit, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
     end
     request = Dict{Symbol, Any}();
-    enableUnified = self.isUnifiedEnabled();
+    enableUnified = Base.fetch(self.isUnifiedEnabled());
     currency = nothing;
     currencyKey = "coin";
     if functions.ccxtruthy(get(enableUnified, 2, nothing))
@@ -4509,12 +5352,12 @@ function fetchLedger(self::Bybit, code=nothing, since=nothing, limit=nothing, pa
     if functions.ccxtruthy(get(enableUnified, 2, nothing))
         unifiedMarginStatus = safeInteger(self.options, "unifiedMarginStatus", 5);
         if functions.ccxtruthy(@functions.ccxt_and(subType == "inverse", (functions.ccxt_lt(unifiedMarginStatus, 5))))
-            response = self.privateGetV5AccountContractTransactionLog(extend(request, params));
+            response = Base.fetch(self.privateGetV5AccountContractTransactionLog(extend(request, params)));
         else
-            response = self.privateGetV5AccountTransactionLog(extend(request, params));
+            response = Base.fetch(self.privateGetV5AccountTransactionLog(extend(request, params)));
         end
     else
-        response = self.privateGetV5AccountContractTransactionLog(extend(request, params));
+        response = Base.fetch(self.privateGetV5AccountContractTransactionLog(extend(request, params)));
     end
     data = self.addPaginationCursorToResult(response);
     return self.parseLedger(data, currency, since, limit)
@@ -4590,14 +5433,14 @@ end
 function withdraw(self::Bybit, code, amount, address, tag=nothing, params=Dict())
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     accountType = nothing;
-    accounts = self.isUnifiedEnabled();
+    accounts = Base.fetch(self.isUnifiedEnabled());
     isUta = get(accounts, 2, nothing);
     (accountType, params) = self.handleOptionAndParams(params, "withdraw", "accountType");
     if functions.ccxtruthy(accountType == nothing)
         accountType = functions.ccxtruthy(isUta) ? "UTA" : "SPOT";
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     self.checkAddress(address);
     currency = self.currency(code);
@@ -4616,7 +5459,7 @@ function withdraw(self::Bybit, code, amount, address, tag=nothing, params=Dict()
     if functions.ccxtruthy(networkId != nothing)
         request[Symbol("chain")] =         uppercase(networkId);
     end
-    response = self.privatePostV5AssetWithdrawCreate(extend(request, query));
+    response = Base.fetch(self.privatePostV5AssetWithdrawCreate(extend(request, query)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     return self.parseTransaction(result, currency)
 
@@ -4626,7 +5469,7 @@ function fetchPosition(self::Bybit, symbol, params=Dict())
         throw(ArgumentsRequired(string(self.id, " fetchPosition() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -4636,7 +5479,7 @@ function fetchPosition(self::Bybit, symbol, params=Dict())
     type_var = nothing;
     (type_var, params) = self.getBybitType("fetchPosition", market, params);
     request[Symbol("category")] = type_var;
-    response = self.privateGetV5PositionList(extend(request, params));
+    response = Base.fetch(self.privateGetV5PositionList(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     positions = self.safeList2(result, "list", "dataList", []);
     timestamp = safeInteger(response, "time");
@@ -4649,12 +5492,12 @@ function fetchPosition(self::Bybit, symbol, params=Dict())
 end
 function fetchPositions(self::Bybit, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchPositions", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchPositions", symbols, nothing, nothing, params, "nextPageCursor", "cursor", nothing, 200)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchPositions", symbols, nothing, nothing, params, "nextPageCursor", "cursor", nothing, 200))
     end
     symbol = nothing;
     if functions.ccxtruthy(@functions.ccxt_and((symbols != nothing), functions.ccxt_isArray(symbols)))
@@ -4697,7 +5540,7 @@ function fetchPositions(self::Bybit, symbols=nothing, params=Dict())
     end
     params = omit(params, ["type"]);
     request[Symbol("category")] = type_var;
-    response = self.privateGetV5PositionList(extend(request, params));
+    response = Base.fetch(self.privateGetV5PositionList(extend(request, params)));
     positions = self.addPaginationCursorToResult(response);
     results = [];
     i = 0
@@ -4746,10 +5589,10 @@ function parsePosition(self::Bybit, position, market=nothing)
     unrealisedPnl = omitZero(safeString(position, "unrealisedPnl"));
     initialMarginString = safeString2(position, "positionIM", "cumEntryValue");
     maintenanceMarginString = safeString(position, "positionMM");
-    timestamp = safeIntegerN(position, ["createdTime", "createdAt"]);
+    timestamp = safeInteger2(position, "createdTime", "createdAt");
     lastUpdateTimestamp = self.parse8601(safeString(position, "updated_at"));
     if functions.ccxtruthy(lastUpdateTimestamp == nothing)
-        lastUpdateTimestamp = safeIntegerN(position, ["updatedTime", "updatedAt", "updatedTime"]);
+        lastUpdateTimestamp = safeInteger2(position, "updatedTime", "updatedAt");
     end
     collateralString = safeString(position, "positionBalance");
     entryPrice = omitZero(safeStringN(position, ["entryPrice", "avgPrice", "avgEntryPrice"]));
@@ -4814,10 +5657,10 @@ function parsePosition(self::Bybit, position, market=nothing)
 end
 function fetchLeverage(self::Bybit, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    position = self.fetchPosition(symbol, params);
+    position = Base.fetch(self.fetchPosition(symbol, params));
     return self.parseLeverage(position, market)
 
 end
@@ -4835,9 +5678,9 @@ function parseLeverage(self::Bybit, leverage, market=nothing)
 end
 function setMarginMode(self::Bybit, marginMode, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    (enableUnifiedMargin, enableUnifiedAccount) = (self.isUnifiedEnabled());
+    (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     market = nothing;
     if functions.ccxtruthy(isUnifiedAccount)
@@ -4856,7 +5699,7 @@ function setMarginMode(self::Bybit, marginMode, symbol=nothing, params=Dict())
         request = Dict{Symbol, Any}(
             Symbol("setMarginMode") => marginMode
         );
-        response = self.privatePostV5AccountSetMarginMode(extend(request, params));
+        response = Base.fetch(self.privatePostV5AccountSetMarginMode(extend(request, params)));
     else
         if functions.ccxtruthy(symbol == nothing)
             throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a symbol parameter for non unified account")));
@@ -4874,7 +5717,7 @@ function setMarginMode(self::Bybit, marginMode, symbol=nothing, params=Dict())
             request = Dict{Symbol, Any}(
                 Symbol("setMarginMode") => marginMode
             );
-            response = self.privatePostV5AccountSetMarginMode(extend(request, params));
+            response = Base.fetch(self.privatePostV5AccountSetMarginMode(extend(request, params)));
         else
             type_var = nothing;
             (type_var, params) = self.getBybitType("setPositionMode", market, params);
@@ -4914,7 +5757,7 @@ function setMarginMode(self::Bybit, marginMode, symbol=nothing, params=Dict())
                 Symbol("buyLeverage") => buyLeverage,
                 Symbol("sellLeverage") => sellLeverage
             );
-            response = self.privatePostV5PositionSwitchIsolated(extend(request, params));
+            response = Base.fetch(self.privatePostV5PositionSwitchIsolated(extend(request, params)));
         end
     end
     return response
@@ -4925,7 +5768,7 @@ function setLeverage(self::Bybit, leverage, symbol=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " setLeverage() requires a symbol argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     leverageString = numberToString(leverage);
@@ -4943,13 +5786,13 @@ function setLeverage(self::Bybit, leverage, symbol=nothing, params=Dict())
     else
         throw(NotSupported(string(self.id, " setLeverage() only support linear and inverse market")));
     end
-    response = self.privatePostV5PositionSetLeverage(extend(request, params));
+    response = Base.fetch(self.privatePostV5PositionSetLeverage(extend(request, params)));
     return response
 
 end
 function setPositionMode(self::Bybit, hedged, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -4977,13 +5820,13 @@ function setPositionMode(self::Bybit, hedged, symbol=nothing, params=Dict())
         request[Symbol("category")] = type_var;
     end
     params = omit(params, "type");
-    response = self.privatePostV5PositionSwitchMode(extend(request, params));
+    response = Base.fetch(self.privatePostV5PositionSwitchMode(extend(request, params)));
     return response
 
 end
 function fetchDerivativesOpenInterestHistory(self::Bybit, symbol, timeframe="1h", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     subType = functions.ccxtruthy(get(market, Symbol("linear"), nothing)) ? "linear" : "inverse";
@@ -5009,7 +5852,7 @@ function fetchDerivativesOpenInterestHistory(self::Bybit, symbol, timeframe="1h"
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    response = self.publicGetV5MarketOpenInterest(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketOpenInterest(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     data = self.addPaginationCursorToResult(response);
     id = safeString(result, "symbol");
@@ -5019,7 +5862,7 @@ function fetchDerivativesOpenInterestHistory(self::Bybit, symbol, timeframe="1h"
 end
 function fetchOpenInterest(self::Bybit, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("contract"), nothing)))
@@ -5038,7 +5881,7 @@ function fetchOpenInterest(self::Bybit, symbol, params=Dict())
         Symbol("intervalTime") => interval,
         Symbol("category") => category
     );
-    response = self.publicGetV5MarketOpenInterest(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketOpenInterest(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     id = safeString(result, "symbol");
     safeMarketObj = self.safeMarket(id, market, nothing, "contract");
@@ -5051,13 +5894,13 @@ function fetchOpenInterestHistory(self::Bybit, symbol, timeframe="1h", since=not
         throw(BadRequest(string(self.id, " fetchOpenInterestHistory cannot use the 1m timeframe")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = self.safeBool(params, "paginate");
     if functions.ccxtruthy(paginate)
         params = omit(params, "paginate");
         params[Symbol("timeframe")] = timeframe;
-            return self.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 200)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 200))
     end
     market = self.market(symbol);
     if functions.ccxtruthy(@functions.ccxt_or(get(market, Symbol("spot"), nothing), get(market, Symbol("option"), nothing)))
@@ -5069,7 +5912,7 @@ function fetchOpenInterestHistory(self::Bybit, symbol, timeframe="1h", since=not
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    return self.fetchDerivativesOpenInterestHistory(symbol, timeframe, since, limit, params)
+    return Base.fetch(self.fetchDerivativesOpenInterestHistory(symbol, timeframe, since, limit, params))
 
 end
 function parseOpenInterest(self::Bybit, interest, market=nothing)
@@ -5089,13 +5932,13 @@ function parseOpenInterest(self::Bybit, interest, market=nothing)
 end
 function fetchCrossBorrowRate(self::Bybit, code, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("coin") => get(currency, Symbol("id"), nothing)
     );
-    response = self.privateGetV5SpotCrossMarginTradeLoanInfo(extend(request, params));
+    response = Base.fetch(self.privateGetV5SpotCrossMarginTradeLoanInfo(extend(request, params)));
     timestamp = safeInteger(response, "time");
     data = self.safeDict(response, "result", Dict{Symbol, Any}());
     data[Symbol("timestamp")] = timestamp;
@@ -5119,10 +5962,10 @@ function parseBorrowRate(self::Bybit, info, currency=nothing)
 end
 function fetchBorrowInterest(self::Bybit, code=nothing, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
-    response = self.privateGetV5SpotCrossMarginTradeAccount(extend(request, params));
+    response = Base.fetch(self.privateGetV5SpotCrossMarginTradeAccount(extend(request, params)));
     data = self.safeDict(response, "result", Dict{Symbol, Any}());
     rows = self.safeList(data, "loanAccountList", []);
     interest = self.parseBorrowInterests(rows);
@@ -5131,7 +5974,7 @@ function fetchBorrowInterest(self::Bybit, code=nothing, symbol=nothing, since=no
 end
 function fetchBorrowRateHistory(self::Bybit, code, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -5147,7 +5990,7 @@ function fetchBorrowRateHistory(self::Bybit, code, since=nothing, limit=nothing,
         endTime = since + 86400000 * 30;
     end
     request[Symbol("endTime")] = endTime;
-    response = self.privateGetV5SpotMarginTradeInterestRateHistory(extend(request, params));
+    response = Base.fetch(self.privateGetV5SpotMarginTradeInterestRateHistory(extend(request, params)));
     data = self.safeDict(response, "result");
     rows = self.safeList(data, "list", []);
     return self.parseBorrowRateHistory(rows, code, since, limit)
@@ -5169,7 +6012,7 @@ function parseBorrowInterest(self::Bybit, info, market=nothing)
 end
 function transfer(self::Bybit, code, amount, fromAccount, toAccount, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     transferId = safeString(params, "transferId", uuid());
     accountTypes = self.safeDict(self.options, "accountsByType", Dict{Symbol, Any}());
@@ -5184,10 +6027,10 @@ function transfer(self::Bybit, code, amount, fromAccount, toAccount, params=Dict
         Symbol("coin") => get(currency, Symbol("id"), nothing),
         Symbol("amount") => amountToPrecision
     );
-    response = self.privatePostV5AssetTransferInterTransfer(extend(request, params));
+    response = Base.fetch(self.privatePostV5AssetTransferInterTransfer(extend(request, params)));
     timestamp = safeInteger(response, "time");
     transfer = self.safeDict(response, "result", Dict{Symbol, Any}());
-    statusRaw = safeStringN(response, ["retCode", "retMsg"]);
+    statusRaw = safeString2(response, "retCode", "retMsg");
     status = self.parseTransferStatus(statusRaw);
     return extend(self.parseTransfer(transfer, currency), Dict{Symbol, Any}(
     Symbol("timestamp") => timestamp,
@@ -5201,12 +6044,12 @@ function transfer(self::Bybit, code, amount, fromAccount, toAccount, params=Dict
 end
 function fetchTransfers(self::Bybit, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchTransfers", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "nextPageCursor", "cursor", nothing, 50))
     end
     currency = nothing;
     request = Dict{Symbol, Any}();
@@ -5221,35 +6064,35 @@ function fetchTransfers(self::Bybit, code=nothing, since=nothing, limit=nothing,
         request[Symbol("limit")] = limit;
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
-    response = self.privateGetV5AssetTransferQueryInterTransferList(extend(request, params));
+    response = Base.fetch(self.privateGetV5AssetTransferQueryInterTransferList(extend(request, params)));
     data = self.addPaginationCursorToResult(response);
     return self.parseTransfers(data, currency, since, limit)
 
 end
 function borrowCrossMargin(self::Bybit, code, amount, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("coin") => get(currency, Symbol("id"), nothing),
         Symbol("amount") => self.currencyToPrecision(code, amount)
     );
-    response = self.privatePostV5AccountBorrow(extend(request, params));
+    response = Base.fetch(self.privatePostV5AccountBorrow(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     return self.parseMarginLoan(result, currency)
 
 end
 function repayCrossMargin(self::Bybit, code, amount, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("coin") => get(currency, Symbol("id"), nothing),
         Symbol("amount") => numberToString(amount)
     );
-    response = self.privatePostV5AccountNoConvertRepay(extend(request, params));
+    response = Base.fetch(self.privatePostV5AccountNoConvertRepay(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     transaction = self.parseMarginLoan(result, currency);
     return extend(transaction, Dict{Symbol, Any}(
@@ -5262,7 +6105,7 @@ function parseMarginLoan(self::Bybit, info, currency=nothing)
     return Dict{Symbol, Any}(
     Symbol("id") => nothing,
     Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
-    Symbol("amount") => safeString(info, "amount"),
+    Symbol("amount") => self.safeNumber(info, "amount"),
     Symbol("symbol") => nothing,
     Symbol("timestamp") => nothing,
     Symbol("datetime") => nothing,
@@ -5302,7 +6145,7 @@ function parseTransfer(self::Bybit, transfer, currency=nothing)
 end
 function fetchDerivativesMarketLeverageTiers(self::Bybit, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -5313,7 +6156,7 @@ function fetchDerivativesMarketLeverageTiers(self::Bybit, symbol, params=Dict())
     elseif functions.ccxtruthy(get(market, Symbol("inverse"), nothing))
         request[Symbol("category")] = "inverse";
     end
-    response = self.publicGetV5MarketRiskLimit(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketRiskLimit(extend(request, params)));
     result = self.safeDict(response, "result");
     tiers = self.safeList(result, "list");
     return self.parseMarketLeverageTiers(tiers, market)
@@ -5321,7 +6164,7 @@ function fetchDerivativesMarketLeverageTiers(self::Bybit, symbol, params=Dict())
 end
 function fetchMarketLeverageTiers(self::Bybit, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -5330,7 +6173,7 @@ function fetchMarketLeverageTiers(self::Bybit, symbol, params=Dict())
         throw(BadRequest(string(self.id, " fetchMarketLeverageTiers() symbol does not support market ", symbol)));
     end
     request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
-    return self.fetchDerivativesMarketLeverageTiers(symbol, params)
+    return Base.fetch(self.fetchDerivativesMarketLeverageTiers(symbol, params))
 
 end
 function parseTradingFee(self::Bybit, fee, market=nothing)
@@ -5349,7 +6192,7 @@ function parseTradingFee(self::Bybit, fee, market=nothing)
 end
 function fetchTradingFee(self::Bybit, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -5358,7 +6201,7 @@ function fetchTradingFee(self::Bybit, symbol, params=Dict())
     category = nothing;
     (category, params) = self.getBybitType("fetchTradingFee", market, params);
     request[Symbol("category")] = category;
-    response = self.privateGetV5AccountFeeRate(extend(request, params));
+    response = Base.fetch(self.privateGetV5AccountFeeRate(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     fees = self.safeList(result, "list", []);
     first_var = self.safeDict(fees, 0, Dict{Symbol, Any}());
@@ -5367,14 +6210,14 @@ function fetchTradingFee(self::Bybit, symbol, params=Dict())
 end
 function fetchTradingFees(self::Bybit, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
     (type_var, params) = self.handleOptionAndParams(params, "fetchTradingFees", "type", "future");
     if functions.ccxtruthy(type_var == "spot")
         throw(NotSupported(string(self.id, " fetchTradingFees() is not supported for spot market")));
     end
-    response = self.privateGetV5AccountFeeRate(params);
+    response = Base.fetch(self.privateGetV5AccountFeeRate(params));
     fees = self.safeDict(response, "result", Dict{Symbol, Any}());
     fees = self.safeList(fees, "list", []);
     result = Dict{Symbol, Any}();
@@ -5382,7 +6225,9 @@ function fetchTradingFees(self::Bybit, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(fees)))
         fee = self.parseTradingFee(get(fees, i + 1, nothing));
         symbol = get(fee, Symbol("symbol"), nothing);
-        result[Symbol(symbol)] = fee;
+        if functions.ccxtruthy(symbol != nothing)
+            result[Symbol(symbol)] = fee;
+        end
         i += 1
     end
     return result
@@ -5410,16 +6255,18 @@ function parseDepositWithdrawFee(self::Bybit, fee, currency=nothing)
             networkId = safeString(chain, "chain");
             currencyCode = safeString(currency, "code");
             networkCode = self.networkIdToCode(networkId, currencyCode);
-            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("fee") => nothing,
-                    Symbol("percentage") => nothing
-                ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
-                    Symbol("percentage") => false
-                )
-            );
+            if functions.ccxtruthy(networkCode != nothing)
+                result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("fee") => nothing,
+                        Symbol("percentage") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("fee") => self.safeNumber(chain, "withdrawFee"),
+                        Symbol("percentage") => false
+                    )
+                );
+            end
             if functions.ccxtruthy(chainsLength == 1)
                 result[Symbol("withdraw")][Symbol("fee")] = self.safeNumber(chain, "withdrawFee");
                 result[Symbol("withdraw")][Symbol("percentage")] = false;
@@ -5434,9 +6281,9 @@ end
 function fetchDepositWithdrawFees(self::Bybit, codes=nothing, params=Dict())
     self.checkRequiredCredentials();
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    response = self.privateGetV5AssetCoinQueryInfo(params);
+    response = Base.fetch(self.privateGetV5AssetCoinQueryInfo(params));
     data = self.safeDict(response, "result", Dict{Symbol, Any}());
     rows = self.safeList(data, "rows", []);
     return self.parseDepositWithdrawFees(rows, codes, "coin")
@@ -5444,7 +6291,7 @@ function fetchDepositWithdrawFees(self::Bybit, codes=nothing, params=Dict())
 end
 function fetchSettlementHistory(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -5461,7 +6308,7 @@ function fetchSettlementHistory(self::Bybit, symbol=nothing, since=nothing, limi
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    response = self.publicGetV5MarketDeliveryPrice(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketDeliveryPrice(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     data = self.safeList(result, "list", []);
     settlements = self.parseSettlements(data, market);
@@ -5471,7 +6318,7 @@ function fetchSettlementHistory(self::Bybit, symbol=nothing, since=nothing, limi
 end
 function fetchMySettlementHistory(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     market = nothing;
@@ -5488,7 +6335,7 @@ function fetchMySettlementHistory(self::Bybit, symbol=nothing, since=nothing, li
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    response = self.privateGetV5AssetDeliveryRecord(extend(request, params));
+    response = Base.fetch(self.privateGetV5AssetDeliveryRecord(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     data = self.safeList(result, "list", []);
     settlements = self.parseSettlements(data, market);
@@ -5520,14 +6367,14 @@ function parseSettlements(self::Bybit, settlements, market)
 end
 function fetchVolatilityHistory(self::Bybit, code, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("category") => "option",
         Symbol("baseCoin") => get(currency, Symbol("id"), nothing)
     );
-    response = self.publicGetV5MarketHistoricalVolatility(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketHistoricalVolatility(extend(request, params)));
     volatility = self.safeList(response, "result", []);
     return self.parseVolatilityHistory(volatility)
 
@@ -5551,14 +6398,14 @@ function parseVolatilityHistory(self::Bybit, volatility)
 end
 function fetchGreeks(self::Bybit, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing),
         Symbol("category") => "option"
     );
-    response = self.publicGetV5MarketTickers(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
     timestamp = safeInteger(response, "time");
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     data = self.safeList(result, "list", []);
@@ -5571,7 +6418,7 @@ function fetchGreeks(self::Bybit, symbol, params=Dict())
 end
 function fetchAllGreeks(self::Bybit, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols, nothing, true, true, true);
     baseCoin = safeString(params, "baseCoin", "BTC");
@@ -5587,7 +6434,7 @@ function fetchAllGreeks(self::Bybit, symbols=nothing, params=Dict())
             request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
         end
     end
-    response = self.publicGetV5MarketTickers(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     data = self.safeList(result, "list", []);
     return self.parseAllGreeks(data, symbols)
@@ -5621,12 +6468,12 @@ function parseGreeks(self::Bybit, greeks, market=nothing)
 end
 function fetchMyLiquidations(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyLiquidations", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 100)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 100))
     end
     request = Dict{Symbol, Any}(
         Symbol("execType") => "BustTrade"
@@ -5646,7 +6493,7 @@ function fetchMyLiquidations(self::Bybit, symbol=nothing, since=nothing, limit=n
         request[Symbol("startTime")] = since;
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
-    response = self.privateGetV5ExecutionList(extend(request, params));
+    response = Base.fetch(self.privateGetV5ExecutionList(extend(request, params)));
     liquidations = self.addPaginationCursorToResult(response);
     return self.parseLiquidations(liquidations, market, since, limit)
 
@@ -5674,7 +6521,7 @@ function parseLiquidation(self::Bybit, liquidation, market=nothing)
 end
 function getLeverageTiersPaginated(self::Bybit, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -5683,14 +6530,14 @@ function getLeverageTiersPaginated(self::Bybit, symbol=nothing, params=Dict())
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "getLeverageTiersPaginated", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, nothing, nothing, params, "nextPageCursor", "cursor", nothing, 100)
+            return Base.fetch(self.fetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, nothing, nothing, params, "nextPageCursor", "cursor", nothing, 100))
     end
     subType = nothing;
     (subType, params) = self.handleSubTypeAndParams("getLeverageTiersPaginated", market, params, "linear");
     request = Dict{Symbol, Any}(
         Symbol("category") => subType
     );
-    response = self.publicGetV5MarketRiskLimit(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketRiskLimit(extend(request, params)));
     result = self.addPaginationCursorToResult(response);
     first_var = self.safeDict(result, 0);
     total = length(result);
@@ -5706,7 +6553,7 @@ function getLeverageTiersPaginated(self::Bybit, symbol=nothing, params=Dict())
 end
 function fetchLeverageTiers(self::Bybit, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     symbol = nothing;
@@ -5717,10 +6564,10 @@ function fetchLeverageTiers(self::Bybit, symbols=nothing, params=Dict())
         end
         symbol = get(market, Symbol("symbol"), nothing);
     end
-    data = self.getLeverageTiersPaginated(symbol, extend(Dict{Symbol, Any}(
+    data = Base.fetch(self.getLeverageTiersPaginated(symbol, extend(Dict{Symbol, Any}(
         Symbol("paginate") => true,
         Symbol("paginationCalls") => 50
-    ), params));
+    ), params)));
     symbols = self.marketSymbols(symbols);
     return self.parseLeverageTiers(data, symbols, "symbol")
 
@@ -5728,8 +6575,9 @@ end
 function parseLeverageTiers(self::Bybit, response, symbols=nothing, marketIdKey=nothing)
     tiers = Dict{Symbol, Any}();
     marketIds = self.marketIds(symbols);
-    filteredResults = self.filterByArray(response, marketIdKey, marketIds, false);
-    grouped = groupBy(filteredResults, marketIdKey);
+    idKey = functions.ccxtruthy((marketIdKey == nothing)) ? "symbol" : marketIdKey;
+    filteredResults = self.filterByArray(response, idKey, marketIds, false);
+    grouped = groupBy(filteredResults, idKey);
     keys_var = objectKeys(grouped);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(keys_var)))
@@ -5777,12 +6625,12 @@ function parseMarketLeverageTiers(self::Bybit, info, market=nothing)
 end
 function fetchFundingHistory(self::Bybit, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingHistory", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 100)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nothing, 100))
     end
     request = Dict{Symbol, Any}(
         Symbol("execType") => "Funding"
@@ -5807,7 +6655,7 @@ function fetchFundingHistory(self::Bybit, symbol=nothing, since=nothing, limit=n
         request[Symbol("size")] = 100;
     end
     (request, params) = self.handleUntilOption("endTime", request, params);
-    response = self.privateGetV5ExecutionList(extend(request, params));
+    response = Base.fetch(self.privateGetV5ExecutionList(extend(request, params)));
     fundings = self.addPaginationCursorToResult(response);
     return self.parseIncomes(fundings, market, since, limit)
 
@@ -5834,14 +6682,14 @@ function parseIncome(self::Bybit, income, market=nothing)
 end
 function fetchOption(self::Bybit, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("category") => "option",
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
-    response = self.publicGetV5MarketTickers(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     resultList = self.safeList(result, "list", []);
     chain = self.safeDict(resultList, 0, Dict{Symbol, Any}());
@@ -5850,14 +6698,14 @@ function fetchOption(self::Bybit, symbol, params=Dict())
 end
 function fetchOptionChain(self::Bybit, code, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("category") => "option",
         Symbol("baseCoin") => get(currency, Symbol("id"), nothing)
     );
-    response = self.publicGetV5MarketTickers(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketTickers(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     resultList = self.safeList(result, "list", []);
     return self.parseOptionChain(resultList, nothing, "symbol")
@@ -5889,7 +6737,7 @@ function parseOption(self::Bybit, chain, currency=nothing, market=nothing)
 end
 function fetchPositionsHistory(self::Bybit, symbols=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     subType = nothing;
@@ -5918,26 +6766,30 @@ function fetchPositionsHistory(self::Bybit, symbols=nothing, since=nothing, limi
     if functions.ccxtruthy(until != nothing)
         request[Symbol("endTime")] = until;
     end
-    response = self.privateGetV5PositionClosedPnl(extend(request, params));
+    response = Base.fetch(self.privateGetV5PositionClosedPnl(extend(request, params)));
     result = self.safeDict(response, "result");
     rawPositions = self.safeList(result, "list");
-    positions = self.parsePositions(rawPositions, symbols, params);
+    rawPositionsList = [];
+    if functions.ccxtruthy(rawPositions != nothing)
+        rawPositionsList = rawPositions;
+    end
+    positions = self.parsePositions(rawPositionsList, symbols, params);
     return self.filterBySinceLimit(positions, since, limit)
 
 end
 function fetchConvertCurrencies(self::Bybit, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     accountType = nothing;
-    (enableUnifiedMargin, enableUnifiedAccount) = (self.isUnifiedEnabled());
+    (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     accountTypeDefault = functions.ccxtruthy(isUnifiedAccount) ? "eb_convert_uta" : "eb_convert_spot";
     (accountType, params) = self.handleOptionAndParams(params, "fetchConvertCurrencies", "accountType", accountTypeDefault);
     request = Dict{Symbol, Any}(
         Symbol("accountType") => accountType
     );
-    response = self.privateGetV5AssetExchangeQueryCoinList(extend(request, params));
+    response = Base.fetch(self.privateGetV5AssetExchangeQueryCoinList(extend(request, params)));
     result = Dict{Symbol, Any}();
     data = self.safeDict(response, "result", Dict{Symbol, Any}());
     coins = self.safeList(data, "coins", []);
@@ -5949,34 +6801,36 @@ function fetchConvertCurrencies(self::Bybit, params=Dict())
         disableTo = self.safeBool(entry, "disableTo");
         inactive = (@functions.ccxt_or(disableFrom, disableTo));
         code = self.safeCurrencyCode(id);
-        result[Symbol(code)] = Dict{Symbol, Any}(
-            Symbol("info") => entry,
-            Symbol("id") => id,
-            Symbol("code") => code,
-            Symbol("networks") => nothing,
-            Symbol("type") => safeString(entry, "coinType"),
-            Symbol("name") => safeString(entry, "fullName"),
-            Symbol("active") => !functions.ccxtruthy(inactive),
-            Symbol("deposit") => nothing,
-            Symbol("withdraw") => self.safeNumber(entry, "balance"),
-            Symbol("fee") => nothing,
-            Symbol("precision") => nothing,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("amount") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(entry, "singleFromMinLimit"),
-                    Symbol("max") => self.safeNumber(entry, "singleFromMaxLimit")
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = Dict{Symbol, Any}(
+                Symbol("info") => entry,
+                Symbol("id") => id,
+                Symbol("code") => code,
+                Symbol("networks") => nothing,
+                Symbol("type") => safeString(entry, "coinType"),
+                Symbol("name") => safeString(entry, "fullName"),
+                Symbol("active") => !functions.ccxtruthy(inactive),
+                Symbol("deposit") => nothing,
+                Symbol("withdraw") => self.safeNumber(entry, "balance"),
+                Symbol("fee") => nothing,
+                Symbol("precision") => nothing,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("amount") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(entry, "singleFromMinLimit"),
+                        Symbol("max") => self.safeNumber(entry, "singleFromMaxLimit")
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    ),
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
                 ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                ),
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
-                )
-            ),
-            Symbol("created") => nothing
-        );
+                Symbol("created") => nothing
+            );
+        end
         i += 1
     end
     return result
@@ -5984,10 +6838,10 @@ function fetchConvertCurrencies(self::Bybit, params=Dict())
 end
 function fetchConvertQuote(self::Bybit, fromCode, toCode, amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     accountType = nothing;
-    (enableUnifiedMargin, enableUnifiedAccount) = (self.isUnifiedEnabled());
+    (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     accountTypeDefault = functions.ccxtruthy(isUnifiedAccount) ? "eb_convert_uta" : "eb_convert_spot";
     (accountType, params) = self.handleOptionAndParams(params, "fetchConvertQuote", "accountType", accountTypeDefault);
@@ -5998,7 +6852,7 @@ function fetchConvertQuote(self::Bybit, fromCode, toCode, amount=nothing, params
         Symbol("requestCoin") => fromCode,
         Symbol("accountType") => accountType
     );
-    response = self.privatePostV5AssetExchangeQuoteApply(extend(request, params));
+    response = Base.fetch(self.privatePostV5AssetExchangeQuoteApply(extend(request, params)));
     data = self.safeDict(response, "result", Dict{Symbol, Any}());
     fromCurrencyId = safeString(data, "fromCoin", fromCode);
     fromCurrency = self.currency(fromCurrencyId);
@@ -6009,30 +6863,30 @@ function fetchConvertQuote(self::Bybit, fromCode, toCode, amount=nothing, params
 end
 function createConvertTrade(self::Bybit, id, fromCode, toCode, amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("quoteTxId") => id
     );
-    response = self.privatePostV5AssetExchangeConvertExecute(extend(request, params));
+    response = Base.fetch(self.privatePostV5AssetExchangeConvertExecute(extend(request, params)));
     data = self.safeDict(response, "result", Dict{Symbol, Any}());
     return self.parseConversion(data)
 
 end
 function fetchConvertTrade(self::Bybit, id, code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     accountType = nothing;
-    (enableUnifiedMargin, enableUnifiedAccount) = (self.isUnifiedEnabled());
+    (enableUnifiedMargin, enableUnifiedAccount) = (Base.fetch(self.isUnifiedEnabled()));
     isUnifiedAccount = (@functions.ccxt_or(enableUnifiedMargin, enableUnifiedAccount));
     accountTypeDefault = functions.ccxtruthy(isUnifiedAccount) ? "eb_convert_uta" : "eb_convert_spot";
-    (accountType, params) = self.handleOptionAndParams(params, "fetchConvertQuote", "accountType", accountTypeDefault);
+    (accountType, params) = self.handleOptionAndParams(params, "fetchConvertTrade", "accountType", accountTypeDefault);
     request = Dict{Symbol, Any}(
         Symbol("quoteTxId") => id,
         Symbol("accountType") => accountType
     );
-    response = self.privateGetV5AssetExchangeConvertResultQuery(extend(request, params));
+    response = Base.fetch(self.privateGetV5AssetExchangeConvertResultQuery(extend(request, params)));
     data = self.safeDict(response, "result", Dict{Symbol, Any}());
     result = self.safeDict(data, "result", Dict{Symbol, Any}());
     fromCurrencyId = safeString(result, "fromCoin");
@@ -6050,13 +6904,13 @@ function fetchConvertTrade(self::Bybit, id, code=nothing, params=Dict())
 end
 function fetchConvertTradeHistory(self::Bybit, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    response = self.privateGetV5AssetExchangeQueryConvertHistory(extend(request, params));
+    response = Base.fetch(self.privateGetV5AssetExchangeQueryConvertHistory(extend(request, params)));
     data = self.safeDict(response, "result", Dict{Symbol, Any}());
     dataList = self.safeList(data, "list", []);
     return self.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit)
@@ -6084,7 +6938,7 @@ function parseConversion(self::Bybit, conversion, fromCurrency=nothing, toCurren
 end
 function fetchLongShortRatioHistory(self::Bybit, symbol=nothing, timeframe=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     type_var = nothing;
@@ -6103,7 +6957,7 @@ function fetchLongShortRatioHistory(self::Bybit, symbol=nothing, timeframe=nothi
     if functions.ccxtruthy(limit != nothing)
         request[Symbol("limit")] = limit;
     end
-    response = self.publicGetV5MarketAccountRatio(extend(request, params));
+    response = Base.fetch(self.publicGetV5MarketAccountRatio(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     data = self.safeList(result, "list", []);
     return self.parseLongShortRatioHistory(data, market)
@@ -6129,7 +6983,7 @@ function fetchPositionsADLRank(self::Bybit, symbols=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " fetchPositionsADLRank() requires a symbols argument")));
     end
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols, nothing, true, true, true);
     market = self.getMarketFromSymbols(symbols);
@@ -6140,7 +6994,7 @@ function fetchPositionsADLRank(self::Bybit, symbols=nothing, params=Dict())
     type_var = nothing;
     (type_var, params) = self.getBybitType("fetchPositionsADLRank", market, params);
     request[Symbol("category")] = type_var;
-    response = self.privateGetV5PositionList(extend(request, params));
+    response = Base.fetch(self.privateGetV5PositionList(extend(request, params)));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     ranks = self.safeList(result, "list", []);
     return self.parseADLRanks(ranks, symbols)
@@ -6162,10 +7016,10 @@ function parseADLRank(self::Bybit, info, market=nothing)
 end
 function fetchMarginMode(self::Bybit, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
-    response = self.privateGetV5AccountInfo(params);
+    response = Base.fetch(self.privateGetV5AccountInfo(params));
     result = self.safeDict(response, "result", Dict{Symbol, Any}());
     return self.parseMarginMode(result, market)
 
@@ -6326,1619 +7180,1623 @@ Base.getproperty(self::Bybit, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetSpotV3PublicSymbols(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/symbols", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/symbols", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpotV3PublicQuoteDepth(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/depth", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/quote/depth", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpotV3PublicQuoteDepthMerged(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/depth/merged", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/quote/depth/merged", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpotV3PublicQuoteTrades(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/quote/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpotV3PublicQuoteKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/quote/kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpotV3PublicQuoteTicker24hr(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/ticker/24hr", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/quote/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpotV3PublicQuoteTickerPrice(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/ticker/price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/quote/ticker/price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpotV3PublicQuoteTickerBookTicker(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/quote/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/quote/ticker/bookTicker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpotV3PublicServerTime(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/server-time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/server-time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpotV3PublicInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/infos", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/infos", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpotV3PublicMarginProductInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/margin-product-infos", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/margin-product-infos", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetSpotV3PublicMarginEnsureTokens(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/public/margin-ensure-tokens", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/v3/public/margin-ensure-tokens", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV3PublicTime(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v3/public/time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v3/public/time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetContractV3PublicCopytradingSymbolList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/public/copytrading/symbol/list", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/public/copytrading/symbol/list", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicOrderBookL2(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/order-book/L2", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/order-book/L2", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicTickers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicInstrumentsInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/instruments-info", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/instruments-info", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicMarkPriceKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/mark-price-kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/mark-price-kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicIndexPriceKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/index-price-kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/index-price-kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicFundingHistoryFundingRate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/funding/history-funding-rate", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/funding/history-funding-rate", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicRiskLimitList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/risk-limit/list", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/risk-limit/list", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicDeliveryPrice(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/delivery-price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/delivery-price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicRecentTrade(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/recent-trade", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/recent-trade", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicOpenInterest(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/open-interest", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/open-interest", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetDerivativesV3PublicInsurance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "derivatives/v3/public/insurance", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "derivatives/v3/public/insurance", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5AnnouncementsIndex(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/announcements/index", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/announcements/index", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5SystemStatus(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/system/status", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/system/status", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketTime(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/time", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/time", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketMarkPriceKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/mark-price-kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/mark-price-kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketIndexPriceKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/index-price-kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/index-price-kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketPremiumIndexPriceKline(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/premium-index-price-kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/premium-index-price-kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketInstrumentsInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/instruments-info", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/instruments-info", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketOrderbook(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/orderbook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/orderbook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketRpiOrderbook(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/rpi_orderbook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/rpi_orderbook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketFullOrderbook(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/full_orderbook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/full_orderbook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketTickers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketFundingHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/funding/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/funding/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketRecentTrade(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/recent-trade", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/recent-trade", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketOpenInterest(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/open-interest", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/open-interest", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketHistoricalVolatility(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/historical-volatility", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/historical-volatility", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketInsurance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/insurance", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/insurance", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketRiskLimit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/risk-limit", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/risk-limit", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketDeliveryPrice(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/delivery-price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/delivery-price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketNewDeliveryPrice(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/new-delivery-price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/new-delivery-price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketAccountRatio(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/account-ratio", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/account-ratio", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketIndexPriceComponents(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/index-price-components", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/index-price-components", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketPriceLimit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/price-limit", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/price-limit", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketAdlAlert(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/adlAlert", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/adlAlert", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5MarketFeeGroupInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/fee-group-info", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/fee-group-info", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5SpotLeverTokenInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-lever-token/info", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-lever-token/info", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5SpotLeverTokenReference(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-lever-token/reference", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-lever-token/reference", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5SpotMarginTradeData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/data", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/data", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5SpotMarginTradeCollateral(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/collateral", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/collateral", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5SpotCrossMarginTradeData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/data", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-cross-margin-trade/data", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5SpotCrossMarginTradePledgeToken(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/pledge-token", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-cross-margin-trade/pledge-token", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5SpotCrossMarginTradeBorrowToken(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/borrow-token", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-cross-margin-trade/borrow-token", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5CryptoLoanCollateralData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/collateral-data", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan/collateral-data", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5CryptoLoanLoanableData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/loanable-data", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan/loanable-data", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5CryptoLoanCommonLoanableData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/loanable-data", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan-common/loanable-data", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5CryptoLoanCommonCollateralData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/collateral-data", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan-common/collateral-data", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5CryptoLoanFixedSupplyOrderQuote(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/supply-order-quote", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan-fixed/supply-order-quote", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5CryptoLoanFixedBorrowOrderQuote(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/borrow-order-quote", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan-fixed/borrow-order-quote", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5InsLoanProductInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/product-infos", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/product-infos", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5InsLoanEnsureTokensConvert(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/ensure-tokens-convert", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/ensure-tokens-convert", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetV5EarnProduct(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/product", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/earn/product", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5MarketInstrumentsInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/market/instruments-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/market/instruments-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV2PrivateWalletFundRecords(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v2/private/wallet/fund/records", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "v2/private/wallet/fund/records", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateOpenOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/open-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/open-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateHistoryOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/history-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/history-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateMyTrades(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/my-trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/my-trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateReference(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/reference", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/reference", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateCrossMarginOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/v3/private/cross-margin-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateCrossMarginAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/v3/private/cross-margin-account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateCrossMarginLoanInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-loan-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/v3/private/cross-margin-loan-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateCrossMarginRepayHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-repay-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/v3/private/cross-margin-repay-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateMarginLoanInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/margin-loan-infos", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/v3/private/margin-loan-infos", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateMarginRepaidInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/margin-repaid-infos", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/v3/private/margin-repaid-infos", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotV3PrivateMarginLtv(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/margin-ltv", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/v3/private/margin-ltv", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateTransferInterTransferListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/inter-transfer/list/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "asset/v3/private/transfer/inter-transfer/list/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateTransferSubMemberListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/sub-member/list/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "asset/v3/private/transfer/sub-member/list/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateTransferSubMemberTransferListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/sub-member-transfer/list/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "asset/v3/private/transfer/sub-member-transfer/list/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateTransferUniversalTransferListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/universal-transfer/list/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "asset/v3/private/transfer/universal-transfer/list/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateCoinInfoQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/coin-info/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "asset/v3/private/coin-info/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateDepositAddressQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/deposit/address/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "asset/v3/private/deposit/address/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivateCopytradingOrderList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/order/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "contract/v3/private/copytrading/order/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivateCopytradingPositionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/position/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "contract/v3/private/copytrading/position/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivateCopytradingWalletBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/wallet/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "contract/v3/private/copytrading/wallet/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivatePositionLimitInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/limit-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "contract/v3/private/position/limit-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivateOrderUnfilledOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/unfilled-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/order/unfilled-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivateOrderList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/order/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivatePositionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/position/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivateExecutionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/execution/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/execution/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivatePositionClosedPnl(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/closed-pnl", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/position/closed-pnl", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivateAccountWalletBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/account/wallet/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/account/wallet/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivateAccountFeeRate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/account/fee-rate", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/account/fee-rate", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetContractV3PrivateAccountWalletFundRecords(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/account/wallet/fund-records", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/account/wallet/fund-records", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnifiedV3PrivateOrderUnfilledOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/unfilled-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unified/v3/private/order/unfilled-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnifiedV3PrivateOrderList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unified/v3/private/order/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnifiedV3PrivatePositionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/position/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unified/v3/private/position/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnifiedV3PrivateExecutionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/execution/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unified/v3/private/execution/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnifiedV3PrivateDeliveryRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/delivery-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unified/v3/private/delivery-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnifiedV3PrivateSettlementRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/settlement-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unified/v3/private/settlement-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnifiedV3PrivateAccountWalletBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/wallet/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unified/v3/private/account/wallet/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnifiedV3PrivateAccountTransactionLog(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/transaction-log", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unified/v3/private/account/transaction-log", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnifiedV3PrivateAccountBorrowHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/borrow-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unified/v3/private/account/borrow-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnifiedV3PrivateAccountBorrowRate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/borrow-rate", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unified/v3/private/account/borrow-rate", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUnifiedV3PrivateAccountInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "unified/v3/private/account/info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserV3PrivateFrozenSubMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/frozen-sub-member", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "user/v3/private/frozen-sub-member", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserV3PrivateQuerySubMembers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/query-sub-members", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/v3/private/query-sub-members", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserV3PrivateQueryApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/query-api", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "user/v3/private/query-api", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetUserV3PrivateGetMemberType(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/get-member-type", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/v3/private/get-member-type", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateTransferTransferCoinListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/transfer-coin/list/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "asset/v3/private/transfer/transfer-coin/list/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateTransferAccountCoinBalanceQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/account-coin/balance/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "asset/v3/private/transfer/account-coin/balance/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/account-coins/balance/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "asset/v3/private/transfer/account-coins/balance/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateTransferAssetInfoQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/asset-info/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "asset/v3/private/transfer/asset-info/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PublicDepositAllowedDepositListQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/public/deposit/allowed-deposit-list/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.17))
+    return request(self, "asset/v3/public/deposit/allowed-deposit-list/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateDepositRecordQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/deposit/record/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "asset/v3/private/deposit/record/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetV3PrivateWithdrawRecordQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/withdraw/record/query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "asset/v3/private/withdraw/record/query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5OrderRealtime(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/realtime", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/order/realtime", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5OrderHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/order/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5OrderSpotBorrowCheck(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/spot-borrow-check", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/order/spot-borrow-check", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5PositionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5ExecutionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/execution/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/execution/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5PositionClosedPnl(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/closed-pnl", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/closed-pnl", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5PositionGetClosedPositions(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/get-closed-positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/get-closed-positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5PositionMoveHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/move-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/move-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5PositionSymbolInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/symbol-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/symbol-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5PreUpgradeOrderHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/order/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/pre-upgrade/order/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5PreUpgradeExecutionList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/execution/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/pre-upgrade/execution/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5PreUpgradePositionClosedPnl(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/position/closed-pnl", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/pre-upgrade/position/closed-pnl", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5PreUpgradeAccountTransactionLog(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/account/transaction-log", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/pre-upgrade/account/transaction-log", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5PreUpgradeAssetDeliveryRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/asset/delivery-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/pre-upgrade/asset/delivery-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5PreUpgradeAssetSettlementRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/pre-upgrade/asset/settlement-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/pre-upgrade/asset/settlement-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountWalletBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/wallet-balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/account/wallet-balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountBorrowHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/borrow-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/account/borrow-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountInstrumentsInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/instruments-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/account/instruments-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountCollateralInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/collateral-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/account/collateral-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountOptionAssetInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/option-asset-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/account/option-asset-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetCoinGreeks(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/coin-greeks", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/asset/coin-greeks", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountFeeRate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/fee-rate", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/account/fee-rate", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountTransactionLog(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/transaction-log", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.66))
+    return request(self, "v5/account/transaction-log", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountContractTransactionLog(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/contract-transaction-log", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/account/contract-transaction-log", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountQueryDcpInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/query-dcp-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/query-dcp-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountUserSettingConfig(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/user-setting-config", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/user-setting-config", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountPayInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/pay-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/pay-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountTradeInfoForAnalysis(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/trade-info-for-analysis", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/trade-info-for-analysis", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountSmpGroup(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/smp-group", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/account/smp-group", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountMmpState(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/mmp-state", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/mmp-state", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AccountWithdrawal(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/withdrawal", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/withdrawal", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetAssetOverview(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/asset-overview", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/asset-overview", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetExchangeQueryCoinList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/query-coin-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "v5/asset/exchange/query-coin-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetExchangeConvertResultQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/convert-result-query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "v5/asset/exchange/convert-result-query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetExchangeQueryConvertHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/query-convert-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.5))
+    return request(self, "v5/asset/exchange/query-convert-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetExchangeOrderRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/order-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/exchange/order-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetFundinghistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/fundinghistory", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/fundinghistory", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetPortfolioMargin(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/portfolio-margin", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/portfolio-margin", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetTotalMembersAssets(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/total-members-assets", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/total-members-assets", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetDeliveryRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/delivery-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/delivery-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetSettlementRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/settlement-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/settlement-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetTransferQueryAssetInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-asset-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/asset/transfer/query-asset-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetTransferQueryAccountCoinsBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-account-coins-balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "v5/asset/transfer/query-account-coins-balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetTransferQueryAccountCoinBalance(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-account-coin-balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/asset/transfer/query-account-coin-balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetTransferQueryTransferCoinList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-transfer-coin-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/asset/transfer/query-transfer-coin-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetTransferQueryInterTransferList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-inter-transfer-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/asset/transfer/query-inter-transfer-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetTransferQuerySubMemberList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-sub-member-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/asset/transfer/query-sub-member-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetTransferQueryUniversalTransferList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/query-universal-transfer-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "v5/asset/transfer/query-universal-transfer-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetDepositQueryAllowedList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-allowed-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/deposit/query-allowed-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetDepositQueryRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/asset/deposit/query-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetDepositQuerySubMemberRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-sub-member-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/asset/deposit/query-sub-member-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetDepositQueryInternalRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-internal-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/deposit/query-internal-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetDepositQueryAddress(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/asset/deposit/query-address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetDepositQuerySubMemberAddress(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/query-sub-member-address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/asset/deposit/query-sub-member-address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetCoinQueryInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/coin/query-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 28))
+    return request(self, "v5/asset/coin/query-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetWithdrawQueryAddress(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/query-address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/asset/withdraw/query-address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetWithdrawQueryRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/query-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/asset/withdraw/query-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetWithdrawWithdrawableAmount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/withdrawable-amount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/withdraw/withdrawable-amount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetWithdrawVaspList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/vasp/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/withdraw/vasp/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetCovertSmallBalanceList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/covert/small-balance-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/covert/small-balance-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetCovertSmallBalanceHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/covert/small-balance-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/covert/small-balance-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetConvertSmallBalanceList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/convert/small-balance-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/convert/small-balance-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AssetConvertSmallBalanceHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/convert/small-balance-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/convert/small-balance-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5FiatQueryCoinList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/query-coin-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/fiat/query-coin-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5FiatReferencePrice(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/reference-price", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/fiat/reference-price", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5FiatTradeQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/trade-query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/fiat/trade-query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5FiatQueryTradeHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/query-trade-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/fiat/query-trade-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5FiatBalanceQuery(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/balance-query", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/fiat/balance-query", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5UserQuerySubMembers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/query-sub-members", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/user/query-sub-members", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5UserQueryApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/query-api", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/user/query-api", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5UserSubApikeys(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/sub-apikeys", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/user/sub-apikeys", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5UserGetMemberType(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/get-member-type", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/user/get-member-type", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5UserAffCustomerInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/aff-customer-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/user/aff-customer-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5UserDelSubmember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/del-submember", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/user/del-submember", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5UserSubmembers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/submembers", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/user/submembers", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5UserEscrowSubMembers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/escrow_sub_members", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/user/escrow_sub_members", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5UserInvitationReferrals(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/invitation/referrals", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/user/invitation/referrals", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AffiliateAffUserList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/affiliate/aff-user-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/affiliate/aff-user-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5AffiliateAffiliateSubList(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/affiliate/affiliate-sub-list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/affiliate/affiliate-sub-list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotLeverTokenOrderRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-lever-token/order-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/spot-lever-token/order-record", "private", "GET", params, nothing, nothing, Dict())
+end
+
+function privateGetV5SpotMarginTradeFlexibleAvailableInventory(self::Bybit, params=Dict(), context=Dict())
+    return request(self, "v5/spot-margin-trade/flexible-available-inventory", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradeInterestRateHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/interest-rate-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/interest-rate-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradeState(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/state", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/state", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradeMaxBorrowable(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/max-borrowable", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/max-borrowable", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradePositionTiers(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/position-tiers", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/position-tiers", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradeCoinstate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/coinstate", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/coinstate", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradeCurrencyData(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/currency-data", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/currency-data", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradeFixedborrowContractInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/fixedborrow-contract-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/fixedborrow-contract-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradeFixedborrowOrderInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/fixedborrow-order-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/fixedborrow-order-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradeFixedborrowOrderQuote(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/fixedborrow-order-quote", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/fixedborrow-order-quote", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradeLiability(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/liability", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/liability", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradeRepaymentAvailableAmount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/repayment-available-amount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/repayment-available-amount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotMarginTradeGetAutoRepayMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/get-auto-repay-mode", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/get-auto-repay-mode", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotCrossMarginTradeLoanInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/loan-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/spot-cross-margin-trade/loan-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotCrossMarginTradeAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/spot-cross-margin-trade/account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotCrossMarginTradeOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/spot-cross-margin-trade/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5SpotCrossMarginTradeRepayHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/repay-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/spot-cross-margin-trade/repay-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanBorrowableCollateralisableNumber(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/borrowable-collateralisable-number", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan/borrowable-collateralisable-number", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanOngoingOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/ongoing-orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan/ongoing-orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanRepaymentHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/repayment-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan/repayment-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanBorrowHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/borrow-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan/borrow-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanMaxCollateralAmount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/max-collateral-amount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan/max-collateral-amount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanAdjustmentHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/adjustment-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan/adjustment-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanCommonMaxCollateralAmount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/max-collateral-amount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-common/max-collateral-amount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanCommonAdjustmentHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/adjustment-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-common/adjustment-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanCommonPosition(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/position", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-common/position", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanFlexibleOngoingCoin(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/ongoing-coin", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-flexible/ongoing-coin", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanFlexibleBorrowHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/borrow-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-flexible/borrow-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanFlexibleRepaymentHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/repayment-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-flexible/repayment-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanFixedBorrowContractInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/borrow-contract-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-fixed/borrow-contract-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanFixedSupplyContractInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/supply-contract-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-fixed/supply-contract-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanFixedBorrowOrderInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/borrow-order-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-fixed/borrow-order-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanFixedRenewInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/renew-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-fixed/renew-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanFixedSupplyOrderInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/supply-order-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-fixed/supply-order-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5CryptoLoanFixedRepaymentHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/repayment-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-fixed/repayment-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5InsLoanProductInfos(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/product-infos", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/product-infos", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5InsLoanEnsureTokens(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/ensure-tokens", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/ensure-tokens", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5InsLoanEnsureTokensConvert(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/ensure-tokens-convert", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/ensure-tokens-convert", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5InsLoanLoanOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/loan-order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/loan-order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5InsLoanRepaidHistory(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/repaid-history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/repaid-history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5InsLoanLtv(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/ltv", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/ltv", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5InsLoanLtvConvert(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/ltv-convert", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/ltv-convert", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5InsLoanCoinDeltaAmount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/coin-delta-amount", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/coin-delta-amount", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5LendingInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/lending/info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5LendingHistoryOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/history-order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/lending/history-order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5LendingAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/lending/account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5BrokerEarningRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/earning-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/broker/earning-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5BrokerEarningsInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/earnings-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/broker/earnings-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5BrokerAccountInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/account-info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/broker/account-info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5BrokerAssetQuerySubMemberDepositRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/asset/query-sub-member-deposit-record", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/broker/asset/query-sub-member-deposit-record", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5EarnProduct(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/product", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/earn/product", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5EarnOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/earn/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5EarnPosition(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/position", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/earn/position", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5EarnYield(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/yield", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/earn/yield", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetV5EarnHourlyYield(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/hourly-yield", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/earn/hourly-yield", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostSpotV3PrivateOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSpotV3PrivateCancelOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cancel-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/cancel-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSpotV3PrivateCancelOrders(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cancel-orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/cancel-orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSpotV3PrivateCancelOrdersByIds(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cancel-orders-by-ids", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/cancel-orders-by-ids", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSpotV3PrivatePurchase(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/purchase", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/purchase", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSpotV3PrivateRedeem(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/redeem", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "spot/v3/private/redeem", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSpotV3PrivateCrossMarginLoan(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-loan", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/v3/private/cross-margin-loan", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSpotV3PrivateCrossMarginRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "spot/v3/private/cross-margin-repay", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/v3/private/cross-margin-repay", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetV3PrivateTransferInterTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/inter-transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "asset/v3/private/transfer/inter-transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetV3PrivateWithdrawCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/withdraw/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 300))
+    return request(self, "asset/v3/private/withdraw/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetV3PrivateWithdrawCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/withdraw/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "asset/v3/private/withdraw/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetV3PrivateTransferSubMemberTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/sub-member-transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "asset/v3/private/transfer/sub-member-transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetV3PrivateTransferTransferSubMemberSave(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/transfer-sub-member-save", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "asset/v3/private/transfer/transfer-sub-member-save", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetV3PrivateTransferUniversalTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "asset/v3/private/transfer/universal-transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "asset/v3/private/transfer/universal-transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserV3PrivateCreateSubMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/create-sub-member", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "user/v3/private/create-sub-member", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserV3PrivateCreateSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/create-sub-api", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "user/v3/private/create-sub-api", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserV3PrivateUpdateApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/update-api", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "user/v3/private/update-api", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserV3PrivateDeleteApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/delete-api", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "user/v3/private/delete-api", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserV3PrivateUpdateSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/update-sub-api", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "user/v3/private/update-sub-api", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUserV3PrivateDeleteSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "user/v3/private/delete-sub-api", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "user/v3/private/delete-sub-api", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateCopytradingOrderCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/order/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "contract/v3/private/copytrading/order/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateCopytradingOrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/order/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "contract/v3/private/copytrading/order/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateCopytradingOrderClose(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/order/close", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "contract/v3/private/copytrading/order/close", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateCopytradingPositionClose(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/position/close", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "contract/v3/private/copytrading/position/close", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateCopytradingPositionSetLeverage(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/position/set-leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "contract/v3/private/copytrading/position/set-leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateCopytradingWalletTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/wallet/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "contract/v3/private/copytrading/wallet/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateCopytradingOrderTradingStop(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/copytrading/order/trading-stop", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "contract/v3/private/copytrading/order/trading-stop", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateOrderCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/order/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateOrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/order/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateOrderCancelAll(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/cancel-all", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/order/cancel-all", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateOrderReplace(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/order/replace", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/order/replace", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivatePositionSetAutoAddMargin(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/set-auto-add-margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/position/set-auto-add-margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivatePositionSwitchIsolated(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/switch-isolated", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/position/switch-isolated", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivatePositionSwitchMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/switch-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/position/switch-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivatePositionSwitchTpslMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/switch-tpsl-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/position/switch-tpsl-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivatePositionSetLeverage(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/set-leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/position/set-leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivatePositionTradingStop(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/trading-stop", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/position/trading-stop", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivatePositionSetRiskLimit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/position/set-risk-limit", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/position/set-risk-limit", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostContractV3PrivateAccountSetMarginMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "contract/v3/private/account/setMarginMode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "contract/v3/private/account/setMarginMode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "unified/v3/private/order/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderReplace(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/replace", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "unified/v3/private/order/replace", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "unified/v3/private/order/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderCreateBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/create-batch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "unified/v3/private/order/create-batch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderReplaceBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/replace-batch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "unified/v3/private/order/replace-batch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderCancelBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/cancel-batch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "unified/v3/private/order/cancel-batch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivateOrderCancelAll(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/order/cancel-all", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "unified/v3/private/order/cancel-all", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivatePositionSetLeverage(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/position/set-leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "unified/v3/private/position/set-leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivatePositionTpslSwitchMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/position/tpsl/switch-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "unified/v3/private/position/tpsl/switch-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivatePositionSetRiskLimit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/position/set-risk-limit", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "unified/v3/private/position/set-risk-limit", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivatePositionTradingStop(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/position/trading-stop", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "unified/v3/private/position/trading-stop", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/upgrade-unified-account", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "unified/v3/private/account/upgrade-unified-account", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostUnifiedV3PrivateAccountSetMarginMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "unified/v3/private/account/setMarginMode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "unified/v3/private/account/setMarginMode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFhtComplianceTaxV3PrivateRegistertime(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "fht/compliance/tax/v3/private/registertime", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "fht/compliance/tax/v3/private/registertime", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFhtComplianceTaxV3PrivateCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "fht/compliance/tax/v3/private/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "fht/compliance/tax/v3/private/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFhtComplianceTaxV3PrivateStatus(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "fht/compliance/tax/v3/private/status", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "fht/compliance/tax/v3/private/status", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFhtComplianceTaxV3PrivateUrl(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "fht/compliance/tax/v3/private/url", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "fht/compliance/tax/v3/private/url", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5OrderCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "v5/order/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5OrderAmend(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/amend", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/order/amend", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5OrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "v5/order/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5OrderCancelAll(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/cancel-all", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/order/cancel-all", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5OrderCreateBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/create-batch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/order/create-batch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5OrderAmendBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/amend-batch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/order/amend-batch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5OrderCancelBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/cancel-batch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/order/cancel-batch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5OrderDisconnectedCancelAll(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/disconnected-cancel-all", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/order/disconnected-cancel-all", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5OrderPreCheck(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/order/pre-check", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/order/pre-check", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5PositionSetLeverage(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/set-leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/set-leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5PositionSwitchIsolated(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/switch-isolated", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/switch-isolated", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5PositionSetTpslMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/set-tpsl-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/set-tpsl-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5PositionSwitchMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/switch-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/switch-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5PositionSetRiskLimit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/set-risk-limit", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/set-risk-limit", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5PositionTradingStop(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/trading-stop", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/trading-stop", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5PositionSetAutoAddMargin(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/set-auto-add-margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/set-auto-add-margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5PositionAddMargin(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/add-margin", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/add-margin", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5PositionMovePositions(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/move-positions", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/move-positions", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5PositionConfirmPendingMmr(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/position/confirm-pending-mmr", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/position/confirm-pending-mmr", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountUpgradeToUta(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/upgrade-to-uta", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/upgrade-to-uta", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountQuickRepayment(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/quick-repayment", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/quick-repayment", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountSetMarginMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-margin-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/set-margin-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountSetHedgingMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-hedging-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/set-hedging-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountMmpModify(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/mmp-modify", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/mmp-modify", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountMmpReset(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/mmp-reset", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/mmp-reset", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountBorrow(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/borrow", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/borrow", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/repay", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/repay", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountNoConvertRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/no-convert-repay", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/no-convert-repay", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountSetLimitPxAction(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-limit-px-action", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/set-limit-px-action", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountSetDeltaMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-delta-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/set-delta-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AssetExchangeQuoteApply(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/quote-apply", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/asset/exchange/quote-apply", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AssetExchangeConvertExecute(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/exchange/convert-execute", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "v5/asset/exchange/convert-execute", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AssetTransferInterTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/inter-transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/asset/transfer/inter-transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AssetTransferSaveTransferSubMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/save-transfer-sub-member", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 150))
+    return request(self, "v5/asset/transfer/save-transfer-sub-member", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AssetTransferUniversalTransfer(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/transfer/universal-transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/asset/transfer/universal-transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AssetDepositDepositToAccount(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/deposit/deposit-to-account", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/deposit/deposit-to-account", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AssetTravelRuleDepositSubmit(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/travel-rule/deposit/submit", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/asset/travel-rule/deposit/submit", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AssetWithdrawCreate(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/create", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/asset/withdraw/create", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AssetWithdrawCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/withdraw/cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/asset/withdraw/cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AssetCovertGetQuote(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/covert/get-quote", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/asset/covert/get-quote", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AssetCovertSmallBalanceExecute(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/asset/covert/small-balance-execute", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/asset/covert/small-balance-execute", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5FiatQuoteApply(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/quote-apply", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/fiat/quote-apply", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5FiatTradeExecute(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/fiat/trade-execute", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/fiat/trade-execute", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5UserCreateSubMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/create-sub-member", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/user/create-sub-member", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5UserCreateSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/create-sub-api", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/user/create-sub-api", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5UserFrozenSubMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/frozen-sub-member", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/user/frozen-sub-member", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5UserUpdateApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/update-api", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/user/update-api", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5UserUpdateSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/update-sub-api", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/user/update-sub-api", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5UserDeleteApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/delete-api", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/user/delete-api", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5UserDeleteSubApi(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/delete-sub-api", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/user/delete-sub-api", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5UserAgreement(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/agreement", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/user/agreement", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5UserCreateDemoMember(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/user/create-demo-member", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/user/create-demo-member", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5SpotLeverTokenPurchase(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-lever-token/purchase", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "v5/spot-lever-token/purchase", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5SpotLeverTokenRedeem(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-lever-token/redeem", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "v5/spot-lever-token/redeem", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5SpotMarginTradeSwitchMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/switch-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/switch-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5SpotMarginTradeSetLeverage(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/set-leverage", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/set-leverage", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5SpotMarginTradeSetAutoRepayMode(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/set-auto-repay-mode", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/set-auto-repay-mode", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5SpotMarginTradeFixedborrow(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/fixedborrow", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/fixedborrow", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5SpotMarginTradeFixedborrowRenew(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-margin-trade/fixedborrow-renew", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/spot-margin-trade/fixedborrow-renew", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5SpotCrossMarginTradeLoan(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/loan", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "v5/spot-cross-margin-trade/loan", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5SpotCrossMarginTradeRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/repay", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "v5/spot-cross-margin-trade/repay", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5SpotCrossMarginTradeSwitch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/spot-cross-margin-trade/switch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 2.5))
+    return request(self, "v5/spot-cross-margin-trade/switch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanBorrow(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/borrow", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan/borrow", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/repay", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan/repay", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanAdjustLtv(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan/adjust-ltv", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/crypto-loan/adjust-ltv", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanCommonAdjustLtv(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/adjust-ltv", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/crypto-loan-common/adjust-ltv", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanCommonMaxLoan(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-common/max-loan", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "v5/crypto-loan-common/max-loan", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanFlexibleBorrow(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/borrow", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/crypto-loan-flexible/borrow", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanFlexibleRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/repay", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/crypto-loan-flexible/repay", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanFlexibleRepayCollateral(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-flexible/repay-collateral", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/crypto-loan-flexible/repay-collateral", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanFixedBorrow(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/borrow", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/crypto-loan-fixed/borrow", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanFixedRenew(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/renew", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/crypto-loan-fixed/renew", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanFixedSupply(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/supply", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/crypto-loan-fixed/supply", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanFixedBorrowOrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/borrow-order-cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/crypto-loan-fixed/borrow-order-cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanFixedSupplyOrderCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/supply-order-cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/crypto-loan-fixed/supply-order-cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanFixedFullyRepay(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/fully-repay", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/crypto-loan-fixed/fully-repay", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5CryptoLoanFixedRepayCollateral(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/crypto-loan-fixed/repay-collateral", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 50))
+    return request(self, "v5/crypto-loan-fixed/repay-collateral", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5InsLoanAssociationUid(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/association-uid", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/association-uid", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5InsLoanRepayLoan(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/ins-loan/repay-loan", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/ins-loan/repay-loan", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5LendingPurchase(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/purchase", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/lending/purchase", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5LendingRedeem(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/redeem", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/lending/redeem", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5LendingRedeemCancel(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/lending/redeem-cancel", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/lending/redeem-cancel", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountSetCollateralSwitch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-collateral-switch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/set-collateral-switch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountSetCollateralSwitchBatch(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/set-collateral-switch-batch", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/set-collateral-switch-batch", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5AccountDemoApplyMoney(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/account/demo-apply-money", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/account/demo-apply-money", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5BrokerAwardInfo(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/award/info", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/broker/award/info", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5BrokerAwardDistributeAward(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/award/distribute-award", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/broker/award/distribute-award", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5BrokerAwardDistributionRecord(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/broker/award/distribution-record", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/broker/award/distribution-record", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostV5EarnPlaceOrder(self::Bybit, params=Dict(), context=Dict())
-    return request(self, "v5/earn/place-order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "v5/earn/place-order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function Bybit(; kwargs...)
-    inst = Bybit(Exchange(), describe, enableDemoTrading, nonce, addPaginationCursorToResult, isUnifiedEnabled, upgradeUnifiedTradeAccount, createExpiredOptionMarket, safeMarket, getBybitType, getAmount, getPrice, getCost, fetchStatus, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, fetchSpotMarkets, fetchFutureMarkets, fetchOptionMarkets, parseTicker, fetchTicker, fetchTickers, fetchBidsAsks, parseOHLCV, fetchOHLCV, parseFundingRate, fetchFundingRates, fetchFundingRateHistory, parseTrade, fetchTrades, fetchOrderBook, parseBalance, fetchBalance, parseOrderStatus, parseTimeInForce, parseOrder, createMarketBuyOrderWithCost, createMarketSellOrderWithCost, createOrder, createOrderRequest, createOrders, editOrderRequest, editOrder, editOrders, cancelOrderRequest, cancelOrder, cancelOrders, cancelAllOrdersAfter, cancelOrdersForSymbols, cancelAllOrders, fetchOrderClassic, fetchOrder, fetchOrders, fetchOrdersClassic, fetchClosedOrder, fetchOpenOrder, fetchCanceledAndClosedOrders, fetchClosedOrders, fetchCanceledOrders, fetchOpenOrders, fetchOrderTrades, fetchMyTrades, parseDepositAddress, fetchDepositAddressesByNetwork, fetchDepositAddress, fetchDeposits, fetchWithdrawals, parseTransactionStatus, parseTransaction, fetchLedger, parseLedgerEntry, parseLedgerEntryType, withdraw, fetchPosition, fetchPositions, parsePosition, fetchLeverage, parseLeverage, setMarginMode, setLeverage, setPositionMode, fetchDerivativesOpenInterestHistory, fetchOpenInterest, fetchOpenInterestHistory, parseOpenInterest, fetchCrossBorrowRate, parseBorrowRate, fetchBorrowInterest, fetchBorrowRateHistory, parseBorrowInterest, transfer, fetchTransfers, borrowCrossMargin, repayCrossMargin, parseMarginLoan, parseTransferStatus, parseTransfer, fetchDerivativesMarketLeverageTiers, fetchMarketLeverageTiers, parseTradingFee, fetchTradingFee, fetchTradingFees, parseDepositWithdrawFee, fetchDepositWithdrawFees, fetchSettlementHistory, fetchMySettlementHistory, parseSettlement, parseSettlements, fetchVolatilityHistory, parseVolatilityHistory, fetchGreeks, fetchAllGreeks, parseGreeks, fetchMyLiquidations, parseLiquidation, getLeverageTiersPaginated, fetchLeverageTiers, parseLeverageTiers, parseMarketLeverageTiers, fetchFundingHistory, parseIncome, fetchOption, fetchOptionChain, parseOption, fetchPositionsHistory, fetchConvertCurrencies, fetchConvertQuote, createConvertTrade, fetchConvertTrade, fetchConvertTradeHistory, parseConversion, fetchLongShortRatioHistory, parseLongShortRatio, fetchPositionsADLRank, parseADLRank, fetchMarginMode, parseMarginMode, parseMarginModeType, sign, handleErrors, publicGetSpotV3PublicSymbols, publicGetSpotV3PublicQuoteDepth, publicGetSpotV3PublicQuoteDepthMerged, publicGetSpotV3PublicQuoteTrades, publicGetSpotV3PublicQuoteKline, publicGetSpotV3PublicQuoteTicker24hr, publicGetSpotV3PublicQuoteTickerPrice, publicGetSpotV3PublicQuoteTickerBookTicker, publicGetSpotV3PublicServerTime, publicGetSpotV3PublicInfos, publicGetSpotV3PublicMarginProductInfos, publicGetSpotV3PublicMarginEnsureTokens, publicGetV3PublicTime, publicGetContractV3PublicCopytradingSymbolList, publicGetDerivativesV3PublicOrderBookL2, publicGetDerivativesV3PublicKline, publicGetDerivativesV3PublicTickers, publicGetDerivativesV3PublicInstrumentsInfo, publicGetDerivativesV3PublicMarkPriceKline, publicGetDerivativesV3PublicIndexPriceKline, publicGetDerivativesV3PublicFundingHistoryFundingRate, publicGetDerivativesV3PublicRiskLimitList, publicGetDerivativesV3PublicDeliveryPrice, publicGetDerivativesV3PublicRecentTrade, publicGetDerivativesV3PublicOpenInterest, publicGetDerivativesV3PublicInsurance, publicGetV5AnnouncementsIndex, publicGetV5SystemStatus, publicGetV5MarketTime, publicGetV5MarketKline, publicGetV5MarketMarkPriceKline, publicGetV5MarketIndexPriceKline, publicGetV5MarketPremiumIndexPriceKline, publicGetV5MarketInstrumentsInfo, publicGetV5MarketOrderbook, publicGetV5MarketRpiOrderbook, publicGetV5MarketFullOrderbook, publicGetV5MarketTickers, publicGetV5MarketFundingHistory, publicGetV5MarketRecentTrade, publicGetV5MarketOpenInterest, publicGetV5MarketHistoricalVolatility, publicGetV5MarketInsurance, publicGetV5MarketRiskLimit, publicGetV5MarketDeliveryPrice, publicGetV5MarketNewDeliveryPrice, publicGetV5MarketAccountRatio, publicGetV5MarketIndexPriceComponents, publicGetV5MarketPriceLimit, publicGetV5MarketAdlAlert, publicGetV5MarketFeeGroupInfo, publicGetV5SpotLeverTokenInfo, publicGetV5SpotLeverTokenReference, publicGetV5SpotMarginTradeData, publicGetV5SpotMarginTradeCollateral, publicGetV5SpotCrossMarginTradeData, publicGetV5SpotCrossMarginTradePledgeToken, publicGetV5SpotCrossMarginTradeBorrowToken, publicGetV5CryptoLoanCollateralData, publicGetV5CryptoLoanLoanableData, publicGetV5CryptoLoanCommonLoanableData, publicGetV5CryptoLoanCommonCollateralData, publicGetV5CryptoLoanFixedSupplyOrderQuote, publicGetV5CryptoLoanFixedBorrowOrderQuote, publicGetV5InsLoanProductInfos, publicGetV5InsLoanEnsureTokensConvert, publicGetV5EarnProduct, privateGetV5MarketInstrumentsInfo, privateGetV2PrivateWalletFundRecords, privateGetSpotV3PrivateOrder, privateGetSpotV3PrivateOpenOrders, privateGetSpotV3PrivateHistoryOrders, privateGetSpotV3PrivateMyTrades, privateGetSpotV3PrivateAccount, privateGetSpotV3PrivateReference, privateGetSpotV3PrivateRecord, privateGetSpotV3PrivateCrossMarginOrders, privateGetSpotV3PrivateCrossMarginAccount, privateGetSpotV3PrivateCrossMarginLoanInfo, privateGetSpotV3PrivateCrossMarginRepayHistory, privateGetSpotV3PrivateMarginLoanInfos, privateGetSpotV3PrivateMarginRepaidInfos, privateGetSpotV3PrivateMarginLtv, privateGetAssetV3PrivateTransferInterTransferListQuery, privateGetAssetV3PrivateTransferSubMemberListQuery, privateGetAssetV3PrivateTransferSubMemberTransferListQuery, privateGetAssetV3PrivateTransferUniversalTransferListQuery, privateGetAssetV3PrivateCoinInfoQuery, privateGetAssetV3PrivateDepositAddressQuery, privateGetContractV3PrivateCopytradingOrderList, privateGetContractV3PrivateCopytradingPositionList, privateGetContractV3PrivateCopytradingWalletBalance, privateGetContractV3PrivatePositionLimitInfo, privateGetContractV3PrivateOrderUnfilledOrders, privateGetContractV3PrivateOrderList, privateGetContractV3PrivatePositionList, privateGetContractV3PrivateExecutionList, privateGetContractV3PrivatePositionClosedPnl, privateGetContractV3PrivateAccountWalletBalance, privateGetContractV3PrivateAccountFeeRate, privateGetContractV3PrivateAccountWalletFundRecords, privateGetUnifiedV3PrivateOrderUnfilledOrders, privateGetUnifiedV3PrivateOrderList, privateGetUnifiedV3PrivatePositionList, privateGetUnifiedV3PrivateExecutionList, privateGetUnifiedV3PrivateDeliveryRecord, privateGetUnifiedV3PrivateSettlementRecord, privateGetUnifiedV3PrivateAccountWalletBalance, privateGetUnifiedV3PrivateAccountTransactionLog, privateGetUnifiedV3PrivateAccountBorrowHistory, privateGetUnifiedV3PrivateAccountBorrowRate, privateGetUnifiedV3PrivateAccountInfo, privateGetUserV3PrivateFrozenSubMember, privateGetUserV3PrivateQuerySubMembers, privateGetUserV3PrivateQueryApi, privateGetUserV3PrivateGetMemberType, privateGetAssetV3PrivateTransferTransferCoinListQuery, privateGetAssetV3PrivateTransferAccountCoinBalanceQuery, privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery, privateGetAssetV3PrivateTransferAssetInfoQuery, privateGetAssetV3PublicDepositAllowedDepositListQuery, privateGetAssetV3PrivateDepositRecordQuery, privateGetAssetV3PrivateWithdrawRecordQuery, privateGetV5OrderRealtime, privateGetV5OrderHistory, privateGetV5OrderSpotBorrowCheck, privateGetV5PositionList, privateGetV5ExecutionList, privateGetV5PositionClosedPnl, privateGetV5PositionGetClosedPositions, privateGetV5PositionMoveHistory, privateGetV5PositionSymbolInfo, privateGetV5PreUpgradeOrderHistory, privateGetV5PreUpgradeExecutionList, privateGetV5PreUpgradePositionClosedPnl, privateGetV5PreUpgradeAccountTransactionLog, privateGetV5PreUpgradeAssetDeliveryRecord, privateGetV5PreUpgradeAssetSettlementRecord, privateGetV5AccountWalletBalance, privateGetV5AccountBorrowHistory, privateGetV5AccountInstrumentsInfo, privateGetV5AccountCollateralInfo, privateGetV5AccountOptionAssetInfo, privateGetV5AssetCoinGreeks, privateGetV5AccountFeeRate, privateGetV5AccountInfo, privateGetV5AccountTransactionLog, privateGetV5AccountContractTransactionLog, privateGetV5AccountQueryDcpInfo, privateGetV5AccountUserSettingConfig, privateGetV5AccountPayInfo, privateGetV5AccountTradeInfoForAnalysis, privateGetV5AccountSmpGroup, privateGetV5AccountMmpState, privateGetV5AccountWithdrawal, privateGetV5AssetAssetOverview, privateGetV5AssetExchangeQueryCoinList, privateGetV5AssetExchangeConvertResultQuery, privateGetV5AssetExchangeQueryConvertHistory, privateGetV5AssetExchangeOrderRecord, privateGetV5AssetFundinghistory, privateGetV5AssetPortfolioMargin, privateGetV5AssetTotalMembersAssets, privateGetV5AssetDeliveryRecord, privateGetV5AssetSettlementRecord, privateGetV5AssetTransferQueryAssetInfo, privateGetV5AssetTransferQueryAccountCoinsBalance, privateGetV5AssetTransferQueryAccountCoinBalance, privateGetV5AssetTransferQueryTransferCoinList, privateGetV5AssetTransferQueryInterTransferList, privateGetV5AssetTransferQuerySubMemberList, privateGetV5AssetTransferQueryUniversalTransferList, privateGetV5AssetDepositQueryAllowedList, privateGetV5AssetDepositQueryRecord, privateGetV5AssetDepositQuerySubMemberRecord, privateGetV5AssetDepositQueryInternalRecord, privateGetV5AssetDepositQueryAddress, privateGetV5AssetDepositQuerySubMemberAddress, privateGetV5AssetCoinQueryInfo, privateGetV5AssetWithdrawQueryAddress, privateGetV5AssetWithdrawQueryRecord, privateGetV5AssetWithdrawWithdrawableAmount, privateGetV5AssetWithdrawVaspList, privateGetV5AssetCovertSmallBalanceList, privateGetV5AssetCovertSmallBalanceHistory, privateGetV5AssetConvertSmallBalanceList, privateGetV5AssetConvertSmallBalanceHistory, privateGetV5FiatQueryCoinList, privateGetV5FiatReferencePrice, privateGetV5FiatTradeQuery, privateGetV5FiatQueryTradeHistory, privateGetV5FiatBalanceQuery, privateGetV5UserQuerySubMembers, privateGetV5UserQueryApi, privateGetV5UserSubApikeys, privateGetV5UserGetMemberType, privateGetV5UserAffCustomerInfo, privateGetV5UserDelSubmember, privateGetV5UserSubmembers, privateGetV5UserEscrowSubMembers, privateGetV5UserInvitationReferrals, privateGetV5AffiliateAffUserList, privateGetV5AffiliateAffiliateSubList, privateGetV5SpotLeverTokenOrderRecord, privateGetV5SpotMarginTradeInterestRateHistory, privateGetV5SpotMarginTradeState, privateGetV5SpotMarginTradeMaxBorrowable, privateGetV5SpotMarginTradePositionTiers, privateGetV5SpotMarginTradeCoinstate, privateGetV5SpotMarginTradeCurrencyData, privateGetV5SpotMarginTradeFixedborrowContractInfo, privateGetV5SpotMarginTradeFixedborrowOrderInfo, privateGetV5SpotMarginTradeFixedborrowOrderQuote, privateGetV5SpotMarginTradeLiability, privateGetV5SpotMarginTradeRepaymentAvailableAmount, privateGetV5SpotMarginTradeGetAutoRepayMode, privateGetV5SpotCrossMarginTradeLoanInfo, privateGetV5SpotCrossMarginTradeAccount, privateGetV5SpotCrossMarginTradeOrders, privateGetV5SpotCrossMarginTradeRepayHistory, privateGetV5CryptoLoanBorrowableCollateralisableNumber, privateGetV5CryptoLoanOngoingOrders, privateGetV5CryptoLoanRepaymentHistory, privateGetV5CryptoLoanBorrowHistory, privateGetV5CryptoLoanMaxCollateralAmount, privateGetV5CryptoLoanAdjustmentHistory, privateGetV5CryptoLoanCommonMaxCollateralAmount, privateGetV5CryptoLoanCommonAdjustmentHistory, privateGetV5CryptoLoanCommonPosition, privateGetV5CryptoLoanFlexibleOngoingCoin, privateGetV5CryptoLoanFlexibleBorrowHistory, privateGetV5CryptoLoanFlexibleRepaymentHistory, privateGetV5CryptoLoanFixedBorrowContractInfo, privateGetV5CryptoLoanFixedSupplyContractInfo, privateGetV5CryptoLoanFixedBorrowOrderInfo, privateGetV5CryptoLoanFixedRenewInfo, privateGetV5CryptoLoanFixedSupplyOrderInfo, privateGetV5CryptoLoanFixedRepaymentHistory, privateGetV5InsLoanProductInfos, privateGetV5InsLoanEnsureTokens, privateGetV5InsLoanEnsureTokensConvert, privateGetV5InsLoanLoanOrder, privateGetV5InsLoanRepaidHistory, privateGetV5InsLoanLtv, privateGetV5InsLoanLtvConvert, privateGetV5InsLoanCoinDeltaAmount, privateGetV5LendingInfo, privateGetV5LendingHistoryOrder, privateGetV5LendingAccount, privateGetV5BrokerEarningRecord, privateGetV5BrokerEarningsInfo, privateGetV5BrokerAccountInfo, privateGetV5BrokerAssetQuerySubMemberDepositRecord, privateGetV5EarnProduct, privateGetV5EarnOrder, privateGetV5EarnPosition, privateGetV5EarnYield, privateGetV5EarnHourlyYield, privatePostSpotV3PrivateOrder, privatePostSpotV3PrivateCancelOrder, privatePostSpotV3PrivateCancelOrders, privatePostSpotV3PrivateCancelOrdersByIds, privatePostSpotV3PrivatePurchase, privatePostSpotV3PrivateRedeem, privatePostSpotV3PrivateCrossMarginLoan, privatePostSpotV3PrivateCrossMarginRepay, privatePostAssetV3PrivateTransferInterTransfer, privatePostAssetV3PrivateWithdrawCreate, privatePostAssetV3PrivateWithdrawCancel, privatePostAssetV3PrivateTransferSubMemberTransfer, privatePostAssetV3PrivateTransferTransferSubMemberSave, privatePostAssetV3PrivateTransferUniversalTransfer, privatePostUserV3PrivateCreateSubMember, privatePostUserV3PrivateCreateSubApi, privatePostUserV3PrivateUpdateApi, privatePostUserV3PrivateDeleteApi, privatePostUserV3PrivateUpdateSubApi, privatePostUserV3PrivateDeleteSubApi, privatePostContractV3PrivateCopytradingOrderCreate, privatePostContractV3PrivateCopytradingOrderCancel, privatePostContractV3PrivateCopytradingOrderClose, privatePostContractV3PrivateCopytradingPositionClose, privatePostContractV3PrivateCopytradingPositionSetLeverage, privatePostContractV3PrivateCopytradingWalletTransfer, privatePostContractV3PrivateCopytradingOrderTradingStop, privatePostContractV3PrivateOrderCreate, privatePostContractV3PrivateOrderCancel, privatePostContractV3PrivateOrderCancelAll, privatePostContractV3PrivateOrderReplace, privatePostContractV3PrivatePositionSetAutoAddMargin, privatePostContractV3PrivatePositionSwitchIsolated, privatePostContractV3PrivatePositionSwitchMode, privatePostContractV3PrivatePositionSwitchTpslMode, privatePostContractV3PrivatePositionSetLeverage, privatePostContractV3PrivatePositionTradingStop, privatePostContractV3PrivatePositionSetRiskLimit, privatePostContractV3PrivateAccountSetMarginMode, privatePostUnifiedV3PrivateOrderCreate, privatePostUnifiedV3PrivateOrderReplace, privatePostUnifiedV3PrivateOrderCancel, privatePostUnifiedV3PrivateOrderCreateBatch, privatePostUnifiedV3PrivateOrderReplaceBatch, privatePostUnifiedV3PrivateOrderCancelBatch, privatePostUnifiedV3PrivateOrderCancelAll, privatePostUnifiedV3PrivatePositionSetLeverage, privatePostUnifiedV3PrivatePositionTpslSwitchMode, privatePostUnifiedV3PrivatePositionSetRiskLimit, privatePostUnifiedV3PrivatePositionTradingStop, privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount, privatePostUnifiedV3PrivateAccountSetMarginMode, privatePostFhtComplianceTaxV3PrivateRegistertime, privatePostFhtComplianceTaxV3PrivateCreate, privatePostFhtComplianceTaxV3PrivateStatus, privatePostFhtComplianceTaxV3PrivateUrl, privatePostV5OrderCreate, privatePostV5OrderAmend, privatePostV5OrderCancel, privatePostV5OrderCancelAll, privatePostV5OrderCreateBatch, privatePostV5OrderAmendBatch, privatePostV5OrderCancelBatch, privatePostV5OrderDisconnectedCancelAll, privatePostV5OrderPreCheck, privatePostV5PositionSetLeverage, privatePostV5PositionSwitchIsolated, privatePostV5PositionSetTpslMode, privatePostV5PositionSwitchMode, privatePostV5PositionSetRiskLimit, privatePostV5PositionTradingStop, privatePostV5PositionSetAutoAddMargin, privatePostV5PositionAddMargin, privatePostV5PositionMovePositions, privatePostV5PositionConfirmPendingMmr, privatePostV5AccountUpgradeToUta, privatePostV5AccountQuickRepayment, privatePostV5AccountSetMarginMode, privatePostV5AccountSetHedgingMode, privatePostV5AccountMmpModify, privatePostV5AccountMmpReset, privatePostV5AccountBorrow, privatePostV5AccountRepay, privatePostV5AccountNoConvertRepay, privatePostV5AccountSetLimitPxAction, privatePostV5AccountSetDeltaMode, privatePostV5AssetExchangeQuoteApply, privatePostV5AssetExchangeConvertExecute, privatePostV5AssetTransferInterTransfer, privatePostV5AssetTransferSaveTransferSubMember, privatePostV5AssetTransferUniversalTransfer, privatePostV5AssetDepositDepositToAccount, privatePostV5AssetTravelRuleDepositSubmit, privatePostV5AssetWithdrawCreate, privatePostV5AssetWithdrawCancel, privatePostV5AssetCovertGetQuote, privatePostV5AssetCovertSmallBalanceExecute, privatePostV5FiatQuoteApply, privatePostV5FiatTradeExecute, privatePostV5UserCreateSubMember, privatePostV5UserCreateSubApi, privatePostV5UserFrozenSubMember, privatePostV5UserUpdateApi, privatePostV5UserUpdateSubApi, privatePostV5UserDeleteApi, privatePostV5UserDeleteSubApi, privatePostV5UserAgreement, privatePostV5UserCreateDemoMember, privatePostV5SpotLeverTokenPurchase, privatePostV5SpotLeverTokenRedeem, privatePostV5SpotMarginTradeSwitchMode, privatePostV5SpotMarginTradeSetLeverage, privatePostV5SpotMarginTradeSetAutoRepayMode, privatePostV5SpotMarginTradeFixedborrow, privatePostV5SpotMarginTradeFixedborrowRenew, privatePostV5SpotCrossMarginTradeLoan, privatePostV5SpotCrossMarginTradeRepay, privatePostV5SpotCrossMarginTradeSwitch, privatePostV5CryptoLoanBorrow, privatePostV5CryptoLoanRepay, privatePostV5CryptoLoanAdjustLtv, privatePostV5CryptoLoanCommonAdjustLtv, privatePostV5CryptoLoanCommonMaxLoan, privatePostV5CryptoLoanFlexibleBorrow, privatePostV5CryptoLoanFlexibleRepay, privatePostV5CryptoLoanFlexibleRepayCollateral, privatePostV5CryptoLoanFixedBorrow, privatePostV5CryptoLoanFixedRenew, privatePostV5CryptoLoanFixedSupply, privatePostV5CryptoLoanFixedBorrowOrderCancel, privatePostV5CryptoLoanFixedSupplyOrderCancel, privatePostV5CryptoLoanFixedFullyRepay, privatePostV5CryptoLoanFixedRepayCollateral, privatePostV5InsLoanAssociationUid, privatePostV5InsLoanRepayLoan, privatePostV5LendingPurchase, privatePostV5LendingRedeem, privatePostV5LendingRedeemCancel, privatePostV5AccountSetCollateralSwitch, privatePostV5AccountSetCollateralSwitchBatch, privatePostV5AccountDemoApplyMoney, privatePostV5BrokerAwardInfo, privatePostV5BrokerAwardDistributeAward, privatePostV5BrokerAwardDistributionRecord, privatePostV5EarnPlaceOrder)
+    inst = Bybit(Exchange(), describe, enableDemoTrading, nonce, addPaginationCursorToResult, isUnifiedEnabled, upgradeUnifiedTradeAccount, createExpiredOptionMarket, safeMarket, getBybitType, getAmount, getPrice, getCost, fetchStatus, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, fetchSpotMarkets, fetchFutureMarkets, fetchOptionMarkets, parseTicker, fetchTicker, fetchTickers, fetchBidsAsks, parseOHLCV, fetchOHLCV, parseFundingRate, fetchFundingRates, fetchFundingRateHistory, parseTrade, fetchTrades, fetchOrderBook, parseBalance, fetchBalance, parseOrderStatus, parseTimeInForce, parseOrder, createMarketBuyOrderWithCost, createMarketSellOrderWithCost, createOrder, createOrderRequest, createOrders, editOrderRequest, editOrder, editOrders, cancelOrderRequest, cancelOrder, cancelOrders, cancelAllOrdersAfter, cancelOrdersForSymbols, cancelAllOrders, fetchOrderClassic, fetchOrder, fetchOrders, fetchOrdersClassic, fetchClosedOrder, fetchOpenOrder, fetchCanceledAndClosedOrders, fetchClosedOrders, fetchCanceledOrders, fetchOpenOrders, fetchOrderTrades, fetchMyTrades, parseDepositAddress, fetchDepositAddressesByNetwork, fetchDepositAddress, fetchDeposits, fetchWithdrawals, parseTransactionStatus, parseTransaction, fetchLedger, parseLedgerEntry, parseLedgerEntryType, withdraw, fetchPosition, fetchPositions, parsePosition, fetchLeverage, parseLeverage, setMarginMode, setLeverage, setPositionMode, fetchDerivativesOpenInterestHistory, fetchOpenInterest, fetchOpenInterestHistory, parseOpenInterest, fetchCrossBorrowRate, parseBorrowRate, fetchBorrowInterest, fetchBorrowRateHistory, parseBorrowInterest, transfer, fetchTransfers, borrowCrossMargin, repayCrossMargin, parseMarginLoan, parseTransferStatus, parseTransfer, fetchDerivativesMarketLeverageTiers, fetchMarketLeverageTiers, parseTradingFee, fetchTradingFee, fetchTradingFees, parseDepositWithdrawFee, fetchDepositWithdrawFees, fetchSettlementHistory, fetchMySettlementHistory, parseSettlement, parseSettlements, fetchVolatilityHistory, parseVolatilityHistory, fetchGreeks, fetchAllGreeks, parseGreeks, fetchMyLiquidations, parseLiquidation, getLeverageTiersPaginated, fetchLeverageTiers, parseLeverageTiers, parseMarketLeverageTiers, fetchFundingHistory, parseIncome, fetchOption, fetchOptionChain, parseOption, fetchPositionsHistory, fetchConvertCurrencies, fetchConvertQuote, createConvertTrade, fetchConvertTrade, fetchConvertTradeHistory, parseConversion, fetchLongShortRatioHistory, parseLongShortRatio, fetchPositionsADLRank, parseADLRank, fetchMarginMode, parseMarginMode, parseMarginModeType, sign, handleErrors, publicGetSpotV3PublicSymbols, publicGetSpotV3PublicQuoteDepth, publicGetSpotV3PublicQuoteDepthMerged, publicGetSpotV3PublicQuoteTrades, publicGetSpotV3PublicQuoteKline, publicGetSpotV3PublicQuoteTicker24hr, publicGetSpotV3PublicQuoteTickerPrice, publicGetSpotV3PublicQuoteTickerBookTicker, publicGetSpotV3PublicServerTime, publicGetSpotV3PublicInfos, publicGetSpotV3PublicMarginProductInfos, publicGetSpotV3PublicMarginEnsureTokens, publicGetV3PublicTime, publicGetContractV3PublicCopytradingSymbolList, publicGetDerivativesV3PublicOrderBookL2, publicGetDerivativesV3PublicKline, publicGetDerivativesV3PublicTickers, publicGetDerivativesV3PublicInstrumentsInfo, publicGetDerivativesV3PublicMarkPriceKline, publicGetDerivativesV3PublicIndexPriceKline, publicGetDerivativesV3PublicFundingHistoryFundingRate, publicGetDerivativesV3PublicRiskLimitList, publicGetDerivativesV3PublicDeliveryPrice, publicGetDerivativesV3PublicRecentTrade, publicGetDerivativesV3PublicOpenInterest, publicGetDerivativesV3PublicInsurance, publicGetV5AnnouncementsIndex, publicGetV5SystemStatus, publicGetV5MarketTime, publicGetV5MarketKline, publicGetV5MarketMarkPriceKline, publicGetV5MarketIndexPriceKline, publicGetV5MarketPremiumIndexPriceKline, publicGetV5MarketInstrumentsInfo, publicGetV5MarketOrderbook, publicGetV5MarketRpiOrderbook, publicGetV5MarketFullOrderbook, publicGetV5MarketTickers, publicGetV5MarketFundingHistory, publicGetV5MarketRecentTrade, publicGetV5MarketOpenInterest, publicGetV5MarketHistoricalVolatility, publicGetV5MarketInsurance, publicGetV5MarketRiskLimit, publicGetV5MarketDeliveryPrice, publicGetV5MarketNewDeliveryPrice, publicGetV5MarketAccountRatio, publicGetV5MarketIndexPriceComponents, publicGetV5MarketPriceLimit, publicGetV5MarketAdlAlert, publicGetV5MarketFeeGroupInfo, publicGetV5SpotLeverTokenInfo, publicGetV5SpotLeverTokenReference, publicGetV5SpotMarginTradeData, publicGetV5SpotMarginTradeCollateral, publicGetV5SpotCrossMarginTradeData, publicGetV5SpotCrossMarginTradePledgeToken, publicGetV5SpotCrossMarginTradeBorrowToken, publicGetV5CryptoLoanCollateralData, publicGetV5CryptoLoanLoanableData, publicGetV5CryptoLoanCommonLoanableData, publicGetV5CryptoLoanCommonCollateralData, publicGetV5CryptoLoanFixedSupplyOrderQuote, publicGetV5CryptoLoanFixedBorrowOrderQuote, publicGetV5InsLoanProductInfos, publicGetV5InsLoanEnsureTokensConvert, publicGetV5EarnProduct, privateGetV5MarketInstrumentsInfo, privateGetV2PrivateWalletFundRecords, privateGetSpotV3PrivateOrder, privateGetSpotV3PrivateOpenOrders, privateGetSpotV3PrivateHistoryOrders, privateGetSpotV3PrivateMyTrades, privateGetSpotV3PrivateAccount, privateGetSpotV3PrivateReference, privateGetSpotV3PrivateRecord, privateGetSpotV3PrivateCrossMarginOrders, privateGetSpotV3PrivateCrossMarginAccount, privateGetSpotV3PrivateCrossMarginLoanInfo, privateGetSpotV3PrivateCrossMarginRepayHistory, privateGetSpotV3PrivateMarginLoanInfos, privateGetSpotV3PrivateMarginRepaidInfos, privateGetSpotV3PrivateMarginLtv, privateGetAssetV3PrivateTransferInterTransferListQuery, privateGetAssetV3PrivateTransferSubMemberListQuery, privateGetAssetV3PrivateTransferSubMemberTransferListQuery, privateGetAssetV3PrivateTransferUniversalTransferListQuery, privateGetAssetV3PrivateCoinInfoQuery, privateGetAssetV3PrivateDepositAddressQuery, privateGetContractV3PrivateCopytradingOrderList, privateGetContractV3PrivateCopytradingPositionList, privateGetContractV3PrivateCopytradingWalletBalance, privateGetContractV3PrivatePositionLimitInfo, privateGetContractV3PrivateOrderUnfilledOrders, privateGetContractV3PrivateOrderList, privateGetContractV3PrivatePositionList, privateGetContractV3PrivateExecutionList, privateGetContractV3PrivatePositionClosedPnl, privateGetContractV3PrivateAccountWalletBalance, privateGetContractV3PrivateAccountFeeRate, privateGetContractV3PrivateAccountWalletFundRecords, privateGetUnifiedV3PrivateOrderUnfilledOrders, privateGetUnifiedV3PrivateOrderList, privateGetUnifiedV3PrivatePositionList, privateGetUnifiedV3PrivateExecutionList, privateGetUnifiedV3PrivateDeliveryRecord, privateGetUnifiedV3PrivateSettlementRecord, privateGetUnifiedV3PrivateAccountWalletBalance, privateGetUnifiedV3PrivateAccountTransactionLog, privateGetUnifiedV3PrivateAccountBorrowHistory, privateGetUnifiedV3PrivateAccountBorrowRate, privateGetUnifiedV3PrivateAccountInfo, privateGetUserV3PrivateFrozenSubMember, privateGetUserV3PrivateQuerySubMembers, privateGetUserV3PrivateQueryApi, privateGetUserV3PrivateGetMemberType, privateGetAssetV3PrivateTransferTransferCoinListQuery, privateGetAssetV3PrivateTransferAccountCoinBalanceQuery, privateGetAssetV3PrivateTransferAccountCoinsBalanceQuery, privateGetAssetV3PrivateTransferAssetInfoQuery, privateGetAssetV3PublicDepositAllowedDepositListQuery, privateGetAssetV3PrivateDepositRecordQuery, privateGetAssetV3PrivateWithdrawRecordQuery, privateGetV5OrderRealtime, privateGetV5OrderHistory, privateGetV5OrderSpotBorrowCheck, privateGetV5PositionList, privateGetV5ExecutionList, privateGetV5PositionClosedPnl, privateGetV5PositionGetClosedPositions, privateGetV5PositionMoveHistory, privateGetV5PositionSymbolInfo, privateGetV5PreUpgradeOrderHistory, privateGetV5PreUpgradeExecutionList, privateGetV5PreUpgradePositionClosedPnl, privateGetV5PreUpgradeAccountTransactionLog, privateGetV5PreUpgradeAssetDeliveryRecord, privateGetV5PreUpgradeAssetSettlementRecord, privateGetV5AccountWalletBalance, privateGetV5AccountBorrowHistory, privateGetV5AccountInstrumentsInfo, privateGetV5AccountCollateralInfo, privateGetV5AccountOptionAssetInfo, privateGetV5AssetCoinGreeks, privateGetV5AccountFeeRate, privateGetV5AccountInfo, privateGetV5AccountTransactionLog, privateGetV5AccountContractTransactionLog, privateGetV5AccountQueryDcpInfo, privateGetV5AccountUserSettingConfig, privateGetV5AccountPayInfo, privateGetV5AccountTradeInfoForAnalysis, privateGetV5AccountSmpGroup, privateGetV5AccountMmpState, privateGetV5AccountWithdrawal, privateGetV5AssetAssetOverview, privateGetV5AssetExchangeQueryCoinList, privateGetV5AssetExchangeConvertResultQuery, privateGetV5AssetExchangeQueryConvertHistory, privateGetV5AssetExchangeOrderRecord, privateGetV5AssetFundinghistory, privateGetV5AssetPortfolioMargin, privateGetV5AssetTotalMembersAssets, privateGetV5AssetDeliveryRecord, privateGetV5AssetSettlementRecord, privateGetV5AssetTransferQueryAssetInfo, privateGetV5AssetTransferQueryAccountCoinsBalance, privateGetV5AssetTransferQueryAccountCoinBalance, privateGetV5AssetTransferQueryTransferCoinList, privateGetV5AssetTransferQueryInterTransferList, privateGetV5AssetTransferQuerySubMemberList, privateGetV5AssetTransferQueryUniversalTransferList, privateGetV5AssetDepositQueryAllowedList, privateGetV5AssetDepositQueryRecord, privateGetV5AssetDepositQuerySubMemberRecord, privateGetV5AssetDepositQueryInternalRecord, privateGetV5AssetDepositQueryAddress, privateGetV5AssetDepositQuerySubMemberAddress, privateGetV5AssetCoinQueryInfo, privateGetV5AssetWithdrawQueryAddress, privateGetV5AssetWithdrawQueryRecord, privateGetV5AssetWithdrawWithdrawableAmount, privateGetV5AssetWithdrawVaspList, privateGetV5AssetCovertSmallBalanceList, privateGetV5AssetCovertSmallBalanceHistory, privateGetV5AssetConvertSmallBalanceList, privateGetV5AssetConvertSmallBalanceHistory, privateGetV5FiatQueryCoinList, privateGetV5FiatReferencePrice, privateGetV5FiatTradeQuery, privateGetV5FiatQueryTradeHistory, privateGetV5FiatBalanceQuery, privateGetV5UserQuerySubMembers, privateGetV5UserQueryApi, privateGetV5UserSubApikeys, privateGetV5UserGetMemberType, privateGetV5UserAffCustomerInfo, privateGetV5UserDelSubmember, privateGetV5UserSubmembers, privateGetV5UserEscrowSubMembers, privateGetV5UserInvitationReferrals, privateGetV5AffiliateAffUserList, privateGetV5AffiliateAffiliateSubList, privateGetV5SpotLeverTokenOrderRecord, privateGetV5SpotMarginTradeFlexibleAvailableInventory, privateGetV5SpotMarginTradeInterestRateHistory, privateGetV5SpotMarginTradeState, privateGetV5SpotMarginTradeMaxBorrowable, privateGetV5SpotMarginTradePositionTiers, privateGetV5SpotMarginTradeCoinstate, privateGetV5SpotMarginTradeCurrencyData, privateGetV5SpotMarginTradeFixedborrowContractInfo, privateGetV5SpotMarginTradeFixedborrowOrderInfo, privateGetV5SpotMarginTradeFixedborrowOrderQuote, privateGetV5SpotMarginTradeLiability, privateGetV5SpotMarginTradeRepaymentAvailableAmount, privateGetV5SpotMarginTradeGetAutoRepayMode, privateGetV5SpotCrossMarginTradeLoanInfo, privateGetV5SpotCrossMarginTradeAccount, privateGetV5SpotCrossMarginTradeOrders, privateGetV5SpotCrossMarginTradeRepayHistory, privateGetV5CryptoLoanBorrowableCollateralisableNumber, privateGetV5CryptoLoanOngoingOrders, privateGetV5CryptoLoanRepaymentHistory, privateGetV5CryptoLoanBorrowHistory, privateGetV5CryptoLoanMaxCollateralAmount, privateGetV5CryptoLoanAdjustmentHistory, privateGetV5CryptoLoanCommonMaxCollateralAmount, privateGetV5CryptoLoanCommonAdjustmentHistory, privateGetV5CryptoLoanCommonPosition, privateGetV5CryptoLoanFlexibleOngoingCoin, privateGetV5CryptoLoanFlexibleBorrowHistory, privateGetV5CryptoLoanFlexibleRepaymentHistory, privateGetV5CryptoLoanFixedBorrowContractInfo, privateGetV5CryptoLoanFixedSupplyContractInfo, privateGetV5CryptoLoanFixedBorrowOrderInfo, privateGetV5CryptoLoanFixedRenewInfo, privateGetV5CryptoLoanFixedSupplyOrderInfo, privateGetV5CryptoLoanFixedRepaymentHistory, privateGetV5InsLoanProductInfos, privateGetV5InsLoanEnsureTokens, privateGetV5InsLoanEnsureTokensConvert, privateGetV5InsLoanLoanOrder, privateGetV5InsLoanRepaidHistory, privateGetV5InsLoanLtv, privateGetV5InsLoanLtvConvert, privateGetV5InsLoanCoinDeltaAmount, privateGetV5LendingInfo, privateGetV5LendingHistoryOrder, privateGetV5LendingAccount, privateGetV5BrokerEarningRecord, privateGetV5BrokerEarningsInfo, privateGetV5BrokerAccountInfo, privateGetV5BrokerAssetQuerySubMemberDepositRecord, privateGetV5EarnProduct, privateGetV5EarnOrder, privateGetV5EarnPosition, privateGetV5EarnYield, privateGetV5EarnHourlyYield, privatePostSpotV3PrivateOrder, privatePostSpotV3PrivateCancelOrder, privatePostSpotV3PrivateCancelOrders, privatePostSpotV3PrivateCancelOrdersByIds, privatePostSpotV3PrivatePurchase, privatePostSpotV3PrivateRedeem, privatePostSpotV3PrivateCrossMarginLoan, privatePostSpotV3PrivateCrossMarginRepay, privatePostAssetV3PrivateTransferInterTransfer, privatePostAssetV3PrivateWithdrawCreate, privatePostAssetV3PrivateWithdrawCancel, privatePostAssetV3PrivateTransferSubMemberTransfer, privatePostAssetV3PrivateTransferTransferSubMemberSave, privatePostAssetV3PrivateTransferUniversalTransfer, privatePostUserV3PrivateCreateSubMember, privatePostUserV3PrivateCreateSubApi, privatePostUserV3PrivateUpdateApi, privatePostUserV3PrivateDeleteApi, privatePostUserV3PrivateUpdateSubApi, privatePostUserV3PrivateDeleteSubApi, privatePostContractV3PrivateCopytradingOrderCreate, privatePostContractV3PrivateCopytradingOrderCancel, privatePostContractV3PrivateCopytradingOrderClose, privatePostContractV3PrivateCopytradingPositionClose, privatePostContractV3PrivateCopytradingPositionSetLeverage, privatePostContractV3PrivateCopytradingWalletTransfer, privatePostContractV3PrivateCopytradingOrderTradingStop, privatePostContractV3PrivateOrderCreate, privatePostContractV3PrivateOrderCancel, privatePostContractV3PrivateOrderCancelAll, privatePostContractV3PrivateOrderReplace, privatePostContractV3PrivatePositionSetAutoAddMargin, privatePostContractV3PrivatePositionSwitchIsolated, privatePostContractV3PrivatePositionSwitchMode, privatePostContractV3PrivatePositionSwitchTpslMode, privatePostContractV3PrivatePositionSetLeverage, privatePostContractV3PrivatePositionTradingStop, privatePostContractV3PrivatePositionSetRiskLimit, privatePostContractV3PrivateAccountSetMarginMode, privatePostUnifiedV3PrivateOrderCreate, privatePostUnifiedV3PrivateOrderReplace, privatePostUnifiedV3PrivateOrderCancel, privatePostUnifiedV3PrivateOrderCreateBatch, privatePostUnifiedV3PrivateOrderReplaceBatch, privatePostUnifiedV3PrivateOrderCancelBatch, privatePostUnifiedV3PrivateOrderCancelAll, privatePostUnifiedV3PrivatePositionSetLeverage, privatePostUnifiedV3PrivatePositionTpslSwitchMode, privatePostUnifiedV3PrivatePositionSetRiskLimit, privatePostUnifiedV3PrivatePositionTradingStop, privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount, privatePostUnifiedV3PrivateAccountSetMarginMode, privatePostFhtComplianceTaxV3PrivateRegistertime, privatePostFhtComplianceTaxV3PrivateCreate, privatePostFhtComplianceTaxV3PrivateStatus, privatePostFhtComplianceTaxV3PrivateUrl, privatePostV5OrderCreate, privatePostV5OrderAmend, privatePostV5OrderCancel, privatePostV5OrderCancelAll, privatePostV5OrderCreateBatch, privatePostV5OrderAmendBatch, privatePostV5OrderCancelBatch, privatePostV5OrderDisconnectedCancelAll, privatePostV5OrderPreCheck, privatePostV5PositionSetLeverage, privatePostV5PositionSwitchIsolated, privatePostV5PositionSetTpslMode, privatePostV5PositionSwitchMode, privatePostV5PositionSetRiskLimit, privatePostV5PositionTradingStop, privatePostV5PositionSetAutoAddMargin, privatePostV5PositionAddMargin, privatePostV5PositionMovePositions, privatePostV5PositionConfirmPendingMmr, privatePostV5AccountUpgradeToUta, privatePostV5AccountQuickRepayment, privatePostV5AccountSetMarginMode, privatePostV5AccountSetHedgingMode, privatePostV5AccountMmpModify, privatePostV5AccountMmpReset, privatePostV5AccountBorrow, privatePostV5AccountRepay, privatePostV5AccountNoConvertRepay, privatePostV5AccountSetLimitPxAction, privatePostV5AccountSetDeltaMode, privatePostV5AssetExchangeQuoteApply, privatePostV5AssetExchangeConvertExecute, privatePostV5AssetTransferInterTransfer, privatePostV5AssetTransferSaveTransferSubMember, privatePostV5AssetTransferUniversalTransfer, privatePostV5AssetDepositDepositToAccount, privatePostV5AssetTravelRuleDepositSubmit, privatePostV5AssetWithdrawCreate, privatePostV5AssetWithdrawCancel, privatePostV5AssetCovertGetQuote, privatePostV5AssetCovertSmallBalanceExecute, privatePostV5FiatQuoteApply, privatePostV5FiatTradeExecute, privatePostV5UserCreateSubMember, privatePostV5UserCreateSubApi, privatePostV5UserFrozenSubMember, privatePostV5UserUpdateApi, privatePostV5UserUpdateSubApi, privatePostV5UserDeleteApi, privatePostV5UserDeleteSubApi, privatePostV5UserAgreement, privatePostV5UserCreateDemoMember, privatePostV5SpotLeverTokenPurchase, privatePostV5SpotLeverTokenRedeem, privatePostV5SpotMarginTradeSwitchMode, privatePostV5SpotMarginTradeSetLeverage, privatePostV5SpotMarginTradeSetAutoRepayMode, privatePostV5SpotMarginTradeFixedborrow, privatePostV5SpotMarginTradeFixedborrowRenew, privatePostV5SpotCrossMarginTradeLoan, privatePostV5SpotCrossMarginTradeRepay, privatePostV5SpotCrossMarginTradeSwitch, privatePostV5CryptoLoanBorrow, privatePostV5CryptoLoanRepay, privatePostV5CryptoLoanAdjustLtv, privatePostV5CryptoLoanCommonAdjustLtv, privatePostV5CryptoLoanCommonMaxLoan, privatePostV5CryptoLoanFlexibleBorrow, privatePostV5CryptoLoanFlexibleRepay, privatePostV5CryptoLoanFlexibleRepayCollateral, privatePostV5CryptoLoanFixedBorrow, privatePostV5CryptoLoanFixedRenew, privatePostV5CryptoLoanFixedSupply, privatePostV5CryptoLoanFixedBorrowOrderCancel, privatePostV5CryptoLoanFixedSupplyOrderCancel, privatePostV5CryptoLoanFixedFullyRepay, privatePostV5CryptoLoanFixedRepayCollateral, privatePostV5InsLoanAssociationUid, privatePostV5InsLoanRepayLoan, privatePostV5LendingPurchase, privatePostV5LendingRedeem, privatePostV5LendingRedeemCancel, privatePostV5AccountSetCollateralSwitch, privatePostV5AccountSetCollateralSwitchBatch, privatePostV5AccountDemoApplyMoney, privatePostV5BrokerAwardInfo, privatePostV5BrokerAwardDistributeAward, privatePostV5BrokerAwardDistributionRecord, privatePostV5EarnPlaceOrder)
     # describe() first, then the user config — the same order, and the same
     # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
     # overrides to this instance"): a plain object is deep-merged onto the
@@ -7946,17 +8804,29 @@ function Bybit(; kwargs...)
     # wholesale would drop the base defaults an exchange does not restate —
     # e.g. `options.defaultNetworkCodeReplacements`, which every
     # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
         key = Symbol(k)
-        if v isa AbstractDict
+        if v isa AbstractDict && key !== :features
             inst[key] = deepExtend(get(inst, key, nothing), v)
         else
             inst[key] = v
         end
     end
     for (k, v) in kwargs
-        if v isa AbstractDict
+        if v isa AbstractDict && k !== :features
             inst[k] = deepExtend(get(inst, k, nothing), v)
         else
             inst[k] = v
@@ -7975,8 +8845,12 @@ function Bybit(; kwargs...)
     end
     newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
     inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
     inst.afterConstruct()
-    if ccxtruthy(inst.safeBool2(inst.options, "sandbox", "testnet", false))
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
         inst.setSandboxMode(true)
     end
     inst.loadExchangeSpecificFiles()

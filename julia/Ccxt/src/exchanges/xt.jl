@@ -59,10 +59,15 @@
     fetchFundingInterval::Function = fetchFundingInterval
     fetchFundingRate::Function = fetchFundingRate
     parseFundingRate::Function = parseFundingRate
+    fetchOpenInterest::Function = fetchOpenInterest
+    parseOpenInterest::Function = parseOpenInterest
     fetchFundingHistory::Function = fetchFundingHistory
     parseFundingHistory::Function = parseFundingHistory
+    indexPositionBreakList::Function = indexPositionBreakList
+    mergePositionBreakInfo::Function = mergePositionBreakInfo
     fetchPosition::Function = fetchPosition
     fetchPositions::Function = fetchPositions
+    fetchPositionsHistory::Function = fetchPositionsHistory
     parsePosition::Function = parsePosition
     transfer::Function = transfer
     parseTransfer::Function = parseTransfer
@@ -100,6 +105,7 @@
     publicLinearGetFutureMarketV1PublicQSymbolIndexPrice::Function = publicLinearGetFutureMarketV1PublicQSymbolIndexPrice
     publicLinearGetFutureMarketV1PublicQSymbolMarkPrice::Function = publicLinearGetFutureMarketV1PublicQSymbolMarkPrice
     publicLinearGetFutureMarketV1PublicQTicker::Function = publicLinearGetFutureMarketV1PublicQTicker
+    publicLinearGetFutureMarketV1PublicQTickerBooks::Function = publicLinearGetFutureMarketV1PublicQTickerBooks
     publicLinearGetFutureMarketV1PublicQTickers::Function = publicLinearGetFutureMarketV1PublicQTickers
     publicLinearGetFutureMarketV1PublicSymbolCoins::Function = publicLinearGetFutureMarketV1PublicSymbolCoins
     publicLinearGetFutureMarketV1PublicSymbolDetail::Function = publicLinearGetFutureMarketV1PublicSymbolDetail
@@ -120,6 +126,7 @@
     publicInverseGetFutureMarketV1PublicQSymbolIndexPrice::Function = publicInverseGetFutureMarketV1PublicQSymbolIndexPrice
     publicInverseGetFutureMarketV1PublicQSymbolMarkPrice::Function = publicInverseGetFutureMarketV1PublicQSymbolMarkPrice
     publicInverseGetFutureMarketV1PublicQTicker::Function = publicInverseGetFutureMarketV1PublicQTicker
+    publicInverseGetFutureMarketV1PublicQTickerBooks::Function = publicInverseGetFutureMarketV1PublicQTickerBooks
     publicInverseGetFutureMarketV1PublicQTickers::Function = publicInverseGetFutureMarketV1PublicQTickers
     publicInverseGetFutureMarketV1PublicSymbolCoins::Function = publicInverseGetFutureMarketV1PublicSymbolCoins
     publicInverseGetFutureMarketV1PublicSymbolDetail::Function = publicInverseGetFutureMarketV1PublicSymbolDetail
@@ -152,6 +159,7 @@
     privateLinearGetFutureTradeV1OrderDetail::Function = privateLinearGetFutureTradeV1OrderDetail
     privateLinearGetFutureTradeV1OrderList::Function = privateLinearGetFutureTradeV1OrderList
     privateLinearGetFutureTradeV1OrderListHistory::Function = privateLinearGetFutureTradeV1OrderListHistory
+    privateLinearGetFutureTradeV1PositionListHistory::Function = privateLinearGetFutureTradeV1PositionListHistory
     privateLinearGetFutureTradeV1OrderTradeList::Function = privateLinearGetFutureTradeV1OrderTradeList
     privateLinearGetFutureUserV1AccountInfo::Function = privateLinearGetFutureUserV1AccountInfo
     privateLinearGetFutureUserV1BalanceBills::Function = privateLinearGetFutureUserV1BalanceBills
@@ -159,6 +167,7 @@
     privateLinearGetFutureUserV1BalanceFundingRateList::Function = privateLinearGetFutureUserV1BalanceFundingRateList
     privateLinearGetFutureUserV1BalanceList::Function = privateLinearGetFutureUserV1BalanceList
     privateLinearGetFutureUserV1PositionAdl::Function = privateLinearGetFutureUserV1PositionAdl
+    privateLinearGetFutureUserV1PositionBreakList::Function = privateLinearGetFutureUserV1PositionBreakList
     privateLinearGetFutureUserV1PositionList::Function = privateLinearGetFutureUserV1PositionList
     privateLinearGetFutureUserV1UserCollectionList::Function = privateLinearGetFutureUserV1UserCollectionList
     privateLinearGetFutureUserV1UserListenKey::Function = privateLinearGetFutureUserV1UserListenKey
@@ -190,6 +199,7 @@
     privateInverseGetFutureTradeV1OrderDetail::Function = privateInverseGetFutureTradeV1OrderDetail
     privateInverseGetFutureTradeV1OrderList::Function = privateInverseGetFutureTradeV1OrderList
     privateInverseGetFutureTradeV1OrderListHistory::Function = privateInverseGetFutureTradeV1OrderListHistory
+    privateInverseGetFutureTradeV1PositionListHistory::Function = privateInverseGetFutureTradeV1PositionListHistory
     privateInverseGetFutureTradeV1OrderTradeList::Function = privateInverseGetFutureTradeV1OrderTradeList
     privateInverseGetFutureUserV1AccountInfo::Function = privateInverseGetFutureUserV1AccountInfo
     privateInverseGetFutureUserV1BalanceBills::Function = privateInverseGetFutureUserV1BalanceBills
@@ -197,6 +207,7 @@
     privateInverseGetFutureUserV1BalanceFundingRateList::Function = privateInverseGetFutureUserV1BalanceFundingRateList
     privateInverseGetFutureUserV1BalanceList::Function = privateInverseGetFutureUserV1BalanceList
     privateInverseGetFutureUserV1PositionAdl::Function = privateInverseGetFutureUserV1PositionAdl
+    privateInverseGetFutureUserV1PositionBreakList::Function = privateInverseGetFutureUserV1PositionBreakList
     privateInverseGetFutureUserV1PositionList::Function = privateInverseGetFutureUserV1PositionList
     privateInverseGetFutureUserV1UserCollectionList::Function = privateInverseGetFutureUserV1UserCollectionList
     privateInverseGetFutureUserV1UserListenKey::Function = privateInverseGetFutureUserV1UserListenKey
@@ -219,6 +230,7 @@
     privateInversePostFutureUserV1PositionMargin::Function = privateInversePostFutureUserV1PositionMargin
     privateInversePostFutureUserV1UserCollectionAdd::Function = privateInversePostFutureUserV1UserCollectionAdd
     privateInversePostFutureUserV1UserCollectionCancel::Function = privateInversePostFutureUserV1UserCollectionCancel
+    privateInversePostFutureUserV1PositionChangeType::Function = privateInversePostFutureUserV1PositionChangeType
     privateUserGetUserAccount::Function = privateUserGetUserAccount
     privateUserGetUserAccountApiKey::Function = privateUserGetUserAccountApiKey
     privateUserPostUserAccount::Function = privateUserPostUserAccount
@@ -293,7 +305,7 @@ function describe(self::Xt, )
         Symbol("fetchMarkOHLCV") => false,
         Symbol("fetchMyTrades") => true,
         Symbol("fetchOHLCV") => true,
-        Symbol("fetchOpenInterest") => false,
+        Symbol("fetchOpenInterest") => true,
         Symbol("fetchOpenInterestHistory") => false,
         Symbol("fetchOpenOrders") => true,
         Symbol("fetchOption") => false,
@@ -306,6 +318,7 @@ function describe(self::Xt, )
         Symbol("fetchOrderTrades") => false,
         Symbol("fetchPosition") => true,
         Symbol("fetchPositions") => true,
+        Symbol("fetchPositionsHistory") => true,
         Symbol("fetchPremiumIndexOHLCV") => false,
         Symbol("fetchSettlementHistory") => false,
         Symbol("fetchStatus") => false,
@@ -353,201 +366,528 @@ function describe(self::Xt, )
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("spot") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("currencies") => 1,
-                    Symbol("depth") => 10,
-                    Symbol("kline") => 1,
-                    Symbol("symbol") => 1,
-                    Symbol("ticker") => 1,
-                    Symbol("ticker/book") => 1,
-                    Symbol("ticker/price") => 1,
-                    Symbol("ticker/24h") => 1,
-                    Symbol("time") => 1,
-                    Symbol("trade/history") => 1,
-                    Symbol("trade/recent") => 1,
-                    Symbol("wallet/support/currency") => 1
+                    Symbol("currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("symbol") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ticker/book") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ticker/24h") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trade/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trade/recent") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("wallet/support/currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("linear") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("future/market/v1/public/contract/risk-balance") => 1,
-                    Symbol("future/market/v1/public/contract/open-interest") => 1,
-                    Symbol("future/market/v1/public/leverage/bracket/detail") => 1,
-                    Symbol("future/market/v1/public/leverage/bracket/list") => 1,
-                    Symbol("future/market/v1/public/q/agg-ticker") => 1,
-                    Symbol("future/market/v1/public/q/agg-tickers") => 1,
-                    Symbol("future/market/v1/public/q/deal") => 1,
-                    Symbol("future/market/v1/public/q/depth") => 1,
-                    Symbol("future/market/v1/public/q/funding-rate") => 1,
-                    Symbol("future/market/v1/public/q/funding-rate-record") => 1,
-                    Symbol("future/market/v1/public/q/index-price") => 1,
-                    Symbol("future/market/v1/public/q/kline") => 1,
-                    Symbol("future/market/v1/public/q/mark-price") => 1,
-                    Symbol("future/market/v1/public/q/symbol-index-price") => 1,
-                    Symbol("future/market/v1/public/q/symbol-mark-price") => 1,
-                    Symbol("future/market/v1/public/q/ticker") => 1,
-                    Symbol("future/market/v1/public/q/tickers") => 1,
-                    Symbol("future/market/v1/public/symbol/coins") => 3.33,
-                    Symbol("future/market/v1/public/symbol/detail") => 3.33,
-                    Symbol("future/market/v1/public/symbol/list") => 1
+                    Symbol("future/market/v1/public/contract/risk-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/contract/open-interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/leverage/bracket/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/leverage/bracket/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/agg-ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/agg-tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/deal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/funding-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/funding-rate-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/index-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/mark-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/symbol-index-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/symbol-mark-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/ticker/books") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/symbol/coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 3.33
+),
+                    Symbol("future/market/v1/public/symbol/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 3.33
+),
+                    Symbol("future/market/v1/public/symbol/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("inverse") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("future/market/v1/public/contract/risk-balance") => 1,
-                    Symbol("future/market/v1/public/contract/open-interest") => 1,
-                    Symbol("future/market/v1/public/leverage/bracket/detail") => 1,
-                    Symbol("future/market/v1/public/leverage/bracket/list") => 1,
-                    Symbol("future/market/v1/public/q/agg-ticker") => 1,
-                    Symbol("future/market/v1/public/q/agg-tickers") => 1,
-                    Symbol("future/market/v1/public/q/deal") => 1,
-                    Symbol("future/market/v1/public/q/depth") => 1,
-                    Symbol("future/market/v1/public/q/funding-rate") => 1,
-                    Symbol("future/market/v1/public/q/funding-rate-record") => 1,
-                    Symbol("future/market/v1/public/q/index-price") => 1,
-                    Symbol("future/market/v1/public/q/kline") => 1,
-                    Symbol("future/market/v1/public/q/mark-price") => 1,
-                    Symbol("future/market/v1/public/q/symbol-index-price") => 1,
-                    Symbol("future/market/v1/public/q/symbol-mark-price") => 1,
-                    Symbol("future/market/v1/public/q/ticker") => 1,
-                    Symbol("future/market/v1/public/q/tickers") => 1,
-                    Symbol("future/market/v1/public/symbol/coins") => 3.33,
-                    Symbol("future/market/v1/public/symbol/detail") => 3.33,
-                    Symbol("future/market/v1/public/symbol/list") => 1
+                    Symbol("future/market/v1/public/contract/risk-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/contract/open-interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/leverage/bracket/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/leverage/bracket/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/agg-ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/agg-tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/deal") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/funding-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/funding-rate-record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/index-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/mark-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/symbol-index-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/symbol-mark-price") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/ticker/books") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/q/tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/market/v1/public/symbol/coins") => Dict{Symbol, Any}(
+    Symbol("cost") => 3.33
+),
+                    Symbol("future/market/v1/public/symbol/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 3.33
+),
+                    Symbol("future/market/v1/public/symbol/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("spot") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("balance") => 1,
-                    Symbol("balances") => 1,
-                    Symbol("batch-order") => 1,
-                    Symbol("deposit/address") => 1,
-                    Symbol("deposit/history") => 1,
-                    Symbol("history-order") => 1,
-                    Symbol("open-order") => 1,
-                    Symbol("order") => 1,
-                    Symbol("order/{orderId}") => 1,
-                    Symbol("trade") => 1,
-                    Symbol("withdraw/history") => 1
+                    Symbol("balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("batch-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("deposit/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("deposit/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("history-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("open-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/{orderId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("withdraw/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("order") => 0.2,
-                    Symbol("withdraw") => 10,
-                    Symbol("balance/transfer") => 1,
-                    Symbol("balance/account/transfer") => 1,
-                    Symbol("ws-token") => 1
+                    Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.2
+),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("balance/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("balance/account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ws-token") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("batch-order") => 1,
-                    Symbol("open-order") => 1,
-                    Symbol("order/{orderId}") => 1
+                    Symbol("batch-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("open-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/{orderId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("order/{orderId}") => 1
+                    Symbol("order/{orderId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("linear") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("future/trade/v1/entrust/plan-detail") => 1,
-                    Symbol("future/trade/v1/entrust/plan-list") => 1,
-                    Symbol("future/trade/v1/entrust/plan-list-history") => 1,
-                    Symbol("future/trade/v1/entrust/profit-detail") => 1,
-                    Symbol("future/trade/v1/entrust/profit-list") => 1,
-                    Symbol("future/trade/v1/order/detail") => 1,
-                    Symbol("future/trade/v1/order/list") => 1,
-                    Symbol("future/trade/v1/order/list-history") => 1,
-                    Symbol("future/trade/v1/order/trade-list") => 1,
-                    Symbol("future/user/v1/account/info") => 1,
-                    Symbol("future/user/v1/balance/bills") => 1,
-                    Symbol("future/user/v1/balance/detail") => 1,
-                    Symbol("future/user/v1/balance/funding-rate-list") => 1,
-                    Symbol("future/user/v1/balance/list") => 1,
-                    Symbol("future/user/v1/position/adl") => 1,
-                    Symbol("future/user/v1/position/list") => 1,
-                    Symbol("future/user/v1/user/collection/list") => 1,
-                    Symbol("future/user/v1/user/listen-key") => 1
+                    Symbol("future/trade/v1/entrust/plan-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/plan-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/plan-list-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/profit-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/profit-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/list-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/position/list-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/trade-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/balance/bills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/balance/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/balance/funding-rate-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/balance/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/adl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/break-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/user/collection/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/user/listen-key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("future/trade/v1/entrust/cancel-all-plan") => 1,
-                    Symbol("future/trade/v1/entrust/cancel-all-profit-stop") => 1,
-                    Symbol("future/trade/v1/entrust/cancel-plan") => 1,
-                    Symbol("future/trade/v1/entrust/cancel-profit-stop") => 1,
-                    Symbol("future/trade/v1/entrust/create-plan") => 1,
-                    Symbol("future/trade/v1/entrust/create-profit") => 1,
-                    Symbol("future/trade/v1/entrust/update-profit-stop") => 1,
-                    Symbol("future/trade/v1/order/cancel") => 1,
-                    Symbol("future/trade/v1/order/cancel-all") => 1,
-                    Symbol("future/trade/v1/order/create") => 1,
-                    Symbol("future/trade/v1/order/create-batch") => 1,
-                    Symbol("future/trade/v1/order/update") => 1,
-                    Symbol("future/user/v1/account/open") => 1,
-                    Symbol("future/user/v1/position/adjust-leverage") => 1,
-                    Symbol("future/user/v1/position/auto-margin") => 1,
-                    Symbol("future/user/v1/position/close-all") => 1,
-                    Symbol("future/user/v1/position/margin") => 1,
-                    Symbol("future/user/v1/user/collection/add") => 1,
-                    Symbol("future/user/v1/user/collection/cancel") => 1,
-                    Symbol("future/user/v1/position/change-type") => 1
+                    Symbol("future/trade/v1/entrust/cancel-all-plan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/cancel-all-profit-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/cancel-plan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/cancel-profit-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/create-plan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/create-profit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/update-profit-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/cancel-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/create-batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/update") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/account/open") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/adjust-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/auto-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/close-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/user/collection/add") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/user/collection/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/change-type") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("inverse") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("future/trade/v1/entrust/plan-detail") => 1,
-                    Symbol("future/trade/v1/entrust/plan-list") => 1,
-                    Symbol("future/trade/v1/entrust/plan-list-history") => 1,
-                    Symbol("future/trade/v1/entrust/profit-detail") => 1,
-                    Symbol("future/trade/v1/entrust/profit-list") => 1,
-                    Symbol("future/trade/v1/order/detail") => 1,
-                    Symbol("future/trade/v1/order/list") => 1,
-                    Symbol("future/trade/v1/order/list-history") => 1,
-                    Symbol("future/trade/v1/order/trade-list") => 1,
-                    Symbol("future/user/v1/account/info") => 1,
-                    Symbol("future/user/v1/balance/bills") => 1,
-                    Symbol("future/user/v1/balance/detail") => 1,
-                    Symbol("future/user/v1/balance/funding-rate-list") => 1,
-                    Symbol("future/user/v1/balance/list") => 1,
-                    Symbol("future/user/v1/position/adl") => 1,
-                    Symbol("future/user/v1/position/list") => 1,
-                    Symbol("future/user/v1/user/collection/list") => 1,
-                    Symbol("future/user/v1/user/listen-key") => 1
+                    Symbol("future/trade/v1/entrust/plan-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/plan-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/plan-list-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/profit-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/profit-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/list-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/position/list-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/trade-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/balance/bills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/balance/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/balance/funding-rate-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/balance/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/adl") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/break-list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/user/collection/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/user/listen-key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("future/trade/v1/entrust/cancel-all-plan") => 1,
-                    Symbol("future/trade/v1/entrust/cancel-all-profit-stop") => 1,
-                    Symbol("future/trade/v1/entrust/cancel-plan") => 1,
-                    Symbol("future/trade/v1/entrust/cancel-profit-stop") => 1,
-                    Symbol("future/trade/v1/entrust/create-plan") => 1,
-                    Symbol("future/trade/v1/entrust/create-profit") => 1,
-                    Symbol("future/trade/v1/entrust/update-profit-stop") => 1,
-                    Symbol("future/trade/v1/order/cancel") => 1,
-                    Symbol("future/trade/v1/order/cancel-all") => 1,
-                    Symbol("future/trade/v1/order/create") => 1,
-                    Symbol("future/trade/v1/order/create-batch") => 1,
-                    Symbol("future/trade/v1/order/update") => 1,
-                    Symbol("future/user/v1/account/open") => 1,
-                    Symbol("future/user/v1/position/adjust-leverage") => 1,
-                    Symbol("future/user/v1/position/auto-margin") => 1,
-                    Symbol("future/user/v1/position/close-all") => 1,
-                    Symbol("future/user/v1/position/margin") => 1,
-                    Symbol("future/user/v1/user/collection/add") => 1,
-                    Symbol("future/user/v1/user/collection/cancel") => 1
+                    Symbol("future/trade/v1/entrust/cancel-all-plan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/cancel-all-profit-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/cancel-plan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/cancel-profit-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/create-plan") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/create-profit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/entrust/update-profit-stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/cancel-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/create-batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/trade/v1/order/update") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/account/open") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/adjust-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/auto-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/close-all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/user/collection/add") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/user/collection/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("future/user/v1/position/change-type") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("user") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("user/account") => 1,
-                    Symbol("user/account/api-key") => 1
+                    Symbol("user/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/account/api-key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("user/account") => 1,
-                    Symbol("user/account/api-key") => 1
+                    Symbol("user/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("user/account/api-key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("user/account/api-key") => 1
+                    Symbol("user/account/api-key") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("user/account/{apiKeyId}") => 1
+                    Symbol("user/account/{apiKeyId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             )
         )
@@ -844,7 +1184,7 @@ function describe(self::Xt, )
         Symbol("default") => Dict{Symbol, Any}(
             Symbol("sandbox") => false,
             Symbol("createOrder") => Dict{Symbol, Any}(
-                Symbol("marginMode") => false,
+                Symbol("marginMode") => true,
                 Symbol("triggerPrice") => false,
                 Symbol("triggerDirection") => false,
                 Symbol("triggerPriceType") => nothing,
@@ -925,6 +1265,7 @@ function describe(self::Xt, )
         Symbol("forDerivatives") => Dict{Symbol, Any}(
             Symbol("extends") => "default",
             Symbol("createOrder") => Dict{Symbol, Any}(
+                Symbol("marginMode") => false,
                 Symbol("triggerPrice") => true,
                 Symbol("triggerPriceType") => Dict{Symbol, Any}(
                     Symbol("last") => true,
@@ -990,31 +1331,33 @@ function fetchCurrencies(self::Xt, params=Dict())
             rawNetwork = get(rawNetworks, j + 1, nothing);
             networkId = safeString(rawNetwork, "chain");
             networkCode = self.networkIdToCode(networkId, code);
-            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-                Symbol("info") => rawNetwork,
-                Symbol("id") => networkId,
-                Symbol("network") => networkCode,
-                Symbol("name") => nothing,
-                Symbol("active") => nothing,
-                Symbol("fee") => self.safeNumber(rawNetwork, "withdrawFeeAmount"),
-                Symbol("precision") => nothing,
-                Symbol("deposit") => self.safeBool(rawNetwork, "depositEnabled"),
-                Symbol("withdraw") => self.safeBool(rawNetwork, "withdrawEnabled"),
-                Symbol("limits") => Dict{Symbol, Any}(
-                    Symbol("amount") => Dict{Symbol, Any}(
-                        Symbol("min") => nothing,
-                        Symbol("max") => nothing
-                    ),
-                    Symbol("withdraw") => Dict{Symbol, Any}(
-                        Symbol("min") => self.safeNumber(rawNetwork, "withdrawMinAmount"),
-                        Symbol("max") => nothing
-                    ),
-                    Symbol("deposit") => Dict{Symbol, Any}(
-                        Symbol("min") => nothing,
-                        Symbol("max") => nothing
+            if functions.ccxtruthy(networkCode != nothing)
+                networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                    Symbol("info") => rawNetwork,
+                    Symbol("id") => networkId,
+                    Symbol("network") => networkCode,
+                    Symbol("name") => nothing,
+                    Symbol("active") => nothing,
+                    Symbol("fee") => self.safeNumber(rawNetwork, "withdrawFeeAmount"),
+                    Symbol("precision") => nothing,
+                    Symbol("deposit") => self.safeBool(rawNetwork, "depositEnabled"),
+                    Symbol("withdraw") => self.safeBool(rawNetwork, "withdrawEnabled"),
+                    Symbol("limits") => Dict{Symbol, Any}(
+                        Symbol("amount") => Dict{Symbol, Any}(
+                            Symbol("min") => nothing,
+                            Symbol("max") => nothing
+                        ),
+                        Symbol("withdraw") => Dict{Symbol, Any}(
+                            Symbol("min") => self.safeNumber(rawNetwork, "withdrawMinAmount"),
+                            Symbol("max") => nothing
+                        ),
+                        Symbol("deposit") => Dict{Symbol, Any}(
+                            Symbol("min") => nothing,
+                            Symbol("max") => nothing
+                        )
                     )
-                )
-            );
+                );
+            end
             j += 1
         end
         typeRaw = safeString(entry, "type");
@@ -1024,7 +1367,8 @@ function fetchCurrencies(self::Xt, params=Dict())
         else
             type_var = "other";
         end
-        result[Symbol(code)] = self.safeCurrencyStructure(Dict{Symbol, Any}(
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = self.safeCurrencyStructure(Dict{Symbol, Any}(
     Symbol("info") => entry,
     Symbol("id") => currencyId,
     Symbol("code") => code,
@@ -1051,6 +1395,7 @@ function fetchCurrencies(self::Xt, params=Dict())
         )
     )
 ));
+        end
         i += 1
     end
     return result
@@ -1197,8 +1542,8 @@ function parseMarket(self::Xt, market)
     Symbol("contract") => contract,
     Symbol("linear") => linear,
     Symbol("inverse") => inverse,
-    Symbol("taker") => self.safeNumber(market, "takerFee"),
-    Symbol("maker") => self.safeNumber(market, "makerFee"),
+    Symbol("taker") => self.safeNumber2(market, "takerFee", "takerFeeRate"),
+    Symbol("maker") => self.safeNumber2(market, "makerFee", "makerFeeRate"),
     Symbol("contractSize") => self.safeNumber(market, "contractSize"),
     Symbol("expiry") => expiry,
     Symbol("expiryDatetime") => self.iso8601(expiry),
@@ -1247,7 +1592,8 @@ function fetchOHLCV(self::Xt, symbol, timeframe="1m", since=nothing, limit=nothi
         Symbol("interval") => safeString(self.timeframes, timeframe, timeframe)
     );
     if functions.ccxtruthy(since != nothing)
-        request[Symbol("startTime")] = since;
+        duration = self.parseTimeframe(timeframe) * 1000;
+        request[Symbol("startTime")] = ceil(since / duration) * duration;
     end
     if functions.ccxtruthy(limit != nothing)
         if functions.ccxtruthy(get(market, Symbol("spot"), nothing))
@@ -1371,7 +1717,9 @@ function fetchTickers(self::Xt, symbols=nothing, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(tickers)))
         ticker = self.parseTicker(get(tickers, i + 1, nothing), market);
         symbol = get(ticker, Symbol("symbol"), nothing);
-        result[Symbol(symbol)] = ticker;
+        if functions.ccxtruthy(symbol != nothing)
+            result[Symbol(symbol)] = ticker;
+        end
         i += 1
     end
     return self.filterByArray(result, "symbol", symbols)
@@ -1387,14 +1735,37 @@ function fetchBidsAsks(self::Xt, symbols=nothing, params=Dict())
     if functions.ccxtruthy(symbols != nothing)
         market = self.market(get(symbols, 1, nothing));
     end
+    type_var = nothing;
     subType = nothing;
+    (type_var, params) = self.handleMarketTypeAndParams("fetchBidsAsks", market, params);
     (subType, params) = self.handleSubTypeAndParams("fetchBidsAsks", market, params);
-    if functions.ccxtruthy(subType != nothing)
-        throw(NotSupported(string(self.id, " fetchBidsAsks() is not available for swap and future markets, only spot markets are supported")));
+    isInverse = (subType == "inverse");
+    isLinear = @functions.ccxt_or(@functions.ccxt_or((subType == "linear"), (type_var == "swap")), (type_var == "future"));
+    isContract = @functions.ccxt_or(isInverse, isLinear);
+    response = nothing;
+    if functions.ccxtruthy(isInverse)
+        response = Base.fetch(self.publicInverseGetFutureMarketV1PublicQTickerBooks(extend(request, params)));
+    elseif functions.ccxtruthy(isLinear)
+        response = Base.fetch(self.publicLinearGetFutureMarketV1PublicQTickerBooks(extend(request, params)));
+    else
+        response = Base.fetch(self.publicSpotGetTickerBook(extend(request, params)));
     end
-    response = Base.fetch(self.publicSpotGetTickerBook(extend(request, params)));
-    tickers = safeValue(response, "result", []);
-    return self.parseTickers(tickers, symbols)
+    tickers = self.safeList(response, "result", []);
+    result = Dict{Symbol, Any}();
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(tickers)))
+        rawTicker = get(tickers, i + 1, nothing);
+        marketId = safeString(rawTicker, "s");
+        marketType = functions.ccxtruthy(isContract) ? "contract" : "spot";
+        marketInner = self.safeMarket(marketId, market, "_", marketType);
+        ticker = self.parseTicker(rawTicker, marketInner);
+        symbol = get(ticker, Symbol("symbol"), nothing);
+        if functions.ccxtruthy(symbol != nothing)
+            result[Symbol(symbol)] = ticker;
+        end
+        i += 1
+    end
+    return self.filterByArray(result, "symbol", symbols)
 
 end
 function parseTicker(self::Xt, ticker, market=nothing)
@@ -1429,7 +1800,7 @@ function parseTicker(self::Xt, ticker, market=nothing)
     Symbol("change") => self.safeNumber(ticker, "cv"),
     Symbol("percentage") => self.parseNumber(percentage),
     Symbol("average") => nothing,
-    Symbol("baseVolume") => self.safeNumber(ticker, "a"),
+    Symbol("baseVolume") => self.safeNumber2(ticker, "a", "q"),
     Symbol("quoteVolume") => self.safeNumber(ticker, "v"),
     Symbol("info") => ticker
 ), market)
@@ -1618,7 +1989,9 @@ function parseBalance(self::Xt, response)
         account[Symbol("free")] = free;
         account[Symbol("used")] = used;
         account[Symbol("total")] = total;
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1722,7 +2095,7 @@ function createContractOrder(self::Xt, symbol, type_var, side, amount, price=not
         requestType = functions.ccxtruthy((reduceOnly)) ? "LONG" : "SHORT";
         request[Symbol("positionSide")] = requestType;
     end
-    response = nothing;
+    response = Dict{Symbol, Any}();
     triggerPrice = self.safeNumber2(params, "triggerPrice", "stopPrice");
     stopLoss = self.safeNumber2(params, "stopLoss", "triggerStopPrice");
     takeProfit = self.safeNumber2(params, "takeProfit", "triggerProfitPrice");
@@ -1971,7 +2344,7 @@ function fetchOrdersByStatus(self::Xt, status, symbol=nothing, since=nothing, li
     if functions.ccxtruthy(resultDict != nothing)
         orders = self.safeList(resultDict, "items", []);
     else
-        orders = self.safeList(response, "result");
+        orders = self.safeList(response, "result", []);
     end
     return self.parseOrders(orders, market, since, limit)
 
@@ -2119,6 +2492,17 @@ function parseOrder(self::Xt, order, market=nothing)
     filledQuantity = self.safeNumber(order, "executedQty");
     filled = functions.ccxtruthy((marketType == "spot")) ? filledQuantity : stringMul(numberToString(filledQuantity), numberToString(get(market, Symbol("contractSize"), nothing)));
     lastUpdatedTimestamp = safeInteger(order, "updatedTime");
+    side = safeStringLower2(order, "side", "orderSide");
+    if functions.ccxtruthy(side == nothing)
+        positionSide = safeString(order, "positionSide");
+        if functions.ccxtruthy(positionSide != nothing)
+            if functions.ccxtruthy(positionSide == "LONG")
+                side = "sell";
+            else
+                side = "buy";
+            end
+        end
+    end
     return self.safeOrder(Dict{Symbol, Any}(
     Symbol("info") => order,
     Symbol("id") => safeStringN(order, ["orderId", "result", "cancelId", "entrustId", "profitId"]),
@@ -2131,7 +2515,7 @@ function parseOrder(self::Xt, order, market=nothing)
     Symbol("type") => safeStringLower2(order, "type", "orderType"),
     Symbol("timeInForce") => safeString(order, "timeInForce"),
     Symbol("postOnly") => nothing,
-    Symbol("side") => safeStringLower2(order, "side", "orderSide"),
+    Symbol("side") => side,
     Symbol("price") => self.safeNumber(order, "price"),
     Symbol("triggerPrice") => self.safeNumber(order, "stopPrice"),
     Symbol("stopLoss") => self.safeNumber(order, "triggerStopPrice"),
@@ -2433,7 +2817,8 @@ function reduceMargin(self::Xt, symbol, amount, params=Dict())
 end
 function modifyMarginHelper(self::Xt, symbol, amount, addOrReduce, params=Dict())
     positionSide = safeString(params, "positionSide");
-    self.checkRequiredArgument("setLeverage", positionSide, "positionSide", ["LONG", "SHORT"]);
+    methodName = functions.ccxtruthy((addOrReduce == "ADD")) ? "addMargin" : "reduceMargin";
+    self.checkRequiredArgument(methodName, positionSide, "positionSide", ["LONG", "SHORT"]);
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
     end
@@ -2662,6 +3047,41 @@ function parseFundingRate(self::Xt, contract, market=nothing)
 )
 
 end
+function fetchOpenInterest(self::Xt, symbol, params=Dict())
+    Base.fetch(self.loadMarkets());
+    market = self.market(symbol);
+    if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("swap"), nothing)))
+        throw(NotSupported(string(self.id, " fetchOpenInterest() supports swap contracts only")));
+    end
+    request = Dict{Symbol, Any}(
+        Symbol("symbol") => get(market, Symbol("id"), nothing)
+    );
+    subType = nothing;
+    (subType, params) = self.handleSubTypeAndParams("fetchOpenInterest", market, params);
+    response = nothing;
+    if functions.ccxtruthy(subType == "inverse")
+        response = Base.fetch(self.publicInverseGetFutureMarketV1PublicContractOpenInterest(extend(request, params)));
+    else
+        response = Base.fetch(self.publicLinearGetFutureMarketV1PublicContractOpenInterest(extend(request, params)));
+    end
+    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    return self.parseOpenInterest(result, market)
+
+end
+function parseOpenInterest(self::Xt, interest, market=nothing)
+    marketId = safeString(interest, "symbol");
+    market = self.safeMarket(marketId, market, nothing, "contract");
+    timestamp = safeInteger(interest, "time");
+    return self.safeOpenInterest(Dict{Symbol, Any}(
+    Symbol("symbol") => get(market, Symbol("symbol"), nothing),
+    Symbol("openInterestAmount") => self.safeNumber(interest, "openInterest"),
+    Symbol("openInterestValue") => self.safeNumber(interest, "openInterestUsd"),
+    Symbol("timestamp") => timestamp,
+    Symbol("datetime") => self.iso8601(timestamp),
+    Symbol("info") => interest
+), market)
+
+end
 function fetchFundingHistory(self::Xt, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2717,6 +3137,31 @@ function parseFundingHistory(self::Xt, contract, market=nothing)
 )
 
 end
+function indexPositionBreakList(self::Xt, breakList)
+    breakBySymbolSide = Dict{Symbol, Any}();
+    i = 0
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(breakList)))
+        breakEntry = get(breakList, i + 1, nothing);
+        key = string(safeString(breakEntry, "symbol"), "_", safeString(breakEntry, "positionSide"));
+        breakBySymbolSide[Symbol(key)] = breakEntry;
+        i += 1
+    end
+    return breakBySymbolSide
+
+end
+function mergePositionBreakInfo(self::Xt, entry, breakBySymbolSide)
+    marketId = safeString(entry, "symbol");
+    key = string(marketId, "_", safeString(entry, "positionSide"));
+    breakEntry = self.safeDict(breakBySymbolSide, key);
+    if functions.ccxtruthy(breakEntry == nothing)
+            return entry
+    end
+    return extend(entry, Dict{Symbol, Any}(
+    Symbol("breakPrice") => safeString(breakEntry, "breakPrice"),
+    Symbol("calMarkPrice") => safeString(breakEntry, "calMarkPrice")
+))
+
+end
 function fetchPosition(self::Xt, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
         Base.fetch(self.loadMarkets());
@@ -2727,13 +3172,17 @@ function fetchPosition(self::Xt, symbol, params=Dict())
     );
     subType = nothing;
     (subType, params) = self.handleSubTypeAndParams("fetchPosition", market, params);
-    response = nothing;
+    promisesUnresolved = [];
     if functions.ccxtruthy(subType == "inverse")
-        response = Base.fetch(self.privateInverseGetFutureUserV1PositionList(extend(request, params)));
+                push!(promisesUnresolved, self.privateInverseGetFutureUserV1PositionList(extend(request, params)));
+                push!(promisesUnresolved, self.privateInverseGetFutureUserV1PositionBreakList(extend(request, params)));
     else
-        response = Base.fetch(self.privateLinearGetFutureUserV1PositionList(extend(request, params)));
+        push!(promisesUnresolved, self.privateLinearGetFutureUserV1PositionList(extend(request, params)));
+        push!(promisesUnresolved, self.privateLinearGetFutureUserV1PositionBreakList(extend(request, params)));
     end
-    positions = safeValue(response, "result", []);
+    (response, breakResponse) = (Base.fetch(asyncmap(Base.fetch, promisesUnresolved)));
+    positions = self.safeList(response, "result", []);
+    breakBySymbolSide = self.indexPositionBreakList(self.safeList(breakResponse, "result", []));
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
         entry = get(positions, i + 1, nothing);
@@ -2741,11 +3190,12 @@ function fetchPosition(self::Xt, symbol, params=Dict())
         marketInner = self.safeMarket(marketId, nothing, nothing, "contract");
         positionSize = safeString(entry, "positionSize");
         if functions.ccxtruthy(positionSize != "0")
-                return self.parsePosition(entry, marketInner)
+            merged = self.mergePositionBreakInfo(entry, breakBySymbolSide);
+                return self.parsePosition(merged, marketInner)
         end
         i += 1
     end
-    return nothing
+    throw(NullResponse(string(self.id, " fetchPosition() could not find a position for ", symbol)));
 
 end
 function fetchPositions(self::Xt, symbols=nothing, params=Dict())
@@ -2754,23 +3204,61 @@ function fetchPositions(self::Xt, symbols=nothing, params=Dict())
     end
     subType = nothing;
     (subType, params) = self.handleSubTypeAndParams("fetchPositions", nothing, params);
-    response = nothing;
+    promisesUnresolved = [];
     if functions.ccxtruthy(subType == "inverse")
-        response = Base.fetch(self.privateInverseGetFutureUserV1PositionList(params));
+                push!(promisesUnresolved, self.privateInverseGetFutureUserV1PositionList(params));
+                push!(promisesUnresolved, self.privateInverseGetFutureUserV1PositionBreakList(params));
     else
-        response = Base.fetch(self.privateLinearGetFutureUserV1PositionList(params));
+        push!(promisesUnresolved, self.privateLinearGetFutureUserV1PositionList(params));
+        push!(promisesUnresolved, self.privateLinearGetFutureUserV1PositionBreakList(params));
     end
-    positions = safeValue(response, "result", []);
+    (response, breakResponse) = (Base.fetch(asyncmap(Base.fetch, promisesUnresolved)));
+    positions = self.safeList(response, "result", []);
+    breakBySymbolSide = self.indexPositionBreakList(self.safeList(breakResponse, "result", []));
     result = [];
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(positions)))
         entry = get(positions, i + 1, nothing);
         marketId = safeString(entry, "symbol");
         marketInner = self.safeMarket(marketId, nothing, nothing, "contract");
-        push!(result, self.parsePosition(entry, marketInner));
+        merged = self.mergePositionBreakInfo(entry, breakBySymbolSide);
+        push!(result, self.parsePosition(merged, marketInner));
         i += 1
     end
     return self.filterByArrayPositions(result, "symbol", symbols, false)
+
+end
+function fetchPositionsHistory(self::Xt, symbols=nothing, since=nothing, limit=nothing, params=Dict())
+    Base.fetch(self.loadMarkets());
+    symbols = self.marketSymbols(symbols);
+    request = Dict{Symbol, Any}();
+    market = nothing;
+    if functions.ccxtruthy(symbols != nothing)
+        symbolsLength = length(symbols);
+        if functions.ccxtruthy(symbolsLength == 1)
+            market = self.market(get(symbols, 1, nothing));
+            request[Symbol("symbol")] = get(market, Symbol("id"), nothing);
+        end
+    end
+    if functions.ccxtruthy(since != nothing)
+        request[Symbol("startTime")] = since;
+    end
+    if functions.ccxtruthy(limit != nothing)
+        request[Symbol("limit")] = limit;
+    end
+    (request, params) = self.handleUntilOption("endTime", request, params);
+    subType = nothing;
+    (subType, params) = self.handleSubTypeAndParams("fetchPositionsHistory", market, params);
+    response = nothing;
+    if functions.ccxtruthy(subType == "inverse")
+        response = Base.fetch(self.privateInverseGetFutureTradeV1PositionListHistory(extend(request, params)));
+    else
+        response = Base.fetch(self.privateLinearGetFutureTradeV1PositionListHistory(extend(request, params)));
+    end
+    result = self.safeDict(response, "result", Dict{Symbol, Any}());
+    items = self.safeList(result, "items", []);
+    positions = self.parsePositions(items, symbols);
+    return self.filterBySinceLimit(positions, since, limit)
 
 end
 function parsePosition(self::Xt, position, market=nothing)
@@ -2778,29 +3266,34 @@ function parsePosition(self::Xt, position, market=nothing)
     market = self.safeMarket(marketId, market, nothing, "contract");
     symbol = self.safeSymbol(marketId, market, nothing, "contract");
     positionType = safeString(position, "positionType");
-    marginMode = functions.ccxtruthy((positionType == "CROSSED")) ? "cross" : "isolated";
+    isCross = @functions.ccxt_or((positionType == "CROSSED"), (positionType == "1"));
+    marginMode = functions.ccxtruthy((isCross)) ? "cross" : "isolated";
     collateral = self.safeNumber(position, "isolatedMargin");
+    liquidationPriceString = omitZero(safeString2(position, "breakPrice", "forceMarkPrice"));
+    timestamp = safeInteger(position, "closeTime");
     return self.safePosition(Dict{Symbol, Any}(
     Symbol("info") => position,
-    Symbol("id") => nothing,
+    Symbol("id") => safeString(position, "id"),
     Symbol("symbol") => symbol,
-    Symbol("timestamp") => nothing,
-    Symbol("datetime") => nothing,
+    Symbol("timestamp") => timestamp,
+    Symbol("datetime") => self.iso8601(timestamp),
     Symbol("hedged") => nothing,
     Symbol("side") => safeStringLower(position, "positionSide"),
-    Symbol("contracts") => self.safeNumber(position, "positionSize"),
+    Symbol("contracts") => self.safeNumber2(position, "positionSize", "closePositionSize"),
     Symbol("contractSize") => get(market, Symbol("contractSize"), nothing),
-    Symbol("entryPrice") => self.safeNumber(position, "entryPrice"),
-    Symbol("markPrice") => nothing,
+    Symbol("entryPrice") => self.safeNumber2(position, "entryPrice", "closeOpenPrice"),
+    Symbol("markPrice") => self.safeNumber2(position, "markPrice", "calMarkPrice"),
+    Symbol("lastPrice") => self.safeNumber(position, "closePrice"),
     Symbol("notional") => nothing,
-    Symbol("leverage") => safeInteger(position, "leverage"),
+    Symbol("leverage") => safeInteger2(position, "leverage", "endLeverage"),
     Symbol("collateral") => collateral,
     Symbol("initialMargin") => collateral,
     Symbol("maintenanceMargin") => nothing,
     Symbol("initialMarginPercentage") => nothing,
     Symbol("maintenanceMarginPercentage") => nothing,
     Symbol("unrealizedPnl") => nothing,
-    Symbol("liquidationPrice") => nothing,
+    Symbol("realizedPnl") => self.safeNumber2(position, "realizedProfit", "closeProfit"),
+    Symbol("liquidationPrice") => self.parseNumber(liquidationPriceString),
     Symbol("marginMode") => marginMode,
     Symbol("percentage") => nothing,
     Symbol("marginRatio") => nothing
@@ -2862,15 +3355,20 @@ function setMarginMode(self::Xt, marginMode, symbol=nothing, params=Dict())
         marginMode = "ISOLATED";
     end
     posSide = safeStringUpper(params, "positionSide");
-    if functions.ccxtruthy(posSide == nothing)
-        throw(ArgumentsRequired(string(self.id, " setMarginMode() requires a positionSide parameter, either \"LONG\" or \"SHORT\"")));
-    end
+    self.checkRequiredArgument("setMarginMode", posSide, "positionSide", ["LONG", "SHORT"]);
+    params = omit(params, "positionSide");
     request = Dict{Symbol, Any}(
         Symbol("positionType") => marginMode,
         Symbol("positionSide") => posSide,
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     );
-    response = Base.fetch(self.privateLinearPostFutureUserV1PositionChangeType(extend(request, params)));
+    subType = nothing;
+    (subType, params) = self.handleSubTypeAndParams("setMarginMode", market, params);
+    if functions.ccxtruthy(subType == "inverse")
+        response = Base.fetch(self.privateInversePostFutureUserV1PositionChangeType(extend(request, params)));
+    else
+        response = Base.fetch(self.privateLinearPostFutureUserV1PositionChangeType(extend(request, params)));
+    end
     return response
 
 end
@@ -2970,8 +3468,14 @@ function sign(self::Xt, path, api=[], method="GET", params=Dict(), headers=nothi
         body = query;
         if functions.ccxtruthy(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or(@functions.ccxt_or((payload == "/v4/order"), (payload == "/future/trade/v1/order/create")), (payload == "/future/trade/v1/entrust/create-plan")), (payload == "/future/trade/v1/entrust/create-profit")), (payload == "/future/trade/v1/order/create-batch")))
             id = "CCXT";
+            if functions.ccxtruthy(body == nothing)
+                throw(NullResponse(string(self.id, " sign() returned empty body")));
+            end
             if functions.ccxtruthy(findfirst("future", payload) !== nothing)
                 body[Symbol("clientMedia")] = id;
+                if functions.ccxtruthy(body == nothing)
+                    throw(NullResponse(string(self.id, " sign() returned empty body")));
+                end
             else
                 body[Symbol("media")] = id;
             end
@@ -3027,628 +3531,709 @@ function sign(self::Xt, path, api=[], method="GET", params=Dict(), headers=nothi
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Xt, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicSpotGetCurrencies(self::Xt, params=Dict(), context=Dict())
-    return request(self, "currencies", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "currencies", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetDepth(self::Xt, params=Dict(), context=Dict())
-    return request(self, "depth", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "depth", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetKline(self::Xt, params=Dict(), context=Dict())
-    return request(self, "kline", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "kline", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetSymbol(self::Xt, params=Dict(), context=Dict())
-    return request(self, "symbol", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "symbol", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetTicker(self::Xt, params=Dict(), context=Dict())
-    return request(self, "ticker", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetTickerBook(self::Xt, params=Dict(), context=Dict())
-    return request(self, "ticker/book", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker/book", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetTickerPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "ticker/price", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker/price", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetTicker24h(self::Xt, params=Dict(), context=Dict())
-    return request(self, "ticker/24h", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ticker/24h", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetTime(self::Xt, params=Dict(), context=Dict())
-    return request(self, "time", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "time", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetTradeHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "trade/history", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/history", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetTradeRecent(self::Xt, params=Dict(), context=Dict())
-    return request(self, "trade/recent", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade/recent", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicSpotGetWalletSupportCurrency(self::Xt, params=Dict(), context=Dict())
-    return request(self, "wallet/support/currency", ["public", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wallet/support/currency", ["public", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicContractRiskBalance(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/contract/risk-balance", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/contract/risk-balance", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicContractOpenInterest(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/contract/open-interest", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/contract/open-interest", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicLeverageBracketDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/leverage/bracket/detail", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/leverage/bracket/detail", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicLeverageBracketList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/leverage/bracket/list", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/leverage/bracket/list", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQAggTicker(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/agg-ticker", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/agg-ticker", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQAggTickers(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/agg-tickers", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/agg-tickers", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQDeal(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/deal", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/deal", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQDepth(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/depth", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/depth", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQFundingRate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/funding-rate", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/funding-rate", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQFundingRateRecord(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/funding-rate-record", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/funding-rate-record", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQIndexPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/index-price", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/index-price", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQKline(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/kline", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/kline", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQMarkPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/mark-price", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/mark-price", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQSymbolIndexPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/symbol-index-price", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/symbol-index-price", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQSymbolMarkPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/symbol-mark-price", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/symbol-mark-price", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQTicker(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/ticker", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/ticker", ["public", "linear"], "GET", params, nothing, nothing, Dict())
+end
+
+function publicLinearGetFutureMarketV1PublicQTickerBooks(self::Xt, params=Dict(), context=Dict())
+    return request(self, "future/market/v1/public/q/ticker/books", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicQTickers(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/tickers", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/tickers", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicSymbolCoins(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/coins", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3.33))
+    return request(self, "future/market/v1/public/symbol/coins", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicSymbolDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/detail", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3.33))
+    return request(self, "future/market/v1/public/symbol/detail", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicLinearGetFutureMarketV1PublicSymbolList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/list", ["public", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/symbol/list", ["public", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicContractRiskBalance(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/contract/risk-balance", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/contract/risk-balance", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicContractOpenInterest(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/contract/open-interest", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/contract/open-interest", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicLeverageBracketDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/leverage/bracket/detail", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/leverage/bracket/detail", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicLeverageBracketList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/leverage/bracket/list", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/leverage/bracket/list", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQAggTicker(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/agg-ticker", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/agg-ticker", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQAggTickers(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/agg-tickers", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/agg-tickers", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQDeal(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/deal", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/deal", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQDepth(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/depth", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/depth", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQFundingRate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/funding-rate", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/funding-rate", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQFundingRateRecord(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/funding-rate-record", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/funding-rate-record", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQIndexPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/index-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/index-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQKline(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/kline", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/kline", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQMarkPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/mark-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/mark-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQSymbolIndexPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/symbol-index-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/symbol-index-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQSymbolMarkPrice(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/symbol-mark-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/symbol-mark-price", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQTicker(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/ticker", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/ticker", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
+end
+
+function publicInverseGetFutureMarketV1PublicQTickerBooks(self::Xt, params=Dict(), context=Dict())
+    return request(self, "future/market/v1/public/q/ticker/books", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicQTickers(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/q/tickers", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/q/tickers", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicSymbolCoins(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/coins", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3.33))
+    return request(self, "future/market/v1/public/symbol/coins", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicSymbolDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/detail", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3.33))
+    return request(self, "future/market/v1/public/symbol/detail", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function publicInverseGetFutureMarketV1PublicSymbolList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/market/v1/public/symbol/list", ["public", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/market/v1/public/symbol/list", ["public", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetBalance(self::Xt, params=Dict(), context=Dict())
-    return request(self, "balance", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "balance", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetBalances(self::Xt, params=Dict(), context=Dict())
-    return request(self, "balances", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "balances", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetBatchOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "batch-order", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "batch-order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetDepositAddress(self::Xt, params=Dict(), context=Dict())
-    return request(self, "deposit/address", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deposit/address", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetDepositHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "deposit/history", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "deposit/history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetHistoryOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "history-order", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "history-order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetOpenOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "open-order", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "open-order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "order", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetOrderOrderId(self::Xt, params=Dict(), context=Dict())
-    return request(self, "order/{orderId}", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/{orderId}", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetTrade(self::Xt, params=Dict(), context=Dict())
-    return request(self, "trade", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trade", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotGetWithdrawHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "withdraw/history", ["private", "spot"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "withdraw/history", ["private", "spot"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "order", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 0.2))
+    return request(self, "order", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostWithdraw(self::Xt, params=Dict(), context=Dict())
-    return request(self, "withdraw", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "withdraw", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostBalanceTransfer(self::Xt, params=Dict(), context=Dict())
-    return request(self, "balance/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "balance/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostBalanceAccountTransfer(self::Xt, params=Dict(), context=Dict())
-    return request(self, "balance/account/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "balance/account/transfer", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotPostWsToken(self::Xt, params=Dict(), context=Dict())
-    return request(self, "ws-token", ["private", "spot"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ws-token", ["private", "spot"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateSpotDeleteBatchOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "batch-order", ["private", "spot"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "batch-order", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateSpotDeleteOpenOrder(self::Xt, params=Dict(), context=Dict())
-    return request(self, "open-order", ["private", "spot"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "open-order", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateSpotDeleteOrderOrderId(self::Xt, params=Dict(), context=Dict())
-    return request(self, "order/{orderId}", ["private", "spot"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/{orderId}", ["private", "spot"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateSpotPutOrderOrderId(self::Xt, params=Dict(), context=Dict())
-    return request(self, "order/{orderId}", ["private", "spot"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/{orderId}", ["private", "spot"], "PUT", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureTradeV1EntrustPlanDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-detail", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/plan-detail", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureTradeV1EntrustPlanList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-list", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/plan-list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureTradeV1EntrustPlanListHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-list-history", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/plan-list-history", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureTradeV1EntrustProfitDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/profit-detail", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/profit-detail", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureTradeV1EntrustProfitList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/profit-list", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/profit-list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureTradeV1OrderDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/detail", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/detail", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureTradeV1OrderList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/list", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureTradeV1OrderListHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/list-history", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/list-history", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+end
+
+function privateLinearGetFutureTradeV1PositionListHistory(self::Xt, params=Dict(), context=Dict())
+    return request(self, "future/trade/v1/position/list-history", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureTradeV1OrderTradeList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/trade-list", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/trade-list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureUserV1AccountInfo(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/account/info", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/account/info", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureUserV1BalanceBills(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/bills", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/balance/bills", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureUserV1BalanceDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/detail", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/balance/detail", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureUserV1BalanceFundingRateList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/funding-rate-list", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/balance/funding-rate-list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureUserV1BalanceList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/list", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/balance/list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureUserV1PositionAdl(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/adl", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/adl", ["private", "linear"], "GET", params, nothing, nothing, Dict())
+end
+
+function privateLinearGetFutureUserV1PositionBreakList(self::Xt, params=Dict(), context=Dict())
+    return request(self, "future/user/v1/position/break-list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureUserV1PositionList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/list", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureUserV1UserCollectionList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/list", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/user/collection/list", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearGetFutureUserV1UserListenKey(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/listen-key", ["private", "linear"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/user/listen-key", ["private", "linear"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCancelAllPlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-all-plan", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/cancel-all-plan", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCancelAllProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-all-profit-stop", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/cancel-all-profit-stop", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCancelPlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-plan", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/cancel-plan", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCancelProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-profit-stop", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/cancel-profit-stop", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCreatePlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/create-plan", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/create-plan", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustCreateProfit(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/create-profit", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/create-profit", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1EntrustUpdateProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/update-profit-stop", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/update-profit-stop", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1OrderCancel(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/cancel", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/cancel", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1OrderCancelAll(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/cancel-all", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/cancel-all", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1OrderCreate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/create", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/create", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1OrderCreateBatch(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/create-batch", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/create-batch", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureTradeV1OrderUpdate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/update", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/update", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureUserV1AccountOpen(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/account/open", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/account/open", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureUserV1PositionAdjustLeverage(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/adjust-leverage", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/adjust-leverage", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureUserV1PositionAutoMargin(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/auto-margin", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/auto-margin", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureUserV1PositionCloseAll(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/close-all", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/close-all", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureUserV1PositionMargin(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/margin", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/margin", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureUserV1UserCollectionAdd(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/add", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/user/collection/add", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureUserV1UserCollectionCancel(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/cancel", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/user/collection/cancel", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateLinearPostFutureUserV1PositionChangeType(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/change-type", ["private", "linear"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/change-type", ["private", "linear"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureTradeV1EntrustPlanDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/plan-detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureTradeV1EntrustPlanList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/plan-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureTradeV1EntrustPlanListHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/plan-list-history", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/plan-list-history", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureTradeV1EntrustProfitDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/profit-detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/profit-detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureTradeV1EntrustProfitList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/profit-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/profit-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureTradeV1OrderDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureTradeV1OrderList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureTradeV1OrderListHistory(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/list-history", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/list-history", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+end
+
+function privateInverseGetFutureTradeV1PositionListHistory(self::Xt, params=Dict(), context=Dict())
+    return request(self, "future/trade/v1/position/list-history", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureTradeV1OrderTradeList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/trade-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/trade-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureUserV1AccountInfo(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/account/info", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/account/info", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureUserV1BalanceBills(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/bills", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/balance/bills", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureUserV1BalanceDetail(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/balance/detail", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureUserV1BalanceFundingRateList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/funding-rate-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/balance/funding-rate-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureUserV1BalanceList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/balance/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/balance/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureUserV1PositionAdl(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/adl", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/adl", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
+end
+
+function privateInverseGetFutureUserV1PositionBreakList(self::Xt, params=Dict(), context=Dict())
+    return request(self, "future/user/v1/position/break-list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureUserV1PositionList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureUserV1UserCollectionList(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/user/collection/list", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInverseGetFutureUserV1UserListenKey(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/listen-key", ["private", "inverse"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/user/listen-key", ["private", "inverse"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCancelAllPlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-all-plan", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/cancel-all-plan", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCancelAllProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-all-profit-stop", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/cancel-all-profit-stop", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCancelPlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-plan", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/cancel-plan", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCancelProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/cancel-profit-stop", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/cancel-profit-stop", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCreatePlan(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/create-plan", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/create-plan", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustCreateProfit(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/create-profit", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/create-profit", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1EntrustUpdateProfitStop(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/entrust/update-profit-stop", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/entrust/update-profit-stop", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1OrderCancel(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/cancel", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/cancel", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1OrderCancelAll(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/cancel-all", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/cancel-all", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1OrderCreate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/create", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/create", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1OrderCreateBatch(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/create-batch", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/create-batch", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureTradeV1OrderUpdate(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/trade/v1/order/update", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/trade/v1/order/update", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureUserV1AccountOpen(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/account/open", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/account/open", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureUserV1PositionAdjustLeverage(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/adjust-leverage", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/adjust-leverage", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureUserV1PositionAutoMargin(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/auto-margin", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/auto-margin", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureUserV1PositionCloseAll(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/close-all", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/close-all", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureUserV1PositionMargin(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/position/margin", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/position/margin", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureUserV1UserCollectionAdd(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/add", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/user/collection/add", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateInversePostFutureUserV1UserCollectionCancel(self::Xt, params=Dict(), context=Dict())
-    return request(self, "future/user/v1/user/collection/cancel", ["private", "inverse"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "future/user/v1/user/collection/cancel", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
+end
+
+function privateInversePostFutureUserV1PositionChangeType(self::Xt, params=Dict(), context=Dict())
+    return request(self, "future/user/v1/position/change-type", ["private", "inverse"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserGetUserAccount(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account", ["private", "user"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/account", ["private", "user"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUserGetUserAccountApiKey(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account/api-key", ["private", "user"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/account/api-key", ["private", "user"], "GET", params, nothing, nothing, Dict())
 end
 
 function privateUserPostUserAccount(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/account", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserPostUserAccountApiKey(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account/api-key", ["private", "user"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/account/api-key", ["private", "user"], "POST", params, nothing, nothing, Dict())
 end
 
 function privateUserPutUserAccountApiKey(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account/api-key", ["private", "user"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/account/api-key", ["private", "user"], "PUT", params, nothing, nothing, Dict())
 end
 
 function privateUserDeleteUserAccountApiKeyId(self::Xt, params=Dict(), context=Dict())
-    return request(self, "user/account/{apiKeyId}", ["private", "user"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "user/account/{apiKeyId}", ["private", "user"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function Xt(; kwargs...)
-    inst = Xt(Exchange(), describe, nonce, fetchTime, fetchCurrencies, fetchMarkets, fetchSpotMarkets, fetchSwapAndFutureMarkets, parseMarkets, parseMarket, fetchOHLCV, parseOHLCV, fetchOrderBook, fetchTicker, fetchTickers, fetchBidsAsks, parseTicker, fetchTrades, fetchMyTrades, parseTrade, fetchBalance, parseBalance, createMarketBuyOrderWithCost, createOrder, createSpotOrder, createContractOrder, fetchOrder, fetchOrders, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, cancelOrder, cancelAllOrders, cancelOrders, parseOrder, parseOrderStatus, fetchLedger, parseLedgerEntry, parseLedgerEntryType, fetchDepositAddress, parseDepositAddress, fetchDeposits, fetchWithdrawals, withdraw, parseTransaction, parseTransactionStatus, setLeverage, addMargin, reduceMargin, modifyMarginHelper, parseMarginModification, fetchLeverageTiers, parseLeverageTiers, fetchMarketLeverageTiers, parseMarketLeverageTiers, fetchFundingRateHistory, fetchFundingInterval, fetchFundingRate, parseFundingRate, fetchFundingHistory, parseFundingHistory, fetchPosition, fetchPositions, parsePosition, transfer, parseTransfer, setMarginMode, editOrder, handleErrors, sign, publicSpotGetCurrencies, publicSpotGetDepth, publicSpotGetKline, publicSpotGetSymbol, publicSpotGetTicker, publicSpotGetTickerBook, publicSpotGetTickerPrice, publicSpotGetTicker24h, publicSpotGetTime, publicSpotGetTradeHistory, publicSpotGetTradeRecent, publicSpotGetWalletSupportCurrency, publicLinearGetFutureMarketV1PublicContractRiskBalance, publicLinearGetFutureMarketV1PublicContractOpenInterest, publicLinearGetFutureMarketV1PublicLeverageBracketDetail, publicLinearGetFutureMarketV1PublicLeverageBracketList, publicLinearGetFutureMarketV1PublicQAggTicker, publicLinearGetFutureMarketV1PublicQAggTickers, publicLinearGetFutureMarketV1PublicQDeal, publicLinearGetFutureMarketV1PublicQDepth, publicLinearGetFutureMarketV1PublicQFundingRate, publicLinearGetFutureMarketV1PublicQFundingRateRecord, publicLinearGetFutureMarketV1PublicQIndexPrice, publicLinearGetFutureMarketV1PublicQKline, publicLinearGetFutureMarketV1PublicQMarkPrice, publicLinearGetFutureMarketV1PublicQSymbolIndexPrice, publicLinearGetFutureMarketV1PublicQSymbolMarkPrice, publicLinearGetFutureMarketV1PublicQTicker, publicLinearGetFutureMarketV1PublicQTickers, publicLinearGetFutureMarketV1PublicSymbolCoins, publicLinearGetFutureMarketV1PublicSymbolDetail, publicLinearGetFutureMarketV1PublicSymbolList, publicInverseGetFutureMarketV1PublicContractRiskBalance, publicInverseGetFutureMarketV1PublicContractOpenInterest, publicInverseGetFutureMarketV1PublicLeverageBracketDetail, publicInverseGetFutureMarketV1PublicLeverageBracketList, publicInverseGetFutureMarketV1PublicQAggTicker, publicInverseGetFutureMarketV1PublicQAggTickers, publicInverseGetFutureMarketV1PublicQDeal, publicInverseGetFutureMarketV1PublicQDepth, publicInverseGetFutureMarketV1PublicQFundingRate, publicInverseGetFutureMarketV1PublicQFundingRateRecord, publicInverseGetFutureMarketV1PublicQIndexPrice, publicInverseGetFutureMarketV1PublicQKline, publicInverseGetFutureMarketV1PublicQMarkPrice, publicInverseGetFutureMarketV1PublicQSymbolIndexPrice, publicInverseGetFutureMarketV1PublicQSymbolMarkPrice, publicInverseGetFutureMarketV1PublicQTicker, publicInverseGetFutureMarketV1PublicQTickers, publicInverseGetFutureMarketV1PublicSymbolCoins, publicInverseGetFutureMarketV1PublicSymbolDetail, publicInverseGetFutureMarketV1PublicSymbolList, privateSpotGetBalance, privateSpotGetBalances, privateSpotGetBatchOrder, privateSpotGetDepositAddress, privateSpotGetDepositHistory, privateSpotGetHistoryOrder, privateSpotGetOpenOrder, privateSpotGetOrder, privateSpotGetOrderOrderId, privateSpotGetTrade, privateSpotGetWithdrawHistory, privateSpotPostOrder, privateSpotPostWithdraw, privateSpotPostBalanceTransfer, privateSpotPostBalanceAccountTransfer, privateSpotPostWsToken, privateSpotDeleteBatchOrder, privateSpotDeleteOpenOrder, privateSpotDeleteOrderOrderId, privateSpotPutOrderOrderId, privateLinearGetFutureTradeV1EntrustPlanDetail, privateLinearGetFutureTradeV1EntrustPlanList, privateLinearGetFutureTradeV1EntrustPlanListHistory, privateLinearGetFutureTradeV1EntrustProfitDetail, privateLinearGetFutureTradeV1EntrustProfitList, privateLinearGetFutureTradeV1OrderDetail, privateLinearGetFutureTradeV1OrderList, privateLinearGetFutureTradeV1OrderListHistory, privateLinearGetFutureTradeV1OrderTradeList, privateLinearGetFutureUserV1AccountInfo, privateLinearGetFutureUserV1BalanceBills, privateLinearGetFutureUserV1BalanceDetail, privateLinearGetFutureUserV1BalanceFundingRateList, privateLinearGetFutureUserV1BalanceList, privateLinearGetFutureUserV1PositionAdl, privateLinearGetFutureUserV1PositionList, privateLinearGetFutureUserV1UserCollectionList, privateLinearGetFutureUserV1UserListenKey, privateLinearPostFutureTradeV1EntrustCancelAllPlan, privateLinearPostFutureTradeV1EntrustCancelAllProfitStop, privateLinearPostFutureTradeV1EntrustCancelPlan, privateLinearPostFutureTradeV1EntrustCancelProfitStop, privateLinearPostFutureTradeV1EntrustCreatePlan, privateLinearPostFutureTradeV1EntrustCreateProfit, privateLinearPostFutureTradeV1EntrustUpdateProfitStop, privateLinearPostFutureTradeV1OrderCancel, privateLinearPostFutureTradeV1OrderCancelAll, privateLinearPostFutureTradeV1OrderCreate, privateLinearPostFutureTradeV1OrderCreateBatch, privateLinearPostFutureTradeV1OrderUpdate, privateLinearPostFutureUserV1AccountOpen, privateLinearPostFutureUserV1PositionAdjustLeverage, privateLinearPostFutureUserV1PositionAutoMargin, privateLinearPostFutureUserV1PositionCloseAll, privateLinearPostFutureUserV1PositionMargin, privateLinearPostFutureUserV1UserCollectionAdd, privateLinearPostFutureUserV1UserCollectionCancel, privateLinearPostFutureUserV1PositionChangeType, privateInverseGetFutureTradeV1EntrustPlanDetail, privateInverseGetFutureTradeV1EntrustPlanList, privateInverseGetFutureTradeV1EntrustPlanListHistory, privateInverseGetFutureTradeV1EntrustProfitDetail, privateInverseGetFutureTradeV1EntrustProfitList, privateInverseGetFutureTradeV1OrderDetail, privateInverseGetFutureTradeV1OrderList, privateInverseGetFutureTradeV1OrderListHistory, privateInverseGetFutureTradeV1OrderTradeList, privateInverseGetFutureUserV1AccountInfo, privateInverseGetFutureUserV1BalanceBills, privateInverseGetFutureUserV1BalanceDetail, privateInverseGetFutureUserV1BalanceFundingRateList, privateInverseGetFutureUserV1BalanceList, privateInverseGetFutureUserV1PositionAdl, privateInverseGetFutureUserV1PositionList, privateInverseGetFutureUserV1UserCollectionList, privateInverseGetFutureUserV1UserListenKey, privateInversePostFutureTradeV1EntrustCancelAllPlan, privateInversePostFutureTradeV1EntrustCancelAllProfitStop, privateInversePostFutureTradeV1EntrustCancelPlan, privateInversePostFutureTradeV1EntrustCancelProfitStop, privateInversePostFutureTradeV1EntrustCreatePlan, privateInversePostFutureTradeV1EntrustCreateProfit, privateInversePostFutureTradeV1EntrustUpdateProfitStop, privateInversePostFutureTradeV1OrderCancel, privateInversePostFutureTradeV1OrderCancelAll, privateInversePostFutureTradeV1OrderCreate, privateInversePostFutureTradeV1OrderCreateBatch, privateInversePostFutureTradeV1OrderUpdate, privateInversePostFutureUserV1AccountOpen, privateInversePostFutureUserV1PositionAdjustLeverage, privateInversePostFutureUserV1PositionAutoMargin, privateInversePostFutureUserV1PositionCloseAll, privateInversePostFutureUserV1PositionMargin, privateInversePostFutureUserV1UserCollectionAdd, privateInversePostFutureUserV1UserCollectionCancel, privateUserGetUserAccount, privateUserGetUserAccountApiKey, privateUserPostUserAccount, privateUserPostUserAccountApiKey, privateUserPutUserAccountApiKey, privateUserDeleteUserAccountApiKeyId)
+    inst = Xt(Exchange(), describe, nonce, fetchTime, fetchCurrencies, fetchMarkets, fetchSpotMarkets, fetchSwapAndFutureMarkets, parseMarkets, parseMarket, fetchOHLCV, parseOHLCV, fetchOrderBook, fetchTicker, fetchTickers, fetchBidsAsks, parseTicker, fetchTrades, fetchMyTrades, parseTrade, fetchBalance, parseBalance, createMarketBuyOrderWithCost, createOrder, createSpotOrder, createContractOrder, fetchOrder, fetchOrders, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, cancelOrder, cancelAllOrders, cancelOrders, parseOrder, parseOrderStatus, fetchLedger, parseLedgerEntry, parseLedgerEntryType, fetchDepositAddress, parseDepositAddress, fetchDeposits, fetchWithdrawals, withdraw, parseTransaction, parseTransactionStatus, setLeverage, addMargin, reduceMargin, modifyMarginHelper, parseMarginModification, fetchLeverageTiers, parseLeverageTiers, fetchMarketLeverageTiers, parseMarketLeverageTiers, fetchFundingRateHistory, fetchFundingInterval, fetchFundingRate, parseFundingRate, fetchOpenInterest, parseOpenInterest, fetchFundingHistory, parseFundingHistory, indexPositionBreakList, mergePositionBreakInfo, fetchPosition, fetchPositions, fetchPositionsHistory, parsePosition, transfer, parseTransfer, setMarginMode, editOrder, handleErrors, sign, publicSpotGetCurrencies, publicSpotGetDepth, publicSpotGetKline, publicSpotGetSymbol, publicSpotGetTicker, publicSpotGetTickerBook, publicSpotGetTickerPrice, publicSpotGetTicker24h, publicSpotGetTime, publicSpotGetTradeHistory, publicSpotGetTradeRecent, publicSpotGetWalletSupportCurrency, publicLinearGetFutureMarketV1PublicContractRiskBalance, publicLinearGetFutureMarketV1PublicContractOpenInterest, publicLinearGetFutureMarketV1PublicLeverageBracketDetail, publicLinearGetFutureMarketV1PublicLeverageBracketList, publicLinearGetFutureMarketV1PublicQAggTicker, publicLinearGetFutureMarketV1PublicQAggTickers, publicLinearGetFutureMarketV1PublicQDeal, publicLinearGetFutureMarketV1PublicQDepth, publicLinearGetFutureMarketV1PublicQFundingRate, publicLinearGetFutureMarketV1PublicQFundingRateRecord, publicLinearGetFutureMarketV1PublicQIndexPrice, publicLinearGetFutureMarketV1PublicQKline, publicLinearGetFutureMarketV1PublicQMarkPrice, publicLinearGetFutureMarketV1PublicQSymbolIndexPrice, publicLinearGetFutureMarketV1PublicQSymbolMarkPrice, publicLinearGetFutureMarketV1PublicQTicker, publicLinearGetFutureMarketV1PublicQTickerBooks, publicLinearGetFutureMarketV1PublicQTickers, publicLinearGetFutureMarketV1PublicSymbolCoins, publicLinearGetFutureMarketV1PublicSymbolDetail, publicLinearGetFutureMarketV1PublicSymbolList, publicInverseGetFutureMarketV1PublicContractRiskBalance, publicInverseGetFutureMarketV1PublicContractOpenInterest, publicInverseGetFutureMarketV1PublicLeverageBracketDetail, publicInverseGetFutureMarketV1PublicLeverageBracketList, publicInverseGetFutureMarketV1PublicQAggTicker, publicInverseGetFutureMarketV1PublicQAggTickers, publicInverseGetFutureMarketV1PublicQDeal, publicInverseGetFutureMarketV1PublicQDepth, publicInverseGetFutureMarketV1PublicQFundingRate, publicInverseGetFutureMarketV1PublicQFundingRateRecord, publicInverseGetFutureMarketV1PublicQIndexPrice, publicInverseGetFutureMarketV1PublicQKline, publicInverseGetFutureMarketV1PublicQMarkPrice, publicInverseGetFutureMarketV1PublicQSymbolIndexPrice, publicInverseGetFutureMarketV1PublicQSymbolMarkPrice, publicInverseGetFutureMarketV1PublicQTicker, publicInverseGetFutureMarketV1PublicQTickerBooks, publicInverseGetFutureMarketV1PublicQTickers, publicInverseGetFutureMarketV1PublicSymbolCoins, publicInverseGetFutureMarketV1PublicSymbolDetail, publicInverseGetFutureMarketV1PublicSymbolList, privateSpotGetBalance, privateSpotGetBalances, privateSpotGetBatchOrder, privateSpotGetDepositAddress, privateSpotGetDepositHistory, privateSpotGetHistoryOrder, privateSpotGetOpenOrder, privateSpotGetOrder, privateSpotGetOrderOrderId, privateSpotGetTrade, privateSpotGetWithdrawHistory, privateSpotPostOrder, privateSpotPostWithdraw, privateSpotPostBalanceTransfer, privateSpotPostBalanceAccountTransfer, privateSpotPostWsToken, privateSpotDeleteBatchOrder, privateSpotDeleteOpenOrder, privateSpotDeleteOrderOrderId, privateSpotPutOrderOrderId, privateLinearGetFutureTradeV1EntrustPlanDetail, privateLinearGetFutureTradeV1EntrustPlanList, privateLinearGetFutureTradeV1EntrustPlanListHistory, privateLinearGetFutureTradeV1EntrustProfitDetail, privateLinearGetFutureTradeV1EntrustProfitList, privateLinearGetFutureTradeV1OrderDetail, privateLinearGetFutureTradeV1OrderList, privateLinearGetFutureTradeV1OrderListHistory, privateLinearGetFutureTradeV1PositionListHistory, privateLinearGetFutureTradeV1OrderTradeList, privateLinearGetFutureUserV1AccountInfo, privateLinearGetFutureUserV1BalanceBills, privateLinearGetFutureUserV1BalanceDetail, privateLinearGetFutureUserV1BalanceFundingRateList, privateLinearGetFutureUserV1BalanceList, privateLinearGetFutureUserV1PositionAdl, privateLinearGetFutureUserV1PositionBreakList, privateLinearGetFutureUserV1PositionList, privateLinearGetFutureUserV1UserCollectionList, privateLinearGetFutureUserV1UserListenKey, privateLinearPostFutureTradeV1EntrustCancelAllPlan, privateLinearPostFutureTradeV1EntrustCancelAllProfitStop, privateLinearPostFutureTradeV1EntrustCancelPlan, privateLinearPostFutureTradeV1EntrustCancelProfitStop, privateLinearPostFutureTradeV1EntrustCreatePlan, privateLinearPostFutureTradeV1EntrustCreateProfit, privateLinearPostFutureTradeV1EntrustUpdateProfitStop, privateLinearPostFutureTradeV1OrderCancel, privateLinearPostFutureTradeV1OrderCancelAll, privateLinearPostFutureTradeV1OrderCreate, privateLinearPostFutureTradeV1OrderCreateBatch, privateLinearPostFutureTradeV1OrderUpdate, privateLinearPostFutureUserV1AccountOpen, privateLinearPostFutureUserV1PositionAdjustLeverage, privateLinearPostFutureUserV1PositionAutoMargin, privateLinearPostFutureUserV1PositionCloseAll, privateLinearPostFutureUserV1PositionMargin, privateLinearPostFutureUserV1UserCollectionAdd, privateLinearPostFutureUserV1UserCollectionCancel, privateLinearPostFutureUserV1PositionChangeType, privateInverseGetFutureTradeV1EntrustPlanDetail, privateInverseGetFutureTradeV1EntrustPlanList, privateInverseGetFutureTradeV1EntrustPlanListHistory, privateInverseGetFutureTradeV1EntrustProfitDetail, privateInverseGetFutureTradeV1EntrustProfitList, privateInverseGetFutureTradeV1OrderDetail, privateInverseGetFutureTradeV1OrderList, privateInverseGetFutureTradeV1OrderListHistory, privateInverseGetFutureTradeV1PositionListHistory, privateInverseGetFutureTradeV1OrderTradeList, privateInverseGetFutureUserV1AccountInfo, privateInverseGetFutureUserV1BalanceBills, privateInverseGetFutureUserV1BalanceDetail, privateInverseGetFutureUserV1BalanceFundingRateList, privateInverseGetFutureUserV1BalanceList, privateInverseGetFutureUserV1PositionAdl, privateInverseGetFutureUserV1PositionBreakList, privateInverseGetFutureUserV1PositionList, privateInverseGetFutureUserV1UserCollectionList, privateInverseGetFutureUserV1UserListenKey, privateInversePostFutureTradeV1EntrustCancelAllPlan, privateInversePostFutureTradeV1EntrustCancelAllProfitStop, privateInversePostFutureTradeV1EntrustCancelPlan, privateInversePostFutureTradeV1EntrustCancelProfitStop, privateInversePostFutureTradeV1EntrustCreatePlan, privateInversePostFutureTradeV1EntrustCreateProfit, privateInversePostFutureTradeV1EntrustUpdateProfitStop, privateInversePostFutureTradeV1OrderCancel, privateInversePostFutureTradeV1OrderCancelAll, privateInversePostFutureTradeV1OrderCreate, privateInversePostFutureTradeV1OrderCreateBatch, privateInversePostFutureTradeV1OrderUpdate, privateInversePostFutureUserV1AccountOpen, privateInversePostFutureUserV1PositionAdjustLeverage, privateInversePostFutureUserV1PositionAutoMargin, privateInversePostFutureUserV1PositionCloseAll, privateInversePostFutureUserV1PositionMargin, privateInversePostFutureUserV1UserCollectionAdd, privateInversePostFutureUserV1UserCollectionCancel, privateInversePostFutureUserV1PositionChangeType, privateUserGetUserAccount, privateUserGetUserAccountApiKey, privateUserPostUserAccount, privateUserPostUserAccountApiKey, privateUserPutUserAccountApiKey, privateUserDeleteUserAccountApiKeyId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

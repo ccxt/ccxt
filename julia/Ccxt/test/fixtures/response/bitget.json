@@ -573,7 +573,7 @@
                                 "fee": 1,
                                 "precision": 1e-8
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "chain": "ArbitrumOne",
                                     "needTag": "false",
@@ -592,7 +592,7 @@
                                     "congestion": "normal"
                                 },
                                 "id": "ArbitrumOne",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "limits": {
                                     "withdraw": {
                                         "min": 10,

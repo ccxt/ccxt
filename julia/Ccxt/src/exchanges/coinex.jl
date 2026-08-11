@@ -415,6 +415,7 @@ function describe(self::Coinex, )
         Symbol("fetchOpenOrders") => true,
         Symbol("fetchOrder") => true,
         Symbol("fetchOrderBook") => true,
+        Symbol("fetchOrdersByStatus") => true,
         Symbol("fetchPosition") => true,
         Symbol("fetchPositionHistory") => true,
         Symbol("fetchPositions") => true,
@@ -472,289 +473,791 @@ function describe(self::Coinex, )
         Symbol("v1") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("amm/market") => 1,
-                    Symbol("common/currency/rate") => 1,
-                    Symbol("common/asset/config") => 1,
-                    Symbol("common/maintain/info") => 1,
-                    Symbol("common/temp-maintain/info") => 1,
-                    Symbol("margin/market") => 1,
-                    Symbol("market/info") => 1,
-                    Symbol("market/list") => 1,
-                    Symbol("market/ticker") => 1,
-                    Symbol("market/ticker/all") => 1,
-                    Symbol("market/depth") => 1,
-                    Symbol("market/deals") => 1,
-                    Symbol("market/kline") => 1,
-                    Symbol("market/detail") => 1
+                    Symbol("amm/market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("common/currency/rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("common/asset/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("common/maintain/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("common/temp-maintain/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/ticker/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("account/amm/balance") => 40,
-                    Symbol("account/investment/balance") => 40,
-                    Symbol("account/balance/history") => 40,
-                    Symbol("account/market/fee") => 40,
-                    Symbol("balance/coin/deposit") => 40,
-                    Symbol("balance/coin/withdraw") => 40,
-                    Symbol("balance/info") => 40,
-                    Symbol("balance/deposit/address/{coin_type}") => 40,
-                    Symbol("contract/transfer/history") => 40,
-                    Symbol("credit/info") => 40,
-                    Symbol("credit/balance") => 40,
-                    Symbol("investment/transfer/history") => 40,
-                    Symbol("margin/account") => 1,
-                    Symbol("margin/config") => 1,
-                    Symbol("margin/loan/history") => 40,
-                    Symbol("margin/transfer/history") => 40,
-                    Symbol("order/deals") => 40,
-                    Symbol("order/finished") => 40,
-                    Symbol("order/pending") => 8,
-                    Symbol("order/status") => 8,
-                    Symbol("order/status/batch") => 8,
-                    Symbol("order/user/deals") => 40,
-                    Symbol("order/stop/finished") => 40,
-                    Symbol("order/stop/pending") => 8,
-                    Symbol("order/user/trade/fee") => 1,
-                    Symbol("order/market/trade/info") => 1,
-                    Symbol("sub_account/balance") => 1,
-                    Symbol("sub_account/transfer/history") => 40,
-                    Symbol("sub_account/auth/api") => 40,
-                    Symbol("sub_account/auth/api/{user_auth_id}") => 40
+                    Symbol("account/amm/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/investment/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/balance/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/market/fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("balance/coin/deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("balance/coin/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("balance/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("balance/deposit/address/{coin_type}") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("contract/transfer/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("credit/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("credit/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("investment/transfer/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("margin/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("margin/loan/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("margin/transfer/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/finished") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("order/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("order/status/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("order/user/deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/stop/finished") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/stop/pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("order/user/trade/fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/market/trade/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub_account/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub_account/transfer/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("sub_account/auth/api") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("sub_account/auth/api/{user_auth_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("balance/coin/withdraw") => 40,
-                    Symbol("contract/balance/transfer") => 40,
-                    Symbol("margin/flat") => 40,
-                    Symbol("margin/loan") => 40,
-                    Symbol("margin/transfer") => 40,
-                    Symbol("order/limit/batch") => 40,
-                    Symbol("order/ioc") => 13.334,
-                    Symbol("order/limit") => 13.334,
-                    Symbol("order/market") => 13.334,
-                    Symbol("order/modify") => 13.334,
-                    Symbol("order/stop/limit") => 13.334,
-                    Symbol("order/stop/market") => 13.334,
-                    Symbol("order/stop/modify") => 13.334,
-                    Symbol("sub_account/transfer") => 40,
-                    Symbol("sub_account/register") => 1,
-                    Symbol("sub_account/unfrozen") => 40,
-                    Symbol("sub_account/frozen") => 40,
-                    Symbol("sub_account/auth/api") => 40
+                    Symbol("balance/coin/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("contract/balance/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("margin/flat") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("margin/loan") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("margin/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/limit/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/ioc") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("order/limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("order/market") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("order/modify") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("order/stop/limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("order/stop/market") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("order/stop/modify") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("sub_account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("sub_account/register") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("sub_account/unfrozen") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("sub_account/frozen") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("sub_account/auth/api") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("balance/deposit/address/{coin_type}") => 40,
-                    Symbol("sub_account/unfrozen") => 40,
-                    Symbol("sub_account/frozen") => 40,
-                    Symbol("sub_account/auth/api/{user_auth_id}") => 40,
-                    Symbol("v1/account/settings") => 40
+                    Symbol("balance/deposit/address/{coin_type}") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("sub_account/unfrozen") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("sub_account/frozen") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("sub_account/auth/api/{user_auth_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("v1/account/settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("balance/coin/withdraw") => 40,
-                    Symbol("order/pending/batch") => 40,
-                    Symbol("order/pending") => 13.334,
-                    Symbol("order/stop/pending") => 40,
-                    Symbol("order/stop/pending/{id}") => 13.334,
-                    Symbol("order/pending/by_client_id") => 40,
-                    Symbol("order/stop/pending/by_client_id") => 40,
-                    Symbol("sub_account/auth/api/{user_auth_id}") => 40,
-                    Symbol("sub_account/authorize/{id}") => 40
+                    Symbol("balance/coin/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/pending/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("order/stop/pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/stop/pending/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("order/pending/by_client_id") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/stop/pending/by_client_id") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("sub_account/auth/api/{user_auth_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("sub_account/authorize/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+)
                 )
             ),
             Symbol("perpetualPublic") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("ping") => 1,
-                    Symbol("time") => 1,
-                    Symbol("market/list") => 1,
-                    Symbol("market/limit_config") => 1,
-                    Symbol("market/ticker") => 1,
-                    Symbol("market/ticker/all") => 1,
-                    Symbol("market/depth") => 1,
-                    Symbol("market/deals") => 1,
-                    Symbol("market/funding_history") => 1,
-                    Symbol("market/kline") => 1
+                    Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/limit_config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/ticker/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/funding_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("perpetualPrivate") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("market/user_deals") => 1,
-                    Symbol("asset/query") => 40,
-                    Symbol("order/pending") => 8,
-                    Symbol("order/finished") => 40,
-                    Symbol("order/stop_finished") => 40,
-                    Symbol("order/stop_pending") => 8,
-                    Symbol("order/status") => 8,
-                    Symbol("order/stop_status") => 8,
-                    Symbol("position/finished") => 40,
-                    Symbol("position/pending") => 40,
-                    Symbol("position/funding") => 40,
-                    Symbol("position/adl_history") => 40,
-                    Symbol("market/preference") => 40,
-                    Symbol("position/margin_history") => 40,
-                    Symbol("position/settle_history") => 40
+                    Symbol("market/user_deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("asset/query") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("order/finished") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/stop_finished") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/stop_pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("order/status") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("order/stop_status") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("position/finished") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("position/pending") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("position/funding") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("position/adl_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("market/preference") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("position/margin_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("position/settle_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("market/adjust_leverage") => 1,
-                    Symbol("market/position_expect") => 1,
-                    Symbol("order/put_limit") => 20,
-                    Symbol("order/put_market") => 20,
-                    Symbol("order/put_stop_limit") => 20,
-                    Symbol("order/put_stop_market") => 20,
-                    Symbol("order/modify") => 20,
-                    Symbol("order/modify_stop") => 20,
-                    Symbol("order/cancel") => 20,
-                    Symbol("order/cancel_all") => 40,
-                    Symbol("order/cancel_batch") => 40,
-                    Symbol("order/cancel_stop") => 20,
-                    Symbol("order/cancel_stop_all") => 40,
-                    Symbol("order/close_limit") => 20,
-                    Symbol("order/close_market") => 20,
-                    Symbol("position/adjust_margin") => 20,
-                    Symbol("position/stop_loss") => 20,
-                    Symbol("position/take_profit") => 20,
-                    Symbol("position/market_close") => 20,
-                    Symbol("order/cancel/by_client_id") => 20,
-                    Symbol("order/cancel_stop/by_client_id") => 20,
-                    Symbol("market/preference") => 20
+                    Symbol("market/adjust_leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("market/position_expect") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("order/put_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("order/put_market") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("order/put_stop_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("order/put_stop_market") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("order/modify") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("order/modify_stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("order/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("order/cancel_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/cancel_batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/cancel_stop") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("order/cancel_stop_all") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("order/close_limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("order/close_market") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("position/adjust_margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("position/stop_loss") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("position/take_profit") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("position/market_close") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("order/cancel/by_client_id") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("order/cancel_stop/by_client_id") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("market/preference") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
                 )
             )
         ),
         Symbol("v2") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("maintain/info") => 1,
-                    Symbol("ping") => 1,
-                    Symbol("time") => 1,
-                    Symbol("spot/market") => 1,
-                    Symbol("spot/ticker") => 1,
-                    Symbol("spot/depth") => 1,
-                    Symbol("spot/deals") => 1,
-                    Symbol("spot/kline") => 1,
-                    Symbol("spot/index") => 1,
-                    Symbol("futures/market") => 1,
-                    Symbol("futures/ticker") => 1,
-                    Symbol("futures/depth") => 1,
-                    Symbol("futures/deals") => 1,
-                    Symbol("futures/kline") => 1,
-                    Symbol("futures/index") => 1,
-                    Symbol("futures/funding-rate") => 1,
-                    Symbol("futures/funding-rate-history") => 1,
-                    Symbol("futures/premium-index-history") => 1,
-                    Symbol("futures/position-level") => 1,
-                    Symbol("futures/liquidation-history") => 1,
-                    Symbol("futures/basis-history") => 1,
-                    Symbol("assets/deposit-withdraw-config") => 1,
-                    Symbol("assets/all-deposit-withdraw-config") => 1
+                    Symbol("maintain/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/market") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/index") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/funding-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/funding-rate-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/premium-index-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/position-level") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/liquidation-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/basis-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("assets/deposit-withdraw-config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("assets/all-deposit-withdraw-config") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("account/subs") => 1,
-                    Symbol("account/subs/api-detail") => 40,
-                    Symbol("account/subs/info") => 1,
-                    Symbol("account/subs/api") => 40,
-                    Symbol("account/subs/transfer-history") => 40,
-                    Symbol("account/subs/balance") => 1,
-                    Symbol("account/subs/spot-balance") => 1,
-                    Symbol("account/trade-fee-rate") => 40,
-                    Symbol("account/futures-market-settings") => 1,
-                    Symbol("account/info") => 1,
-                    Symbol("assets/spot/balance") => 40,
-                    Symbol("assets/futures/balance") => 40,
-                    Symbol("assets/margin/balance") => 1,
-                    Symbol("assets/financial/balance") => 40,
-                    Symbol("assets/amm/liquidity") => 40,
-                    Symbol("assets/credit/info") => 40,
-                    Symbol("assets/spot/transcation-history") => 1,
-                    Symbol("assets/margin/borrow-history") => 40,
-                    Symbol("assets/margin/interest-limit") => 1,
-                    Symbol("assets/deposit-address") => 40,
-                    Symbol("assets/deposit-history") => 40,
-                    Symbol("assets/withdraw") => 40,
-                    Symbol("assets/transfer-history") => 40,
-                    Symbol("assets/amm/liquidity-pool") => 40,
-                    Symbol("assets/amm/income-history") => 40,
-                    Symbol("spot/order-status") => 8,
-                    Symbol("spot/batch-order-status") => 8,
-                    Symbol("spot/pending-order") => 8,
-                    Symbol("spot/finished-order") => 40,
-                    Symbol("spot/pending-stop-order") => 8,
-                    Symbol("spot/finished-stop-order") => 40,
-                    Symbol("spot/user-deals") => 40,
-                    Symbol("spot/order-deals") => 40,
-                    Symbol("futures/order-status") => 8,
-                    Symbol("futures/batch-order-status") => 1,
-                    Symbol("futures/pending-order") => 8,
-                    Symbol("futures/finished-order") => 40,
-                    Symbol("futures/pending-stop-order") => 8,
-                    Symbol("futures/finished-stop-order") => 40,
-                    Symbol("futures/user-deals") => 1,
-                    Symbol("futures/order-deals") => 1,
-                    Symbol("futures/pending-position") => 40,
-                    Symbol("futures/finished-position") => 1,
-                    Symbol("futures/position-margin-history") => 1,
-                    Symbol("futures/position-funding-history") => 40,
-                    Symbol("futures/position-adl-history") => 1,
-                    Symbol("futures/position-settle-history") => 1,
-                    Symbol("refer/referee") => 1,
-                    Symbol("refer/referee-rebate/record") => 1,
-                    Symbol("refer/referee-rebate/detail") => 1,
-                    Symbol("refer/agent-referee") => 1,
-                    Symbol("refer/agent-rebate/record") => 1,
-                    Symbol("refer/agent-rebate/detail") => 1
+                    Symbol("account/subs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("account/subs/api-detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/subs/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("account/subs/api") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/subs/transfer-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/subs/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("account/subs/spot-balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("account/trade-fee-rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/futures-market-settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("account/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("assets/spot/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/futures/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/margin/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("assets/financial/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/amm/liquidity") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/credit/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/spot/transcation-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("assets/margin/borrow-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/margin/interest-limit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("assets/deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/deposit-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/transfer-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/amm/liquidity-pool") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/amm/income-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("spot/order-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("spot/batch-order-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("spot/pending-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("spot/finished-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("spot/pending-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("spot/finished-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("spot/user-deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("spot/order-deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("futures/order-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("futures/batch-order-status") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/pending-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("futures/finished-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("futures/pending-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 8
+),
+                    Symbol("futures/finished-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("futures/user-deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/order-deals") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/pending-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("futures/finished-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/position-margin-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/position-funding-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("futures/position-adl-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/position-settle-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("refer/referee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("refer/referee-rebate/record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("refer/referee-rebate/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("refer/agent-referee") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("refer/agent-rebate/record") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("refer/agent-rebate/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("account/subs") => 40,
-                    Symbol("account/subs/frozen") => 40,
-                    Symbol("account/subs/unfrozen") => 40,
-                    Symbol("account/subs/api") => 40,
-                    Symbol("account/subs/edit-api") => 40,
-                    Symbol("account/subs/delete-api") => 40,
-                    Symbol("account/subs/transfer") => 40,
-                    Symbol("account/settings") => 40,
-                    Symbol("account/futures-market-settings") => 40,
-                    Symbol("assets/margin/borrow") => 40,
-                    Symbol("assets/margin/repay") => 40,
-                    Symbol("assets/renewal-deposit-address") => 40,
-                    Symbol("assets/withdraw") => 40,
-                    Symbol("assets/cancel-withdraw") => 40,
-                    Symbol("assets/transfer") => 40,
-                    Symbol("assets/amm/add-liquidity") => 1,
-                    Symbol("assets/amm/remove-liquidity") => 1,
-                    Symbol("spot/order") => 13.334,
-                    Symbol("spot/stop-order") => 13.334,
-                    Symbol("spot/batch-order") => 40,
-                    Symbol("spot/batch-stop-order") => 1,
-                    Symbol("spot/modify-order") => 13.334,
-                    Symbol("spot/modify-stop-order") => 13.334,
-                    Symbol("spot/batch-modify-order") => 13.334,
-                    Symbol("spot/cancel-all-order") => 1,
-                    Symbol("spot/cancel-order") => 6.667,
-                    Symbol("spot/cancel-stop-order") => 6.667,
-                    Symbol("spot/cancel-batch-order") => 10,
-                    Symbol("spot/cancel-batch-stop-order") => 10,
-                    Symbol("spot/cancel-order-by-client-id") => 1,
-                    Symbol("spot/cancel-stop-order-by-client-id") => 1,
-                    Symbol("futures/order") => 20,
-                    Symbol("futures/stop-order") => 20,
-                    Symbol("futures/batch-order") => 1,
-                    Symbol("futures/batch-stop-order") => 1,
-                    Symbol("futures/cancel-position-stop-loss") => 20,
-                    Symbol("futures/cancel-position-take-profit") => 20,
-                    Symbol("futures/modify-order") => 20,
-                    Symbol("futures/modify-stop-order") => 20,
-                    Symbol("futures/batch-modify-order") => 20,
-                    Symbol("futures/cancel-all-order") => 1,
-                    Symbol("futures/cancel-order") => 10,
-                    Symbol("futures/cancel-stop-order") => 10,
-                    Symbol("futures/cancel-batch-order") => 20,
-                    Symbol("futures/cancel-batch-stop-order") => 20,
-                    Symbol("futures/cancel-order-by-client-id") => 1,
-                    Symbol("futures/cancel-stop-order-by-client-id") => 1,
-                    Symbol("futures/close-position") => 20,
-                    Symbol("futures/adjust-position-margin") => 20,
-                    Symbol("futures/adjust-position-leverage") => 20,
-                    Symbol("futures/set-position-stop-loss") => 20,
-                    Symbol("futures/set-position-take-profit") => 20
+                    Symbol("account/subs") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/subs/frozen") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/subs/unfrozen") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/subs/api") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/subs/edit-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/subs/delete-api") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/subs/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("account/futures-market-settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/margin/borrow") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/margin/repay") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/renewal-deposit-address") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/cancel-withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("assets/amm/add-liquidity") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("assets/amm/remove-liquidity") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("spot/stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("spot/batch-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 40
+),
+                    Symbol("spot/batch-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/modify-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("spot/modify-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("spot/batch-modify-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 13.334
+),
+                    Symbol("spot/cancel-all-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.667
+),
+                    Symbol("spot/cancel-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 6.667
+),
+                    Symbol("spot/cancel-batch-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("spot/cancel-batch-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("spot/cancel-order-by-client-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("spot/cancel-stop-order-by-client-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/batch-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/batch-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/cancel-position-stop-loss") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/cancel-position-take-profit") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/modify-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/modify-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/batch-modify-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/cancel-all-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/cancel-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("futures/cancel-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                    Symbol("futures/cancel-batch-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/cancel-batch-stop-order") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/cancel-order-by-client-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/cancel-stop-order-by-client-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("futures/close-position") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/adjust-position-margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/adjust-position-leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/set-position-stop-loss") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+),
+                    Symbol("futures/set-position-take-profit") => Dict{Symbol, Any}(
+    Symbol("cost") => 20
+)
                 )
             )
         )
@@ -814,8 +1317,8 @@ function describe(self::Coinex, )
             Symbol("ACA") => "ACA",
             Symbol("CHZ") => "CHILIZ",
             Symbol("ADA") => "ADA",
-            Symbol("ARB") => "ARBITRUM",
-            Symbol("ARBNOVA") => "ARBITRUM_NOVA",
+            Symbol("ARBITRUM") => "ARBITRUM",
+            Symbol("ARBITRUM_NOVA") => "ARBITRUM_NOVA",
             Symbol("OP") => "OPTIMISM",
             Symbol("APT") => "APTOS",
             Symbol("ATOM") => "ATOM",
@@ -1046,7 +1549,9 @@ function parseCurrency(self::Coinex, coin)
             ),
             Symbol("info") => chain
         );
-        networks[Symbol(networkCode)] = network;
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = network;
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -1235,7 +1740,9 @@ end
 function parseTicker(self::Coinex, ticker, market=nothing)
     marketType = functions.ccxtruthy((ccxt_in("mark_price", ticker))) ? "swap" : "spot";
     marketId = safeString(ticker, "market");
-    symbol = self.safeSymbol(marketId, market, nothing, marketType);
+    market = self.safeMarket(marketId, market, nothing, marketType);
+    symbol = get(market, Symbol("symbol"), nothing);
+    quoteVolume = functions.ccxtruthy(get(market, Symbol("inverse"), nothing)) ? nothing : safeString(ticker, "value");
     return self.safeTicker(Dict{Symbol, Any}(
     Symbol("symbol") => symbol,
     Symbol("timestamp") => nothing,
@@ -1255,7 +1762,7 @@ function parseTicker(self::Coinex, ticker, market=nothing)
     Symbol("percentage") => nothing,
     Symbol("average") => nothing,
     Symbol("baseVolume") => safeString(ticker, "volume"),
-    Symbol("quoteVolume") => nothing,
+    Symbol("quoteVolume") => quoteVolume,
     Symbol("markPrice") => safeString(ticker, "mark_price"),
     Symbol("indexPrice") => safeString(ticker, "index_price"),
     Symbol("info") => ticker
@@ -1490,7 +1997,9 @@ function fetchMarginBalance(self::Coinex, params=Dict())
         baseDebt = safeString(loan, "base_ccy");
         baseInterest = safeString(interest, "base_ccy");
         baseAccount[Symbol("debt")] = stringAdd(baseDebt, baseInterest);
-        result[Symbol(baseCurrencyCode)] = baseAccount;
+        if functions.ccxtruthy(baseCurrencyCode != nothing)
+            result[Symbol(baseCurrencyCode)] = baseAccount;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1513,7 +2022,9 @@ function fetchSpotBalance(self::Coinex, params=Dict())
         account = self.account();
         account[Symbol("free")] = safeString(entry, "available");
         account[Symbol("used")] = safeString(entry, "frozen");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1536,7 +2047,9 @@ function fetchSwapBalance(self::Coinex, params=Dict())
         account = self.account();
         account[Symbol("free")] = safeString(entry, "available");
         account[Symbol("used")] = safeString(entry, "frozen");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1559,7 +2072,9 @@ function fetchFinancialBalance(self::Coinex, params=Dict())
         account = self.account();
         account[Symbol("free")] = safeString(entry, "available");
         account[Symbol("used")] = safeString(entry, "frozen");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1671,6 +2186,12 @@ function createMarketBuyOrderWithCost(self::Coinex, symbol, cost, params=Dict())
 
 end
 function createOrderRequest(self::Coinex, symbol, type_var, side, amount, price=nothing, params=Dict())
+    if functions.ccxtruthy(type_var == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a type argument")));
+    end
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " requires a side argument")));
+    end
     market = self.market(symbol);
     swap = get(market, Symbol("swap"), nothing);
     clientOrderId = safeString2(params, "client_id", "clientOrderId");
@@ -2020,7 +2541,9 @@ function editOrders(self::Coinex, orders, params=Dict())
         rawOrder = get(orders, i + 1, nothing);
         marketId = safeString(rawOrder, "symbol");
         market = self.market(marketId);
-        push!(orderSymbols, marketId);
+        if functions.ccxtruthy(marketId != nothing)
+                        push!(orderSymbols, marketId);
+        end
         id = safeString(rawOrder, "id");
         amount = safeValue(rawOrder, "amount");
         price = safeValue(rawOrder, "price");
@@ -2578,7 +3101,7 @@ function modifyMarginHelper(self::Coinex, symbol, amount, addOrReduce, params=Di
         Symbol("amount") => requestAmount
     );
     response = Base.fetch(self.v2PrivatePostFuturesAdjustPositionMargin(extend(request, params)));
-    data = self.safeDict(response, "data");
+    data = self.safeDict(response, "data", Dict{Symbol, Any}());
     status = safeStringLower(response, "message");
     type_var = functions.ccxtruthy((addOrReduce == "reduce")) ? "reduce" : "add";
     return extend(self.parseMarginModification(data, market), Dict{Symbol, Any}(
@@ -2859,7 +3382,7 @@ function parseTransaction(self::Coinex, transaction, currency=nothing)
     if functions.ccxtruthy(type_var == "deposit")
         feeCost = "0";
     end
-    feeCurrencyId = safeString(transaction, "fee_asset");
+    feeCurrencyId = safeString2(transaction, "fee_asset", "fee_ccy");
     fee = Dict{Symbol, Any}(
         Symbol("cost") => self.parseNumber(feeCost),
         Symbol("currency") => self.safeCurrencyCode(feeCurrencyId)
@@ -3146,9 +3669,9 @@ function parseMarginLoan(self::Coinex, info, currency=nothing)
     marketId = safeString(info, "market");
     timestamp = safeInteger(info, "expired_at");
     return Dict{Symbol, Any}(
-    Symbol("id") => safeInteger(info, "borrow_id"),
+    Symbol("id") => safeString(info, "borrow_id"),
     Symbol("currency") => self.safeCurrencyCode(currencyId, currency),
-    Symbol("amount") => safeString(info, "borrow_amount"),
+    Symbol("amount") => self.safeNumber(info, "borrow_amount"),
     Symbol("symbol") => self.safeSymbol(marketId, nothing, nothing, "spot"),
     Symbol("timestamp") => timestamp,
     Symbol("datetime") => self.iso8601(timestamp),
@@ -3186,7 +3709,9 @@ function fetchDepositWithdrawFees(self::Coinex, codes=nothing, params=Dict())
         end
         code = self.safeCurrencyCode(currencyId);
         if functions.ccxtruthy(@functions.ccxt_or(codes == nothing, inArray(code, codes)))
-            result[Symbol(code)] = self.parseDepositWithdrawFee(item);
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = self.parseDepositWithdrawFee(item);
+            end
         end
         i += 1
     end
@@ -3220,16 +3745,18 @@ function parseDepositWithdrawFee(self::Coinex, fee, currency=nothing)
                 currencyId = safeString(asset, "ccy");
                 feeCode = self.safeCurrencyCode(currencyId, currency);
                 networkCode = self.networkIdToCode(networkId, feeCode);
-                result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-                    Symbol("withdraw") => Dict{Symbol, Any}(
-                        Symbol("fee") => self.safeNumber(entry, "withdrawal_fee"),
-                        Symbol("percentage") => false
-                    ),
-                    Symbol("deposit") => Dict{Symbol, Any}(
-                        Symbol("fee") => nothing,
-                        Symbol("percentage") => nothing
-                    )
-                );
+                if functions.ccxtruthy(networkCode != nothing)
+                    result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                        Symbol("withdraw") => Dict{Symbol, Any}(
+                            Symbol("fee") => self.safeNumber(entry, "withdrawal_fee"),
+                            Symbol("percentage") => false
+                        ),
+                        Symbol("deposit") => Dict{Symbol, Any}(
+                            Symbol("fee") => nothing,
+                            Symbol("percentage") => nothing
+                        )
+                    );
+                end
             end
         end
         i += 1
@@ -3478,1020 +4005,1073 @@ function fetchMarginAdjustmentHistory(self::Coinex, symbol=nothing, type_var=not
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Coinex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v1PublicGetAmmMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "amm/market", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "amm/market", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetCommonCurrencyRate(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "common/currency/rate", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/currency/rate", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetCommonAssetConfig(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "common/asset/config", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/asset/config", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetCommonMaintainInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "common/maintain/info", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/maintain/info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetCommonTempMaintainInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "common/temp-maintain/info", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "common/temp-maintain/info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetMarginMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/market", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/market", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetMarketInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/info", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/info", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetMarketList(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/list", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/list", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetMarketTicker(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/ticker", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/ticker", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetMarketTickerAll(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/ticker/all", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/ticker/all", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetMarketDepth(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/depth", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/depth", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetMarketDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/deals", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/deals", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetMarketKline(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/kline", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/kline", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PublicGetMarketDetail(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/detail", ["v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/detail", ["v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetAccountAmmBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/amm/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/amm/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetAccountInvestmentBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/investment/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/investment/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetAccountBalanceHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/balance/history", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/balance/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetAccountMarketFee(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/market/fee", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/market/fee", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetBalanceCoinDeposit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/coin/deposit", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "balance/coin/deposit", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetBalanceCoinWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/coin/withdraw", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "balance/coin/withdraw", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetBalanceInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/info", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "balance/info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetBalanceDepositAddressCoinType(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/deposit/address/{coin_type}", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "balance/deposit/address/{coin_type}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetContractTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "contract/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "contract/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetCreditInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "credit/info", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "credit/info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetCreditBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "credit/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "credit/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetInvestmentTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "investment/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "investment/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetMarginAccount(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/account", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/account", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetMarginConfig(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/config", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/config", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetMarginLoanHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/loan/history", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "margin/loan/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetMarginTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "margin/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/deals", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/deals", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderFinished(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/finished", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/finished", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/pending", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "order/pending", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/status", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "order/status", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderStatusBatch(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/status/batch", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "order/status/batch", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderUserDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/user/deals", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/user/deals", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderStopFinished(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/finished", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/stop/finished", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderStopPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/pending", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "order/stop/pending", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderUserTradeFee(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/user/trade/fee", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/user/trade/fee", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetOrderMarketTradeInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/market/trade/info", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order/market/trade/info", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetSubAccountBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub_account/balance", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetSubAccountTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/transfer/history", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetSubAccountAuthApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/auth/api", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/auth/api", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivateGetSubAccountAuthApiUserAuthId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/auth/api/{user_auth_id}", ["v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/auth/api/{user_auth_id}", ["v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostBalanceCoinWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/coin/withdraw", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "balance/coin/withdraw", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostContractBalanceTransfer(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "contract/balance/transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "contract/balance/transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostMarginFlat(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/flat", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "margin/flat", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostMarginLoan(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/loan", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "margin/loan", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostMarginTransfer(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "margin/transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "margin/transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostOrderLimitBatch(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/limit/batch", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/limit/batch", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostOrderIoc(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/ioc", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "order/ioc", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostOrderLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/limit", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "order/limit", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostOrderMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/market", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "order/market", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostOrderModify(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/modify", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "order/modify", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostOrderStopLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/limit", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "order/stop/limit", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostOrderStopMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/market", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "order/stop/market", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostOrderStopModify(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/modify", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "order/stop/modify", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostSubAccountTransfer(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/transfer", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostSubAccountRegister(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/register", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "sub_account/register", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostSubAccountUnfrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/unfrozen", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/unfrozen", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostSubAccountFrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/frozen", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/frozen", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePostSubAccountAuthApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/auth/api", ["v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/auth/api", ["v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePutBalanceDepositAddressCoinType(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/deposit/address/{coin_type}", ["v1", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "balance/deposit/address/{coin_type}", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePutSubAccountUnfrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/unfrozen", ["v1", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/unfrozen", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePutSubAccountFrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/frozen", ["v1", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/frozen", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePutSubAccountAuthApiUserAuthId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/auth/api/{user_auth_id}", ["v1", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/auth/api/{user_auth_id}", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
 end
 
 function v1PrivatePutV1AccountSettings(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "v1/account/settings", ["v1", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "v1/account/settings", ["v1", "private"], "PUT", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteBalanceCoinWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "balance/coin/withdraw", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "balance/coin/withdraw", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteOrderPendingBatch(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/pending/batch", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/pending/batch", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteOrderPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/pending", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "order/pending", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteOrderStopPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/pending", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/stop/pending", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteOrderStopPendingId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/pending/{id}", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "order/stop/pending/{id}", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteOrderPendingByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/pending/by_client_id", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/pending/by_client_id", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteOrderStopPendingByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop/pending/by_client_id", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/stop/pending/by_client_id", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteSubAccountAuthApiUserAuthId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/auth/api/{user_auth_id}", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/auth/api/{user_auth_id}", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PrivateDeleteSubAccountAuthorizeId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "sub_account/authorize/{id}", ["v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "sub_account/authorize/{id}", ["v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPublicGetPing(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "ping", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ping", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPublicGetTime(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "time", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "time", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPublicGetMarketList(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/list", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/list", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPublicGetMarketLimitConfig(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/limit_config", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/limit_config", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPublicGetMarketTicker(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/ticker", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/ticker", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPublicGetMarketTickerAll(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/ticker/all", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/ticker/all", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPublicGetMarketDepth(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/depth", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/depth", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPublicGetMarketDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/deals", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/deals", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPublicGetMarketFundingHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/funding_history", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/funding_history", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPublicGetMarketKline(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/kline", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/kline", ["v1", "perpetualPublic"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetMarketUserDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/user_deals", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/user_deals", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetAssetQuery(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "asset/query", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "asset/query", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetOrderPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/pending", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "order/pending", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetOrderFinished(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/finished", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/finished", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetOrderStopFinished(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop_finished", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/stop_finished", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetOrderStopPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop_pending", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "order/stop_pending", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/status", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "order/status", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetOrderStopStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/stop_status", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "order/stop_status", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetPositionFinished(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/finished", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "position/finished", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetPositionPending(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/pending", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "position/pending", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetPositionFunding(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/funding", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "position/funding", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetPositionAdlHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/adl_history", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "position/adl_history", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetMarketPreference(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/preference", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "market/preference", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetPositionMarginHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/margin_history", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "position/margin_history", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivateGetPositionSettleHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/settle_history", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "position/settle_history", ["v1", "perpetualPrivate"], "GET", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostMarketAdjustLeverage(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/adjust_leverage", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/adjust_leverage", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostMarketPositionExpect(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/position_expect", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "market/position_expect", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderPutLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/put_limit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/put_limit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderPutMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/put_market", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/put_market", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderPutStopLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/put_stop_limit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/put_stop_limit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderPutStopMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/put_stop_market", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/put_stop_market", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderModify(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/modify", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/modify", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderModifyStop(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/modify_stop", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/modify_stop", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancel(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/cancel", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelAll(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel_all", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/cancel_all", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelBatch(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel_batch", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/cancel_batch", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelStop(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel_stop", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/cancel_stop", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelStopAll(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel_stop_all", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "order/cancel_stop_all", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderCloseLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/close_limit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/close_limit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderCloseMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/close_market", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/close_market", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostPositionAdjustMargin(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/adjust_margin", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "position/adjust_margin", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostPositionStopLoss(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/stop_loss", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "position/stop_loss", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostPositionTakeProfit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/take_profit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "position/take_profit", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostPositionMarketClose(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "position/market_close", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "position/market_close", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel/by_client_id", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/cancel/by_client_id", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostOrderCancelStopByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "order/cancel_stop/by_client_id", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "order/cancel_stop/by_client_id", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v1PerpetualPrivatePostMarketPreference(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "market/preference", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "market/preference", ["v1", "perpetualPrivate"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetMaintainInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "maintain/info", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "maintain/info", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPing(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "ping", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "ping", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetTime(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "time", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "time", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetSpotMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/market", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/market", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetSpotTicker(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/ticker", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/ticker", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetSpotDepth(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/depth", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/depth", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetSpotDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/deals", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/deals", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetSpotKline(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/kline", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/kline", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetSpotIndex(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/index", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/index", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesMarket(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/market", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/market", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesTicker(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/ticker", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/ticker", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesDepth(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/depth", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/depth", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/deals", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/deals", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesKline(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/kline", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/kline", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesIndex(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/index", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/index", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesFundingRate(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/funding-rate", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/funding-rate", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesFundingRateHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/funding-rate-history", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/funding-rate-history", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesPremiumIndexHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/premium-index-history", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/premium-index-history", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesPositionLevel(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/position-level", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/position-level", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesLiquidationHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/liquidation-history", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/liquidation-history", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetFuturesBasisHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/basis-history", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/basis-history", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetAssetsDepositWithdrawConfig(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/deposit-withdraw-config", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assets/deposit-withdraw-config", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetAssetsAllDepositWithdrawConfig(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/all-deposit-withdraw-config", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assets/all-deposit-withdraw-config", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountSubs(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/subs", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountSubsApiDetail(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/api-detail", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/subs/api-detail", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountSubsInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/info", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/subs/info", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountSubsApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/api", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/subs/api", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountSubsTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/transfer-history", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/subs/transfer-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountSubsBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/subs/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountSubsSpotBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/spot-balance", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/subs/spot-balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountTradeFeeRate(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/trade-fee-rate", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/trade-fee-rate", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountFuturesMarketSettings(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/futures-market-settings", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/futures-market-settings", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/info", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "account/info", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsSpotBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/spot/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/spot/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsFuturesBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/futures/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/futures/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsMarginBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/margin/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assets/margin/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsFinancialBalance(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/financial/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/financial/balance", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsAmmLiquidity(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/amm/liquidity", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/amm/liquidity", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsCreditInfo(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/credit/info", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/credit/info", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsSpotTranscationHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/spot/transcation-history", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assets/spot/transcation-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsMarginBorrowHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/margin/borrow-history", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/margin/borrow-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsMarginInterestLimit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/margin/interest-limit", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assets/margin/interest-limit", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsDepositAddress(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/deposit-address", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/deposit-address", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsDepositHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/deposit-history", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/deposit-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/withdraw", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/withdraw", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsTransferHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/transfer-history", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/transfer-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsAmmLiquidityPool(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/amm/liquidity-pool", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/amm/liquidity-pool", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAssetsAmmIncomeHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/amm/income-history", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/amm/income-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSpotOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "spot/order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSpotBatchOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/batch-order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "spot/batch-order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSpotPendingOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/pending-order", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "spot/pending-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSpotFinishedOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/finished-order", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "spot/finished-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSpotPendingStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/pending-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "spot/pending-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSpotFinishedStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/finished-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "spot/finished-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSpotUserDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/user-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "spot/user-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetSpotOrderDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/order-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "spot/order-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "futures/order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesBatchOrderStatus(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/batch-order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/batch-order-status", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesPendingOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/pending-order", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "futures/pending-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesFinishedOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/finished-order", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "futures/finished-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesPendingStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/pending-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 8))
+    return request(self, "futures/pending-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesFinishedStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/finished-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "futures/finished-stop-order", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesUserDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/user-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/user-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesOrderDeals(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/order-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/order-deals", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesPendingPosition(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/pending-position", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "futures/pending-position", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesFinishedPosition(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/finished-position", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/finished-position", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesPositionMarginHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/position-margin-history", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/position-margin-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesPositionFundingHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/position-funding-history", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "futures/position-funding-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesPositionAdlHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/position-adl-history", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/position-adl-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetFuturesPositionSettleHistory(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/position-settle-history", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/position-settle-history", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetReferReferee(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/referee", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "refer/referee", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetReferRefereeRebateRecord(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/referee-rebate/record", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "refer/referee-rebate/record", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetReferRefereeRebateDetail(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/referee-rebate/detail", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "refer/referee-rebate/detail", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetReferAgentReferee(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/agent-referee", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "refer/agent-referee", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetReferAgentRebateRecord(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/agent-rebate/record", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "refer/agent-rebate/record", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetReferAgentRebateDetail(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "refer/agent-rebate/detail", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "refer/agent-rebate/detail", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountSubs(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/subs", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountSubsFrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/frozen", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/subs/frozen", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountSubsUnfrozen(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/unfrozen", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/subs/unfrozen", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountSubsApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/api", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/subs/api", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountSubsEditApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/edit-api", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/subs/edit-api", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountSubsDeleteApi(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/delete-api", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/subs/delete-api", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountSubsTransfer(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/subs/transfer", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/subs/transfer", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountSettings(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/settings", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/settings", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountFuturesMarketSettings(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "account/futures-market-settings", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "account/futures-market-settings", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAssetsMarginBorrow(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/margin/borrow", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/margin/borrow", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAssetsMarginRepay(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/margin/repay", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/margin/repay", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAssetsRenewalDepositAddress(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/renewal-deposit-address", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/renewal-deposit-address", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAssetsWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/withdraw", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/withdraw", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAssetsCancelWithdraw(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/cancel-withdraw", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/cancel-withdraw", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAssetsTransfer(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/transfer", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "assets/transfer", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAssetsAmmAddLiquidity(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/amm/add-liquidity", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assets/amm/add-liquidity", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAssetsAmmRemoveLiquidity(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "assets/amm/remove-liquidity", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "assets/amm/remove-liquidity", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "spot/order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "spot/stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotBatchOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 40))
+    return request(self, "spot/batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotBatchStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotModifyOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "spot/modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotModifyStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/modify-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "spot/modify-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotBatchModifyOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/batch-modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 13.334))
+    return request(self, "spot/batch-modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotCancelAllOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-all-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/cancel-all-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotCancelOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 6.667))
+    return request(self, "spot/cancel-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotCancelStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 6.667))
+    return request(self, "spot/cancel-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotCancelBatchOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/cancel-batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotCancelBatchStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "spot/cancel-batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotCancelOrderByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/cancel-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostSpotCancelStopOrderByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "spot/cancel-stop-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/cancel-stop-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesBatchOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesBatchStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesCancelPositionStopLoss(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-position-stop-loss", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/cancel-position-stop-loss", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesCancelPositionTakeProfit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-position-take-profit", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/cancel-position-take-profit", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesModifyOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesModifyStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/modify-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/modify-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesBatchModifyOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/batch-modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/batch-modify-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesCancelAllOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-all-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/cancel-all-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesCancelOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "futures/cancel-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesCancelStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "futures/cancel-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesCancelBatchOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/cancel-batch-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesCancelBatchStopOrder(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/cancel-batch-stop-order", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesCancelOrderByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/cancel-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesCancelStopOrderByClientId(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/cancel-stop-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/cancel-stop-order-by-client-id", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesClosePosition(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/close-position", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/close-position", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesAdjustPositionMargin(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/adjust-position-margin", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/adjust-position-margin", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesAdjustPositionLeverage(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/adjust-position-leverage", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/adjust-position-leverage", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesSetPositionStopLoss(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/set-position-stop-loss", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/set-position-stop-loss", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostFuturesSetPositionTakeProfit(self::Coinex, params=Dict(), context=Dict())
-    return request(self, "futures/set-position-take-profit", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 20))
+    return request(self, "futures/set-position-take-profit", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function Coinex(; kwargs...)
     inst = Coinex(Exchange(), describe, fetchCurrencies, parseCurrency, fetchMarkets, fetchSpotMarkets, fetchContractMarkets, parseTicker, fetchTicker, fetchTickers, fetchTime, fetchOrderBook, parseTrade, fetchTrades, fetchTradingFee, fetchTradingFees, parseTradingFee, parseOHLCV, fetchOHLCV, fetchMarginBalance, fetchSpotBalance, fetchSwapBalance, fetchFinancialBalance, fetchBalance, parseOrderStatus, parseOrder, createMarketBuyOrderWithCost, createOrderRequest, createOrder, createOrders, cancelOrders, editOrder, editOrders, cancelOrder, cancelAllOrders, fetchOrder, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders, createDepositAddress, fetchDepositAddress, parseDepositAddress, fetchMyTrades, fetchPositions, fetchPosition, parsePosition, setMarginMode, setLeverage, fetchLeverageTiers, parseMarketLeverageTiers, modifyMarginHelper, parseMarginModification, addMargin, reduceMargin, fetchFundingHistory, fetchFundingRate, fetchFundingInterval, parseFundingRate, parseFundingInterval, fetchFundingRates, withdraw, parseTransactionStatus, fetchFundingRateHistory, parseTransaction, transfer, parseTransferStatus, parseTransfer, fetchTransfers, fetchWithdrawals, fetchDeposits, parseIsolatedBorrowRate, fetchIsolatedBorrowRate, fetchBorrowInterest, parseBorrowInterest, borrowIsolatedMargin, repayIsolatedMargin, parseMarginLoan, fetchDepositWithdrawFee, fetchDepositWithdrawFees, parseDepositWithdrawFee, fetchLeverage, parseLeverage, fetchPositionHistory, closePosition, handleMarginModeAndParams, nonce, sign, handleErrors, fetchMarginAdjustmentHistory, v1PublicGetAmmMarket, v1PublicGetCommonCurrencyRate, v1PublicGetCommonAssetConfig, v1PublicGetCommonMaintainInfo, v1PublicGetCommonTempMaintainInfo, v1PublicGetMarginMarket, v1PublicGetMarketInfo, v1PublicGetMarketList, v1PublicGetMarketTicker, v1PublicGetMarketTickerAll, v1PublicGetMarketDepth, v1PublicGetMarketDeals, v1PublicGetMarketKline, v1PublicGetMarketDetail, v1PrivateGetAccountAmmBalance, v1PrivateGetAccountInvestmentBalance, v1PrivateGetAccountBalanceHistory, v1PrivateGetAccountMarketFee, v1PrivateGetBalanceCoinDeposit, v1PrivateGetBalanceCoinWithdraw, v1PrivateGetBalanceInfo, v1PrivateGetBalanceDepositAddressCoinType, v1PrivateGetContractTransferHistory, v1PrivateGetCreditInfo, v1PrivateGetCreditBalance, v1PrivateGetInvestmentTransferHistory, v1PrivateGetMarginAccount, v1PrivateGetMarginConfig, v1PrivateGetMarginLoanHistory, v1PrivateGetMarginTransferHistory, v1PrivateGetOrderDeals, v1PrivateGetOrderFinished, v1PrivateGetOrderPending, v1PrivateGetOrderStatus, v1PrivateGetOrderStatusBatch, v1PrivateGetOrderUserDeals, v1PrivateGetOrderStopFinished, v1PrivateGetOrderStopPending, v1PrivateGetOrderUserTradeFee, v1PrivateGetOrderMarketTradeInfo, v1PrivateGetSubAccountBalance, v1PrivateGetSubAccountTransferHistory, v1PrivateGetSubAccountAuthApi, v1PrivateGetSubAccountAuthApiUserAuthId, v1PrivatePostBalanceCoinWithdraw, v1PrivatePostContractBalanceTransfer, v1PrivatePostMarginFlat, v1PrivatePostMarginLoan, v1PrivatePostMarginTransfer, v1PrivatePostOrderLimitBatch, v1PrivatePostOrderIoc, v1PrivatePostOrderLimit, v1PrivatePostOrderMarket, v1PrivatePostOrderModify, v1PrivatePostOrderStopLimit, v1PrivatePostOrderStopMarket, v1PrivatePostOrderStopModify, v1PrivatePostSubAccountTransfer, v1PrivatePostSubAccountRegister, v1PrivatePostSubAccountUnfrozen, v1PrivatePostSubAccountFrozen, v1PrivatePostSubAccountAuthApi, v1PrivatePutBalanceDepositAddressCoinType, v1PrivatePutSubAccountUnfrozen, v1PrivatePutSubAccountFrozen, v1PrivatePutSubAccountAuthApiUserAuthId, v1PrivatePutV1AccountSettings, v1PrivateDeleteBalanceCoinWithdraw, v1PrivateDeleteOrderPendingBatch, v1PrivateDeleteOrderPending, v1PrivateDeleteOrderStopPending, v1PrivateDeleteOrderStopPendingId, v1PrivateDeleteOrderPendingByClientId, v1PrivateDeleteOrderStopPendingByClientId, v1PrivateDeleteSubAccountAuthApiUserAuthId, v1PrivateDeleteSubAccountAuthorizeId, v1PerpetualPublicGetPing, v1PerpetualPublicGetTime, v1PerpetualPublicGetMarketList, v1PerpetualPublicGetMarketLimitConfig, v1PerpetualPublicGetMarketTicker, v1PerpetualPublicGetMarketTickerAll, v1PerpetualPublicGetMarketDepth, v1PerpetualPublicGetMarketDeals, v1PerpetualPublicGetMarketFundingHistory, v1PerpetualPublicGetMarketKline, v1PerpetualPrivateGetMarketUserDeals, v1PerpetualPrivateGetAssetQuery, v1PerpetualPrivateGetOrderPending, v1PerpetualPrivateGetOrderFinished, v1PerpetualPrivateGetOrderStopFinished, v1PerpetualPrivateGetOrderStopPending, v1PerpetualPrivateGetOrderStatus, v1PerpetualPrivateGetOrderStopStatus, v1PerpetualPrivateGetPositionFinished, v1PerpetualPrivateGetPositionPending, v1PerpetualPrivateGetPositionFunding, v1PerpetualPrivateGetPositionAdlHistory, v1PerpetualPrivateGetMarketPreference, v1PerpetualPrivateGetPositionMarginHistory, v1PerpetualPrivateGetPositionSettleHistory, v1PerpetualPrivatePostMarketAdjustLeverage, v1PerpetualPrivatePostMarketPositionExpect, v1PerpetualPrivatePostOrderPutLimit, v1PerpetualPrivatePostOrderPutMarket, v1PerpetualPrivatePostOrderPutStopLimit, v1PerpetualPrivatePostOrderPutStopMarket, v1PerpetualPrivatePostOrderModify, v1PerpetualPrivatePostOrderModifyStop, v1PerpetualPrivatePostOrderCancel, v1PerpetualPrivatePostOrderCancelAll, v1PerpetualPrivatePostOrderCancelBatch, v1PerpetualPrivatePostOrderCancelStop, v1PerpetualPrivatePostOrderCancelStopAll, v1PerpetualPrivatePostOrderCloseLimit, v1PerpetualPrivatePostOrderCloseMarket, v1PerpetualPrivatePostPositionAdjustMargin, v1PerpetualPrivatePostPositionStopLoss, v1PerpetualPrivatePostPositionTakeProfit, v1PerpetualPrivatePostPositionMarketClose, v1PerpetualPrivatePostOrderCancelByClientId, v1PerpetualPrivatePostOrderCancelStopByClientId, v1PerpetualPrivatePostMarketPreference, v2PublicGetMaintainInfo, v2PublicGetPing, v2PublicGetTime, v2PublicGetSpotMarket, v2PublicGetSpotTicker, v2PublicGetSpotDepth, v2PublicGetSpotDeals, v2PublicGetSpotKline, v2PublicGetSpotIndex, v2PublicGetFuturesMarket, v2PublicGetFuturesTicker, v2PublicGetFuturesDepth, v2PublicGetFuturesDeals, v2PublicGetFuturesKline, v2PublicGetFuturesIndex, v2PublicGetFuturesFundingRate, v2PublicGetFuturesFundingRateHistory, v2PublicGetFuturesPremiumIndexHistory, v2PublicGetFuturesPositionLevel, v2PublicGetFuturesLiquidationHistory, v2PublicGetFuturesBasisHistory, v2PublicGetAssetsDepositWithdrawConfig, v2PublicGetAssetsAllDepositWithdrawConfig, v2PrivateGetAccountSubs, v2PrivateGetAccountSubsApiDetail, v2PrivateGetAccountSubsInfo, v2PrivateGetAccountSubsApi, v2PrivateGetAccountSubsTransferHistory, v2PrivateGetAccountSubsBalance, v2PrivateGetAccountSubsSpotBalance, v2PrivateGetAccountTradeFeeRate, v2PrivateGetAccountFuturesMarketSettings, v2PrivateGetAccountInfo, v2PrivateGetAssetsSpotBalance, v2PrivateGetAssetsFuturesBalance, v2PrivateGetAssetsMarginBalance, v2PrivateGetAssetsFinancialBalance, v2PrivateGetAssetsAmmLiquidity, v2PrivateGetAssetsCreditInfo, v2PrivateGetAssetsSpotTranscationHistory, v2PrivateGetAssetsMarginBorrowHistory, v2PrivateGetAssetsMarginInterestLimit, v2PrivateGetAssetsDepositAddress, v2PrivateGetAssetsDepositHistory, v2PrivateGetAssetsWithdraw, v2PrivateGetAssetsTransferHistory, v2PrivateGetAssetsAmmLiquidityPool, v2PrivateGetAssetsAmmIncomeHistory, v2PrivateGetSpotOrderStatus, v2PrivateGetSpotBatchOrderStatus, v2PrivateGetSpotPendingOrder, v2PrivateGetSpotFinishedOrder, v2PrivateGetSpotPendingStopOrder, v2PrivateGetSpotFinishedStopOrder, v2PrivateGetSpotUserDeals, v2PrivateGetSpotOrderDeals, v2PrivateGetFuturesOrderStatus, v2PrivateGetFuturesBatchOrderStatus, v2PrivateGetFuturesPendingOrder, v2PrivateGetFuturesFinishedOrder, v2PrivateGetFuturesPendingStopOrder, v2PrivateGetFuturesFinishedStopOrder, v2PrivateGetFuturesUserDeals, v2PrivateGetFuturesOrderDeals, v2PrivateGetFuturesPendingPosition, v2PrivateGetFuturesFinishedPosition, v2PrivateGetFuturesPositionMarginHistory, v2PrivateGetFuturesPositionFundingHistory, v2PrivateGetFuturesPositionAdlHistory, v2PrivateGetFuturesPositionSettleHistory, v2PrivateGetReferReferee, v2PrivateGetReferRefereeRebateRecord, v2PrivateGetReferRefereeRebateDetail, v2PrivateGetReferAgentReferee, v2PrivateGetReferAgentRebateRecord, v2PrivateGetReferAgentRebateDetail, v2PrivatePostAccountSubs, v2PrivatePostAccountSubsFrozen, v2PrivatePostAccountSubsUnfrozen, v2PrivatePostAccountSubsApi, v2PrivatePostAccountSubsEditApi, v2PrivatePostAccountSubsDeleteApi, v2PrivatePostAccountSubsTransfer, v2PrivatePostAccountSettings, v2PrivatePostAccountFuturesMarketSettings, v2PrivatePostAssetsMarginBorrow, v2PrivatePostAssetsMarginRepay, v2PrivatePostAssetsRenewalDepositAddress, v2PrivatePostAssetsWithdraw, v2PrivatePostAssetsCancelWithdraw, v2PrivatePostAssetsTransfer, v2PrivatePostAssetsAmmAddLiquidity, v2PrivatePostAssetsAmmRemoveLiquidity, v2PrivatePostSpotOrder, v2PrivatePostSpotStopOrder, v2PrivatePostSpotBatchOrder, v2PrivatePostSpotBatchStopOrder, v2PrivatePostSpotModifyOrder, v2PrivatePostSpotModifyStopOrder, v2PrivatePostSpotBatchModifyOrder, v2PrivatePostSpotCancelAllOrder, v2PrivatePostSpotCancelOrder, v2PrivatePostSpotCancelStopOrder, v2PrivatePostSpotCancelBatchOrder, v2PrivatePostSpotCancelBatchStopOrder, v2PrivatePostSpotCancelOrderByClientId, v2PrivatePostSpotCancelStopOrderByClientId, v2PrivatePostFuturesOrder, v2PrivatePostFuturesStopOrder, v2PrivatePostFuturesBatchOrder, v2PrivatePostFuturesBatchStopOrder, v2PrivatePostFuturesCancelPositionStopLoss, v2PrivatePostFuturesCancelPositionTakeProfit, v2PrivatePostFuturesModifyOrder, v2PrivatePostFuturesModifyStopOrder, v2PrivatePostFuturesBatchModifyOrder, v2PrivatePostFuturesCancelAllOrder, v2PrivatePostFuturesCancelOrder, v2PrivatePostFuturesCancelStopOrder, v2PrivatePostFuturesCancelBatchOrder, v2PrivatePostFuturesCancelBatchStopOrder, v2PrivatePostFuturesCancelOrderByClientId, v2PrivatePostFuturesCancelStopOrderByClientId, v2PrivatePostFuturesClosePosition, v2PrivatePostFuturesAdjustPositionMargin, v2PrivatePostFuturesAdjustPositionLeverage, v2PrivatePostFuturesSetPositionStopLoss, v2PrivatePostFuturesSetPositionTakeProfit)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

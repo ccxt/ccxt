@@ -272,6 +272,7 @@ function describe(self::Phemex, )
         Symbol("fetchOrderBook") => true,
         Symbol("fetchOrders") => true,
         Symbol("fetchPositionADLRank") => true,
+        Symbol("fetchPositionHistory") => true,
         Symbol("fetchPositions") => true,
         Symbol("fetchPositionsADLRank") => true,
         Symbol("fetchPositionsRisk") => false,
@@ -338,139 +339,369 @@ function describe(self::Phemex, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("cfg/v2/products") => 5,
-                Symbol("cfg/fundingRates") => 5,
-                Symbol("products") => 5,
-                Symbol("nomics/trades") => 5,
-                Symbol("md/kline") => 5,
-                Symbol("md/v2/kline/list") => 5,
-                Symbol("md/v2/kline") => 5,
-                Symbol("md/v2/kline/last") => 5,
-                Symbol("md/orderbook") => 5,
-                Symbol("md/trade") => 5,
-                Symbol("md/spot/ticker/24hr") => 5,
-                Symbol("exchange/public/cfg/chain-settings") => 5
+                Symbol("cfg/v2/products") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("cfg/fundingRates") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("products") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("nomics/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/v2/kline/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/v2/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/v2/kline/last") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/spot/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/public/cfg/chain-settings") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         ),
         Symbol("v1") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("md/fullbook") => 5,
-                Symbol("md/orderbook") => 5,
-                Symbol("md/trade") => 5,
-                Symbol("md/ticker/24hr") => 5,
-                Symbol("md/ticker/24hr/all") => 5,
-                Symbol("md/spot/ticker/24hr") => 5,
-                Symbol("md/spot/ticker/24hr/all") => 5,
-                Symbol("exchange/public/products") => 5,
-                Symbol("api-data/public/data/funding-rate-history") => 5
+                Symbol("md/fullbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/ticker/24hr/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/spot/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/spot/ticker/24hr/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/public/products") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/public/data/funding-rate-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         ),
         Symbol("v2") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("public/products") => 5,
-                Symbol("public/products-plus") => 5,
-                Symbol("md/v2/orderbook") => 5,
-                Symbol("md/v2/trade") => 5,
-                Symbol("md/v2/ticker/24hr") => 5,
-                Symbol("md/v2/ticker/24hr/all") => 5,
-                Symbol("api-data/public/data/funding-rate-history") => 5
+                Symbol("public/products") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("public/products-plus") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/v2/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/v2/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/v2/ticker/24hr") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("md/v2/ticker/24hr/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/public/data/funding-rate-history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("spot/orders/active") => 1,
-                Symbol("spot/orders") => 1,
-                Symbol("spot/wallets") => 5,
-                Symbol("exchange/spot/order") => 5,
-                Symbol("exchange/spot/order/trades") => 5,
-                Symbol("exchange/order/v2/orderList") => 5,
-                Symbol("exchange/order/v2/tradingList") => 5,
-                Symbol("accounts/accountPositions") => 1,
-                Symbol("g-accounts/accountPositions") => 1,
-                Symbol("g-accounts/positions") => 25,
-                Symbol("g-accounts/risk-unit") => 1,
-                Symbol("api-data/futures/funding-fees") => 5,
-                Symbol("api-data/g-futures/funding-fees") => 5,
-                Symbol("api-data/futures/orders") => 5,
-                Symbol("api-data/g-futures/orders") => 5,
-                Symbol("api-data/futures/orders/by-order-id") => 5,
-                Symbol("api-data/g-futures/orders/by-order-id") => 5,
-                Symbol("api-data/futures/trades") => 5,
-                Symbol("api-data/g-futures/trades") => 5,
-                Symbol("api-data/futures/trading-fees") => 5,
-                Symbol("api-data/g-futures/trading-fees") => 5,
-                Symbol("api-data/futures/v2/tradeAccountDetail") => 5,
-                Symbol("api-data/g-futures/closedPosition") => 5,
-                Symbol("g-orders/activeList") => 1,
-                Symbol("orders/activeList") => 1,
-                Symbol("exchange/order/list") => 5,
-                Symbol("exchange/order") => 5,
-                Symbol("exchange/order/trade") => 5,
-                Symbol("phemex-user/users/children") => 5,
-                Symbol("phemex-user/wallets/v2/depositAddress") => 5,
-                Symbol("phemex-user/wallets/tradeAccountDetail") => 5,
-                Symbol("phemex-deposit/wallets/api/depositAddress") => 5,
-                Symbol("phemex-deposit/wallets/api/depositHist") => 5,
-                Symbol("phemex-deposit/wallets/api/chainCfg") => 5,
-                Symbol("phemex-withdraw/wallets/api/withdrawHist") => 5,
-                Symbol("phemex-withdraw/wallets/api/asset/info") => 5,
-                Symbol("phemex-user/order/closedPositionList") => 5,
-                Symbol("exchange/margins/transfer") => 5,
-                Symbol("exchange/wallets/confirm/withdraw") => 5,
-                Symbol("exchange/wallets/withdrawList") => 5,
-                Symbol("exchange/wallets/depositList") => 5,
-                Symbol("exchange/wallets/v2/depositAddress") => 5,
-                Symbol("api-data/spots/funds") => 5,
-                Symbol("api-data/spots/orders") => 5,
-                Symbol("api-data/spots/orders/by-order-id") => 5,
-                Symbol("api-data/spots/pnls") => 5,
-                Symbol("api-data/spots/trades") => 5,
-                Symbol("api-data/spots/trades/by-order-id") => 5,
-                Symbol("assets/convert") => 5,
-                Symbol("assets/transfer") => 5,
-                Symbol("assets/spots/sub-accounts/transfer") => 5,
-                Symbol("assets/futures/sub-accounts/transfer") => 5,
-                Symbol("assets/quote") => 5
+                Symbol("spot/orders/active") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/wallets") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/spot/order/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/order/v2/orderList") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/order/v2/tradingList") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("accounts/accountPositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("g-accounts/accountPositions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("g-accounts/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                Symbol("g-accounts/risk-unit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("api-data/futures/funding-fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/g-futures/funding-fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/futures/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/g-futures/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/futures/orders/by-order-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/g-futures/orders/by-order-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/futures/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/g-futures/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/futures/trading-fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/g-futures/trading-fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/futures/v2/tradeAccountDetail") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/g-futures/closedPosition") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("g-orders/activeList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/activeList") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("exchange/order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/order/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("phemex-user/users/children") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("phemex-user/wallets/v2/depositAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("phemex-user/wallets/tradeAccountDetail") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("phemex-deposit/wallets/api/depositAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("phemex-deposit/wallets/api/depositHist") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("phemex-deposit/wallets/api/chainCfg") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("phemex-withdraw/wallets/api/withdrawHist") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("phemex-withdraw/wallets/api/asset/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("phemex-user/order/closedPositionList") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/margins/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/wallets/confirm/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/wallets/withdrawList") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/wallets/depositList") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/wallets/v2/depositAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/spots/funds") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/spots/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/spots/orders/by-order-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/spots/pnls") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/spots/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("api-data/spots/trades/by-order-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("assets/convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("assets/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("assets/spots/sub-accounts/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("assets/futures/sub-accounts/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("assets/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("spot/orders") => 1,
-                Symbol("orders") => 1,
-                Symbol("g-orders") => 1,
-                Symbol("positions/assign") => 5,
-                Symbol("exchange/wallets/transferOut") => 5,
-                Symbol("exchange/wallets/transferIn") => 5,
-                Symbol("exchange/margins") => 5,
-                Symbol("exchange/wallets/createWithdraw") => 5,
-                Symbol("exchange/wallets/cancelWithdraw") => 5,
-                Symbol("exchange/wallets/createWithdrawAddress") => 5,
-                Symbol("assets/transfer") => 5,
-                Symbol("assets/spots/sub-accounts/transfer") => 5,
-                Symbol("assets/futures/sub-accounts/transfer") => 5,
-                Symbol("assets/universal-transfer") => 5,
-                Symbol("assets/convert") => 5,
-                Symbol("phemex-withdraw/wallets/api/createWithdraw") => 5,
-                Symbol("phemex-withdraw/wallets/api/cancelWithdraw") => 5
+                Symbol("spot/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("g-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positions/assign") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/wallets/transferOut") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/wallets/transferIn") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/margins") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/wallets/createWithdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/wallets/cancelWithdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("exchange/wallets/createWithdrawAddress") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("assets/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("assets/spots/sub-accounts/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("assets/futures/sub-accounts/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("assets/universal-transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("assets/convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("phemex-withdraw/wallets/api/createWithdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("phemex-withdraw/wallets/api/cancelWithdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("spot/orders/create") => 1,
-                Symbol("spot/orders") => 1,
-                Symbol("orders/replace") => 1,
-                Symbol("g-orders/replace") => 1,
-                Symbol("g-orders/create") => 1,
-                Symbol("positions/leverage") => 5,
-                Symbol("g-positions/leverage") => 5,
-                Symbol("g-positions/switch-pos-mode-sync") => 5,
-                Symbol("positions/riskLimit") => 5
+                Symbol("spot/orders/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/replace") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("g-orders/replace") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("g-orders/create") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("positions/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("g-positions/leverage") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("g-positions/switch-pos-mode-sync") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("positions/riskLimit") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("spot/orders") => 2,
-                Symbol("spot/orders/all") => 2,
-                Symbol("orders/cancel") => 1,
-                Symbol("orders") => 1,
-                Symbol("orders/all") => 3,
-                Symbol("g-orders/cancel") => 1,
-                Symbol("g-orders") => 1,
-                Symbol("g-orders/all") => 3
+                Symbol("spot/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("spot/orders/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 2
+),
+                Symbol("orders/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                Symbol("g-orders/cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("g-orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("g-orders/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+)
             )
         )
     ),
@@ -1131,7 +1362,7 @@ function toEp(self::Phemex, price, market=nothing)
     if functions.ccxtruthy(@functions.ccxt_or((price == nothing), (market == nothing)))
             return price
     end
-    return self.toEn(price, get(market, Symbol("priceScale"), nothing))
+    return self.toEn(price, safeValue(market, "priceScale"))
 
 end
 function fromEn(self::Phemex, en, scale)
@@ -1203,7 +1434,8 @@ function fetchOHLCV(self::Phemex, symbol, timeframe="1m", since=nothing, limit=n
                 since = round(since / 1000);
                 request[Symbol("from")] = since;
             else
-                since = (until / 100) - (maxLimit * candleDuration);
+                since = round(until / 1000) - (maxLimit * candleDuration);
+                request[Symbol("from")] = since;
             end
             if functions.ccxtruthy(until != nothing)
                 request[Symbol("to")] = round(until / 1000);
@@ -1816,10 +2048,10 @@ function createOrder(self::Phemex, symbol, type_var, side, amount, price=nothing
                 end
             end
             cost = functions.ccxtruthy((cost == nothing)) ? amount : cost;
-            costString = numberToString(cost);
+            costString = self.costToPrecision(symbol, cost);
             request[Symbol("quoteQtyEv")] = self.toEv(costString, market);
         else
-            amountString = numberToString(amount);
+            amountString = self.amountToPrecision(symbol, amount);
             request[Symbol("baseQtyEv")] = self.toEv(amountString, market);
         end
     elseif functions.ccxtruthy(get(market, Symbol("swap"), nothing))
@@ -2347,7 +2579,7 @@ function parseTransaction(self::Phemex, transaction, currency=nothing)
     networkId = safeString(transaction, "chainName");
     timestamp = safeIntegerN(transaction, ["createdAt", "submitedAt", "submittedAt"]);
     type_var = safeStringLower(transaction, "type");
-    feeCost = self.parseNumber(self.fromEn(safeString(transaction, "feeEv"), get(currency, Symbol("valueScale"), nothing)));
+    feeCost = self.parseNumber(self.fromEn(safeString(transaction, "feeEv"), safeValue(currency, "valueScale")));
     if functions.ccxtruthy(feeCost == nothing)
         feeCost = self.safeNumber(transaction, "feeRv");
     end
@@ -2360,7 +2592,7 @@ function parseTransaction(self::Phemex, transaction, currency=nothing)
         );
     end
     status = self.parseTransactionStatus(safeString(transaction, "status"));
-    amount = self.parseNumber(self.fromEn(safeString(transaction, "amountEv"), get(currency, Symbol("valueScale"), nothing)));
+    amount = self.parseNumber(self.fromEn(safeString(transaction, "amountEv"), safeValue(currency, "valueScale")));
     if functions.ccxtruthy(amount == nothing)
         amount = self.safeNumber(transaction, "amountRv");
     end
@@ -2782,7 +3014,7 @@ function parseMarketLeverageTiers(self::Phemex, info, market=nothing)
     Symbol("currency") => get(market, Symbol("settle"), nothing),
     Symbol("minNotional") => minNotionalResponse,
     Symbol("maxNotional") => maxNotional,
-    Symbol("maintenanceMarginRate") => safeString(tier, "maintenanceMargin"),
+    Symbol("maintenanceMarginRate") => self.safeNumber(tier, "maintenanceMargin"),
     Symbol("maxLeverage") => nothing,
     Symbol("info") => tier
 ));
@@ -3296,476 +3528,529 @@ function handleErrors(self::Phemex, httpCode, reason, url, method, headers, body
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Phemex, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetCfgV2Products(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "cfg/v2/products", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "cfg/v2/products", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetCfgFundingRates(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "cfg/fundingRates", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "cfg/fundingRates", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetProducts(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "products", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "products", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetNomicsTrades(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "nomics/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "nomics/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMdKline(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMdV2KlineList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/kline/list", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/v2/kline/list", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMdV2Kline(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/kline", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/v2/kline", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMdV2KlineLast(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/kline/last", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/v2/kline/last", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMdOrderbook(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/orderbook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/orderbook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMdTrade(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/trade", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/trade", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetMdSpotTicker24hr(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/spot/ticker/24hr", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/spot/ticker/24hr", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetExchangePublicCfgChainSettings(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/public/cfg/chain-settings", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/public/cfg/chain-settings", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function v1GetMdFullbook(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/fullbook", "v1", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/fullbook", "v1", "GET", params, nothing, nothing, Dict())
 end
 
 function v1GetMdOrderbook(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/orderbook", "v1", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/orderbook", "v1", "GET", params, nothing, nothing, Dict())
 end
 
 function v1GetMdTrade(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/trade", "v1", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/trade", "v1", "GET", params, nothing, nothing, Dict())
 end
 
 function v1GetMdTicker24hr(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/ticker/24hr", "v1", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/ticker/24hr", "v1", "GET", params, nothing, nothing, Dict())
 end
 
 function v1GetMdTicker24hrAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/ticker/24hr/all", "v1", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/ticker/24hr/all", "v1", "GET", params, nothing, nothing, Dict())
 end
 
 function v1GetMdSpotTicker24hr(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/spot/ticker/24hr", "v1", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/spot/ticker/24hr", "v1", "GET", params, nothing, nothing, Dict())
 end
 
 function v1GetMdSpotTicker24hrAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/spot/ticker/24hr/all", "v1", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/spot/ticker/24hr/all", "v1", "GET", params, nothing, nothing, Dict())
 end
 
 function v1GetExchangePublicProducts(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/public/products", "v1", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/public/products", "v1", "GET", params, nothing, nothing, Dict())
 end
 
 function v1GetApiDataPublicDataFundingRateHistory(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/public/data/funding-rate-history", "v1", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/public/data/funding-rate-history", "v1", "GET", params, nothing, nothing, Dict())
 end
 
 function v2GetPublicProducts(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "public/products", "v2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "public/products", "v2", "GET", params, nothing, nothing, Dict())
 end
 
 function v2GetPublicProductsPlus(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "public/products-plus", "v2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "public/products-plus", "v2", "GET", params, nothing, nothing, Dict())
 end
 
 function v2GetMdV2Orderbook(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/orderbook", "v2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/v2/orderbook", "v2", "GET", params, nothing, nothing, Dict())
 end
 
 function v2GetMdV2Trade(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/trade", "v2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/v2/trade", "v2", "GET", params, nothing, nothing, Dict())
 end
 
 function v2GetMdV2Ticker24hr(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/ticker/24hr", "v2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/v2/ticker/24hr", "v2", "GET", params, nothing, nothing, Dict())
 end
 
 function v2GetMdV2Ticker24hrAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "md/v2/ticker/24hr/all", "v2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "md/v2/ticker/24hr/all", "v2", "GET", params, nothing, nothing, Dict())
 end
 
 function v2GetApiDataPublicDataFundingRateHistory(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/public/data/funding-rate-history", "v2", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/public/data/funding-rate-history", "v2", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotOrdersActive(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders/active", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/orders/active", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotWallets(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/wallets", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "spot/wallets", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeSpotOrder(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/spot/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/spot/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeSpotOrderTrades(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/spot/order/trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/spot/order/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeOrderV2OrderList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/order/v2/orderList", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/order/v2/orderList", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeOrderV2TradingList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/order/v2/tradingList", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/order/v2/tradingList", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountsAccountPositions(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "accounts/accountPositions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accounts/accountPositions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGAccountsAccountPositions(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-accounts/accountPositions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "g-accounts/accountPositions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGAccountsPositions(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-accounts/positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "g-accounts/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGAccountsRiskUnit(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-accounts/risk-unit", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "g-accounts/risk-unit", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataFuturesFundingFees(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/funding-fees", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/futures/funding-fees", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataGFuturesFundingFees(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/funding-fees", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/g-futures/funding-fees", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataFuturesOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/futures/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataGFuturesOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/g-futures/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataFuturesOrdersByOrderId(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/orders/by-order-id", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/futures/orders/by-order-id", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataGFuturesOrdersByOrderId(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/orders/by-order-id", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/g-futures/orders/by-order-id", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataFuturesTrades(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/futures/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataGFuturesTrades(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/g-futures/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataFuturesTradingFees(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/trading-fees", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/futures/trading-fees", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataGFuturesTradingFees(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/trading-fees", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/g-futures/trading-fees", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataFuturesV2TradeAccountDetail(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/futures/v2/tradeAccountDetail", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/futures/v2/tradeAccountDetail", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataGFuturesClosedPosition(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/g-futures/closedPosition", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/g-futures/closedPosition", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetGOrdersActiveList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders/activeList", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "g-orders/activeList", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersActiveList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders/activeList", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/activeList", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeOrderList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/order/list", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/order/list", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeOrder(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeOrderTrade(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/order/trade", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/order/trade", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPhemexUserUsersChildren(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-user/users/children", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "phemex-user/users/children", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPhemexUserWalletsV2DepositAddress(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-user/wallets/v2/depositAddress", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "phemex-user/wallets/v2/depositAddress", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPhemexUserWalletsTradeAccountDetail(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-user/wallets/tradeAccountDetail", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "phemex-user/wallets/tradeAccountDetail", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPhemexDepositWalletsApiDepositAddress(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-deposit/wallets/api/depositAddress", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "phemex-deposit/wallets/api/depositAddress", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPhemexDepositWalletsApiDepositHist(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-deposit/wallets/api/depositHist", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "phemex-deposit/wallets/api/depositHist", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPhemexDepositWalletsApiChainCfg(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-deposit/wallets/api/chainCfg", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "phemex-deposit/wallets/api/chainCfg", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPhemexWithdrawWalletsApiWithdrawHist(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-withdraw/wallets/api/withdrawHist", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "phemex-withdraw/wallets/api/withdrawHist", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPhemexWithdrawWalletsApiAssetInfo(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-withdraw/wallets/api/asset/info", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "phemex-withdraw/wallets/api/asset/info", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetPhemexUserOrderClosedPositionList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-user/order/closedPositionList", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "phemex-user/order/closedPositionList", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeMarginsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/margins/transfer", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/margins/transfer", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeWalletsConfirmWithdraw(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/confirm/withdraw", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/wallets/confirm/withdraw", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeWalletsWithdrawList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/withdrawList", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/wallets/withdrawList", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeWalletsDepositList(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/depositList", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/wallets/depositList", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetExchangeWalletsV2DepositAddress(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/v2/depositAddress", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/wallets/v2/depositAddress", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataSpotsFunds(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/funds", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/spots/funds", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataSpotsOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/orders", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/spots/orders", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataSpotsOrdersByOrderId(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/orders/by-order-id", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/spots/orders/by-order-id", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataSpotsPnls(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/pnls", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/spots/pnls", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataSpotsTrades(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/trades", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/spots/trades", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetApiDataSpotsTradesByOrderId(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "api-data/spots/trades/by-order-id", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "api-data/spots/trades/by-order-id", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetsConvert(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/convert", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "assets/convert", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/transfer", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "assets/transfer", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetsSpotsSubAccountsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/spots/sub-accounts/transfer", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "assets/spots/sub-accounts/transfer", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetsFuturesSubAccountsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/futures/sub-accounts/transfer", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "assets/futures/sub-accounts/transfer", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAssetsQuote(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/quote", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "assets/quote", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostSpotOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostGOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "g-orders", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPositionsAssign(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "positions/assign", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "positions/assign", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostExchangeWalletsTransferOut(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/transferOut", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/wallets/transferOut", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostExchangeWalletsTransferIn(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/transferIn", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/wallets/transferIn", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostExchangeMargins(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/margins", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/margins", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostExchangeWalletsCreateWithdraw(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/createWithdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/wallets/createWithdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostExchangeWalletsCancelWithdraw(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/cancelWithdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/wallets/cancelWithdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostExchangeWalletsCreateWithdrawAddress(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "exchange/wallets/createWithdrawAddress", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "exchange/wallets/createWithdrawAddress", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "assets/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetsSpotsSubAccountsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/spots/sub-accounts/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "assets/spots/sub-accounts/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetsFuturesSubAccountsTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/futures/sub-accounts/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "assets/futures/sub-accounts/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetsUniversalTransfer(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/universal-transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "assets/universal-transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostAssetsConvert(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "assets/convert", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "assets/convert", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPhemexWithdrawWalletsApiCreateWithdraw(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-withdraw/wallets/api/createWithdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "phemex-withdraw/wallets/api/createWithdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostPhemexWithdrawWalletsApiCancelWithdraw(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "phemex-withdraw/wallets/api/cancelWithdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "phemex-withdraw/wallets/api/cancelWithdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePutSpotOrdersCreate(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders/create", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/orders/create", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutSpotOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/orders", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutOrdersReplace(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders/replace", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/replace", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutGOrdersReplace(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders/replace", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "g-orders/replace", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutGOrdersCreate(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders/create", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "g-orders/create", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutPositionsLeverage(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "positions/leverage", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "positions/leverage", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutGPositionsLeverage(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-positions/leverage", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "g-positions/leverage", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutGPositionsSwitchPosModeSync(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-positions/switch-pos-mode-sync", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "g-positions/switch-pos-mode-sync", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutPositionsRiskLimit(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "positions/riskLimit", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "positions/riskLimit", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privateDeleteSpotOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/orders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteSpotOrdersAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "spot/orders/all", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 2))
+    return request(self, "spot/orders/all", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersCancel(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders/cancel", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/cancel", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "orders/all", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "orders/all", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteGOrdersCancel(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders/cancel", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "g-orders/cancel", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteGOrders(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "g-orders", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteGOrdersAll(self::Phemex, params=Dict(), context=Dict())
-    return request(self, "g-orders/all", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "g-orders/all", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Phemex(; kwargs...)
     inst = Phemex(Exchange(), describe, parseSafeNumber, parseSwapMarket, parseSpotMarket, fetchMarkets, fetchCurrencies, parseCurrency, customParseBidAsk, customParseOrderBook, fetchOrderBook, toEn, toEv, toEp, fromEn, fromEp, fromEv, fromEr, parseOHLCV, fetchOHLCV, parseTicker, fetchTicker, fetchTickers, fetchTrades, parseTrade, parseSpotBalance, parseSwapBalance, fetchBalance, parseOrderStatus, parseOrderType, parseTimeInForce, parseSpotOrder, parseOrderSide, parseSwapOrder, parseOrder, createOrder, editOrder, cancelOrder, cancelAllOrders, fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchMyTrades, fetchDepositAddress, fetchDeposits, fetchWithdrawals, parseTransactionStatus, parseTransaction, fetchPositions, fetchPositionHistory, parsePosition, fetchFundingHistory, parseFundingFeeToPrecision, fetchFundingRate, parseFundingRate, setMargin, parseMarginStatus, parseMarginModification, setMarginMode, setPositionMode, fetchLeverageTiers, parseMarketLeverageTiers, sign, setLeverage, transfer, fetchTransfers, parseTransfer, parseTransferStatus, fetchFundingRateHistory, withdraw, fetchOpenInterest, parseOpenInterest, fetchConvertQuote, createConvertTrade, fetchConvertTradeHistory, parseConversion, fetchPositionsADLRank, parseADLRank, handleErrors, publicGetCfgV2Products, publicGetCfgFundingRates, publicGetProducts, publicGetNomicsTrades, publicGetMdKline, publicGetMdV2KlineList, publicGetMdV2Kline, publicGetMdV2KlineLast, publicGetMdOrderbook, publicGetMdTrade, publicGetMdSpotTicker24hr, publicGetExchangePublicCfgChainSettings, v1GetMdFullbook, v1GetMdOrderbook, v1GetMdTrade, v1GetMdTicker24hr, v1GetMdTicker24hrAll, v1GetMdSpotTicker24hr, v1GetMdSpotTicker24hrAll, v1GetExchangePublicProducts, v1GetApiDataPublicDataFundingRateHistory, v2GetPublicProducts, v2GetPublicProductsPlus, v2GetMdV2Orderbook, v2GetMdV2Trade, v2GetMdV2Ticker24hr, v2GetMdV2Ticker24hrAll, v2GetApiDataPublicDataFundingRateHistory, privateGetSpotOrdersActive, privateGetSpotOrders, privateGetSpotWallets, privateGetExchangeSpotOrder, privateGetExchangeSpotOrderTrades, privateGetExchangeOrderV2OrderList, privateGetExchangeOrderV2TradingList, privateGetAccountsAccountPositions, privateGetGAccountsAccountPositions, privateGetGAccountsPositions, privateGetGAccountsRiskUnit, privateGetApiDataFuturesFundingFees, privateGetApiDataGFuturesFundingFees, privateGetApiDataFuturesOrders, privateGetApiDataGFuturesOrders, privateGetApiDataFuturesOrdersByOrderId, privateGetApiDataGFuturesOrdersByOrderId, privateGetApiDataFuturesTrades, privateGetApiDataGFuturesTrades, privateGetApiDataFuturesTradingFees, privateGetApiDataGFuturesTradingFees, privateGetApiDataFuturesV2TradeAccountDetail, privateGetApiDataGFuturesClosedPosition, privateGetGOrdersActiveList, privateGetOrdersActiveList, privateGetExchangeOrderList, privateGetExchangeOrder, privateGetExchangeOrderTrade, privateGetPhemexUserUsersChildren, privateGetPhemexUserWalletsV2DepositAddress, privateGetPhemexUserWalletsTradeAccountDetail, privateGetPhemexDepositWalletsApiDepositAddress, privateGetPhemexDepositWalletsApiDepositHist, privateGetPhemexDepositWalletsApiChainCfg, privateGetPhemexWithdrawWalletsApiWithdrawHist, privateGetPhemexWithdrawWalletsApiAssetInfo, privateGetPhemexUserOrderClosedPositionList, privateGetExchangeMarginsTransfer, privateGetExchangeWalletsConfirmWithdraw, privateGetExchangeWalletsWithdrawList, privateGetExchangeWalletsDepositList, privateGetExchangeWalletsV2DepositAddress, privateGetApiDataSpotsFunds, privateGetApiDataSpotsOrders, privateGetApiDataSpotsOrdersByOrderId, privateGetApiDataSpotsPnls, privateGetApiDataSpotsTrades, privateGetApiDataSpotsTradesByOrderId, privateGetAssetsConvert, privateGetAssetsTransfer, privateGetAssetsSpotsSubAccountsTransfer, privateGetAssetsFuturesSubAccountsTransfer, privateGetAssetsQuote, privatePostSpotOrders, privatePostOrders, privatePostGOrders, privatePostPositionsAssign, privatePostExchangeWalletsTransferOut, privatePostExchangeWalletsTransferIn, privatePostExchangeMargins, privatePostExchangeWalletsCreateWithdraw, privatePostExchangeWalletsCancelWithdraw, privatePostExchangeWalletsCreateWithdrawAddress, privatePostAssetsTransfer, privatePostAssetsSpotsSubAccountsTransfer, privatePostAssetsFuturesSubAccountsTransfer, privatePostAssetsUniversalTransfer, privatePostAssetsConvert, privatePostPhemexWithdrawWalletsApiCreateWithdraw, privatePostPhemexWithdrawWalletsApiCancelWithdraw, privatePutSpotOrdersCreate, privatePutSpotOrders, privatePutOrdersReplace, privatePutGOrdersReplace, privatePutGOrdersCreate, privatePutPositionsLeverage, privatePutGPositionsLeverage, privatePutGPositionsSwitchPosModeSync, privatePutPositionsRiskLimit, privateDeleteSpotOrders, privateDeleteSpotOrdersAll, privateDeleteOrdersCancel, privateDeleteOrders, privateDeleteOrdersAll, privateDeleteGOrdersCancel, privateDeleteGOrders, privateDeleteGOrdersAll)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

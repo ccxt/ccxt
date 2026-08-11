@@ -202,7 +202,7 @@ function describe(self::Hitbtc, )
         Symbol("addMargin") => true,
         Symbol("cancelAllOrders") => true,
         Symbol("cancelOrder") => true,
-        Symbol("closePosition") => false,
+        Symbol("closePosition") => true,
         Symbol("createDepositAddress") => true,
         Symbol("createOrder") => true,
         Symbol("createPostOnlyOrder") => true,
@@ -298,129 +298,351 @@ function describe(self::Hitbtc, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("public/currency") => 10,
-                Symbol("public/currency/{currency}") => 10,
-                Symbol("public/symbol") => 10,
-                Symbol("public/symbol/{symbol}") => 10,
-                Symbol("public/ticker") => 10,
-                Symbol("public/ticker/{symbol}") => 10,
-                Symbol("public/price/rate") => 10,
-                Symbol("public/price/history") => 10,
-                Symbol("public/price/ticker") => 10,
-                Symbol("public/price/ticker/{symbol}") => 10,
-                Symbol("public/trades") => 10,
-                Symbol("public/trades/{symbol}") => 10,
-                Symbol("public/orderbook") => 10,
-                Symbol("public/orderbook/{symbol}") => 10,
-                Symbol("public/candles") => 10,
-                Symbol("public/candles/{symbol}") => 10,
-                Symbol("public/converted/candles") => 10,
-                Symbol("public/converted/candles/{symbol}") => 10,
-                Symbol("public/futures/info") => 10,
-                Symbol("public/futures/info/{symbol}") => 10,
-                Symbol("public/futures/history/funding") => 10,
-                Symbol("public/futures/history/funding/{symbol}") => 10,
-                Symbol("public/futures/candles/index_price") => 10,
-                Symbol("public/futures/candles/index_price/{symbol}") => 10,
-                Symbol("public/futures/candles/mark_price") => 10,
-                Symbol("public/futures/candles/mark_price/{symbol}") => 10,
-                Symbol("public/futures/candles/premium_index") => 10,
-                Symbol("public/futures/candles/premium_index/{symbol}") => 10,
-                Symbol("public/futures/candles/open_interest") => 10,
-                Symbol("public/futures/candles/open_interest/{symbol}") => 10
+                Symbol("public/currency") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/currency/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/symbol") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/symbol/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/ticker/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/price/rate") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/price/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/price/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/price/ticker/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/trades/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/orderbook") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/orderbook/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/candles/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/converted/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/converted/candles/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/info") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/info/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/history/funding") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/history/funding/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/candles/index_price") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/candles/index_price/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/candles/mark_price") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/candles/mark_price/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/candles/premium_index") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/candles/premium_index/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/candles/open_interest") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+),
+                Symbol("public/futures/candles/open_interest/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("spot/balance") => 15,
-                Symbol("spot/balance/{currency}") => 15,
-                Symbol("spot/order") => 1,
-                Symbol("spot/order/{client_order_id}") => 1,
-                Symbol("spot/fee") => 15,
-                Symbol("spot/fee/{symbol}") => 15,
-                Symbol("spot/history/order") => 15,
-                Symbol("spot/history/trade") => 15,
-                Symbol("margin/account") => 1,
-                Symbol("margin/account/isolated/{symbol}") => 1,
-                Symbol("margin/account/cross/{currency}") => 1,
-                Symbol("margin/order") => 1,
-                Symbol("margin/order/{client_order_id}") => 1,
-                Symbol("margin/config") => 15,
-                Symbol("margin/history/order") => 15,
-                Symbol("margin/history/trade") => 15,
-                Symbol("margin/history/positions") => 15,
-                Symbol("margin/history/clearing") => 15,
-                Symbol("futures/balance") => 15,
-                Symbol("futures/balance/{currency}") => 15,
-                Symbol("futures/account") => 1,
-                Symbol("futures/account/isolated/{symbol}") => 1,
-                Symbol("futures/order") => 1,
-                Symbol("futures/order/{client_order_id}") => 1,
-                Symbol("futures/config") => 15,
-                Symbol("futures/fee") => 15,
-                Symbol("futures/fee/{symbol}") => 15,
-                Symbol("futures/history/order") => 15,
-                Symbol("futures/history/trade") => 15,
-                Symbol("futures/history/positions") => 15,
-                Symbol("futures/history/clearing") => 15,
-                Symbol("wallet/balance") => 30,
-                Symbol("wallet/balance/{currency}") => 30,
-                Symbol("wallet/crypto/address") => 30,
-                Symbol("wallet/crypto/address/recent-deposit") => 30,
-                Symbol("wallet/crypto/address/recent-withdraw") => 30,
-                Symbol("wallet/crypto/address/check-mine") => 30,
-                Symbol("wallet/transactions") => 30,
-                Symbol("wallet/transactions/{tx_id}") => 30,
-                Symbol("wallet/crypto/fee/estimate") => 30,
-                Symbol("wallet/airdrops") => 30,
-                Symbol("wallet/amount-locks") => 30,
-                Symbol("sub-account") => 15,
-                Symbol("sub-account/acl") => 15,
-                Symbol("sub-account/balance/{subAccID}") => 15,
-                Symbol("sub-account/crypto/address/{subAccID}/{currency}") => 15
+                Symbol("spot/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("spot/balance/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/order/{client_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("spot/fee/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("spot/history/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("spot/history/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("margin/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/account/isolated/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/account/cross/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/order/{client_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("margin/history/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("margin/history/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("margin/history/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("margin/history/clearing") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("futures/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("futures/balance/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("futures/account") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/account/isolated/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/order/{client_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/config") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("futures/fee") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("futures/fee/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("futures/history/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("futures/history/trade") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("futures/history/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("futures/history/clearing") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("wallet/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/balance/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/crypto/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/crypto/address/recent-deposit") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/crypto/address/recent-withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/crypto/address/check-mine") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/transactions/{tx_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/crypto/fee/estimate") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/airdrops") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/amount-locks") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("sub-account") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sub-account/acl") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sub-account/balance/{subAccID}") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sub-account/crypto/address/{subAccID}/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("spot/order") => 1,
-                Symbol("spot/order/list") => 1,
-                Symbol("margin/order") => 1,
-                Symbol("margin/order/list") => 1,
-                Symbol("futures/order") => 1,
-                Symbol("futures/order/list") => 1,
-                Symbol("wallet/crypto/address") => 30,
-                Symbol("wallet/crypto/withdraw") => 30,
-                Symbol("wallet/convert") => 30,
-                Symbol("wallet/transfer") => 30,
-                Symbol("wallet/internal/withdraw") => 30,
-                Symbol("wallet/crypto/check-offchain-available") => 30,
-                Symbol("wallet/crypto/fees/estimate") => 30,
-                Symbol("wallet/airdrops/{id}/claim") => 30,
-                Symbol("sub-account/freeze") => 15,
-                Symbol("sub-account/activate") => 15,
-                Symbol("sub-account/transfer") => 15,
-                Symbol("sub-account/acl") => 15
+                Symbol("spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/order/list") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet/crypto/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/crypto/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/convert") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/internal/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/crypto/check-offchain-available") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/crypto/fees/estimate") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("wallet/airdrops/{id}/claim") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+),
+                Symbol("sub-account/freeze") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sub-account/activate") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sub-account/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+),
+                Symbol("sub-account/acl") => Dict{Symbol, Any}(
+    Symbol("cost") => 15
+)
             ),
             Symbol("patch") => Dict{Symbol, Any}(
-                Symbol("spot/order/{client_order_id}") => 1,
-                Symbol("margin/order/{client_order_id}") => 1,
-                Symbol("futures/order/{client_order_id}") => 1
+                Symbol("spot/order/{client_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/order/{client_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/order/{client_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("spot/order") => 1,
-                Symbol("spot/order/{client_order_id}") => 1,
-                Symbol("margin/position") => 1,
-                Symbol("margin/position/isolated/{symbol}") => 1,
-                Symbol("margin/order") => 1,
-                Symbol("margin/order/{client_order_id}") => 1,
-                Symbol("futures/position") => 1,
-                Symbol("futures/position/{margin_mode}/{symbol}") => 1,
-                Symbol("futures/order") => 1,
-                Symbol("futures/order/{client_order_id}") => 1,
-                Symbol("wallet/crypto/withdraw/{id}") => 30
+                Symbol("spot/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("spot/order/{client_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/position/isolated/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("margin/order/{client_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/position/{margin_mode}/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/order") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/order/{client_order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet/crypto/withdraw/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("margin/account/isolated/{symbol}") => 1,
-                Symbol("futures/account/isolated/{symbol}") => 1,
-                Symbol("wallet/crypto/withdraw/{id}") => 30
+                Symbol("margin/account/isolated/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("futures/account/isolated/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet/crypto/withdraw/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 30
+)
             )
         )
     ),
@@ -872,22 +1094,24 @@ function parseCurrency(self::Hitbtc, currency)
         networkId = safeString2(rawNetwork, "protocol", "network");
         networkCode = self.networkIdToCode(networkId, code);
         networkCode = functions.ccxtruthy((networkCode != nothing)) ? uppercase(networkCode) : code;
-        networks[Symbol(networkCode)] = Dict{Symbol, Any}(
-            Symbol("info") => rawNetwork,
-            Symbol("id") => networkId,
-            Symbol("network") => networkCode,
-            Symbol("active") => nothing,
-            Symbol("fee") => self.safeNumber(rawNetwork, "payout_fee"),
-            Symbol("deposit") => self.safeBool(rawNetwork, "payin_enabled"),
-            Symbol("withdraw") => self.safeBool(rawNetwork, "payout_enabled"),
-            Symbol("precision") => self.safeNumber(rawNetwork, "precision_payout"),
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => nothing,
-                    Symbol("max") => nothing
+        if functions.ccxtruthy(networkCode != nothing)
+            networks[Symbol(networkCode)] = Dict{Symbol, Any}(
+                Symbol("info") => rawNetwork,
+                Symbol("id") => networkId,
+                Symbol("network") => networkCode,
+                Symbol("active") => nothing,
+                Symbol("fee") => self.safeNumber(rawNetwork, "payout_fee"),
+                Symbol("deposit") => self.safeBool(rawNetwork, "payin_enabled"),
+                Symbol("withdraw") => self.safeBool(rawNetwork, "payout_enabled"),
+                Symbol("precision") => self.safeNumber(rawNetwork, "precision_payout"),
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => nothing,
+                        Symbol("max") => nothing
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -983,7 +1207,9 @@ function parseBalance(self::Hitbtc, response)
         account = self.account();
         account[Symbol("free")] = safeString(entry, "available");
         account[Symbol("used")] = safeString(entry, "reserved");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1041,7 +1267,7 @@ function fetchTickers(self::Hitbtc, symbols=nothing, params=Dict())
         marketId = get(keys_var, i + 1, nothing);
         market = self.safeMarket(marketId);
         symbol = get(market, Symbol("symbol"), nothing);
-        entry = get(response, Symbol(marketId), nothing);
+        entry = self.safeDict(response, marketId, Dict{Symbol, Any}());
         result[Symbol(symbol)] = self.parseTicker(entry, market);
         i += 1
     end
@@ -1104,7 +1330,7 @@ function fetchTrades(self::Hitbtc, symbol, since=nothing, limit=nothing, params=
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
         marketInner = self.market(marketId);
-        rawTrades = get(response, Symbol(marketId), nothing);
+        rawTrades = self.safeList(response, marketId, []);
         parsed = self.parseTrades(rawTrades, marketInner);
         trades = arrayConcat(trades, parsed);
         i += 1
@@ -1324,10 +1550,10 @@ function fetchOrderBooks(self::Hitbtc, symbols=nothing, limit=nothing, params=Di
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(marketIds)))
         marketId = get(marketIds, i + 1, nothing);
-        orderbook = get(response, Symbol(marketId), nothing);
+        orderbook = self.safeDict(response, marketId, Dict{Symbol, Any}());
         symbol = self.safeSymbol(marketId);
         timestamp = self.parse8601(safeString(orderbook, "timestamp"));
-        result[Symbol(symbol)] = self.parseOrderBook(get(response, Symbol(marketId), nothing), symbol, timestamp, "bid", "ask");
+        result[Symbol(symbol)] = self.parseOrderBook(orderbook, symbol, timestamp, "bid", "ask");
         i += 1
     end
     return result
@@ -1443,7 +1669,8 @@ function fetchOHLCV(self::Hitbtc, symbol, timeframe="1m", since=nothing, limit=n
         end
 
     end
-    return self.parseOHLCVs(response, market, timeframe, since, limit)
+    ohlcvs = toArray(response);
+    return self.parseOHLCVs(ohlcvs, market, timeframe, since, limit)
 
 end
 function parseOHLCV(self::Hitbtc, ohlcv, market=nothing)
@@ -2085,7 +2312,7 @@ function fetchFundingRateHistory(self::Hitbtc, symbol=nothing, since=nothing, li
     while functions.ccxtruthy(functions.ccxt_lt(i, length(contracts)))
         marketId = get(contracts, i + 1, nothing);
         marketInner = self.safeMarket(marketId);
-        fundingRateData = get(response, Symbol(marketId), nothing);
+        fundingRateData = self.safeList(response, marketId, []);
         j = 0
         while functions.ccxtruthy(functions.ccxt_lt(j, length(fundingRateData)))
             entry = get(fundingRateData, j + 1, nothing);
@@ -2257,7 +2484,8 @@ function fetchOpenInterests(self::Hitbtc, symbols=nothing, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(markets)))
         marketId = get(markets, i + 1, nothing);
         marketInner = self.safeMarket(marketId);
-        push!(results, self.parseOpenInterest(get(response, Symbol(marketId), nothing), marketInner));
+        openInterest = self.safeDict(response, marketId, Dict{Symbol, Any}());
+        push!(results, self.parseOpenInterest(openInterest, marketInner));
         i += 1
     end
     return self.filterByArray(results, "symbol", symbols)
@@ -2587,460 +2815,513 @@ function sign(self::Hitbtc, path, api="public", method="GET", params=Dict(), hea
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Hitbtc, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetPublicCurrency(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/currency", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/currency", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicCurrencyCurrency(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/currency/{currency}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/currency/{currency}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/symbol", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/symbol", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicSymbolSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/symbol/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/symbol/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicTicker(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicTickerSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/ticker/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/ticker/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicPriceRate(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/price/rate", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/price/rate", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicPriceHistory(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/price/history", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/price/history", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicPriceTicker(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/price/ticker", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/price/ticker", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicPriceTickerSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/price/ticker/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/price/ticker/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicTrades(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/trades", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/trades", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicTradesSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/trades/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/trades/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicOrderbook(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/orderbook", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/orderbook", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicOrderbookSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/orderbook/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/orderbook/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicCandles(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/candles", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/candles", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicCandlesSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/candles/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/candles/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicConvertedCandles(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/converted/candles", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/converted/candles", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicConvertedCandlesSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/converted/candles/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/converted/candles/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesInfo(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/info", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/info", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesInfoSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/info/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/info/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesHistoryFunding(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/history/funding", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/history/funding", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesHistoryFundingSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/history/funding/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/history/funding/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesCandlesIndexPrice(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/candles/index_price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/candles/index_price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesCandlesIndexPriceSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/candles/index_price/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/candles/index_price/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesCandlesMarkPrice(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/candles/mark_price", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/candles/mark_price", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesCandlesMarkPriceSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/candles/mark_price/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/candles/mark_price/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesCandlesPremiumIndex(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/candles/premium_index", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/candles/premium_index", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesCandlesPremiumIndexSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/candles/premium_index/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/candles/premium_index/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesCandlesOpenInterest(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/candles/open_interest", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/candles/open_interest", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPublicFuturesCandlesOpenInterestSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "public/futures/candles/open_interest/{symbol}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "public/futures/candles/open_interest/{symbol}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotBalance(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "spot/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotBalanceCurrency(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/balance/{currency}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "spot/balance/{currency}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotOrderClientOrderId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/order/{client_order_id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/order/{client_order_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotFee(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/fee", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "spot/fee", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotFeeSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/fee/{symbol}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "spot/fee/{symbol}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotHistoryOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/history/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "spot/history/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSpotHistoryTrade(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/history/trade", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "spot/history/trade", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginAccount(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginAccountIsolatedSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/account/isolated/{symbol}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/account/isolated/{symbol}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginAccountCrossCurrency(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/account/cross/{currency}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/account/cross/{currency}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginOrderClientOrderId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/order/{client_order_id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/order/{client_order_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginConfig(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/config", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "margin/config", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginHistoryOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/history/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "margin/history/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginHistoryTrade(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/history/trade", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "margin/history/trade", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginHistoryPositions(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/history/positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "margin/history/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetMarginHistoryClearing(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/history/clearing", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "margin/history/clearing", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesBalance(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "futures/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesBalanceCurrency(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/balance/{currency}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "futures/balance/{currency}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesAccount(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesAccountIsolatedSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/account/isolated/{symbol}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/account/isolated/{symbol}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesOrderClientOrderId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/order/{client_order_id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/order/{client_order_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesConfig(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/config", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "futures/config", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesFee(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/fee", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "futures/fee", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesFeeSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/fee/{symbol}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "futures/fee/{symbol}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesHistoryOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/history/order", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "futures/history/order", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesHistoryTrade(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/history/trade", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "futures/history/trade", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesHistoryPositions(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/history/positions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "futures/history/positions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetFuturesHistoryClearing(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/history/clearing", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "futures/history/clearing", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletBalance(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletBalanceCurrency(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/balance/{currency}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/balance/{currency}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletCryptoAddress(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/crypto/address", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/crypto/address", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletCryptoAddressRecentDeposit(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/crypto/address/recent-deposit", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/crypto/address/recent-deposit", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletCryptoAddressRecentWithdraw(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/crypto/address/recent-withdraw", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/crypto/address/recent-withdraw", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletCryptoAddressCheckMine(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/crypto/address/check-mine", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/crypto/address/check-mine", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletTransactions(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/transactions", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/transactions", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletTransactionsTxId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/transactions/{tx_id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/transactions/{tx_id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletCryptoFeeEstimate(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/crypto/fee/estimate", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/crypto/fee/estimate", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletAirdrops(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/airdrops", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/airdrops", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletAmountLocks(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/amount-locks", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/amount-locks", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubAccount(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "sub-account", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sub-account", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubAccountAcl(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "sub-account/acl", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sub-account/acl", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubAccountBalanceSubAccID(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "sub-account/balance/{subAccID}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sub-account/balance/{subAccID}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetSubAccountCryptoAddressSubAccIDCurrency(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "sub-account/crypto/address/{subAccID}/{currency}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sub-account/crypto/address/{subAccID}/{currency}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostSpotOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSpotOrderList(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/order/list", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/order/list", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMarginOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostMarginOrderList(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/order/list", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/order/list", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/order", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/order", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostFuturesOrderList(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/order/list", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/order/list", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletCryptoAddress(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/crypto/address", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/crypto/address", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletCryptoWithdraw(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/crypto/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/crypto/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletConvert(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/convert", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/convert", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletTransfer(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletInternalWithdraw(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/internal/withdraw", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/internal/withdraw", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletCryptoCheckOffchainAvailable(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/crypto/check-offchain-available", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/crypto/check-offchain-available", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletCryptoFeesEstimate(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/crypto/fees/estimate", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/crypto/fees/estimate", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostWalletAirdropsIdClaim(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/airdrops/{id}/claim", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/airdrops/{id}/claim", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubAccountFreeze(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "sub-account/freeze", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sub-account/freeze", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubAccountActivate(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "sub-account/activate", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sub-account/activate", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubAccountTransfer(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "sub-account/transfer", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sub-account/transfer", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePostSubAccountAcl(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "sub-account/acl", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 15))
+    return request(self, "sub-account/acl", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePatchSpotOrderClientOrderId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/order/{client_order_id}", "private", "PATCH", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/order/{client_order_id}", "private", "PATCH", params, nothing, nothing, Dict())
 end
 
 function privatePatchMarginOrderClientOrderId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/order/{client_order_id}", "private", "PATCH", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/order/{client_order_id}", "private", "PATCH", params, nothing, nothing, Dict())
 end
 
 function privatePatchFuturesOrderClientOrderId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/order/{client_order_id}", "private", "PATCH", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/order/{client_order_id}", "private", "PATCH", params, nothing, nothing, Dict())
 end
 
 function privateDeleteSpotOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteSpotOrderClientOrderId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "spot/order/{client_order_id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "spot/order/{client_order_id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteMarginPosition(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/position", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/position", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteMarginPositionIsolatedSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/position/isolated/{symbol}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/position/isolated/{symbol}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteMarginOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteMarginOrderClientOrderId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/order/{client_order_id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/order/{client_order_id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteFuturesPosition(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/position", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/position", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteFuturesPositionMarginModeSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/position/{margin_mode}/{symbol}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/position/{margin_mode}/{symbol}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteFuturesOrder(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/order", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/order", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteFuturesOrderClientOrderId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/order/{client_order_id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/order/{client_order_id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteWalletCryptoWithdrawId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/crypto/withdraw/{id}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/crypto/withdraw/{id}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privatePutMarginAccountIsolatedSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "margin/account/isolated/{symbol}", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "margin/account/isolated/{symbol}", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutFuturesAccountIsolatedSymbol(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "futures/account/isolated/{symbol}", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "futures/account/isolated/{symbol}", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privatePutWalletCryptoWithdrawId(self::Hitbtc, params=Dict(), context=Dict())
-    return request(self, "wallet/crypto/withdraw/{id}", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 30))
+    return request(self, "wallet/crypto/withdraw/{id}", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function Hitbtc(; kwargs...)
     inst = Hitbtc(Exchange(), describe, nonce, fetchMarkets, fetchCurrencies, parseCurrency, createDepositAddress, fetchDepositAddress, parseBalance, fetchBalance, fetchTicker, fetchTickers, parseTicker, fetchTrades, fetchMyTrades, parseTrade, fetchTransactionsHelper, parseTransactionStatus, parseTransactionType, parseTransaction, fetchDepositsWithdrawals, fetchDeposits, fetchWithdrawals, fetchOrderBooks, fetchOrderBook, parseTradingFee, fetchTradingFee, fetchTradingFees, fetchOHLCV, parseOHLCV, fetchClosedOrders, fetchOrder, fetchOrderTrades, fetchOpenOrders, fetchOpenOrder, cancelAllOrders, cancelOrder, editOrder, createOrder, createOrderRequest, parseOrderStatus, parseOrder, fetchMarginModes, parseMarginMode, transfer, parseTransfer, convertCurrencyNetwork, withdraw, fetchFundingRates, fetchFundingRateHistory, fetchPositions, fetchPosition, parsePosition, parseOpenInterest, fetchOpenInterests, fetchOpenInterest, fetchFundingRate, parseFundingRate, modifyMarginHelper, parseMarginModification, reduceMargin, addMargin, fetchLeverage, parseLeverage, setLeverage, fetchDepositWithdrawFees, parseDepositWithdrawFee, closePosition, handleMarginModeAndParams, handleErrors, sign, publicGetPublicCurrency, publicGetPublicCurrencyCurrency, publicGetPublicSymbol, publicGetPublicSymbolSymbol, publicGetPublicTicker, publicGetPublicTickerSymbol, publicGetPublicPriceRate, publicGetPublicPriceHistory, publicGetPublicPriceTicker, publicGetPublicPriceTickerSymbol, publicGetPublicTrades, publicGetPublicTradesSymbol, publicGetPublicOrderbook, publicGetPublicOrderbookSymbol, publicGetPublicCandles, publicGetPublicCandlesSymbol, publicGetPublicConvertedCandles, publicGetPublicConvertedCandlesSymbol, publicGetPublicFuturesInfo, publicGetPublicFuturesInfoSymbol, publicGetPublicFuturesHistoryFunding, publicGetPublicFuturesHistoryFundingSymbol, publicGetPublicFuturesCandlesIndexPrice, publicGetPublicFuturesCandlesIndexPriceSymbol, publicGetPublicFuturesCandlesMarkPrice, publicGetPublicFuturesCandlesMarkPriceSymbol, publicGetPublicFuturesCandlesPremiumIndex, publicGetPublicFuturesCandlesPremiumIndexSymbol, publicGetPublicFuturesCandlesOpenInterest, publicGetPublicFuturesCandlesOpenInterestSymbol, privateGetSpotBalance, privateGetSpotBalanceCurrency, privateGetSpotOrder, privateGetSpotOrderClientOrderId, privateGetSpotFee, privateGetSpotFeeSymbol, privateGetSpotHistoryOrder, privateGetSpotHistoryTrade, privateGetMarginAccount, privateGetMarginAccountIsolatedSymbol, privateGetMarginAccountCrossCurrency, privateGetMarginOrder, privateGetMarginOrderClientOrderId, privateGetMarginConfig, privateGetMarginHistoryOrder, privateGetMarginHistoryTrade, privateGetMarginHistoryPositions, privateGetMarginHistoryClearing, privateGetFuturesBalance, privateGetFuturesBalanceCurrency, privateGetFuturesAccount, privateGetFuturesAccountIsolatedSymbol, privateGetFuturesOrder, privateGetFuturesOrderClientOrderId, privateGetFuturesConfig, privateGetFuturesFee, privateGetFuturesFeeSymbol, privateGetFuturesHistoryOrder, privateGetFuturesHistoryTrade, privateGetFuturesHistoryPositions, privateGetFuturesHistoryClearing, privateGetWalletBalance, privateGetWalletBalanceCurrency, privateGetWalletCryptoAddress, privateGetWalletCryptoAddressRecentDeposit, privateGetWalletCryptoAddressRecentWithdraw, privateGetWalletCryptoAddressCheckMine, privateGetWalletTransactions, privateGetWalletTransactionsTxId, privateGetWalletCryptoFeeEstimate, privateGetWalletAirdrops, privateGetWalletAmountLocks, privateGetSubAccount, privateGetSubAccountAcl, privateGetSubAccountBalanceSubAccID, privateGetSubAccountCryptoAddressSubAccIDCurrency, privatePostSpotOrder, privatePostSpotOrderList, privatePostMarginOrder, privatePostMarginOrderList, privatePostFuturesOrder, privatePostFuturesOrderList, privatePostWalletCryptoAddress, privatePostWalletCryptoWithdraw, privatePostWalletConvert, privatePostWalletTransfer, privatePostWalletInternalWithdraw, privatePostWalletCryptoCheckOffchainAvailable, privatePostWalletCryptoFeesEstimate, privatePostWalletAirdropsIdClaim, privatePostSubAccountFreeze, privatePostSubAccountActivate, privatePostSubAccountTransfer, privatePostSubAccountAcl, privatePatchSpotOrderClientOrderId, privatePatchMarginOrderClientOrderId, privatePatchFuturesOrderClientOrderId, privateDeleteSpotOrder, privateDeleteSpotOrderClientOrderId, privateDeleteMarginPosition, privateDeleteMarginPositionIsolatedSymbol, privateDeleteMarginOrder, privateDeleteMarginOrderClientOrderId, privateDeleteFuturesPosition, privateDeleteFuturesPositionMarginModeSymbol, privateDeleteFuturesOrder, privateDeleteFuturesOrderClientOrderId, privateDeleteWalletCryptoWithdrawId, privatePutMarginAccountIsolatedSymbol, privatePutFuturesAccountIsolatedSymbol, privatePutWalletCryptoWithdrawId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

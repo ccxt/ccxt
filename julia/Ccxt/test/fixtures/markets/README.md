@@ -48,3 +48,21 @@ quietly covering less.
 
 To re-capture the generated set, regenerate from `js/ccxt.js` and re-trim. Any
 tool that does this **must skip the five curated exchanges above.**
+
+### Capturing on a host without an IPv6 route
+
+`gen_markets.cjs` goes through the normal CCXT fetch path, whose undici
+dispatcher races IPv6 against IPv4 (happy eyeballs) with a 10 ms head start for
+the first family. On a host that publishes AAAA records it cannot reach — a
+container with no IPv6 route — that budget expires before the IPv4 attempt wins,
+and hosts behind a dual-stack CDN fail with `ETIMEDOUT` even though the endpoint
+is reachable. It looks like the exchange is down; it is not.
+
+Force a single address family for the capture rather than editing the fetch
+path, e.g. a `--require` preload that pins `dns.lookup` to `family: 4`:
+
+```
+node -r ./ipv4only.cjs julia/Ccxt/test/fixtures/gen_markets.cjs
+```
+
+The recorded payload is identical either way — only the route to it changes.

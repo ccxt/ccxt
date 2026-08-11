@@ -152,7 +152,7 @@ function describe(self::Bitopro, )
         Symbol("fetchOptionChain") => false,
         Symbol("fetchOrder") => true,
         Symbol("fetchOrderBook") => true,
-        Symbol("fetchOrders") => false,
+        Symbol("fetchOrders") => true,
         Symbol("fetchOrderTrades") => false,
         Symbol("fetchPosition") => false,
         Symbol("fetchPositionHistory") => false,
@@ -215,42 +215,94 @@ function describe(self::Bitopro, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("public") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("order-book/{pair}") => 1,
-                Symbol("tickers") => 1,
-                Symbol("tickers/{pair}") => 1,
-                Symbol("trades/{pair}") => 1,
-                Symbol("provisioning/currencies") => 1,
-                Symbol("provisioning/trading-pairs") => 1,
-                Symbol("provisioning/limitations-and-fees") => 1,
-                Symbol("trading-history/{pair}") => 1,
-                Symbol("price/otc/{currency}") => 1
+                Symbol("order-book/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("tickers/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trades/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("provisioning/currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("provisioning/trading-pairs") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("provisioning/limitations-and-fees") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("trading-history/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("price/otc/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             )
         ),
         Symbol("private") => Dict{Symbol, Any}(
             Symbol("get") => Dict{Symbol, Any}(
-                Symbol("accounts/balance") => 1,
-                Symbol("orders/history") => 1,
-                Symbol("orders/all/{pair}") => 1,
-                Symbol("orders/trades/{pair}") => 1,
-                Symbol("orders/{pair}/{orderId}") => 1,
-                Symbol("wallet/withdraw/{currency}/{serial}") => 1,
-                Symbol("wallet/withdraw/{currency}/id/{id}") => 1,
-                Symbol("wallet/depositHistory/{currency}") => 1,
-                Symbol("wallet/withdrawHistory/{currency}") => 1,
-                Symbol("orders/open") => 1
+                Symbol("accounts/balance") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/all/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/trades/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/{pair}/{orderId}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet/withdraw/{currency}/{serial}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet/withdraw/{currency}/id/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet/depositHistory/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("wallet/withdrawHistory/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                Symbol("orders/open") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
             ),
             Symbol("post") => Dict{Symbol, Any}(
-                Symbol("orders/{pair}") => 1 / 2,
-                Symbol("orders/batch") => 20 / 3,
-                Symbol("wallet/withdraw/{currency}") => 10
+                Symbol("orders/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1 / 2
+),
+                Symbol("orders/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 20 / 3
+),
+                Symbol("wallet/withdraw/{currency}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10
+)
             ),
             Symbol("put") => Dict{Symbol, Any}(
-                Symbol("orders") => 5
+                Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             ),
             Symbol("delete") => Dict{Symbol, Any}(
-                Symbol("orders/{pair}/{id}") => 2 / 3,
-                Symbol("orders/all") => 5,
-                Symbol("orders/{pair}") => 5
+                Symbol("orders/{pair}/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 2 / 3
+),
+                Symbol("orders/all") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                Symbol("orders/{pair}") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
             )
         )
     ),
@@ -424,6 +476,9 @@ end
 function parseMarket(self::Bitopro, market)
     active = !functions.ccxtruthy(self.safeBool(market, "maintain"));
     id = safeString(market, "pair");
+    if functions.ccxtruthy(id == nothing)
+        throw(ExchangeError(string(self.id, " parseMarket() missing id")));
+    end
     uppercaseId = uppercase(id);
     baseId = safeString(market, "base");
     quoteId = safeString(market, "quote");
@@ -448,7 +503,7 @@ function parseMarket(self::Bitopro, market)
             Symbol("max") => nothing
         )
     );
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("uppercaseId") => uppercaseId,
     Symbol("symbol") => symbol,
@@ -480,7 +535,7 @@ function parseMarket(self::Bitopro, market)
     Symbol("active") => active,
     Symbol("created") => nothing,
     Symbol("info") => market
-)
+))
 
 end
 function parseTicker(self::Bitopro, ticker, market=nothing)
@@ -634,9 +689,10 @@ function fetchTradingFees(self::Bitopro, params=Dict())
     result = Dict{Symbol, Any}();
     maker = self.safeNumber(first_var, "makerFee");
     taker = self.safeNumber(first_var, "takerFee");
+    symbols = self.symbols;
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(self.symbols)))
-        symbol = get(self.symbols, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(symbols)))
+        symbol = get(symbols, i + 1, nothing);
         result[Symbol(symbol)] = Dict{Symbol, Any}(
             Symbol("info") => first_var,
             Symbol("symbol") => symbol,
@@ -738,7 +794,9 @@ function parseBalance(self::Bitopro, response)
             Symbol("free") => available,
             Symbol("total") => amount
         );
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -770,6 +828,9 @@ function parseOrder(self::Bitopro, order, market=nothing)
     id = safeString2(order, "id", "orderId");
     timestamp = safeInteger2(order, "timestamp", "createdTimestamp");
     side = safeString(order, "action");
+    if functions.ccxtruthy(side == nothing)
+        throw(ExchangeError(string(self.id, " parseOrder() returned no side")));
+    end
     side = lowercase(side);
     amount = safeString2(order, "amount", "originalAmount");
     price = safeString(order, "price");
@@ -908,7 +969,9 @@ function cancelOrders(self::Bitopro, ids, symbol=nothing, params=Dict())
     market = self.market(symbol);
     id = get(market, Symbol("uppercaseId"), nothing);
     request = Dict{Symbol, Any}();
-    request[Symbol(id)] = ids;
+    if functions.ccxtruthy(id != nothing)
+        request[Symbol(id)] = ids;
+    end
     response = Base.fetch(self.privatePutOrders(extend(request, params)));
     data = self.safeDict(response, "data");
     return self.parseCancelOrders(data)
@@ -1243,85 +1306,85 @@ function handleErrors(self::Bitopro, code, reason, url, method, headers, body, r
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitopro, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function publicGetOrderBookPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "order-book/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "order-book/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickers(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tickers", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTickersPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "tickers/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "tickers/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradesPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "trades/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trades/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetProvisioningCurrencies(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "provisioning/currencies", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "provisioning/currencies", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetProvisioningTradingPairs(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "provisioning/trading-pairs", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "provisioning/trading-pairs", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetProvisioningLimitationsAndFees(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "provisioning/limitations-and-fees", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "provisioning/limitations-and-fees", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetTradingHistoryPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "trading-history/{pair}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "trading-history/{pair}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function publicGetPriceOtcCurrency(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "price/otc/{currency}", "public", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "price/otc/{currency}", "public", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetAccountsBalance(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "accounts/balance", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "accounts/balance", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersHistory(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/history", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/history", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersAllPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/all/{pair}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/all/{pair}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersTradesPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/trades/{pair}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/trades/{pair}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersPairOrderId(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/{pair}/{orderId}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/{pair}/{orderId}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletWithdrawCurrencySerial(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "wallet/withdraw/{currency}/{serial}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wallet/withdraw/{currency}/{serial}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletWithdrawCurrencyIdId(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "wallet/withdraw/{currency}/id/{id}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wallet/withdraw/{currency}/id/{id}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletDepositHistoryCurrency(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "wallet/depositHistory/{currency}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wallet/depositHistory/{currency}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetWalletWithdrawHistoryCurrency(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "wallet/withdrawHistory/{currency}", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "wallet/withdrawHistory/{currency}", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privateGetOrdersOpen(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/open", "private", "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "orders/open", "private", "GET", params, nothing, nothing, Dict())
 end
 
 function privatePostOrdersPair(self::Bitopro, params=Dict(), context=Dict())
@@ -1333,11 +1396,11 @@ function privatePostOrdersBatch(self::Bitopro, params=Dict(), context=Dict())
 end
 
 function privatePostWalletWithdrawCurrency(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "wallet/withdraw/{currency}", "private", "POST", params, nothing, nothing, Dict(Symbol("cost") => 10))
+    return request(self, "wallet/withdraw/{currency}", "private", "POST", params, nothing, nothing, Dict())
 end
 
 function privatePutOrders(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders", "private", "PUT", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "orders", "private", "PUT", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersPairId(self::Bitopro, params=Dict(), context=Dict())
@@ -1345,18 +1408,71 @@ function privateDeleteOrdersPairId(self::Bitopro, params=Dict(), context=Dict())
 end
 
 function privateDeleteOrdersAll(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/all", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "orders/all", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function privateDeleteOrdersPair(self::Bitopro, params=Dict(), context=Dict())
-    return request(self, "orders/{pair}", "private", "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "orders/{pair}", "private", "DELETE", params, nothing, nothing, Dict())
 end
 
 function Bitopro(; kwargs...)
     inst = Bitopro(Exchange(), describe, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, parseTicker, fetchTicker, fetchTickers, fetchOrderBook, parseTrade, fetchTrades, fetchTradingFees, parseOHLCV, fetchOHLCV, insertMissingCandles, parseBalance, fetchBalance, parseOrderStatus, parseOrder, createOrder, cancelOrder, parseCancelOrders, cancelOrders, cancelAllOrders, fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchMyTrades, parseTransactionStatus, parseTransaction, fetchDeposits, fetchWithdrawals, fetchWithdrawal, withdraw, parseDepositWithdrawFee, fetchDepositWithdrawFees, sign, handleErrors, publicGetOrderBookPair, publicGetTickers, publicGetTickersPair, publicGetTradesPair, publicGetProvisioningCurrencies, publicGetProvisioningTradingPairs, publicGetProvisioningLimitationsAndFees, publicGetTradingHistoryPair, publicGetPriceOtcCurrency, privateGetAccountsBalance, privateGetOrdersHistory, privateGetOrdersAllPair, privateGetOrdersTradesPair, privateGetOrdersPairOrderId, privateGetWalletWithdrawCurrencySerial, privateGetWalletWithdrawCurrencyIdId, privateGetWalletDepositHistoryCurrency, privateGetWalletWithdrawHistoryCurrency, privateGetOrdersOpen, privatePostOrdersPair, privatePostOrdersBatch, privatePostWalletWithdrawCurrency, privatePutOrders, privateDeleteOrdersPairId, privateDeleteOrdersAll, privateDeleteOrdersPair)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

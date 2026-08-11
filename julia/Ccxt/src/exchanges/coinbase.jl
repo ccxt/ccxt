@@ -74,6 +74,8 @@
     createConvertTrade::Function = createConvertTrade
     fetchConvertTrade::Function = fetchConvertTrade
     parseConversion::Function = parseConversion
+    transfer::Function = transfer
+    parseTransfer::Function = parseTransfer
     closePosition::Function = closePosition
     fetchPositions::Function = fetchPositions
     fetchPosition::Function = fetchPosition
@@ -198,8 +200,8 @@ function describe(self::Coinbase, )
         Symbol("CORS") => true,
         Symbol("spot") => true,
         Symbol("margin") => false,
-        Symbol("swap") => false,
-        Symbol("future") => false,
+        Symbol("swap") => true,
+        Symbol("future") => true,
         Symbol("option") => false,
         Symbol("addMargin") => false,
         Symbol("borrowCrossMargin") => false,
@@ -294,6 +296,7 @@ function describe(self::Coinbase, )
         Symbol("fetchOrder") => true,
         Symbol("fetchOrderBook") => true,
         Symbol("fetchOrders") => true,
+        Symbol("fetchOrdersByStatus") => true,
         Symbol("fetchPosition") => true,
         Symbol("fetchPositionHistory") => false,
         Symbol("fetchPositionMode") => false,
@@ -319,6 +322,7 @@ function describe(self::Coinbase, )
         Symbol("setMargin") => false,
         Symbol("setMarginMode") => false,
         Symbol("setPositionMode") => false,
+        Symbol("transfer") => true,
         Symbol("withdraw") => true
     ),
     Symbol("urls") => Dict{Symbol, Any}(
@@ -339,123 +343,305 @@ function describe(self::Coinbase, )
         Symbol("v2") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("currencies") => 10.6,
-                    Symbol("currencies/crypto") => 10.6,
-                    Symbol("time") => 10.6,
-                    Symbol("exchange-rates") => 10.6,
-                    Symbol("users/{user_id}") => 10.6,
-                    Symbol("prices/{symbol}/buy") => 10.6,
-                    Symbol("prices/{symbol}/sell") => 10.6,
-                    Symbol("prices/{symbol}/spot") => 10.6
+                    Symbol("currencies") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("currencies/crypto") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("exchange-rates") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("users/{user_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("prices/{symbol}/buy") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("prices/{symbol}/sell") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("prices/{symbol}/spot") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("accounts") => 10.6,
-                    Symbol("accounts/{account_id}") => 10.6,
-                    Symbol("accounts/{account_id}/addresses") => 10.6,
-                    Symbol("accounts/{account_id}/addresses/{address_id}") => 10.6,
-                    Symbol("accounts/{account_id}/addresses/{address_id}/transactions") => 10.6,
-                    Symbol("accounts/{account_id}/transactions") => 10.6,
-                    Symbol("accounts/{account_id}/transactions/{transaction_id}") => 10.6,
-                    Symbol("accounts/{account_id}/buys") => 10.6,
-                    Symbol("accounts/{account_id}/buys/{buy_id}") => 10.6,
-                    Symbol("accounts/{account_id}/sells") => 10.6,
-                    Symbol("accounts/{account_id}/sells/{sell_id}") => 10.6,
-                    Symbol("accounts/{account_id}/deposits") => 10.6,
-                    Symbol("accounts/{account_id}/deposits/{deposit_id}") => 10.6,
-                    Symbol("accounts/{account_id}/withdrawals") => 10.6,
-                    Symbol("accounts/{account_id}/withdrawals/{withdrawal_id}") => 10.6,
-                    Symbol("payment-methods") => 10.6,
-                    Symbol("payment-methods/{payment_method_id}") => 10.6,
-                    Symbol("user") => 10.6,
-                    Symbol("user/auth") => 10.6
+                    Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/addresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/addresses/{address_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/addresses/{address_id}/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/transactions/{transaction_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/buys") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/buys/{buy_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/sells") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/sells/{sell_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/deposits/{deposit_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/withdrawals/{withdrawal_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("payment-methods") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("payment-methods/{payment_method_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("user") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("user/auth") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("accounts") => 10.6,
-                    Symbol("accounts/{account_id}/primary") => 10.6,
-                    Symbol("accounts/{account_id}/addresses") => 10.6,
-                    Symbol("accounts/{account_id}/transactions") => 10.6,
-                    Symbol("accounts/{account_id}/transactions/{transaction_id}/complete") => 10.6,
-                    Symbol("accounts/{account_id}/transactions/{transaction_id}/resend") => 10.6,
-                    Symbol("accounts/{account_id}/buys") => 10.6,
-                    Symbol("accounts/{account_id}/buys/{buy_id}/commit") => 10.6,
-                    Symbol("accounts/{account_id}/sells") => 10.6,
-                    Symbol("accounts/{account_id}/sells/{sell_id}/commit") => 10.6,
-                    Symbol("accounts/{account_id}/deposits") => 10.6,
-                    Symbol("accounts/{account_id}/deposits/{deposit_id}/commit") => 10.6,
-                    Symbol("accounts/{account_id}/withdrawals") => 10.6,
-                    Symbol("accounts/{account_id}/withdrawals/{withdrawal_id}/commit") => 10.6
+                    Symbol("accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/primary") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/addresses") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/transactions") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/transactions/{transaction_id}/complete") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/transactions/{transaction_id}/resend") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/buys") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/buys/{buy_id}/commit") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/sells") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/sells/{sell_id}/commit") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/deposits") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/deposits/{deposit_id}/commit") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/withdrawals") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/withdrawals/{withdrawal_id}/commit") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("accounts/{account_id}") => 10.6,
-                    Symbol("user") => 10.6
+                    Symbol("accounts/{account_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("user") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("accounts/{id}") => 10.6,
-                    Symbol("accounts/{account_id}/transactions/{transaction_id}") => 10.6
+                    Symbol("accounts/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+),
+                    Symbol("accounts/{account_id}/transactions/{transaction_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 10.6
+)
                 )
             )
         ),
         Symbol("v3") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("brokerage/time") => 3,
-                    Symbol("brokerage/market/product_book") => 3,
-                    Symbol("brokerage/market/products") => 3,
-                    Symbol("brokerage/market/products/{product_id}") => 3,
-                    Symbol("brokerage/market/products/{product_id}/candles") => 3,
-                    Symbol("brokerage/market/products/{product_id}/ticker") => 3
+                    Symbol("brokerage/time") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/market/product_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/market/products") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/market/products/{product_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/market/products/{product_id}/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/market/products/{product_id}/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+)
                 )
             ),
             Symbol("private") => Dict{Symbol, Any}(
                 Symbol("get") => Dict{Symbol, Any}(
-                    Symbol("brokerage/accounts") => 1,
-                    Symbol("brokerage/accounts/{account_uuid}") => 1,
-                    Symbol("brokerage/orders/historical/batch") => 1,
-                    Symbol("brokerage/orders/historical/fills") => 1,
-                    Symbol("brokerage/orders/historical/{order_id}") => 1,
-                    Symbol("brokerage/products") => 3,
-                    Symbol("brokerage/products/{product_id}") => 3,
-                    Symbol("brokerage/products/{product_id}/candles") => 3,
-                    Symbol("brokerage/products/{product_id}/ticker") => 3,
-                    Symbol("brokerage/best_bid_ask") => 3,
-                    Symbol("brokerage/product_book") => 3,
-                    Symbol("brokerage/transaction_summary") => 3,
-                    Symbol("brokerage/portfolios") => 1,
-                    Symbol("brokerage/portfolios/{portfolio_uuid}") => 1,
-                    Symbol("brokerage/convert/trade/{trade_id}") => 1,
-                    Symbol("brokerage/cfm/balance_summary") => 1,
-                    Symbol("brokerage/cfm/positions") => 1,
-                    Symbol("brokerage/cfm/positions/{product_id}") => 1,
-                    Symbol("brokerage/cfm/sweeps") => 1,
-                    Symbol("brokerage/intx/portfolio/{portfolio_uuid}") => 1,
-                    Symbol("brokerage/intx/positions/{portfolio_uuid}") => 1,
-                    Symbol("brokerage/intx/positions/{portfolio_uuid}/{symbol}") => 1,
-                    Symbol("brokerage/payment_methods") => 1,
-                    Symbol("brokerage/payment_methods/{payment_method_id}") => 1,
-                    Symbol("brokerage/key_permissions") => 1
+                    Symbol("brokerage/accounts") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/accounts/{account_uuid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/orders/historical/batch") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/orders/historical/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/orders/historical/{order_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/products") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/products/{product_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/products/{product_id}/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/products/{product_id}/ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/best_bid_ask") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/product_book") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/transaction_summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 3
+),
+                    Symbol("brokerage/portfolios") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/portfolios/{portfolio_uuid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/convert/trade/{trade_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/cfm/balance_summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/cfm/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/cfm/positions/{product_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/cfm/sweeps") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/intx/portfolio/{portfolio_uuid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/intx/positions/{portfolio_uuid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/intx/positions/{portfolio_uuid}/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/payment_methods") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/payment_methods/{payment_method_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/key_permissions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("post") => Dict{Symbol, Any}(
-                    Symbol("brokerage/orders") => 1,
-                    Symbol("brokerage/orders/batch_cancel") => 1,
-                    Symbol("brokerage/orders/edit") => 1,
-                    Symbol("brokerage/orders/edit_preview") => 1,
-                    Symbol("brokerage/orders/preview") => 1,
-                    Symbol("brokerage/portfolios") => 1,
-                    Symbol("brokerage/portfolios/move_funds") => 1,
-                    Symbol("brokerage/convert/quote") => 1,
-                    Symbol("brokerage/convert/trade/{trade_id}") => 1,
-                    Symbol("brokerage/cfm/sweeps/schedule") => 1,
-                    Symbol("brokerage/intx/allocate") => 1,
-                    Symbol("brokerage/orders/close_position") => 1
+                    Symbol("brokerage/orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/orders/batch_cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/orders/edit") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/orders/edit_preview") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/orders/preview") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/portfolios") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/portfolios/move_funds") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/convert/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/convert/trade/{trade_id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/cfm/sweeps/schedule") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/intx/allocate") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/orders/close_position") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("put") => Dict{Symbol, Any}(
-                    Symbol("brokerage/portfolios/{portfolio_uuid}") => 1
+                    Symbol("brokerage/portfolios/{portfolio_uuid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 ),
                 Symbol("delete") => Dict{Symbol, Any}(
-                    Symbol("brokerage/portfolios/{portfolio_uuid}") => 1,
-                    Symbol("brokerage/cfm/sweeps") => 1
+                    Symbol("brokerage/portfolios/{portfolio_uuid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("brokerage/cfm/sweeps") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
                 )
             )
         )
@@ -641,10 +827,10 @@ function fetchTime(self::Coinbase, params=Dict())
     params = omit(params, "method");
     response = nothing;
     if functions.ccxtruthy(method == "v2PublicGetTime")
-        response = self.v2PublicGetTime(params);
+        response = Base.fetch(self.v2PublicGetTime(params));
         response = self.safeDict(response, "data", Dict{Symbol, Any}());
     else
-        response = self.v3PublicGetBrokerageTime(params);
+        response = Base.fetch(self.v3PublicGetBrokerageTime(params));
     end
     return safeTimestamp2(response, "epoch", "epochSeconds")
 
@@ -652,24 +838,24 @@ end
 function fetchAccounts(self::Coinbase, params=Dict())
     method = safeString(self.options, "fetchAccounts", "fetchAccountsV3");
     if functions.ccxtruthy(method == "fetchAccountsV3")
-            return self.fetchAccountsV3(params)
+            return Base.fetch(self.fetchAccountsV3(params))
     end
-    return self.fetchAccountsV2(params)
+    return Base.fetch(self.fetchAccountsV2(params))
 
 end
 function fetchAccountsV2(self::Coinbase, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchAccounts", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchAccounts", nothing, nothing, nothing, params, "next_starting_after", "starting_after", nothing, 100)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchAccounts", nothing, nothing, nothing, params, "next_starting_after", "starting_after", nothing, 100))
     end
     request = Dict{Symbol, Any}(
         Symbol("limit") => 100
     );
-    response = self.v2PrivateGetAccounts(extend(request, params));
+    response = Base.fetch(self.v2PrivateGetAccounts(extend(request, params)));
     data = self.safeList(response, "data", []);
     pagination = self.safeDict(response, "pagination", Dict{Symbol, Any}());
     cursor = safeString(pagination, "next_starting_after");
@@ -686,17 +872,17 @@ function fetchAccountsV2(self::Coinbase, params=Dict())
 end
 function fetchAccountsV3(self::Coinbase, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchAccounts", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchAccounts", nothing, nothing, nothing, params, "cursor", "cursor", nothing, 250)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchAccounts", nothing, nothing, nothing, params, "cursor", "cursor", nothing, 250))
     end
     request = Dict{Symbol, Any}(
         Symbol("limit") => 250
     );
-    response = self.v3PrivateGetBrokerageAccounts(extend(request, params));
+    response = Base.fetch(self.v3PrivateGetBrokerageAccounts(extend(request, params)));
     accounts = self.safeList(response, "accounts", []);
     accountsLength = length(accounts);
     cursor = safeString(response, "cursor");
@@ -710,7 +896,7 @@ function fetchAccountsV3(self::Coinbase, params=Dict())
 
 end
 function fetchPortfolios(self::Coinbase, params=Dict())
-    response = self.v3PrivateGetBrokeragePortfolios(params);
+    response = Base.fetch(self.v3PrivateGetBrokeragePortfolios(params));
     portfolios = self.safeList(response, "portfolios", []);
     result = [];
     i = 0
@@ -747,7 +933,7 @@ function createDepositAddress(self::Coinbase, code, params=Dict())
     accountId = safeString(params, "account_id");
     params = omit(params, "account_id");
     if functions.ccxtruthy(accountId == nothing)
-        self.loadAccounts();
+        Base.fetch(self.loadAccounts());
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(self.accounts)))
             account = get(self.accounts, i + 1, nothing);
@@ -765,7 +951,7 @@ function createDepositAddress(self::Coinbase, code, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("account_id") => accountId
     );
-    response = self.v2PrivatePostAccountsAccountIdAddresses(extend(request, params));
+    response = Base.fetch(self.v2PrivatePostAccountsAccountIdAddresses(extend(request, params)));
     data = self.safeDict(response, "data", Dict{Symbol, Any}());
     tag = safeString(data, "destination_tag");
     address = safeString(data, "address");
@@ -781,30 +967,32 @@ end
 function fetchMySells(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = self.prepareAccountRequest(limit, params);
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     query = omit(params, ["account_id", "accountId"]);
-    sells = self.v2PrivateGetAccountsAccountIdSells(extend(request, query));
-    return self.parseTrades(get(sells, Symbol("data"), nothing), nothing, since, limit)
+    sells = Base.fetch(self.v2PrivateGetAccountsAccountIdSells(extend(request, query)));
+    sellsData = self.safeList(sells, "data", []);
+    return self.parseTrades(sellsData, nothing, since, limit)
 
 end
 function fetchMyBuys(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     request = self.prepareAccountRequest(limit, params);
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     query = omit(params, ["account_id", "accountId"]);
-    buys = self.v2PrivateGetAccountsAccountIdBuys(extend(request, query));
-    return self.parseTrades(get(buys, Symbol("data"), nothing), nothing, since, limit)
+    buys = Base.fetch(self.v2PrivateGetAccountsAccountIdBuys(extend(request, query)));
+    buysData = self.safeList(buys, "data", []);
+    return self.parseTrades(buysData, nothing, since, limit)
 
 end
 function fetchTransactionsWithMethod(self::Coinbase, method, code=nothing, since=nothing, limit=nothing, params=Dict())
     request = nothing;
-    (request, params) = self.prepareAccountRequestWithCurrencyCode(code, limit, params);
+    (request, params) = Base.fetch(self.prepareAccountRequestWithCurrencyCode(code, limit, params));
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    response = getproperty(self, Symbol(method))(extend(request, params));
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     return self.parseTransactions(get(response, Symbol("data"), nothing), nothing, since, limit)
 
 end
@@ -812,27 +1000,27 @@ function fetchWithdrawals(self::Coinbase, code=nothing, since=nothing, limit=not
     currencyType = nothing;
     (currencyType, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "currencyType");
     if functions.ccxtruthy(currencyType == "crypto")
-        results = self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params);
+        results = Base.fetch(self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params));
             return self.filterByArray(results, "type", "withdrawal", false)
     end
-    return self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, params)
+    return Base.fetch(self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, params))
 
 end
 function fetchDeposits(self::Coinbase, code=nothing, since=nothing, limit=nothing, params=Dict())
     currencyType = nothing;
-    (currencyType, params) = self.handleOptionAndParams(params, "fetchWithdrawals", "currencyType");
+    (currencyType, params) = self.handleOptionAndParams(params, "fetchDeposits", "currencyType");
     if functions.ccxtruthy(currencyType == "crypto")
-        results = self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params);
+        results = Base.fetch(self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params));
             return self.filterByArray(results, "type", "deposit", false)
     end
-    return self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, params)
+    return Base.fetch(self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, params))
 
 end
 function fetchDepositsWithdrawals(self::Coinbase, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    results = self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params);
+    results = Base.fetch(self.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, params));
     return self.filterByArray(results, "type", ["deposit", "withdrawal"], false)
 
 end
@@ -981,17 +1169,17 @@ function parseTrade(self::Coinbase, trade, market=nothing)
 end
 function fetchMarkets(self::Coinbase, params=Dict())
     if functions.ccxtruthy(get(self.options, Symbol("adjustForTimeDifference"), nothing))
-        self.loadTimeDifference();
+        Base.fetch(self.loadTimeDifference());
     end
     method = safeString(self.options, "fetchMarkets", "fetchMarketsV3");
     if functions.ccxtruthy(method == "fetchMarketsV3")
-            return self.fetchMarketsV3(params)
+            return Base.fetch(self.fetchMarketsV3(params))
     end
-    return self.fetchMarketsV2(params)
+    return Base.fetch(self.fetchMarketsV2(params))
 
 end
 function fetchMarketsV2(self::Coinbase, params=Dict())
-    response = self.fetchCurrenciesFromCache(params);
+    response = Base.fetch(self.fetchCurrenciesFromCache(params));
     currencies = self.safeDict(response, "currencies", Dict{Symbol, Any}());
     exchangeRates = self.safeDict(response, "exchangeRates", Dict{Symbol, Any}());
     data = self.safeList(currencies, "data", []);
@@ -1079,7 +1267,7 @@ function fetchMarketsV3(self::Coinbase, params=Dict())
     if functions.ccxtruthy(self.checkRequiredCredentials(false))
                 push!(spotUnresolvedPromises, self.v3PrivateGetBrokerageTransactionSummary(params));
     end
-    promises = asyncmap(Base.fetch, spotUnresolvedPromises);
+    promises = Base.fetch(asyncmap(Base.fetch, spotUnresolvedPromises));
     unresolvedContractPromises = [];
     try
         unresolvedContractPromises = [self.v3PublicGetBrokerageMarketProducts(extend(params, Dict{Symbol, Any}(
@@ -1094,7 +1282,7 @@ function fetchMarketsV3(self::Coinbase, params=Dict())
     end
     contractPromises = nothing;
     try
-        contractPromises = asyncmap(Base.fetch, unresolvedContractPromises);
+        contractPromises = Base.fetch(asyncmap(Base.fetch, unresolvedContractPromises));
     catch e
         contractPromises = [];
 
@@ -1298,12 +1486,12 @@ function fetchCurrenciesFromCache(self::Coinbase, params=Dict())
     now = milliseconds();
     if functions.ccxtruthy(@functions.ccxt_or((timestamp == nothing), (functions.ccxt_gt((now - timestamp), expires))))
         promises = [self.v2PublicGetCurrencies(params), self.v2PublicGetCurrenciesCrypto(params)];
-        promisesResult = asyncmap(Base.fetch, promises);
+        promisesResult = Base.fetch(asyncmap(Base.fetch, promises));
         fiatResponse = self.safeDict(promisesResult, 0, Dict{Symbol, Any}());
         cryptoResponse = self.safeDict(promisesResult, 1, Dict{Symbol, Any}());
         fiatData = self.safeList(fiatResponse, "data", []);
         cryptoData = self.safeList(cryptoResponse, "data", []);
-        exchangeRates = self.v2PublicGetExchangeRates(params);
+        exchangeRates = Base.fetch(self.v2PublicGetExchangeRates(params));
         self.options[Symbol("fetchCurrencies")] = extend(options, Dict{Symbol, Any}(
     Symbol("currencies") => arrayConcat(fiatData, cryptoData),
     Symbol("exchangeRates") => exchangeRates,
@@ -1315,7 +1503,7 @@ function fetchCurrenciesFromCache(self::Coinbase, params=Dict())
 end
 function fetchCurrencies(self::Coinbase, params=Dict())
     promises = [self.v2PublicGetCurrencies(params), self.v2PublicGetCurrenciesCrypto(params), self.v2PublicGetExchangeRates(params)];
-    promisesResult = asyncmap(Base.fetch, promises);
+    promisesResult = Base.fetch(asyncmap(Base.fetch, promises));
     fiatResponse = self.safeDict(promisesResult, 0, Dict{Symbol, Any}());
     cryptoResponse = self.safeDict(promisesResult, 1, Dict{Symbol, Any}());
     ratesResponse = self.safeDict(promisesResult, 2, Dict{Symbol, Any}());
@@ -1335,10 +1523,15 @@ function fetchCurrencies(self::Coinbase, params=Dict())
         id = safeString2(currency, "id", "code");
         code = self.safeCurrencyCode(id);
         name = safeString(currency, "name");
-        self.options[Symbol("networks")][Symbol(code)] =         lowercase(name);
-        self.options[Symbol("networksById")][Symbol(code)] =         lowercase(name);
+        if functions.ccxtruthy(code != nothing)
+            self.options[Symbol("networks")][Symbol(code)] =             lowercase(name);
+        end
+        if functions.ccxtruthy(code != nothing)
+            self.options[Symbol("networksById")][Symbol(code)] =             lowercase(name);
+        end
         type_var = functions.ccxtruthy((assetId != nothing)) ? "crypto" : "fiat";
-        result[Symbol(code)] = self.safeCurrencyStructure(Dict{Symbol, Any}(
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = self.safeCurrencyStructure(Dict{Symbol, Any}(
     Symbol("info") => currency,
     Symbol("id") => id,
     Symbol("code") => code,
@@ -1361,9 +1554,12 @@ function fetchCurrencies(self::Coinbase, params=Dict())
         )
     )
 ));
+        end
         if functions.ccxtruthy(assetId != nothing)
             lowerCaseName = lowercase(name);
-            networks[Symbol(code)] = lowerCaseName;
+            if functions.ccxtruthy(code != nothing)
+                networks[Symbol(code)] = lowerCaseName;
+            end
             networksById[Symbol(lowerCaseName)] = code;
         end
         i += 1
@@ -1372,14 +1568,16 @@ function fetchCurrencies(self::Coinbase, params=Dict())
     while functions.ccxtruthy(functions.ccxt_lt(i, length(ratesIds)))
         currencyId = get(ratesIds, i + 1, nothing);
         code = self.safeCurrencyCode(currencyId);
-        if functions.ccxtruthy(!functions.ccxtruthy((ccxt_in(code, result))))
-            result[Symbol(code)] = self.safeCurrencyStructure(Dict{Symbol, Any}(
+        if functions.ccxtruthy(@functions.ccxt_or((code == nothing), !functions.ccxtruthy((ccxt_in(code, result)))))
+            if functions.ccxtruthy(code != nothing)
+                result[Symbol(code)] = self.safeCurrencyStructure(Dict{Symbol, Any}(
     Symbol("info") => Dict{Symbol, Any}(),
     Symbol("id") => currencyId,
     Symbol("code") => code,
     Symbol("type") => "crypto",
     Symbol("networks") => Dict{Symbol, Any}()
 ));
+            end
         end
         i += 1
     end
@@ -1391,18 +1589,18 @@ end
 function fetchTickers(self::Coinbase, symbols=nothing, params=Dict())
     method = safeString(self.options, "fetchTickers", "fetchTickersV3");
     if functions.ccxtruthy(method == "fetchTickersV3")
-            return self.fetchTickersV3(symbols, params)
+            return Base.fetch(self.fetchTickersV3(symbols, params))
     end
-    return self.fetchTickersV2(symbols, params)
+    return Base.fetch(self.fetchTickersV2(symbols, params))
 
 end
 function fetchTickersV2(self::Coinbase, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols);
     request = Dict{Symbol, Any}();
-    response = self.v2PublicGetExchangeRates(extend(request, params));
+    response = Base.fetch(self.v2PublicGetExchangeRates(extend(request, params)));
     data = self.safeDict(response, "data", Dict{Symbol, Any}());
     rates = self.safeDict(data, "rates", Dict{Symbol, Any}());
     quoteId = safeString(data, "currency");
@@ -1423,7 +1621,7 @@ function fetchTickersV2(self::Coinbase, symbols=nothing, params=Dict())
 end
 function fetchTickersV3(self::Coinbase, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols);
     request = Dict{Symbol, Any}();
@@ -1439,9 +1637,9 @@ function fetchTickersV3(self::Coinbase, symbols=nothing, params=Dict())
     usePrivate = false;
     (usePrivate, params) = self.handleOptionAndParams(params, "fetchTickers", "usePrivate", false);
     if functions.ccxtruthy(usePrivate)
-        response = self.v3PrivateGetBrokerageProducts(extend(request, params));
+        response = Base.fetch(self.v3PrivateGetBrokerageProducts(extend(request, params)));
     else
-        response = self.v3PublicGetBrokerageMarketProducts(extend(request, params));
+        response = Base.fetch(self.v3PublicGetBrokerageMarketProducts(extend(request, params)));
     end
     data = self.safeList(response, "products", []);
     result = Dict{Symbol, Any}();
@@ -1460,22 +1658,22 @@ end
 function fetchTicker(self::Coinbase, symbol, params=Dict())
     method = safeString(self.options, "fetchTicker", "fetchTickerV3");
     if functions.ccxtruthy(method == "fetchTickerV3")
-            return self.fetchTickerV3(symbol, params)
+            return Base.fetch(self.fetchTickerV3(symbol, params))
     end
-    return self.fetchTickerV2(symbol, params)
+    return Base.fetch(self.fetchTickerV2(symbol, params))
 
 end
 function fetchTickerV2(self::Coinbase, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = extend(Dict{Symbol, Any}(
         Symbol("symbol") => get(market, Symbol("id"), nothing)
     ), params);
-    spot = self.v2PublicGetPricesSymbolSpot(request);
-    ask = self.v2PublicGetPricesSymbolBuy(request);
-    bid = self.v2PublicGetPricesSymbolSell(request);
+    spot = Base.fetch(self.v2PublicGetPricesSymbolSpot(request));
+    ask = Base.fetch(self.v2PublicGetPricesSymbolBuy(request));
+    bid = Base.fetch(self.v2PublicGetPricesSymbolSell(request));
     spotData = self.safeDict(spot, "data", Dict{Symbol, Any}());
     askData = self.safeDict(ask, "data", Dict{Symbol, Any}());
     bidData = self.safeDict(bid, "data", Dict{Symbol, Any}());
@@ -1489,7 +1687,7 @@ function fetchTickerV2(self::Coinbase, symbol, params=Dict())
 end
 function fetchTickerV3(self::Coinbase, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -1500,9 +1698,9 @@ function fetchTickerV3(self::Coinbase, symbol, params=Dict())
     (usePrivate, params) = self.handleOptionAndParams(params, "fetchTicker", "usePrivate", false);
     response = nothing;
     if functions.ccxtruthy(usePrivate)
-        response = self.v3PrivateGetBrokerageProductsProductIdTicker(extend(request, params));
+        response = Base.fetch(self.v3PrivateGetBrokerageProductsProductIdTicker(extend(request, params)));
     else
-        response = self.v3PublicGetBrokerageMarketProductsProductIdTicker(extend(request, params));
+        response = Base.fetch(self.v3PublicGetBrokerageMarketProductsProductIdTicker(extend(request, params)));
     end
     data = self.safeList(response, "trades", []);
     first_var = self.safeDict(data, 0, Dict{Symbol, Any}());
@@ -1582,7 +1780,9 @@ function parseCustomBalance(self::Coinbase, response, params=Dict())
                     account[Symbol("free")] = stringAdd(get(account, Symbol("free"), nothing), total);
                     account[Symbol("total")] = stringAdd(get(account, Symbol("total"), nothing), total);
                 end
-                result[Symbol(code)] = account;
+                if functions.ccxtruthy(code != nothing)
+                    result[Symbol(code)] = account;
+                end
             end
         elseif functions.ccxtruthy(inArray(type_var, v3Accounts))
             available = self.safeDict(balance, "available_balance");
@@ -1604,7 +1804,9 @@ function parseCustomBalance(self::Coinbase, response, params=Dict())
                     account[Symbol("used")] = stringAdd(get(account, Symbol("used"), nothing), used);
                     account[Symbol("total")] = stringAdd(get(account, Symbol("total"), nothing), total);
                 end
-                result[Symbol(code)] = account;
+                if functions.ccxtruthy(code != nothing)
+                    result[Symbol(code)] = account;
+                end
             end
         end
         b += 1
@@ -1614,7 +1816,7 @@ function parseCustomBalance(self::Coinbase, response, params=Dict())
 end
 function fetchBalance(self::Coinbase, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}();
     response = nothing;
@@ -1624,13 +1826,13 @@ function fetchBalance(self::Coinbase, params=Dict())
     (marketType, params) = self.handleMarketTypeAndParams("fetchBalance", nothing, params);
     method = safeString(self.options, "fetchBalance", "v3PrivateGetBrokerageAccounts");
     if functions.ccxtruthy(marketType == "future")
-        response = self.v3PrivateGetBrokerageCfmBalanceSummary(extend(request, params));
+        response = Base.fetch(self.v3PrivateGetBrokerageCfmBalanceSummary(extend(request, params)));
     elseif functions.ccxtruthy(@functions.ccxt_or((isV3), (method == "v3PrivateGetBrokerageAccounts")))
         request[Symbol("limit")] = 250;
-        response = self.v3PrivateGetBrokerageAccounts(extend(request, params));
+        response = Base.fetch(self.v3PrivateGetBrokerageAccounts(extend(request, params)));
     else
         request[Symbol("limit")] = 250;
-        response = self.v2PrivateGetAccounts(extend(request, params));
+        response = Base.fetch(self.v2PrivateGetAccounts(extend(request, params)));
     end
     params[Symbol("type")] = marketType;
     return self.parseCustomBalance(response, params)
@@ -1638,21 +1840,22 @@ function fetchBalance(self::Coinbase, params=Dict())
 end
 function fetchLedger(self::Coinbase, code=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchLedger", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_starting_after", "starting_after", nothing, 100)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_starting_after", "starting_after", nothing, 100))
     end
     currency = nothing;
     if functions.ccxtruthy(code != nothing)
         currency = self.currency(code);
     end
     request = nothing;
-    (request, params) = self.prepareAccountRequestWithCurrencyCode(code, limit, params);
-    response = self.v2PrivateGetAccountsAccountIdTransactions(extend(request, params));
-    ledger = self.parseLedger(get(response, Symbol("data"), nothing), currency, since, limit);
+    (request, params) = Base.fetch(self.prepareAccountRequestWithCurrencyCode(code, limit, params));
+    response = Base.fetch(self.v2PrivateGetAccountsAccountIdTransactions(extend(request, params)));
+    data = self.safeList(response, "data", []);
+    ledger = self.parseLedger(data, currency, since, limit);
     len = length(ledger);
     if functions.ccxtruthy(len == 0)
             return ledger
@@ -1749,9 +1952,9 @@ function parseLedgerEntry(self::Coinbase, item, currency=nothing)
 end
 function findAccountId(self::Coinbase, code, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    self.loadAccounts(false, params);
+    Base.fetch(self.loadAccounts(false, params));
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(self.accounts)))
         account = get(self.accounts, i + 1, nothing);
@@ -1784,7 +1987,7 @@ function prepareAccountRequestWithCurrencyCode(self::Coinbase, code=nothing, lim
         if functions.ccxtruthy(code == nothing)
             throw(ArgumentsRequired(string(self.id, " prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument")));
         end
-        accountId = self.findAccountId(code, params);
+        accountId = Base.fetch(self.findAccountId(code, params));
         if functions.ccxtruthy(accountId == nothing)
             throw(ExchangeError(string(self.id, " prepareAccountRequestWithCurrencyCode() could not find account id for ", code, ". You might try to generate the deposit address in the website for that coin first.")));
         end
@@ -1800,19 +2003,19 @@ function prepareAccountRequestWithCurrencyCode(self::Coinbase, code=nothing, lim
 end
 function createMarketBuyOrderWithCost(self::Coinbase, symbol, cost, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     if functions.ccxtruthy(!functions.ccxtruthy(get(market, Symbol("spot"), nothing)))
         throw(NotSupported(string(self.id, " createMarketBuyOrderWithCost() supports spot orders only")));
     end
     params[Symbol("createMarketBuyOrderRequiresPrice")] = false;
-    return self.createOrder(symbol, "market", "buy", cost, nothing, params)
+    return Base.fetch(self.createOrder(symbol, "market", "buy", cost, nothing, params))
 
 end
 function createOrder(self::Coinbase, symbol, type_var, side, amount, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     id = safeString(self.options, "brokerId", "ccxt");
@@ -1825,7 +2028,7 @@ function createOrder(self::Coinbase, symbol, type_var, side, amount, price=nothi
     if functions.ccxtruthy(reduceOnly)
         params = omit(params, "reduceOnly");
         params[Symbol("amount")] = amount;
-            return self.closePosition(symbol, side, params)
+            return Base.fetch(self.closePosition(symbol, side, params))
     end
     triggerPrice = self.safeNumberN(params, ["stopPrice", "stop_price", "triggerPrice"]);
     stopLossPrice = self.safeNumber(params, "stopLossPrice");
@@ -1977,9 +2180,9 @@ function createOrder(self::Coinbase, symbol, type_var, side, amount, price=nothi
     if functions.ccxtruthy(preview)
         params = omit(params, ["preview", "test"]);
         request = omit(request, "client_order_id");
-        response = self.v3PrivatePostBrokerageOrdersPreview(extend(request, params));
+        response = Base.fetch(self.v3PrivatePostBrokerageOrdersPreview(extend(request, params)));
     else
-        response = self.v3PrivatePostBrokerageOrders(extend(request, params));
+        response = Base.fetch(self.v3PrivatePostBrokerageOrders(extend(request, params)));
     end
     success = self.safeBool(response, "success");
     if functions.ccxtruthy(success != true)
@@ -2108,15 +2311,15 @@ function parseTimeInForce(self::Coinbase, timeInForce)
 end
 function cancelOrder(self::Coinbase, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    orders = self.cancelOrders([id], symbol, params);
+    orders = Base.fetch(self.cancelOrders([id], symbol, params));
     return self.safeDict(orders, 0, Dict{Symbol, Any}())
 
 end
 function cancelOrders(self::Coinbase, ids, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -2125,7 +2328,7 @@ function cancelOrders(self::Coinbase, ids, symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("order_ids") => ids
     );
-    response = self.v3PrivatePostBrokerageOrdersBatchCancel(extend(request, params));
+    response = Base.fetch(self.v3PrivatePostBrokerageOrdersBatchCancel(extend(request, params)));
     orders = self.safeList(response, "results", []);
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(orders)))
@@ -2140,7 +2343,7 @@ function cancelOrders(self::Coinbase, ids, symbol=nothing, params=Dict())
 end
 function editOrder(self::Coinbase, id, symbol, type_var, side, amount=nothing, price=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -2156,16 +2359,16 @@ function editOrder(self::Coinbase, id, symbol, type_var, side, amount=nothing, p
     response = nothing;
     if functions.ccxtruthy(preview)
         params = omit(params, ["preview", "test"]);
-        response = self.v3PrivatePostBrokerageOrdersEditPreview(extend(request, params));
+        response = Base.fetch(self.v3PrivatePostBrokerageOrdersEditPreview(extend(request, params)));
     else
-        response = self.v3PrivatePostBrokerageOrdersEdit(extend(request, params));
+        response = Base.fetch(self.v3PrivatePostBrokerageOrdersEdit(extend(request, params)));
     end
     return self.parseOrder(response, market)
 
 end
 function fetchOrder(self::Coinbase, id, symbol=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -2174,19 +2377,19 @@ function fetchOrder(self::Coinbase, id, symbol=nothing, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("order_id") => id
     );
-    response = self.v3PrivateGetBrokerageOrdersHistoricalOrderId(extend(request, params));
+    response = Base.fetch(self.v3PrivateGetBrokerageOrdersHistoricalOrderId(extend(request, params)));
     order = self.safeDict(response, "order", Dict{Symbol, Any}());
     return self.parseOrder(order, market)
 
 end
 function fetchOrders(self::Coinbase, symbol=nothing, since=nothing, limit=100, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nothing, 1000)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nothing, 1000))
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -2202,12 +2405,12 @@ function fetchOrders(self::Coinbase, symbol=nothing, since=nothing, limit=100, p
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_date")] = self.iso8601(since);
     end
-    until = safeIntegerN(params, ["until"]);
+    until = safeInteger(params, "until");
     if functions.ccxtruthy(until != nothing)
         params = omit(params, ["until"]);
         request[Symbol("end_date")] = self.iso8601(until);
     end
-    response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(extend(request, params));
+    response = Base.fetch(self.v3PrivateGetBrokerageOrdersHistoricalBatch(extend(request, params)));
     orders = self.safeList(response, "orders", []);
     first_var = self.safeDict(orders, 0, Dict{Symbol, Any}());
     cursor = safeString(response, "cursor");
@@ -2220,7 +2423,7 @@ function fetchOrders(self::Coinbase, symbol=nothing, since=nothing, limit=100, p
 end
 function fetchOrdersByStatus(self::Coinbase, status, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -2239,12 +2442,12 @@ function fetchOrdersByStatus(self::Coinbase, status, symbol=nothing, since=nothi
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_date")] = self.iso8601(since);
     end
-    until = safeIntegerN(params, ["until"]);
+    until = safeInteger(params, "until");
     if functions.ccxtruthy(until != nothing)
         params = omit(params, ["until"]);
         request[Symbol("end_date")] = self.iso8601(until);
     end
-    response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(extend(request, params));
+    response = Base.fetch(self.v3PrivateGetBrokerageOrdersHistoricalBatch(extend(request, params)));
     orders = self.safeList(response, "orders", []);
     first_var = self.safeDict(orders, 0, Dict{Symbol, Any}());
     cursor = safeString(response, "cursor");
@@ -2257,49 +2460,49 @@ function fetchOrdersByStatus(self::Coinbase, status, symbol=nothing, since=nothi
 end
 function fetchOpenOrders(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "cursor", "cursor", nothing, 100)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "cursor", "cursor", nothing, 100))
     end
-    return self.fetchOrdersByStatus("OPEN", symbol, since, limit, params)
+    return Base.fetch(self.fetchOrdersByStatus("OPEN", symbol, since, limit, params))
 
 end
 function fetchClosedOrders(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchClosedOrders", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, params, "cursor", "cursor", nothing, 100)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, params, "cursor", "cursor", nothing, 1000))
     end
-    return self.fetchOrdersByStatus("FILLED", symbol, since, limit, params)
+    return Base.fetch(self.fetchOrdersByStatus("FILLED", symbol, since, limit, params))
 
 end
 function fetchCanceledOrders(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
-    return self.fetchOrdersByStatus("CANCELLED", symbol, since, limit, params)
+    return Base.fetch(self.fetchOrdersByStatus("CANCELLED", symbol, since, limit, params))
 
 end
 function fetchOHLCV(self::Coinbase, symbol, timeframe="1m", since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     maxLimit = 300;
     limit = functions.ccxtruthy((limit == nothing)) ? maxLimit : min(limit, maxLimit);
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "paginate", false);
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit - 1)
+            return Base.fetch(self.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit - 1))
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
         Symbol("product_id") => get(market, Symbol("id"), nothing),
         Symbol("granularity") => safeString(self.timeframes, timeframe, timeframe)
     );
-    until = safeIntegerN(params, ["until", "end"]);
+    until = safeInteger2(params, "until", "end");
     params = omit(params, ["until"]);
     duration = self.parseTimeframe(timeframe);
     requestedDuration = limit * duration;
@@ -2320,9 +2523,9 @@ function fetchOHLCV(self::Coinbase, symbol, timeframe="1m", since=nothing, limit
     usePrivate = false;
     (usePrivate, params) = self.handleOptionAndParams(params, "fetchOHLCV", "usePrivate", false);
     if functions.ccxtruthy(usePrivate)
-        response = self.v3PrivateGetBrokerageProductsProductIdCandles(extend(request, params));
+        response = Base.fetch(self.v3PrivateGetBrokerageProductsProductIdCandles(extend(request, params)));
     else
-        response = self.v3PublicGetBrokerageMarketProductsProductIdCandles(extend(request, params));
+        response = Base.fetch(self.v3PublicGetBrokerageMarketProductsProductIdCandles(extend(request, params)));
     end
     candles = self.safeList(response, "candles", []);
     return self.parseOHLCVs(candles, market, timeframe, since, limit)
@@ -2334,7 +2537,7 @@ function parseOHLCV(self::Coinbase, ohlcv, market=nothing)
 end
 function fetchTrades(self::Coinbase, symbol, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -2357,9 +2560,9 @@ function fetchTrades(self::Coinbase, symbol, since=nothing, limit=nothing, param
     usePrivate = false;
     (usePrivate, params) = self.handleOptionAndParams(params, "fetchTrades", "usePrivate", false);
     if functions.ccxtruthy(usePrivate)
-        response = self.v3PrivateGetBrokerageProductsProductIdTicker(extend(request, params));
+        response = Base.fetch(self.v3PrivateGetBrokerageProductsProductIdTicker(extend(request, params)));
     else
-        response = self.v3PublicGetBrokerageMarketProductsProductIdTicker(extend(request, params));
+        response = Base.fetch(self.v3PublicGetBrokerageMarketProductsProductIdTicker(extend(request, params)));
     end
     trades = self.safeList(response, "trades", []);
     return self.parseTrades(trades, market, since, limit)
@@ -2367,12 +2570,12 @@ function fetchTrades(self::Coinbase, symbol, since=nothing, limit=nothing, param
 end
 function fetchMyTrades(self::Coinbase, symbol=nothing, since=nothing, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     if functions.ccxtruthy(paginate)
-            return self.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "cursor", "cursor", nothing, 250)
+            return Base.fetch(self.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "cursor", "cursor", nothing, 250))
     end
     market = nothing;
     if functions.ccxtruthy(symbol != nothing)
@@ -2388,12 +2591,12 @@ function fetchMyTrades(self::Coinbase, symbol=nothing, since=nothing, limit=noth
     if functions.ccxtruthy(since != nothing)
         request[Symbol("start_sequence_timestamp")] = self.iso8601(since);
     end
-    until = safeIntegerN(params, ["until"]);
+    until = safeInteger(params, "until");
     if functions.ccxtruthy(until != nothing)
         params = omit(params, ["until"]);
         request[Symbol("end_sequence_timestamp")] = self.iso8601(until);
     end
-    response = self.v3PrivateGetBrokerageOrdersHistoricalFills(extend(request, params));
+    response = Base.fetch(self.v3PrivateGetBrokerageOrdersHistoricalFills(extend(request, params)));
     trades = self.safeList(response, "fills", []);
     first_var = self.safeDict(trades, 0, Dict{Symbol, Any}());
     cursor = safeString(response, "cursor");
@@ -2406,7 +2609,7 @@ function fetchMyTrades(self::Coinbase, symbol=nothing, since=nothing, limit=noth
 end
 function fetchOrderBook(self::Coinbase, symbol, limit=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     request = Dict{Symbol, Any}(
@@ -2419,9 +2622,9 @@ function fetchOrderBook(self::Coinbase, symbol, limit=nothing, params=Dict())
     usePrivate = false;
     (usePrivate, params) = self.handleOptionAndParams(params, "fetchOrderBook", "usePrivate", false);
     if functions.ccxtruthy(usePrivate)
-        response = self.v3PrivateGetBrokerageProductBook(extend(request, params));
+        response = Base.fetch(self.v3PrivateGetBrokerageProductBook(extend(request, params)));
     else
-        response = self.v3PublicGetBrokerageMarketProductBook(extend(request, params));
+        response = Base.fetch(self.v3PublicGetBrokerageMarketProductBook(extend(request, params)));
     end
     data = self.safeDict(response, "pricebook", Dict{Symbol, Any}());
     time = safeString(data, "time");
@@ -2431,14 +2634,14 @@ function fetchOrderBook(self::Coinbase, symbol, limit=nothing, params=Dict())
 end
 function fetchBidsAsks(self::Coinbase, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols);
     request = Dict{Symbol, Any}();
     if functions.ccxtruthy(symbols != nothing)
         request[Symbol("product_ids")] = self.marketIds(symbols);
     end
-    response = self.v3PrivateGetBrokerageBestBidAsk(extend(request, params));
+    response = Base.fetch(self.v3PrivateGetBrokerageBestBidAsk(extend(request, params)));
     tickers = self.safeList(response, "pricebooks", []);
     return self.parseTickers(tickers, symbols)
 
@@ -2447,7 +2650,7 @@ function withdraw(self::Coinbase, code, amount, address, tag=nothing, params=Dic
     (tag, params) = self.handleWithdrawTagAndParams(tag, params);
     self.checkAddress(address);
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
@@ -2462,7 +2665,7 @@ function withdraw(self::Coinbase, code, amount, address, tag=nothing, params=Dic
         if functions.ccxtruthy(code == nothing)
             throw(ArgumentsRequired(string(self.id, " withdraw() requires an account_id (or accountId) parameter OR a currency code argument")));
         end
-        accountId = self.findAccountId(code, params);
+        accountId = Base.fetch(self.findAccountId(code, params));
         if functions.ccxtruthy(accountId == nothing)
             throw(ExchangeError(string(self.id, " withdraw() could not find account id for ", code)));
         end
@@ -2473,19 +2676,19 @@ function withdraw(self::Coinbase, code, amount, address, tag=nothing, params=Dic
     if functions.ccxtruthy(tag != nothing)
         request[Symbol("destination_tag")] = tag;
     end
-    response = self.v2PrivatePostAccountsAccountIdTransactions(extend(request, params));
+    response = Base.fetch(self.v2PrivatePostAccountsAccountIdTransactions(extend(request, params)));
     data = self.safeDict(response, "data", Dict{Symbol, Any}());
     return self.parseTransaction(data, currency)
 
 end
 function fetchDepositAddressesByNetwork(self::Coinbase, code, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     currency = self.currency(code);
     request = nothing;
-    (request, params) = self.prepareAccountRequestWithCurrencyCode(get(currency, Symbol("code"), nothing), nothing, params);
-    response = self.v2PrivateGetAccountsAccountIdAddresses(extend(request, params));
+    (request, params) = Base.fetch(self.prepareAccountRequestWithCurrencyCode(get(currency, Symbol("code"), nothing), nothing, params));
+    response = Base.fetch(self.v2PrivateGetAccountsAccountIdAddresses(extend(request, params)));
     data = self.safeList(response, "data", []);
     addressStructures = self.parseDepositAddresses(data, nothing, false);
     return indexBy(addressStructures, "network")
@@ -2516,7 +2719,7 @@ function parseDepositAddress(self::Coinbase, depositAddress, currency=nothing)
 end
 function deposit(self::Coinbase, code, amount, id, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     accountId = safeString2(params, "account_id", "accountId");
     params = omit(params, ["account_id", "accountId"]);
@@ -2524,7 +2727,7 @@ function deposit(self::Coinbase, code, amount, id, params=Dict())
         if functions.ccxtruthy(code == nothing)
             throw(ArgumentsRequired(string(self.id, " deposit() requires an account_id (or accountId) parameter OR a currency code argument")));
         end
-        accountId = self.findAccountId(code, params);
+        accountId = Base.fetch(self.findAccountId(code, params));
         if functions.ccxtruthy(accountId == nothing)
             throw(ExchangeError(string(self.id, " deposit() could not find account id for ", code)));
         end
@@ -2536,14 +2739,14 @@ function deposit(self::Coinbase, code, amount, id, params=Dict())
         Symbol("payment_method") => id,
         Symbol("commit") => true
     );
-    response = self.v2PrivatePostAccountsAccountIdDeposits(extend(request, params));
+    response = Base.fetch(self.v2PrivatePostAccountsAccountIdDeposits(extend(request, params)));
     data = self.safeDict2(response, "data", "transfer", Dict{Symbol, Any}());
     return self.parseTransaction(data)
 
 end
 function fetchDeposit(self::Coinbase, id, code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     accountId = safeString2(params, "account_id", "accountId");
     params = omit(params, ["account_id", "accountId"]);
@@ -2551,7 +2754,7 @@ function fetchDeposit(self::Coinbase, id, code=nothing, params=Dict())
         if functions.ccxtruthy(code == nothing)
             throw(ArgumentsRequired(string(self.id, " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument")));
         end
-        accountId = self.findAccountId(code, params);
+        accountId = Base.fetch(self.findAccountId(code, params));
         if functions.ccxtruthy(accountId == nothing)
             throw(ExchangeError(string(self.id, " fetchDeposit() could not find account id for ", code)));
         end
@@ -2560,28 +2763,28 @@ function fetchDeposit(self::Coinbase, id, code=nothing, params=Dict())
         Symbol("account_id") => accountId,
         Symbol("deposit_id") => id
     );
-    response = self.v2PrivateGetAccountsAccountIdDepositsDepositId(extend(request, params));
+    response = Base.fetch(self.v2PrivateGetAccountsAccountIdDepositsDepositId(extend(request, params)));
     data = self.safeDict2(response, "data", "transfer", Dict{Symbol, Any}());
     return self.parseTransaction(data)
 
 end
 function fetchDepositMethodIds(self::Coinbase, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
-    response = self.v3PrivateGetBrokeragePaymentMethods(params);
+    response = Base.fetch(self.v3PrivateGetBrokeragePaymentMethods(params));
     result = self.safeList(response, "payment_methods", []);
     return self.parseDepositMethodIds(result)
 
 end
 function fetchDepositMethodId(self::Coinbase, id, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("payment_method_id") => id
     );
-    response = self.v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(extend(request, params));
+    response = Base.fetch(self.v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(extend(request, params)));
     result = self.safeDict(response, "payment_method", Dict{Symbol, Any}());
     return self.parseDepositMethodId(result)
 
@@ -2609,35 +2812,35 @@ function parseDepositMethodId(self::Coinbase, depositId)
 end
 function fetchConvertQuote(self::Coinbase, fromCode, toCode, amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("from_account") => fromCode,
         Symbol("to_account") => toCode,
         Symbol("amount") => numberToString(amount)
     );
-    response = self.v3PrivatePostBrokerageConvertQuote(extend(request, params));
+    response = Base.fetch(self.v3PrivatePostBrokerageConvertQuote(extend(request, params)));
     data = self.safeDict(response, "trade", Dict{Symbol, Any}());
     return self.parseConversion(data)
 
 end
 function createConvertTrade(self::Coinbase, id, fromCode, toCode, amount=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("trade_id") => id,
         Symbol("from_account") => fromCode,
         Symbol("to_account") => toCode
     );
-    response = self.v3PrivatePostBrokerageConvertTradeTradeId(extend(request, params));
+    response = Base.fetch(self.v3PrivatePostBrokerageConvertTradeTradeId(extend(request, params)));
     data = self.safeDict(response, "trade", Dict{Symbol, Any}());
     return self.parseConversion(data)
 
 end
 function fetchConvertTrade(self::Coinbase, id, code=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     if functions.ccxtruthy(code == nothing)
         throw(ArgumentsRequired(string(self.id, " fetchConvertTrade() requires a code argument")));
@@ -2652,7 +2855,7 @@ function fetchConvertTrade(self::Coinbase, id, code=nothing, params=Dict())
         Symbol("from_account") => code,
         Symbol("to_account") => toCode
     );
-    response = self.v3PrivateGetBrokerageConvertTradeTradeId(extend(request, params));
+    response = Base.fetch(self.v3PrivateGetBrokerageConvertTradeTradeId(extend(request, params)));
     data = self.safeDict(response, "trade", Dict{Symbol, Any}());
     return self.parseConversion(data)
 
@@ -2679,9 +2882,42 @@ function parseConversion(self::Coinbase, conversion, fromCurrency=nothing, toCur
 )
 
 end
+function transfer(self::Coinbase, code, amount, fromAccount, toAccount, params=Dict())
+    Base.fetch(self.loadMarkets());
+    currency = self.currency(code);
+    request = Dict{Symbol, Any}(
+        Symbol("funds") => Dict{Symbol, Any}(
+            Symbol("value") => self.currencyToPrecision(code, amount),
+            Symbol("currency") => get(currency, Symbol("id"), nothing)
+        ),
+        Symbol("source_portfolio_uuid") => fromAccount,
+        Symbol("target_portfolio_uuid") => toAccount
+    );
+    response = Base.fetch(self.v3PrivatePostBrokeragePortfoliosMoveFunds(extend(request, params)));
+    transfer = self.parseTransfer(response, currency);
+    transfer[Symbol("amount")] = amount;
+    transfer[Symbol("status")] = "ok";
+    return transfer
+
+end
+function parseTransfer(self::Coinbase, transfer, currency=nothing)
+    currencyCode = self.safeCurrencyCode(nothing, currency);
+    return Dict{Symbol, Any}(
+    Symbol("info") => transfer,
+    Symbol("id") => nothing,
+    Symbol("timestamp") => nothing,
+    Symbol("datetime") => nothing,
+    Symbol("currency") => currencyCode,
+    Symbol("amount") => nothing,
+    Symbol("fromAccount") => safeString(transfer, "source_portfolio_uuid"),
+    Symbol("toAccount") => safeString(transfer, "target_portfolio_uuid"),
+    Symbol("status") => nothing
+)
+
+end
 function closePosition(self::Coinbase, symbol, side=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     clientOrderId = safeString2(params, "client_order_id", "clientOrderId");
@@ -2693,14 +2929,14 @@ function closePosition(self::Coinbase, symbol, side=nothing, params=Dict())
         throw(ArgumentsRequired(string(self.id, " closePosition() requires a clientOrderId parameter")));
     end
     request[Symbol("client_order_id")] = clientOrderId;
-    response = self.v3PrivatePostBrokerageOrdersClosePosition(extend(request, params));
+    response = Base.fetch(self.v3PrivatePostBrokerageOrdersClosePosition(extend(request, params)));
     order = self.safeDict(response, "success_response", Dict{Symbol, Any}());
     return self.parseOrder(order)
 
 end
 function fetchPositions(self::Coinbase, symbols=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols);
     market = nothing;
@@ -2711,7 +2947,7 @@ function fetchPositions(self::Coinbase, symbols=nothing, params=Dict())
     (type_var, params) = self.handleMarketTypeAndParams("fetchPositions", market, params);
     response = nothing;
     if functions.ccxtruthy(type_var == "future")
-        response = self.v3PrivateGetBrokerageCfmPositions(params);
+        response = Base.fetch(self.v3PrivateGetBrokerageCfmPositions(params));
     else
         portfolio = nothing;
         (portfolio, params) = self.handleOptionAndParams(params, "fetchPositions", "portfolio");
@@ -2721,7 +2957,7 @@ function fetchPositions(self::Coinbase, symbols=nothing, params=Dict())
         request = Dict{Symbol, Any}(
             Symbol("portfolio_uuid") => portfolio
         );
-        response = self.v3PrivateGetBrokerageIntxPositionsPortfolioUuid(extend(request, params));
+        response = Base.fetch(self.v3PrivateGetBrokerageIntxPositionsPortfolioUuid(extend(request, params)));
     end
     positions = self.safeList(response, "positions", []);
     return self.parsePositions(positions, symbols)
@@ -2729,7 +2965,7 @@ function fetchPositions(self::Coinbase, symbols=nothing, params=Dict())
 end
 function fetchPosition(self::Coinbase, symbol, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     market = self.market(symbol);
     response = nothing;
@@ -2741,7 +2977,7 @@ function fetchPosition(self::Coinbase, symbol, params=Dict())
         futureRequest = Dict{Symbol, Any}(
             Symbol("product_id") => productId
         );
-        response = self.v3PrivateGetBrokerageCfmPositionsProductId(extend(futureRequest, params));
+        response = Base.fetch(self.v3PrivateGetBrokerageCfmPositionsProductId(extend(futureRequest, params)));
     else
         portfolio = nothing;
         (portfolio, params) = self.handleOptionAndParams(params, "fetchPositions", "portfolio");
@@ -2752,7 +2988,7 @@ function fetchPosition(self::Coinbase, symbol, params=Dict())
             Symbol("symbol") => get(market, Symbol("id"), nothing),
             Symbol("portfolio_uuid") => portfolio
         );
-        response = self.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(extend(request, params));
+        response = Base.fetch(self.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(extend(request, params)));
     end
     position = self.safeDict(response, "position", Dict{Symbol, Any}());
     return self.parsePosition(position, market)
@@ -2808,7 +3044,7 @@ function parsePosition(self::Coinbase, position, market=nothing)
 end
 function fetchTradingFees(self::Coinbase, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     type_var = nothing;
     (type_var, params) = self.handleMarketTypeAndParams("fetchTradingFees", nothing, params);
@@ -2817,7 +3053,7 @@ function fetchTradingFees(self::Coinbase, params=Dict())
     request = Dict{Symbol, Any}(
         Symbol("product_type") => productType
     );
-    response = self.v3PrivateGetBrokerageTransactionSummary(extend(request, params));
+    response = Base.fetch(self.v3PrivateGetBrokerageTransactionSummary(extend(request, params)));
     data = self.safeDict(response, "fee_tier", Dict{Symbol, Any}());
     taker_fee = self.safeNumber(data, "taker_fee_rate");
     maker_fee = self.safeNumber(data, "maker_fee_rate");
@@ -2842,12 +3078,12 @@ function fetchTradingFees(self::Coinbase, params=Dict())
 end
 function fetchPortfolioDetails(self::Coinbase, portfolioUuid, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = Dict{Symbol, Any}(
         Symbol("portfolio_uuid") => portfolioUuid
     );
-    response = self.v3PrivateGetBrokeragePortfoliosPortfolioUuid(extend(request, params));
+    response = Base.fetch(self.v3PrivateGetBrokeragePortfoliosPortfolioUuid(extend(request, params)));
     result = self.parsePortfolioDetails(response);
     return result
 
@@ -3072,10 +3308,10 @@ function handleErrors(self::Coinbase, code, reason, url, method, headers, body, 
 end
 function fetchDepositAddresses(self::Coinbase, codes=nothing, params=Dict())
     if functions.ccxtruthy(self.markets == nothing)
-        self.loadMarkets();
+        Base.fetch(self.loadMarkets());
     end
     request = self.prepareAccountRequest(nothing, params);
-    response = self.v2PrivateGetAccountsAccountIdAddresses(extend(request, params));
+    response = Base.fetch(self.v2PrivateGetAccountsAccountIdAddresses(extend(request, params)));
     data = self.safeList(response, "data", []);
     return self.parseDepositAddresses(data, codes, false, Dict{Symbol, Any}())
 
@@ -3087,371 +3323,371 @@ Base.getproperty(self::Coinbase, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function v2PublicGetCurrencies(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "currencies", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "currencies", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetCurrenciesCrypto(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "currencies/crypto", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "currencies/crypto", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetTime(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "time", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "time", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetExchangeRates(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "exchange-rates", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "exchange-rates", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetUsersUserId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "users/{user_id}", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "users/{user_id}", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPricesSymbolBuy(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "prices/{symbol}/buy", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "prices/{symbol}/buy", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPricesSymbolSell(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "prices/{symbol}/sell", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "prices/{symbol}/sell", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PublicGetPricesSymbolSpot(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "prices/{symbol}/spot", ["v2", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "prices/{symbol}/spot", ["v2", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccounts(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdAddresses(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/addresses", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/addresses", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdAddressesAddressId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/addresses/{address_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/addresses/{address_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/addresses/{address_id}/transactions", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/addresses/{address_id}/transactions", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdTransactions(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/transactions", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/transactions", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdTransactionsTransactionId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/transactions/{transaction_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/transactions/{transaction_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdBuys(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/buys", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/buys", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdBuysBuyId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/buys/{buy_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/buys/{buy_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdSells(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/sells", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/sells", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdSellsSellId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/sells/{sell_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/sells/{sell_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdDeposits(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/deposits", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/deposits", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdDepositsDepositId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/deposits/{deposit_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/deposits/{deposit_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdWithdrawals(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/withdrawals", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/withdrawals", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/withdrawals/{withdrawal_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/withdrawals/{withdrawal_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetPaymentMethods(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "payment-methods", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "payment-methods", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetPaymentMethodsPaymentMethodId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "payment-methods/{payment_method_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "payment-methods/{payment_method_id}", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetUser(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "user", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "user", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivateGetUserAuth(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "user/auth", ["v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "user/auth", ["v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccounts(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdPrimary(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/primary", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/primary", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdAddresses(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/addresses", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/addresses", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdTransactions(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/transactions", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/transactions", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/transactions/{transaction_id}/complete", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/transactions/{transaction_id}/complete", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/transactions/{transaction_id}/resend", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/transactions/{transaction_id}/resend", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdBuys(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/buys", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/buys", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdBuysBuyIdCommit(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/buys/{buy_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/buys/{buy_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdSells(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/sells", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/sells", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdSellsSellIdCommit(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/sells/{sell_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/sells/{sell_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdDeposits(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/deposits", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/deposits", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdDepositsDepositIdCommit(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/deposits/{deposit_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/deposits/{deposit_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdWithdrawals(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/withdrawals", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/withdrawals", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/withdrawals/{withdrawal_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/withdrawals/{withdrawal_id}/commit", ["v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePutAccountsAccountId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}", ["v2", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}", ["v2", "private"], "PUT", params, nothing, nothing, Dict())
 end
 
 function v2PrivatePutUser(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "user", ["v2", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "user", ["v2", "private"], "PUT", params, nothing, nothing, Dict())
 end
 
 function v2PrivateDeleteAccountsId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{id}", ["v2", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{id}", ["v2", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v2PrivateDeleteAccountsAccountIdTransactionsTransactionId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "accounts/{account_id}/transactions/{transaction_id}", ["v2", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 10.6))
+    return request(self, "accounts/{account_id}/transactions/{transaction_id}", ["v2", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetBrokerageTime(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/time", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/time", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetBrokerageMarketProductBook(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/market/product_book", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/market/product_book", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetBrokerageMarketProducts(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/market/products", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/market/products", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetBrokerageMarketProductsProductId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/market/products/{product_id}", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/market/products/{product_id}", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetBrokerageMarketProductsProductIdCandles(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/market/products/{product_id}/candles", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/market/products/{product_id}/candles", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PublicGetBrokerageMarketProductsProductIdTicker(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/market/products/{product_id}/ticker", ["v3", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/market/products/{product_id}/ticker", ["v3", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageAccounts(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/accounts", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/accounts", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageAccountsAccountUuid(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/accounts/{account_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/accounts/{account_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageOrdersHistoricalBatch(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/orders/historical/batch", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/orders/historical/batch", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageOrdersHistoricalFills(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/orders/historical/fills", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/orders/historical/fills", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageOrdersHistoricalOrderId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/orders/historical/{order_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/orders/historical/{order_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageProducts(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/products", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/products", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageProductsProductId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/products/{product_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/products/{product_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageProductsProductIdCandles(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/products/{product_id}/candles", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/products/{product_id}/candles", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageProductsProductIdTicker(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/products/{product_id}/ticker", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/products/{product_id}/ticker", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageBestBidAsk(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/best_bid_ask", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/best_bid_ask", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageProductBook(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/product_book", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/product_book", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageTransactionSummary(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/transaction_summary", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 3))
+    return request(self, "brokerage/transaction_summary", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokeragePortfolios(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/portfolios", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/portfolios", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokeragePortfoliosPortfolioUuid(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageConvertTradeTradeId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/convert/trade/{trade_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/convert/trade/{trade_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageCfmBalanceSummary(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/cfm/balance_summary", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/cfm/balance_summary", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageCfmPositions(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/cfm/positions", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/cfm/positions", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageCfmPositionsProductId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/cfm/positions/{product_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/cfm/positions/{product_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageCfmSweeps(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/cfm/sweeps", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/cfm/sweeps", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageIntxPortfolioPortfolioUuid(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/intx/portfolio/{portfolio_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/intx/portfolio/{portfolio_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageIntxPositionsPortfolioUuid(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/intx/positions/{portfolio_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/intx/positions/{portfolio_uuid}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/intx/positions/{portfolio_uuid}/{symbol}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/intx/positions/{portfolio_uuid}/{symbol}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokeragePaymentMethods(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/payment_methods", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/payment_methods", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokeragePaymentMethodsPaymentMethodId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/payment_methods/{payment_method_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/payment_methods/{payment_method_id}", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivateGetBrokerageKeyPermissions(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/key_permissions", ["v3", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/key_permissions", ["v3", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokerageOrders(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/orders", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/orders", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokerageOrdersBatchCancel(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/orders/batch_cancel", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/orders/batch_cancel", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokerageOrdersEdit(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/orders/edit", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/orders/edit", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokerageOrdersEditPreview(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/orders/edit_preview", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/orders/edit_preview", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokerageOrdersPreview(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/orders/preview", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/orders/preview", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokeragePortfolios(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/portfolios", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/portfolios", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokeragePortfoliosMoveFunds(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/portfolios/move_funds", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/portfolios/move_funds", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokerageConvertQuote(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/convert/quote", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/convert/quote", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokerageConvertTradeTradeId(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/convert/trade/{trade_id}", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/convert/trade/{trade_id}", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokerageCfmSweepsSchedule(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/cfm/sweeps/schedule", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/cfm/sweeps/schedule", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokerageIntxAllocate(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/intx/allocate", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/intx/allocate", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePostBrokerageOrdersClosePosition(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/orders/close_position", ["v3", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/orders/close_position", ["v3", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function v3PrivatePutBrokeragePortfoliosPortfolioUuid(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], "PUT", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], "PUT", params, nothing, nothing, Dict())
 end
 
 function v3PrivateDeleteBrokeragePortfoliosPortfolioUuid(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/portfolios/{portfolio_uuid}", ["v3", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function v3PrivateDeleteBrokerageCfmSweeps(self::Coinbase, params=Dict(), context=Dict())
-    return request(self, "brokerage/cfm/sweeps", ["v3", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "brokerage/cfm/sweeps", ["v3", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function Coinbase(; kwargs...)
-    inst = Coinbase(Exchange(), describe, fetchTime, fetchAccounts, fetchAccountsV2, fetchAccountsV3, fetchPortfolios, parseAccount, createDepositAddress, fetchMySells, fetchMyBuys, fetchTransactionsWithMethod, fetchWithdrawals, fetchDeposits, fetchDepositsWithdrawals, parseTransactionStatus, parseTransaction, parseTrade, fetchMarkets, fetchMarketsV2, fetchMarketsV3, parseSpotMarket, parseContractMarket, fetchCurrenciesFromCache, fetchCurrencies, fetchTickers, fetchTickersV2, fetchTickersV3, fetchTicker, fetchTickerV2, fetchTickerV3, parseTicker, parseCustomBalance, fetchBalance, fetchLedger, parseLedgerEntryStatus, parseLedgerEntryType, parseLedgerEntry, findAccountId, prepareAccountRequest, prepareAccountRequestWithCurrencyCode, createMarketBuyOrderWithCost, createOrder, parseOrder, parseOrderStatus, parseOrderType, parseTimeInForce, cancelOrder, cancelOrders, editOrder, fetchOrder, fetchOrders, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOHLCV, parseOHLCV, fetchTrades, fetchMyTrades, fetchOrderBook, fetchBidsAsks, withdraw, fetchDepositAddressesByNetwork, parseDepositAddress, deposit, fetchDeposit, fetchDepositMethodIds, fetchDepositMethodId, parseDepositMethodIds, parseDepositMethodId, fetchConvertQuote, createConvertTrade, fetchConvertTrade, parseConversion, closePosition, fetchPositions, fetchPosition, parsePosition, fetchTradingFees, fetchPortfolioDetails, parsePortfolioDetails, createAuthToken, nonce, sign, handleErrors, fetchDepositAddresses, v2PublicGetCurrencies, v2PublicGetCurrenciesCrypto, v2PublicGetTime, v2PublicGetExchangeRates, v2PublicGetUsersUserId, v2PublicGetPricesSymbolBuy, v2PublicGetPricesSymbolSell, v2PublicGetPricesSymbolSpot, v2PrivateGetAccounts, v2PrivateGetAccountsAccountId, v2PrivateGetAccountsAccountIdAddresses, v2PrivateGetAccountsAccountIdAddressesAddressId, v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions, v2PrivateGetAccountsAccountIdTransactions, v2PrivateGetAccountsAccountIdTransactionsTransactionId, v2PrivateGetAccountsAccountIdBuys, v2PrivateGetAccountsAccountIdBuysBuyId, v2PrivateGetAccountsAccountIdSells, v2PrivateGetAccountsAccountIdSellsSellId, v2PrivateGetAccountsAccountIdDeposits, v2PrivateGetAccountsAccountIdDepositsDepositId, v2PrivateGetAccountsAccountIdWithdrawals, v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId, v2PrivateGetPaymentMethods, v2PrivateGetPaymentMethodsPaymentMethodId, v2PrivateGetUser, v2PrivateGetUserAuth, v2PrivatePostAccounts, v2PrivatePostAccountsAccountIdPrimary, v2PrivatePostAccountsAccountIdAddresses, v2PrivatePostAccountsAccountIdTransactions, v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete, v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend, v2PrivatePostAccountsAccountIdBuys, v2PrivatePostAccountsAccountIdBuysBuyIdCommit, v2PrivatePostAccountsAccountIdSells, v2PrivatePostAccountsAccountIdSellsSellIdCommit, v2PrivatePostAccountsAccountIdDeposits, v2PrivatePostAccountsAccountIdDepositsDepositIdCommit, v2PrivatePostAccountsAccountIdWithdrawals, v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit, v2PrivatePutAccountsAccountId, v2PrivatePutUser, v2PrivateDeleteAccountsId, v2PrivateDeleteAccountsAccountIdTransactionsTransactionId, v3PublicGetBrokerageTime, v3PublicGetBrokerageMarketProductBook, v3PublicGetBrokerageMarketProducts, v3PublicGetBrokerageMarketProductsProductId, v3PublicGetBrokerageMarketProductsProductIdCandles, v3PublicGetBrokerageMarketProductsProductIdTicker, v3PrivateGetBrokerageAccounts, v3PrivateGetBrokerageAccountsAccountUuid, v3PrivateGetBrokerageOrdersHistoricalBatch, v3PrivateGetBrokerageOrdersHistoricalFills, v3PrivateGetBrokerageOrdersHistoricalOrderId, v3PrivateGetBrokerageProducts, v3PrivateGetBrokerageProductsProductId, v3PrivateGetBrokerageProductsProductIdCandles, v3PrivateGetBrokerageProductsProductIdTicker, v3PrivateGetBrokerageBestBidAsk, v3PrivateGetBrokerageProductBook, v3PrivateGetBrokerageTransactionSummary, v3PrivateGetBrokeragePortfolios, v3PrivateGetBrokeragePortfoliosPortfolioUuid, v3PrivateGetBrokerageConvertTradeTradeId, v3PrivateGetBrokerageCfmBalanceSummary, v3PrivateGetBrokerageCfmPositions, v3PrivateGetBrokerageCfmPositionsProductId, v3PrivateGetBrokerageCfmSweeps, v3PrivateGetBrokerageIntxPortfolioPortfolioUuid, v3PrivateGetBrokerageIntxPositionsPortfolioUuid, v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol, v3PrivateGetBrokeragePaymentMethods, v3PrivateGetBrokeragePaymentMethodsPaymentMethodId, v3PrivateGetBrokerageKeyPermissions, v3PrivatePostBrokerageOrders, v3PrivatePostBrokerageOrdersBatchCancel, v3PrivatePostBrokerageOrdersEdit, v3PrivatePostBrokerageOrdersEditPreview, v3PrivatePostBrokerageOrdersPreview, v3PrivatePostBrokeragePortfolios, v3PrivatePostBrokeragePortfoliosMoveFunds, v3PrivatePostBrokerageConvertQuote, v3PrivatePostBrokerageConvertTradeTradeId, v3PrivatePostBrokerageCfmSweepsSchedule, v3PrivatePostBrokerageIntxAllocate, v3PrivatePostBrokerageOrdersClosePosition, v3PrivatePutBrokeragePortfoliosPortfolioUuid, v3PrivateDeleteBrokeragePortfoliosPortfolioUuid, v3PrivateDeleteBrokerageCfmSweeps)
+    inst = Coinbase(Exchange(), describe, fetchTime, fetchAccounts, fetchAccountsV2, fetchAccountsV3, fetchPortfolios, parseAccount, createDepositAddress, fetchMySells, fetchMyBuys, fetchTransactionsWithMethod, fetchWithdrawals, fetchDeposits, fetchDepositsWithdrawals, parseTransactionStatus, parseTransaction, parseTrade, fetchMarkets, fetchMarketsV2, fetchMarketsV3, parseSpotMarket, parseContractMarket, fetchCurrenciesFromCache, fetchCurrencies, fetchTickers, fetchTickersV2, fetchTickersV3, fetchTicker, fetchTickerV2, fetchTickerV3, parseTicker, parseCustomBalance, fetchBalance, fetchLedger, parseLedgerEntryStatus, parseLedgerEntryType, parseLedgerEntry, findAccountId, prepareAccountRequest, prepareAccountRequestWithCurrencyCode, createMarketBuyOrderWithCost, createOrder, parseOrder, parseOrderStatus, parseOrderType, parseTimeInForce, cancelOrder, cancelOrders, editOrder, fetchOrder, fetchOrders, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOHLCV, parseOHLCV, fetchTrades, fetchMyTrades, fetchOrderBook, fetchBidsAsks, withdraw, fetchDepositAddressesByNetwork, parseDepositAddress, deposit, fetchDeposit, fetchDepositMethodIds, fetchDepositMethodId, parseDepositMethodIds, parseDepositMethodId, fetchConvertQuote, createConvertTrade, fetchConvertTrade, parseConversion, transfer, parseTransfer, closePosition, fetchPositions, fetchPosition, parsePosition, fetchTradingFees, fetchPortfolioDetails, parsePortfolioDetails, createAuthToken, nonce, sign, handleErrors, fetchDepositAddresses, v2PublicGetCurrencies, v2PublicGetCurrenciesCrypto, v2PublicGetTime, v2PublicGetExchangeRates, v2PublicGetUsersUserId, v2PublicGetPricesSymbolBuy, v2PublicGetPricesSymbolSell, v2PublicGetPricesSymbolSpot, v2PrivateGetAccounts, v2PrivateGetAccountsAccountId, v2PrivateGetAccountsAccountIdAddresses, v2PrivateGetAccountsAccountIdAddressesAddressId, v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions, v2PrivateGetAccountsAccountIdTransactions, v2PrivateGetAccountsAccountIdTransactionsTransactionId, v2PrivateGetAccountsAccountIdBuys, v2PrivateGetAccountsAccountIdBuysBuyId, v2PrivateGetAccountsAccountIdSells, v2PrivateGetAccountsAccountIdSellsSellId, v2PrivateGetAccountsAccountIdDeposits, v2PrivateGetAccountsAccountIdDepositsDepositId, v2PrivateGetAccountsAccountIdWithdrawals, v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId, v2PrivateGetPaymentMethods, v2PrivateGetPaymentMethodsPaymentMethodId, v2PrivateGetUser, v2PrivateGetUserAuth, v2PrivatePostAccounts, v2PrivatePostAccountsAccountIdPrimary, v2PrivatePostAccountsAccountIdAddresses, v2PrivatePostAccountsAccountIdTransactions, v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete, v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend, v2PrivatePostAccountsAccountIdBuys, v2PrivatePostAccountsAccountIdBuysBuyIdCommit, v2PrivatePostAccountsAccountIdSells, v2PrivatePostAccountsAccountIdSellsSellIdCommit, v2PrivatePostAccountsAccountIdDeposits, v2PrivatePostAccountsAccountIdDepositsDepositIdCommit, v2PrivatePostAccountsAccountIdWithdrawals, v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit, v2PrivatePutAccountsAccountId, v2PrivatePutUser, v2PrivateDeleteAccountsId, v2PrivateDeleteAccountsAccountIdTransactionsTransactionId, v3PublicGetBrokerageTime, v3PublicGetBrokerageMarketProductBook, v3PublicGetBrokerageMarketProducts, v3PublicGetBrokerageMarketProductsProductId, v3PublicGetBrokerageMarketProductsProductIdCandles, v3PublicGetBrokerageMarketProductsProductIdTicker, v3PrivateGetBrokerageAccounts, v3PrivateGetBrokerageAccountsAccountUuid, v3PrivateGetBrokerageOrdersHistoricalBatch, v3PrivateGetBrokerageOrdersHistoricalFills, v3PrivateGetBrokerageOrdersHistoricalOrderId, v3PrivateGetBrokerageProducts, v3PrivateGetBrokerageProductsProductId, v3PrivateGetBrokerageProductsProductIdCandles, v3PrivateGetBrokerageProductsProductIdTicker, v3PrivateGetBrokerageBestBidAsk, v3PrivateGetBrokerageProductBook, v3PrivateGetBrokerageTransactionSummary, v3PrivateGetBrokeragePortfolios, v3PrivateGetBrokeragePortfoliosPortfolioUuid, v3PrivateGetBrokerageConvertTradeTradeId, v3PrivateGetBrokerageCfmBalanceSummary, v3PrivateGetBrokerageCfmPositions, v3PrivateGetBrokerageCfmPositionsProductId, v3PrivateGetBrokerageCfmSweeps, v3PrivateGetBrokerageIntxPortfolioPortfolioUuid, v3PrivateGetBrokerageIntxPositionsPortfolioUuid, v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol, v3PrivateGetBrokeragePaymentMethods, v3PrivateGetBrokeragePaymentMethodsPaymentMethodId, v3PrivateGetBrokerageKeyPermissions, v3PrivatePostBrokerageOrders, v3PrivatePostBrokerageOrdersBatchCancel, v3PrivatePostBrokerageOrdersEdit, v3PrivatePostBrokerageOrdersEditPreview, v3PrivatePostBrokerageOrdersPreview, v3PrivatePostBrokeragePortfolios, v3PrivatePostBrokeragePortfoliosMoveFunds, v3PrivatePostBrokerageConvertQuote, v3PrivatePostBrokerageConvertTradeTradeId, v3PrivatePostBrokerageCfmSweepsSchedule, v3PrivatePostBrokerageIntxAllocate, v3PrivatePostBrokerageOrdersClosePosition, v3PrivatePutBrokeragePortfoliosPortfolioUuid, v3PrivateDeleteBrokeragePortfoliosPortfolioUuid, v3PrivateDeleteBrokerageCfmSweeps)
     # describe() first, then the user config — the same order, and the same
     # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
     # overrides to this instance"): a plain object is deep-merged onto the
@@ -3459,17 +3695,29 @@ function Coinbase(; kwargs...)
     # wholesale would drop the base defaults an exchange does not restate —
     # e.g. `options.defaultNetworkCodeReplacements`, which every
     # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
         key = Symbol(k)
-        if v isa AbstractDict
+        if v isa AbstractDict && key !== :features
             inst[key] = deepExtend(get(inst, key, nothing), v)
         else
             inst[key] = v
         end
     end
     for (k, v) in kwargs
-        if v isa AbstractDict
+        if v isa AbstractDict && k !== :features
             inst[k] = deepExtend(get(inst, k, nothing), v)
         else
             inst[k] = v
@@ -3488,8 +3736,12 @@ function Coinbase(; kwargs...)
     end
     newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
     inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
     inst.afterConstruct()
-    if ccxtruthy(inst.safeBool2(inst.options, "sandbox", "testnet", false))
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
         inst.setSandboxMode(true)
     end
     inst.loadExchangeSpecificFiles()

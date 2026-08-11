@@ -261,57 +261,103 @@ function describe(self::Bitrue, )
             Symbol("kline") => Dict{Symbol, Any}(
                 Symbol("public") => Dict{Symbol, Any}(
                     Symbol("get") => Dict{Symbol, Any}(
-                        Symbol("public.json") => 0.24,
-                        Symbol("public{currency}.json") => 0.24
+                        Symbol("public.json") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("public{currency}.json") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+)
                     )
                 )
             ),
             Symbol("v1") => Dict{Symbol, Any}(
                 Symbol("public") => Dict{Symbol, Any}(
                     Symbol("get") => Dict{Symbol, Any}(
-                        Symbol("ping") => 0.24,
-                        Symbol("time") => 0.24,
-                        Symbol("exchangeInfo") => 0.24,
+                        Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("exchangeInfo") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
                         Symbol("depth") => Dict{Symbol, Any}(
-                            Symbol("cost") => 1,
-                            Symbol("byLimit") => [[100, 0.24], [500, 1.2], [1000, 2.4]]
-                        ),
-                        Symbol("trades") => 0.24,
-                        Symbol("historicalTrades") => 1.2,
-                        Symbol("aggTrades") => 0.24,
+    Symbol("cost") => 1,
+    Symbol("byLimit") => [[100, 0.24], [500, 1.2], [1000, 2.4]]
+),
+                        Symbol("trades") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("historicalTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.2
+),
+                        Symbol("aggTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
                         Symbol("ticker/24hr") => Dict{Symbol, Any}(
-                            Symbol("cost") => 0.24,
-                            Symbol("noSymbol") => 9.6
-                        ),
-                        Symbol("ticker/price") => 0.24,
-                        Symbol("ticker/bookTicker") => 0.24,
-                        Symbol("market/kline") => 0.24
+    Symbol("cost") => 0.24,
+    Symbol("noSymbol") => 9.6
+),
+                        Symbol("ticker/price") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("ticker/bookTicker") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("market/kline") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+)
                     )
                 ),
                 Symbol("private") => Dict{Symbol, Any}(
                     Symbol("get") => Dict{Symbol, Any}(
-                        Symbol("order") => 5,
-                        Symbol("openOrders") => 5,
-                        Symbol("allOrders") => 25,
-                        Symbol("account") => 25,
-                        Symbol("myTrades") => 25,
-                        Symbol("etf/net-value/{symbol}") => 0.24,
-                        Symbol("withdraw/history") => 120,
-                        Symbol("deposit/history") => 120
+                        Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("allOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                        Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                        Symbol("myTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                        Symbol("etf/net-value/{symbol}") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("withdraw/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 120
+),
+                        Symbol("deposit/history") => Dict{Symbol, Any}(
+    Symbol("cost") => 120
+)
                     ),
                     Symbol("post") => Dict{Symbol, Any}(
-                        Symbol("order") => 5,
-                        Symbol("withdraw/commit") => 120
+                        Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("withdraw/commit") => Dict{Symbol, Any}(
+    Symbol("cost") => 120
+)
                     ),
                     Symbol("delete") => Dict{Symbol, Any}(
-                        Symbol("order") => 5
+                        Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
                     )
                 )
             ),
             Symbol("v2") => Dict{Symbol, Any}(
                 Symbol("private") => Dict{Symbol, Any}(
                     Symbol("get") => Dict{Symbol, Any}(
-                        Symbol("myTrades") => 1.2
+                        Symbol("myTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 1.2
+)
                     )
                 )
             )
@@ -320,34 +366,74 @@ function describe(self::Bitrue, )
             Symbol("v1") => Dict{Symbol, Any}(
                 Symbol("public") => Dict{Symbol, Any}(
                     Symbol("get") => Dict{Symbol, Any}(
-                        Symbol("ping") => 0.24,
-                        Symbol("time") => 0.24,
-                        Symbol("contracts") => 0.24,
-                        Symbol("depth") => 0.24,
-                        Symbol("ticker") => 0.24,
-                        Symbol("klines") => 0.24
+                        Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("contracts") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+)
                     )
                 )
             ),
             Symbol("v2") => Dict{Symbol, Any}(
                 Symbol("private") => Dict{Symbol, Any}(
                     Symbol("get") => Dict{Symbol, Any}(
-                        Symbol("myTrades") => 5,
-                        Symbol("openOrders") => 5,
-                        Symbol("order") => 5,
-                        Symbol("account") => 5,
-                        Symbol("leverageBracket") => 5,
-                        Symbol("commissionRate") => 5,
-                        Symbol("futures_transfer_history") => 5,
-                        Symbol("forceOrdersHistory") => 5
+                        Symbol("myTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("leverageBracket") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("futures_transfer_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("forceOrdersHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
                     ),
                     Symbol("post") => Dict{Symbol, Any}(
-                        Symbol("positionMargin") => 5,
-                        Symbol("level_edit") => 5,
-                        Symbol("cancel") => 5,
-                        Symbol("order") => 25,
-                        Symbol("allOpenOrders") => 5,
-                        Symbol("futures_transfer") => 5
+                        Symbol("positionMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("level_edit") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 25
+),
+                        Symbol("allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("futures_transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
                     )
                 )
             )
@@ -356,34 +442,74 @@ function describe(self::Bitrue, )
             Symbol("v1") => Dict{Symbol, Any}(
                 Symbol("public") => Dict{Symbol, Any}(
                     Symbol("get") => Dict{Symbol, Any}(
-                        Symbol("ping") => 0.24,
-                        Symbol("time") => 0.24,
-                        Symbol("contracts") => 0.24,
-                        Symbol("depth") => 0.24,
-                        Symbol("ticker") => 0.24,
-                        Symbol("klines") => 0.24
+                        Symbol("ping") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("time") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("contracts") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("depth") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("ticker") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+),
+                        Symbol("klines") => Dict{Symbol, Any}(
+    Symbol("cost") => 0.24
+)
                     )
                 )
             ),
             Symbol("v2") => Dict{Symbol, Any}(
                 Symbol("private") => Dict{Symbol, Any}(
                     Symbol("get") => Dict{Symbol, Any}(
-                        Symbol("myTrades") => 5,
-                        Symbol("openOrders") => 5,
-                        Symbol("order") => 5,
-                        Symbol("account") => 5,
-                        Symbol("leverageBracket") => 5,
-                        Symbol("commissionRate") => 5,
-                        Symbol("futures_transfer_history") => 5,
-                        Symbol("forceOrdersHistory") => 5
+                        Symbol("myTrades") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("openOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("account") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("leverageBracket") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("commissionRate") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("futures_transfer_history") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("forceOrdersHistory") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
                     ),
                     Symbol("post") => Dict{Symbol, Any}(
-                        Symbol("positionMargin") => 5,
-                        Symbol("level_edit") => 5,
-                        Symbol("cancel") => 5,
-                        Symbol("order") => 5,
-                        Symbol("allOpenOrders") => 5,
-                        Symbol("futures_transfer") => 5
+                        Symbol("positionMargin") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("level_edit") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("cancel") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("order") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("allOpenOrders") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+),
+                        Symbol("futures_transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 5
+)
                     )
                 )
             )
@@ -754,22 +880,24 @@ function parseCurrency(self::Bitrue, rawCurrency)
         entry = get(networkDetails, j + 1, nothing);
         networkId = safeString(entry, "chain");
         network = self.networkIdToCode(networkId, code);
-        networks[Symbol(network)] = Dict{Symbol, Any}(
-            Symbol("info") => entry,
-            Symbol("id") => networkId,
-            Symbol("network") => network,
-            Symbol("deposit") => self.safeBool(entry, "enableDeposit"),
-            Symbol("withdraw") => self.safeBool(entry, "enableWithdraw"),
-            Symbol("active") => nothing,
-            Symbol("fee") => self.safeNumber(entry, "withdrawFee"),
-            Symbol("precision") => nothing,
-            Symbol("limits") => Dict{Symbol, Any}(
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("min") => self.safeNumber(entry, "minWithdraw"),
-                    Symbol("max") => self.safeNumber(entry, "maxWithdraw")
+        if functions.ccxtruthy(network != nothing)
+            networks[Symbol(network)] = Dict{Symbol, Any}(
+                Symbol("info") => entry,
+                Symbol("id") => networkId,
+                Symbol("network") => network,
+                Symbol("deposit") => self.safeBool(entry, "enableDeposit"),
+                Symbol("withdraw") => self.safeBool(entry, "enableWithdraw"),
+                Symbol("active") => nothing,
+                Symbol("fee") => self.safeNumber(entry, "withdrawFee"),
+                Symbol("precision") => nothing,
+                Symbol("limits") => Dict{Symbol, Any}(
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("min") => self.safeNumber(entry, "minWithdraw"),
+                        Symbol("max") => self.safeNumber(entry, "maxWithdraw")
+                    )
                 )
-            )
-        );
+            );
+        end
         j += 1
     end
     return self.safeCurrencyStructure(Dict{Symbol, Any}(
@@ -889,7 +1017,7 @@ function parseMarket(self::Bitrue, market)
         minCost = self.safeNumber(market, "minOrderMoney");
     end
     isSpot = (type_var == "spot");
-    return Dict{Symbol, Any}(
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => id,
     Symbol("lowercaseId") => lowercaseId,
     Symbol("symbol") => symbol,
@@ -938,7 +1066,7 @@ function parseMarket(self::Bitrue, market)
     ),
     Symbol("created") => nothing,
     Symbol("info") => market
-)
+))
 
 end
 function parseBalance(self::Bitrue, response)
@@ -955,7 +1083,9 @@ function parseBalance(self::Bitrue, response)
         account = self.account();
         account[Symbol("free")] = safeString2(balance, "free", "accountNormal");
         account[Symbol("used")] = safeString2(balance, "locked", "accountLock");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     result[Symbol("timestamp")] = timestamp;
@@ -1180,7 +1310,7 @@ function fetchTickers(self::Bitrue, symbols=nothing, params=Dict())
         Base.fetch(self.loadMarkets());
     end
     symbols = self.marketSymbols(symbols);
-    response = nothing;
+    response = [];
     data = [];
     request = Dict{Symbol, Any}();
     type_var = nothing;
@@ -1191,7 +1321,7 @@ function fetchTickers(self::Bitrue, symbols=nothing, params=Dict())
             throw(NotSupported(string(self.id, " fetchTickers does not support swap markets, please use fetchTicker instead")));
         elseif functions.ccxtruthy(get(market, Symbol("spot"), nothing))
             response = Base.fetch(self.spotV1PublicGetTicker24hr(extend(request, params)));
-            data = response;
+            data = toArray(response);
         else
             throw(NotSupported(string(self.id, " fetchTickers only support spot & swap markets")));
         end
@@ -1201,13 +1331,17 @@ function fetchTickers(self::Bitrue, symbols=nothing, params=Dict())
             throw(NotSupported(string(self.id, " fetchTickers only support spot when symbols are not proved")));
         end
         response = Base.fetch(self.spotV1PublicGetTicker24hr(extend(request, params)));
-        data = response;
+        data = toArray(response);
     end
     tickers = Dict{Symbol, Any}();
     i = 0
     while functions.ccxtruthy(functions.ccxt_lt(i, length(data)))
         ticker = self.safeDict(data, i, Dict{Symbol, Any}());
-        market = self.safeMarket(safeString(ticker, "symbol"));
+        marketId = safeString(ticker, "symbol");
+        if functions.ccxtruthy(marketId == nothing)
+            i += 1; continue
+        end
+        market = self.safeMarket(marketId);
         tickers[Symbol(market[Symbol("id")])] = ticker;
         i += 1
     end
@@ -1833,16 +1967,18 @@ function parseDepositWithdrawFee(self::Bitrue, fee, currency=nothing)
             networkId = safeString(chainDetail, "chain");
             currencyCode = safeString(currency, "code");
             networkCode = self.networkIdToCode(networkId, currencyCode);
-            result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
-                Symbol("deposit") => Dict{Symbol, Any}(
-                    Symbol("fee") => nothing,
-                    Symbol("percentage") => nothing
-                ),
-                Symbol("withdraw") => Dict{Symbol, Any}(
-                    Symbol("fee") => self.safeNumber(chainDetail, "withdrawFee"),
-                    Symbol("percentage") => false
-                )
-            );
+            if functions.ccxtruthy(networkCode != nothing)
+                result[Symbol("networks")][Symbol(networkCode)] = Dict{Symbol, Any}(
+                    Symbol("deposit") => Dict{Symbol, Any}(
+                        Symbol("fee") => nothing,
+                        Symbol("percentage") => nothing
+                    ),
+                    Symbol("withdraw") => Dict{Symbol, Any}(
+                        Symbol("fee") => self.safeNumber(chainDetail, "withdrawFee"),
+                        Symbol("percentage") => false
+                    )
+                );
+            end
             if functions.ccxtruthy(chainDetailLength == 1)
                 result[Symbol("withdraw")][Symbol("fee")] = self.safeNumber(chainDetail, "withdrawFee");
                 result[Symbol("withdraw")][Symbol("percentage")] = false;
@@ -2105,7 +2241,7 @@ function handleErrors(self::Bitrue, code, reason, url, method, headers, body, re
         parsedMessage = nothing;
         if functions.ccxtruthy(messageInner != nothing)
             try
-                parsedMessage = JSON3.parse(messageInner);
+                parsedMessage = functions.ccxt_json_parse(messageInner);
             catch e
                 parsedMessage = nothing;
 
@@ -2143,7 +2279,7 @@ function calculateRateLimiterCost(self::Bitrue, api, method, path, params, confi
             return get(config, Symbol("noSymbol"), nothing)
     elseif functions.ccxtruthy(@functions.ccxt_and((ccxt_in("byLimit", config)), (ccxt_in("limit", params))))
         limit = get(params, Symbol("limit"), nothing);
-        byLimit = get(config, Symbol("byLimit"), nothing);
+        byLimit = self.safeList(config, "byLimit", []);
         i = 0
         while functions.ccxtruthy(functions.ccxt_lt(i, length(byLimit)))
             entry = get(byLimit, i + 1, nothing);
@@ -2157,276 +2293,329 @@ function calculateRateLimiterCost(self::Bitrue, api, method, path, params, confi
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Bitrue, name::Symbol) = ccxt_getproperty(self, name)
 
 # Implicit REST endpoint methods (generated from describe().api)
 function spotKlinePublicGetPublicJson(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "public.json", ["spot", "kline", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "public.json", ["spot", "kline", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotKlinePublicGetPublicCurrencyJson(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "public{currency}.json", ["spot", "kline", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "public{currency}.json", ["spot", "kline", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PublicGetPing(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ping", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "ping", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PublicGetTime(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "time", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "time", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PublicGetExchangeInfo(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "exchangeInfo", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "exchangeInfo", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PublicGetDepth(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "depth", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1))
+    return request(self, "depth", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PublicGetTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "trades", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "trades", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PublicGetHistoricalTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "historicalTrades", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.2))
+    return request(self, "historicalTrades", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PublicGetAggTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "aggTrades", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "aggTrades", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PublicGetTicker24hr(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ticker/24hr", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24, Symbol("noSymbol") => 9.6))
+    return request(self, "ticker/24hr", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PublicGetTickerPrice(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ticker/price", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "ticker/price", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PublicGetTickerBookTicker(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ticker/bookTicker", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "ticker/bookTicker", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PublicGetMarketKline(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "market/kline", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "market/kline", ["spot", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PrivateGetOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "order", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PrivateGetOpenOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "openOrders", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "openOrders", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PrivateGetAllOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "allOrders", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "allOrders", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PrivateGetAccount(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "account", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "account", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PrivateGetMyTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "myTrades", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "myTrades", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PrivateGetEtfNetValueSymbol(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "etf/net-value/{symbol}", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "etf/net-value/{symbol}", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PrivateGetWithdrawHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "withdraw/history", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 120))
+    return request(self, "withdraw/history", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PrivateGetDepositHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "deposit/history", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 120))
+    return request(self, "deposit/history", ["spot", "v1", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function spotV1PrivatePostOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "order", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotV1PrivatePostWithdrawCommit(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "withdraw/commit", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 120))
+    return request(self, "withdraw/commit", ["spot", "v1", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function spotV1PrivateDeleteOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["spot", "v1", "private"], "DELETE", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "order", ["spot", "v1", "private"], "DELETE", params, nothing, nothing, Dict())
 end
 
 function spotV2PrivateGetMyTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "myTrades", ["spot", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 1.2))
+    return request(self, "myTrades", ["spot", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV1PublicGetPing(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ping", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "ping", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV1PublicGetTime(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "time", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "time", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV1PublicGetContracts(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "contracts", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "contracts", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV1PublicGetDepth(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "depth", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "depth", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV1PublicGetTicker(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ticker", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "ticker", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV1PublicGetKlines(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "klines", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "klines", ["fapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivateGetMyTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "myTrades", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "myTrades", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivateGetOpenOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "openOrders", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "openOrders", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivateGetOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "order", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivateGetAccount(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "account", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "account", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivateGetLeverageBracket(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "leverageBracket", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "leverageBracket", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivateGetCommissionRate(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "commissionRate", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "commissionRate", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivateGetFuturesTransferHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "futures_transfer_history", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "futures_transfer_history", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivateGetForceOrdersHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "forceOrdersHistory", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "forceOrdersHistory", ["fapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivatePostPositionMargin(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "positionMargin", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "positionMargin", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivatePostLevelEdit(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "level_edit", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "level_edit", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivatePostCancel(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "cancel", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "cancel", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivatePostOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 25))
+    return request(self, "order", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivatePostAllOpenOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "allOpenOrders", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "allOpenOrders", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function fapiV2PrivatePostFuturesTransfer(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "futures_transfer", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "futures_transfer", ["fapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function dapiV1PublicGetPing(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ping", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "ping", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV1PublicGetTime(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "time", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "time", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV1PublicGetContracts(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "contracts", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "contracts", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV1PublicGetDepth(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "depth", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "depth", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV1PublicGetTicker(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "ticker", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "ticker", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV1PublicGetKlines(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "klines", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 0.24))
+    return request(self, "klines", ["dapi", "v1", "public"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivateGetMyTrades(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "myTrades", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "myTrades", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivateGetOpenOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "openOrders", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "openOrders", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivateGetOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "order", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivateGetAccount(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "account", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "account", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivateGetLeverageBracket(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "leverageBracket", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "leverageBracket", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivateGetCommissionRate(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "commissionRate", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "commissionRate", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivateGetFuturesTransferHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "futures_transfer_history", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "futures_transfer_history", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivateGetForceOrdersHistory(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "forceOrdersHistory", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "forceOrdersHistory", ["dapi", "v2", "private"], "GET", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivatePostPositionMargin(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "positionMargin", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "positionMargin", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivatePostLevelEdit(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "level_edit", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "level_edit", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivatePostCancel(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "cancel", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "cancel", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivatePostOrder(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "order", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "order", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivatePostAllOpenOrders(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "allOpenOrders", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "allOpenOrders", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function dapiV2PrivatePostFuturesTransfer(self::Bitrue, params=Dict(), context=Dict())
-    return request(self, "futures_transfer", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict(Symbol("cost") => 5))
+    return request(self, "futures_transfer", ["dapi", "v2", "private"], "POST", params, nothing, nothing, Dict())
 end
 
 function Bitrue(; kwargs...)
     inst = Bitrue(Exchange(), describe, nonce, fetchStatus, fetchTime, fetchCurrencies, parseCurrency, fetchMarkets, parseMarket, parseBalance, fetchBalance, fetchOrderBook, parseTicker, fetchTicker, fetchOHLCV, parseOHLCV, fetchBidsAsks, fetchTickers, parseTrade, fetchTrades, parseOrderStatus, parseOrder, createMarketBuyOrderWithCost, createOrder, fetchOrder, fetchClosedOrders, fetchOpenOrders, cancelOrder, cancelAllOrders, fetchMyTrades, fetchDeposits, fetchWithdrawals, parseTransactionStatusByType, parseTransaction, withdraw, parseDepositWithdrawFee, fetchDepositWithdrawFees, parseTransfer, fetchTransfers, transfer, setLeverage, parseMarginModification, setMargin, sign, handleErrors, calculateRateLimiterCost, spotKlinePublicGetPublicJson, spotKlinePublicGetPublicCurrencyJson, spotV1PublicGetPing, spotV1PublicGetTime, spotV1PublicGetExchangeInfo, spotV1PublicGetDepth, spotV1PublicGetTrades, spotV1PublicGetHistoricalTrades, spotV1PublicGetAggTrades, spotV1PublicGetTicker24hr, spotV1PublicGetTickerPrice, spotV1PublicGetTickerBookTicker, spotV1PublicGetMarketKline, spotV1PrivateGetOrder, spotV1PrivateGetOpenOrders, spotV1PrivateGetAllOrders, spotV1PrivateGetAccount, spotV1PrivateGetMyTrades, spotV1PrivateGetEtfNetValueSymbol, spotV1PrivateGetWithdrawHistory, spotV1PrivateGetDepositHistory, spotV1PrivatePostOrder, spotV1PrivatePostWithdrawCommit, spotV1PrivateDeleteOrder, spotV2PrivateGetMyTrades, fapiV1PublicGetPing, fapiV1PublicGetTime, fapiV1PublicGetContracts, fapiV1PublicGetDepth, fapiV1PublicGetTicker, fapiV1PublicGetKlines, fapiV2PrivateGetMyTrades, fapiV2PrivateGetOpenOrders, fapiV2PrivateGetOrder, fapiV2PrivateGetAccount, fapiV2PrivateGetLeverageBracket, fapiV2PrivateGetCommissionRate, fapiV2PrivateGetFuturesTransferHistory, fapiV2PrivateGetForceOrdersHistory, fapiV2PrivatePostPositionMargin, fapiV2PrivatePostLevelEdit, fapiV2PrivatePostCancel, fapiV2PrivatePostOrder, fapiV2PrivatePostAllOpenOrders, fapiV2PrivatePostFuturesTransfer, dapiV1PublicGetPing, dapiV1PublicGetTime, dapiV1PublicGetContracts, dapiV1PublicGetDepth, dapiV1PublicGetTicker, dapiV1PublicGetKlines, dapiV2PrivateGetMyTrades, dapiV2PrivateGetOpenOrders, dapiV2PrivateGetOrder, dapiV2PrivateGetAccount, dapiV2PrivateGetLeverageBracket, dapiV2PrivateGetCommissionRate, dapiV2PrivateGetFuturesTransferHistory, dapiV2PrivateGetForceOrdersHistory, dapiV2PrivatePostPositionMargin, dapiV2PrivatePostLevelEdit, dapiV2PrivatePostCancel, dapiV2PrivatePostOrder, dapiV2PrivatePostAllOpenOrders, dapiV2PrivatePostFuturesTransfer)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end

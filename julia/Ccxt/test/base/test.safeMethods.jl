@@ -11,38 +11,125 @@ function equals(a, b)
 end
 
 
-function testSafeMethods()
+function helperDefaultInputDict()
+
+    return Dict{Symbol, Any}(
+    Symbol("i") => 1,
+    Symbol("f") => 0.123,
+    Symbol("bool") => true,
+    Symbol("list") => [1, 2, 3],
+    Symbol("dict") => Dict{Symbol, Any}(
+        Symbol("a") => 1
+    ),
+    Symbol("listOfDicts") => [Dict{Symbol, Any}(
+    Symbol("a") => 1
+)],
+    Symbol("str") => "heLlo",
+    Symbol("strNumber") => "3",
+    Symbol("zeroNumeric") => 0,
+    Symbol("zeroString") => "0",
+    Symbol("undefined") => nothing,
+    Symbol("emptyString") => "",
+    Symbol("randomList") => ["Hi", 4],
+    Symbol("floatNumeric") => 0.123,
+    Symbol("floatString") => "0.123",
+    Symbol("longInt") => 123456789012345
+)
+end
+
+
+function testSafeString()
 
     exchange = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
-        Symbol("id") => "regirock"
+        Symbol("id") => "sampleex"
     ));
-    inputDict = Dict{Symbol, Any}(
-        Symbol("i") => 1,
-        Symbol("f") => 0.123,
-        Symbol("bool") => true,
-        Symbol("list") => [1, 2, 3],
-        Symbol("dict") => Dict{Symbol, Any}(
-            Symbol("a") => 1
-        ),
-        Symbol("listOfDicts") => [Dict{Symbol, Any}(
-        Symbol("a") => 1
-    )],
-        Symbol("str") => "heLlo",
-        Symbol("strNumber") => "3",
-        Symbol("zeroNumeric") => 0,
-        Symbol("zeroString") => "0",
-        Symbol("undefined") => nothing,
-        Symbol("emptyString") => "",
-        Symbol("floatNumeric") => 0.123,
-        Symbol("floatString") => "0.123",
-        Symbol("longInt") => 123456789012345
-    );
+    inputDict = helperDefaultInputDict();
+    inputList = ["Hi", 2];
+    @test safeString(exchange, inputDict, "i") == "1"
+    @test safeString(exchange, inputDict, "f") == "0.123"
+    @test safeString(exchange, inputDict, "bool") == nothing
+    @test safeString(exchange, inputDict, "list") == nothing
+    @test safeString(exchange, inputDict, "dict") == nothing
+    @test safeString(exchange, inputDict, "str") == "heLlo"
+    @test safeString(exchange, inputDict, "strNumber") == "3"
+    @test safeString(exchange, inputDict, "zeroNumeric") == "0"
+    @test safeString(exchange, inputDict, "zeroString") == "0"
+    @test safeString(exchange, inputDict, "undefined") == nothing
+    @test safeString(exchange, inputDict, "emptyString") == nothing
+    @test safeString(exchange, inputList, 0) == "Hi"
+    @test safeString(exchange, inputDict, "floatNumeric") == "0.123"
+    @test safeString(exchange, inputDict, "floatString") == "0.123"
+    @test safeString(exchange, inputDict, "longInt") == "123456789012345"
+    @test safeString(exchange, inputDict, "nonexistent", "MiXed_Case") == "MiXed_Case"
+    @test safeString2(exchange, inputDict, "a", "i") == "1";
+    @test safeString2(exchange, inputDict, "a", "f") == "0.123";
+    @test safeString2(exchange, inputDict, "a", "str") == "heLlo";
+    @test safeString2(exchange, inputDict, "a", "strNumber") == "3";
+    @test safeString2(exchange, inputList, 2, 0) == "Hi";
+    @test safeString2(exchange, inputList, 2, "emptyString") == nothing;
+    @test safeStringN(exchange, inputDict, ["a", "b", "i"]) == "1";
+    @test safeStringN(exchange, inputDict, ["a", "b", "f"]) == "0.123";
+    @test safeStringN(exchange, inputDict, ["a", "b", "str"]) == "heLlo";
+    @test safeStringN(exchange, inputDict, ["a", "b", "strNumber"]) == "3";
+    @test safeStringN(exchange, inputDict, ["a", "b", "emptyString"]) == nothing;
+    @test safeStringN(exchange, inputList, [3, 2, 0]) == "Hi";
+    @test safeStringN(exchange, inputDict, ["a", "b", "nonexistent"], "MiXed_Case") == "MiXed_Case";
+    @test safeStringLower(exchange, inputDict, "i") == "1";
+    @test safeStringLower(exchange, inputDict, "f") == "0.123";
+    @test safeStringLower(exchange, inputDict, "str") == "hello";
+    @test safeStringLower(exchange, inputDict, "strNumber") == "3";
+    @test safeStringLower(exchange, inputDict, "emptyString") == nothing;
+    @test safeStringLower(exchange, inputList, 0) == "hi";
+    @test safeStringLower(exchange, inputDict, "nonexistent", "MiXed_Case") == "MiXed_Case";
+    @test safeStringLower2(exchange, inputDict, "a", "i") == "1";
+    @test safeStringLower2(exchange, inputDict, "a", "f") == "0.123";
+    @test safeStringLower2(exchange, inputDict, "a", "str") == "hello";
+    @test safeStringLower2(exchange, inputDict, "a", "strNumber") == "3";
+    @test safeStringLower2(exchange, inputDict, "a", "emptyString") == nothing;
+    @test safeStringLower2(exchange, inputList, 2, 0) == "hi";
+    @test safeStringLower2(exchange, inputDict, "a", "nonexistent", "MiXed_Case") == "MiXed_Case";
+    @test safeStringLowerN(exchange, inputDict, ["a", "b", "i"]) == "1";
+    @test safeStringLowerN(exchange, inputDict, ["a", "b", "f"]) == "0.123";
+    @test safeStringLowerN(exchange, inputDict, ["a", "b", "str"]) == "hello";
+    @test safeStringLowerN(exchange, inputDict, ["a", "b", "emptyString"]) == nothing;
+    @test safeStringLowerN(exchange, inputDict, ["a", "b", "strNumber"]) == "3";
+    @test safeStringLowerN(exchange, inputList, [3, 2, 0]) == "hi";
+    @test safeStringLowerN(exchange, inputDict, ["a", "b", "nonexistent"], "MiXed_Case") == "MiXed_Case";
+    @test safeStringUpper(exchange, inputDict, "i") == "1";
+    @test safeStringUpper(exchange, inputDict, "f") == "0.123";
+    @test safeStringUpper(exchange, inputDict, "str") == "HELLO";
+    @test safeStringUpper(exchange, inputDict, "strNumber") == "3";
+    @test safeStringUpper(exchange, inputDict, "emptyString") == nothing;
+    @test safeStringUpper(exchange, inputList, 0) == "HI";
+    @test safeStringUpper(exchange, inputDict, "nonexistent", "MiXed_Case") == "MiXed_Case";
+    @test safeStringUpper2(exchange, inputDict, "a", "i") == "1";
+    @test safeStringUpper2(exchange, inputDict, "a", "f") == "0.123";
+    @test safeStringUpper2(exchange, inputDict, "a", "str") == "HELLO";
+    @test safeStringUpper2(exchange, inputDict, "a", "emptyString") == nothing;
+    @test safeStringUpper2(exchange, inputDict, "a", "strNumber") == "3";
+    @test safeStringUpper2(exchange, inputList, 2, 0) == "HI";
+    @test safeStringUpper2(exchange, inputDict, "a", "nonexistent", "MiXed_Case") == "MiXed_Case";
+    @test safeStringUpperN(exchange, inputDict, ["a", "b", "i"]) == "1";
+    @test safeStringUpperN(exchange, inputDict, ["a", "b", "f"]) == "0.123";
+    @test safeStringUpperN(exchange, inputDict, ["a", "b", "str"]) == "HELLO";
+    @test safeStringUpperN(exchange, inputDict, ["a", "b", "emptyString"]) == nothing;
+    @test safeStringUpperN(exchange, inputDict, ["a", "b", "strNumber"]) == "3";
+    @test safeStringUpperN(exchange, inputList, [3, 2, 0]) == "HI";
+    @test safeStringUpperN(exchange, inputDict, ["a", "b", "nonexistent"], "MiXed_Case") == "MiXed_Case";
+end
+
+
+function testSafeValue()
+
+    exchange = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
+        Symbol("id") => "sampleex"
+    ));
+    inputDict = helperDefaultInputDict();
     inputList = ["Hi", 2];
     compareDict = Dict{Symbol, Any}(
         Symbol("a") => 1
     );
     compareList = [1, 2, 3];
-    factor = 10;
     @test safeValue(exchange, inputDict, "i") == 1;
     @test safeValue(exchange, inputDict, "f") == 0.123;
     @test functions.ccxtruthy(safeValue(exchange, inputDict, "bool"));
@@ -70,6 +157,19 @@ function testSafeMethods()
     @test safeValueN(exchange, inputDict, ["a", "b", "str"]) == "heLlo";
     @test safeValueN(exchange, inputDict, ["a", "b", "strNumber"]) == "3";
     @test safeValueN(exchange, inputList, [3, 2, 0]) == "Hi";
+end
+
+
+function testSafeDict()
+
+    exchange = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
+        Symbol("id") => "sampleex"
+    ));
+    inputDict = helperDefaultInputDict();
+    inputList = ["Hi", 2];
+    compareDict = Dict{Symbol, Any}(
+        Symbol("a") => 1
+    );
     dictObject = safeDict(exchange, inputDict, "dict");
     @test functions.ccxtruthy(equals(dictObject, compareDict));
     listObject = safeDict(exchange, inputDict, "list");
@@ -85,67 +185,37 @@ function testSafeMethods()
     listObject = safeDictN(exchange, inputDict, ["a", "b", "list"]);
     @test listObject == nothing;
     @test safeDictN(exchange, inputList, [3, 2, 1]) == nothing;
-    listObject = safeList(exchange, inputDict, "list");
-    @test functions.ccxtruthy(equals(dictObject, compareDict));
+end
+
+
+function testSafeList()
+
+    exchange = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
+        Symbol("id") => "sampleex"
+    ));
+    inputDict = helperDefaultInputDict();
+    inputList = ["Hi", 2];
     @test safeList(exchange, inputDict, "dict") == nothing;
     @test safeList(exchange, inputList, 1) == nothing;
     arrayOfDicts = safeList(exchange, inputDict, "listOfDicts");
     @test functions.ccxtruthy(equals(get(arrayOfDicts, 1, nothing), Dict{Symbol, Any}(
     Symbol("a") => 1
 )));
-    listObject = safeList2(exchange, inputDict, "a", "list");
-    @test functions.ccxtruthy(equals(dictObject, compareDict));
     @test safeList2(exchange, inputDict, "a", "dict") == nothing;
     @test safeList2(exchange, inputList, 2, 1) == nothing;
-    listObject = safeListN(exchange, inputDict, ["a", "b", "list"]);
-    @test functions.ccxtruthy(equals(dictObject, compareDict));
     @test safeListN(exchange, inputDict, ["a", "b", "dict"]) == nothing;
     @test safeListN(exchange, inputList, [3, 2, 1]) == nothing;
-    @test safeString(exchange, inputDict, "i") == "1";
-    @test safeString(exchange, inputDict, "f") == "0.123";
-    @test safeString(exchange, inputDict, "str") == "heLlo";
-    @test safeString(exchange, inputDict, "strNumber") == "3";
-    @test safeString(exchange, inputList, 0) == "Hi";
-    @test safeString2(exchange, inputDict, "a", "i") == "1";
-    @test safeString2(exchange, inputDict, "a", "f") == "0.123";
-    @test safeString2(exchange, inputDict, "a", "str") == "heLlo";
-    @test safeString2(exchange, inputDict, "a", "strNumber") == "3";
-    @test safeString2(exchange, inputList, 2, 0) == "Hi";
-    @test safeStringN(exchange, inputDict, ["a", "b", "i"]) == "1";
-    @test safeStringN(exchange, inputDict, ["a", "b", "f"]) == "0.123";
-    @test safeStringN(exchange, inputDict, ["a", "b", "str"]) == "heLlo";
-    @test safeStringN(exchange, inputDict, ["a", "b", "strNumber"]) == "3";
-    @test safeStringN(exchange, inputList, [3, 2, 0]) == "Hi";
-    @test safeStringLower(exchange, inputDict, "i") == "1";
-    @test safeStringLower(exchange, inputDict, "f") == "0.123";
-    @test safeStringLower(exchange, inputDict, "str") == "hello";
-    @test safeStringLower(exchange, inputDict, "strNumber") == "3";
-    @test safeStringLower(exchange, inputList, 0) == "hi";
-    @test safeStringLower2(exchange, inputDict, "a", "i") == "1";
-    @test safeStringLower2(exchange, inputDict, "a", "f") == "0.123";
-    @test safeStringLower2(exchange, inputDict, "a", "str") == "hello";
-    @test safeStringLower2(exchange, inputDict, "a", "strNumber") == "3";
-    @test safeStringLower2(exchange, inputList, 2, 0) == "hi";
-    @test safeStringLowerN(exchange, inputDict, ["a", "b", "i"]) == "1";
-    @test safeStringLowerN(exchange, inputDict, ["a", "b", "f"]) == "0.123";
-    @test safeStringLowerN(exchange, inputDict, ["a", "b", "str"]) == "hello";
-    @test safeStringLowerN(exchange, inputDict, ["a", "b", "strNumber"]) == "3";
-    @test safeStringLowerN(exchange, inputList, [3, 2, 0]) == "hi";
-    @test safeStringUpper(exchange, inputDict, "i") == "1";
-    @test safeStringUpper(exchange, inputDict, "f") == "0.123";
-    @test safeStringUpper(exchange, inputDict, "str") == "HELLO";
-    @test safeStringUpper(exchange, inputDict, "strNumber") == "3";
-    @test safeStringUpper(exchange, inputList, 0) == "HI";
-    @test safeStringUpper2(exchange, inputDict, "a", "i") == "1";
-    @test safeStringUpper2(exchange, inputDict, "a", "f") == "0.123";
-    @test safeStringUpper2(exchange, inputDict, "a", "str") == "HELLO";
-    @test safeStringUpper2(exchange, inputDict, "a", "strNumber") == "3";
-    @test safeStringUpper2(exchange, inputList, 2, 0) == "HI";
-    @test safeStringUpperN(exchange, inputDict, ["a", "b", "i"]) == "1";
-    @test safeStringUpperN(exchange, inputDict, ["a", "b", "f"]) == "0.123";
-    @test safeStringUpperN(exchange, inputDict, ["a", "b", "str"]) == "HELLO";
-    @test safeStringUpperN(exchange, inputDict, ["a", "b", "strNumber"]) == "3";
-    @test safeStringUpperN(exchange, inputList, [3, 2, 0]) == "HI";
+end
+
+
+function testSafeInteger()
+
+    exchange = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
+        Symbol("id") => "sampleex"
+    ));
+    inputDict = helperDefaultInputDict();
+    inputList = ["Hi", 2];
+    factor = 10;
     @test safeInteger(exchange, inputDict, "i") == 1;
     @test safeInteger(exchange, inputDict, "f") == 0;
     @test safeInteger(exchange, inputDict, "strNumber") == 3;
@@ -176,6 +246,16 @@ function testSafeMethods()
     @test safeIntegerProductN(exchange, inputDict, ["a", "b", "f"], factor) == 1;
     @test safeIntegerProductN(exchange, inputDict, ["a", "b", "strNumber"], factor) == 30;
     @test safeIntegerProductN(exchange, inputList, [3, 2, 1], factor) == 20;
+end
+
+
+function testSafeTimestamp()
+
+    exchange = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
+        Symbol("id") => "sampleex"
+    ));
+    inputDict = helperDefaultInputDict();
+    inputList = ["Hi", 2];
     @test safeTimestamp(exchange, inputDict, "i") == 1000;
     @test safeTimestamp(exchange, inputDict, "f") == 123;
     @test safeTimestamp(exchange, inputDict, "strNumber") == 3000;
@@ -188,6 +268,16 @@ function testSafeMethods()
     @test safeTimestampN(exchange, inputDict, ["a", "b", "f"]) == 123;
     @test safeTimestampN(exchange, inputDict, ["a", "b", "strNumber"]) == 3000;
     @test safeTimestampN(exchange, inputList, [3, 2, 1]) == 2000;
+end
+
+
+function testSafeFloat()
+
+    exchange = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
+        Symbol("id") => "sampleex"
+    ));
+    inputDict = helperDefaultInputDict();
+    inputList = ["Hi", 2];
     @test safeFloat(exchange, inputDict, "i") == ccxt_toNumber(1);
     @test safeFloat(exchange, inputDict, "f") == 0.123;
     @test safeFloat(exchange, inputDict, "strNumber") == ccxt_toNumber(3);
@@ -200,6 +290,16 @@ function testSafeMethods()
     @test safeFloatN(exchange, inputDict, ["a", "b", "f"]) == 0.123;
     @test safeFloatN(exchange, inputDict, ["a", "b", "strNumber"]) == ccxt_toNumber(3);
     @test safeFloatN(exchange, inputList, [3, 2, 1]) == ccxt_toNumber(2);
+end
+
+
+function testSafeNumber()
+
+    exchange = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
+        Symbol("id") => "sampleex"
+    ));
+    inputDict = helperDefaultInputDict();
+    inputList = ["Hi", 2];
     @test safeNumber(exchange, inputDict, "i") == parseNumber(exchange, 1);
     @test safeNumber(exchange, inputDict, "f") == parseNumber(exchange, 0.123);
     @test safeNumber(exchange, inputDict, "strNumber") == parseNumber(exchange, 3);
@@ -216,18 +316,36 @@ function testSafeMethods()
     @test safeNumberN(exchange, inputDict, ["a", "b", "f"]) == parseNumber(exchange, 0.123);
     @test safeNumberN(exchange, inputDict, ["a", "b", "strNumber"]) == parseNumber(exchange, 3);
     @test safeNumberN(exchange, inputList, [3, 2, 1]) == parseNumber(exchange, 2);
-    @test functions.ccxtruthy(safeBool(exchange, inputDict, "bool"));
-    @test safeBool(exchange, inputList, 1) == nothing;
-    @test functions.ccxtruthy(safeBool2(exchange, inputDict, "a", "bool"));
-    @test safeBool2(exchange, inputList, 2, 1) == nothing;
-    @test functions.ccxtruthy(safeBoolN(exchange, inputDict, ["a", "b", "bool"]));
-    @test safeBoolN(exchange, inputList, [3, 2, 1]) == nothing;
     @test safeNumberOmitZero(exchange, inputDict, "zeroNumeric") == nothing;
     @test safeNumberOmitZero(exchange, inputDict, "zeroString") == nothing;
     @test safeNumberOmitZero(exchange, inputDict, "undefined") == nothing;
     @test safeNumberOmitZero(exchange, inputDict, "emptyString") == nothing;
     @test safeNumberOmitZero(exchange, inputDict, "floatNumeric") != nothing;
     @test safeNumberOmitZero(exchange, inputDict, "floatString") != nothing;
+end
+
+
+function testSafeBool()
+
+    exchange = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
+        Symbol("id") => "sampleex"
+    ));
+    inputDict = helperDefaultInputDict();
+    inputList = ["Hi", 2];
+    @test functions.ccxtruthy(safeBool(exchange, inputDict, "bool"));
+    @test safeBool(exchange, inputList, 1) == nothing;
+    @test functions.ccxtruthy(safeBool2(exchange, inputDict, "a", "bool"));
+    @test safeBool2(exchange, inputList, 2, 1) == nothing;
+    @test functions.ccxtruthy(safeBoolN(exchange, inputDict, ["a", "b", "bool"]));
+    @test safeBoolN(exchange, inputList, [3, 2, 1]) == nothing;
+end
+
+
+function testCacheSafeCalls()
+
+    exchange = get(ccxt, Symbol("Exchange"), nothing)(Dict{Symbol, Any}(
+        Symbol("id") => "sampleex"
+    ));
     arrayCache = ArrayCache(100);
     append(arrayCache, Dict{Symbol, Any}(
     Symbol("symbol") => "BTC/USDT",
@@ -297,4 +415,19 @@ function testSafeMethods()
     retrievedArrayCacheBySymbolBySideHashmap = get(retrievedArrayCacheBySymbolBySide, Symbol("hashmap"), nothing);
     @test retrievedArrayCacheBySymbolBySideHashmap != nothing;
     @test safeValue(exchange, cacheBySideMap, "NONEXISTENT") == nothing;
+end
+
+
+function testSafeMethods()
+
+    testSafeString();
+    testSafeValue();
+    testSafeDict();
+    testSafeList();
+    testSafeInteger();
+    testSafeTimestamp();
+    testSafeFloat();
+    testSafeNumber();
+    testSafeBool();
+    testCacheSafeCalls();
 end

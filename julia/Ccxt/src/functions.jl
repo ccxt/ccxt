@@ -72,6 +72,14 @@ function Base.get(v::AbstractVector, k::Symbol, default)
     (i === nothing || i < 0 || i >= length(v)) && return default
     return v[i + 1]
 end
+# JS `undefined.prop` is a TypeError, but `undefined?.prop` and — far more
+# commonly in the transpiled output — a chained lookup whose intermediate step
+# is absent both evaluate to `undefined`. The generator emits nested lookups
+# such as `get(get(features, Symbol(marketType), nothing), Symbol(subType),
+# nothing)` from TS that is only reached when the outer value exists, so the
+# inner `get` can legitimately see `nothing`. Julia has no `get` for `Nothing`,
+# which turns that into a `MethodError` instead of the JS `undefined`.
+Base.get(::Nothing, key, default) = default
 # JS Array/string concat: concat(a, b, ...) -> vcat for arrays, string join for strings.
 function concat(args...)
     if length(args) == 0
@@ -778,6 +786,51 @@ function json(data, params=nothing)
     return JSON3.write(data)
 end
 
+# --- JSON.stringify with a replacer ------------------------------------------
+#
+# `Exchange.jsonStringifyWithNull` is TS's
+# `JSON.stringify (obj, (_, v) => (v === undefined ? null : v))`. The backend
+# transpiles the call itself but has no equivalent for the replacer callback,
+# and emits `JSON3.json(obj, function ... end)` — a function JSON3 does not
+# have (it is `JSON3.write`, and it takes no replacer). The generator cannot
+# express this, so the base method is redirected here by a post-pass in
+# `build/juliaTranspileCLI.ts`.
+#
+# The replacer itself needs no port: `JSON3.write` already encodes `nothing`
+# as `null`, which is exactly what it exists to do.
+#
+# One deliberate divergence from JS. Objects there iterate in insertion order,
+# so `JSON.stringify` of two structurally-equal objects yields byte-identical
+# text. A Julia `Dict` is a hash table with no ordering guarantee, so the same
+# two dicts can serialize differently. The only consumer of this method is
+# `deepEqual` in the shared test helpers, which compares the two strings, so
+# keys are sorted recursively: the encoding becomes canonical and the
+# comparison order-independent.
+function jsonStringifyCanonical(value)
+    if isa(value, AbstractDict)
+        ks = sort!(String[string(k) for k in keys(value)])
+        parts = String[]
+        for k in ks
+            push!(parts, string(JSON3.write(k), ":", jsonStringifyCanonical(value[_matchingJsonKey(value, k)])))
+        end
+        return string("{", join(parts, ","), "}")
+    elseif isa(value, AbstractVector) && !isa(value, AbstractVector{UInt8})
+        return string("[", join((jsonStringifyCanonical(v) for v in value), ","), "]")
+    end
+    return JSON3.write(value)
+end
+
+# Dict keys may be `Symbol` or `String` depending on where the value came from
+# (`describe()` builds Symbol-keyed dicts, parsed JSON is materialised the same
+# way, fixtures arrive String-keyed). Recover the original key object from its
+# stringified form so the lookup succeeds either way.
+function _matchingJsonKey(d::AbstractDict, k::String)
+    for key in keys(d)
+        string(key) == k && return key
+    end
+    return k
+end
+
 # --- JSON parsing -----------------------------------------------------------
 #
 # TS `JSON.parse` yields plain, mutable JS objects and arrays. `JSON3.read`
@@ -1029,7 +1082,7 @@ function base64ToBase64Url(base64, stripPadding=true)
 end
 
 
-export json, isJsonEncodedObject, binaryToString, stringToBinary, stringToBase64, base64ToBinary, base64ToString, binaryToBase64, base16ToBinary, binaryToBase16, binaryConcat, binaryConcatArray, base64ToBase64Url, urlencode, urlencodeWithArrayRepeat, rawencode, encode, decode, urlencodeBase64, numberToLE, numberToBE, base58ToBinary, binaryToBase58, urlencodeNested, packb, ccxt_json_parse
+export json, jsonStringifyCanonical, isJsonEncodedObject, binaryToString, stringToBinary, stringToBase64, base64ToBinary, base64ToString, binaryToBase64, base16ToBinary, binaryToBase16, binaryConcat, binaryConcatArray, base64ToBase64Url, urlencode, urlencodeWithArrayRepeat, rawencode, encode, decode, urlencodeBase64, numberToLE, numberToBE, base58ToBinary, binaryToBase58, urlencodeNested, packb, ccxt_json_parse
 
 
 # ===== generic.ts =====
@@ -2896,10 +2949,19 @@ function getPropValue(object, k)
     end
     return get(object, Symbol(k), nothing)
 end
+# TS: `isObject (object) ? object[array.find ((k) => prop (object, k) !== undefined)] : undefined`
+#
+# The search predicate is `prop`, not a raw read: `prop` maps JS's three
+# "absent" spellings (missing key, `''`, `null`) onto `undefined`, so a key
+# holding an empty string does NOT count as found and the scan moves on to the
+# next candidate. Probing with a raw read instead stops at the empty string and
+# returns `""` where every other language returns the default — which then
+# flows into `safeString*N` and turns a missing field into a present-but-blank
+# one.
 function getValueFromKeysInArray(object, array)
     if functions.ccxtruthy(isObject(object))
         key = ccxt_find(array, function (k)
-            return getPropValue(object, k) != nothing;
+            return prop(object, k) !== nothing;
         end)
         return key === nothing ? nothing : getPropValue(object, key)
     end
@@ -2944,43 +3006,61 @@ function safeValue(o, k, default_var=nothing)
     x = prop(o, k);
     return functions.ccxtruthy(hasProps(x)) ? x : default_var
 end;
-function safeString(o, k, default_var)
-
+# --- the safeString family ---------------------------------------------------
+#
+# `ts/src/base/functions/type.ts` states the rule three times per variant:
+#
+#     if (typeof x === 'string') return x;
+#     if (Number.isFinite (x)) return String (x);
+#     return $default;
+#
+# so it is factored into one helper here and each variant supplies the case
+# transform. Three properties of that rule are easy to get wrong, and each was
+# an actual bug in this port:
+#
+#  1. Only strings and FINITE numbers convert. The older implementation tested
+#     `isStringCoercible`, which is JS's `hasProps (x) && x.toString`. In JS
+#     that is a duck-typing check that happens to exclude very little —
+#     a boolean has `toString`, so `safeString (dict, 'bool')` returned
+#     "true" instead of `undefined`. `Number.isFinite` also rules out `NaN`
+#     and the infinities, which do have a `toString`.
+#  2. The DEFAULT is returned verbatim, never transformed. `safeStringLower`
+#     lowercases the value it found, not the caller's fallback:
+#     `safeStringLower (dict, 'nonexistent', 'MiXed_Case')` is `'MiXed_Case'`.
+#     Lowercasing the default is a silent data corruption for anything
+#     case-sensitive (an order id, a signature, a network code).
+#  3. The default is returned as-is even when it is not a string — no
+#     coercion, no case change.
+#
+# `prop`/`getValueFromKeysInArray` already map the JS "absent" cases (missing
+# key, `''`, `null`) onto `nothing`, so this only has to classify what they
+# hand back.
+function _safeStringCoerce(x, default_var, transform)
+    # `String(::String)` is the identity, so this only materialises the
+    # `SubString` views that `split`/`getindex` hand back. Returning one of
+    # those verbatim would be closer to TS (which returns the same object) but
+    # it leaks a non-`String` type into a codebase whose helpers — the
+    # `Precise` `string*` wrappers above all — are declared `::String`.
+    isa(x, AbstractString) && return transform(String(x))
+    # `isa(true, Integer)` holds in Julia (Bool <: Integer) but JS's
+    # `Number.isFinite (true)` is false, so booleans are excluded explicitly.
+    # `_jsNumberToString` is the port of `Number.prototype.toString`, which is
+    # what TS's `String (x)` calls here — Julia's own `string` renders
+    # `1e-7` as "1.0e-7" where JS gives "1e-7".
+    if isa(x, Real) && !isa(x, Bool) && isfinite(x)
+        return transform(_jsNumberToString(x))
+    end
+    return default_var
 end
-
-
 function safeString(o, k, default_var=nothing)
-
+    return _safeStringCoerce(prop(o, k), default_var, identity)
 end
-
-
-function safeString(o, k, default_var=nothing)
-
-    x = prop(o, k);
-    return functions.ccxtruthy(isStringCoercible(x)) ? string(x) : default_var
-end
-
-
 function safeStringLower(o, k, default_var=nothing)
-    x = prop(o, k);
-    if functions.ccxtruthy(isStringCoercible(x))
-        return lowercase(string(x))
-elseif functions.ccxtruthy(isStringCoercible(default_var))
-    return lowercase(string(default_var))
+    return _safeStringCoerce(prop(o, k), default_var, lowercase)
 end
-
-    return default_var
-end;
 function safeStringUpper(o, k, default_var=nothing)
-    x = prop(o, k);
-    if functions.ccxtruthy(isStringCoercible(x))
-        return uppercase(string(x))
-elseif functions.ccxtruthy(isStringCoercible(default_var))
-    return uppercase(string(default_var))
+    return _safeStringCoerce(prop(o, k), default_var, uppercase)
 end
-
-    return default_var
-end;
 function safeFloat2(o, k1, k2, default_var=nothing)
     n = asFloat(prop2(o, k1, k2));
     return functions.ccxtruthy(isNumber(n)) ? n : default_var
@@ -3014,43 +3094,15 @@ function safeValue2(o, k1, k2, default_var=nothing)
     x = prop2(o, k1, k2);
     return functions.ccxtruthy(hasProps(x)) ? x : default_var
 end;
-function safeString2(o, k1, k2, default_var)
-
-end
-
-
 function safeString2(o, k1, k2, default_var=nothing)
-
+    return _safeStringCoerce(prop2(o, k1, k2), default_var, identity)
 end
-
-
-function safeString2(o, k1, k2, default_var=nothing)
-
-    x = prop2(o, k1, k2);
-    return functions.ccxtruthy(isStringCoercible(x)) ? string(x) : default_var
-end
-
-
 function safeStringLower2(o, k1, k2, default_var=nothing)
-    x = prop2(o, k1, k2);
-    if functions.ccxtruthy(isStringCoercible(x))
-        return lowercase(string(x))
-elseif functions.ccxtruthy(isStringCoercible(default_var))
-    return lowercase(string(default_var))
+    return _safeStringCoerce(prop2(o, k1, k2), default_var, lowercase)
 end
-
-    return default_var
-end;
 function safeStringUpper2(o, k1, k2, default_var=nothing)
-    x = prop2(o, k1, k2);
-    if functions.ccxtruthy(isStringCoercible(x))
-        return uppercase(string(x))
-elseif functions.ccxtruthy(isStringCoercible(default_var))
-    return uppercase(string(default_var))
+    return _safeStringCoerce(prop2(o, k1, k2), default_var, uppercase)
 end
-
-    return default_var
-end;
 function safeFloatN(o, k, default_var=nothing)
     n = asFloat(getValueFromKeysInArray(o, k));
     return functions.ccxtruthy(isNumber(n)) ? n : default_var
@@ -3092,35 +3144,17 @@ end
     return functions.ccxtruthy(hasProps(x)) ? x : default_var
 end;
 function safeStringN(o, k, default_var=nothing)
-
-    if functions.ccxtruthy(o == nothing)
-            return default_var
-    end
-    x = getValueFromKeysInArray(o, k);
-    return functions.ccxtruthy(isStringCoercible(x)) ? string(x) : default_var
+    o === nothing && return default_var
+    return _safeStringCoerce(getValueFromKeysInArray(o, k), default_var, identity)
 end
-
-
 function safeStringLowerN(o, k, default_var=nothing)
-    x = getValueFromKeysInArray(o, k);
-    if functions.ccxtruthy(isStringCoercible(x))
-        return lowercase(string(x))
-elseif functions.ccxtruthy(isStringCoercible(default_var))
-    return lowercase(string(default_var))
+    o === nothing && return default_var
+    return _safeStringCoerce(getValueFromKeysInArray(o, k), default_var, lowercase)
 end
-
-    return default_var
-end;
 function safeStringUpperN(o, k, default_var=nothing)
-    x = getValueFromKeysInArray(o, k);
-    if functions.ccxtruthy(isStringCoercible(x))
-        return uppercase(string(x))
-elseif functions.ccxtruthy(isStringCoercible(default_var))
-    return uppercase(string(default_var))
+    o === nothing && return default_var
+    return _safeStringCoerce(getValueFromKeysInArray(o, k), default_var, uppercase)
 end
-
-    return default_var
-end;
 export isNumber, isInteger, isArray, isObject, isString, isStringCoercible, isDict, hasProps, prop, asFloat, asInteger, safeFloat, safeInteger, safeIntegerProduct, safeTimestamp, safeValue, safeString, safeStringLower, safeStringUpper, safeFloat2, safeInteger2, safeIntegerProduct2, safeTimestamp2, safeValue2, safeString2, safeStringLower2, safeStringUpper2, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN
 
 

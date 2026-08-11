@@ -110,7 +110,7 @@ function describe(self::Coinbaseinternational, )
         Symbol("spot") => true,
         Symbol("margin") => true,
         Symbol("swap") => true,
-        Symbol("future") => true,
+        Symbol("future") => false,
         Symbol("option") => false,
         Symbol("addMargin") => false,
         Symbol("cancelAllOrders") => true,
@@ -144,6 +144,7 @@ function describe(self::Coinbaseinternational, )
         Symbol("fetchCrossBorrowRates") => false,
         Symbol("fetchCurrencies") => true,
         Symbol("fetchDeposits") => true,
+        Symbol("fetchDepositsWithdrawals") => true,
         Symbol("fetchFundingHistory") => true,
         Symbol("fetchFundingRate") => false,
         Symbol("fetchFundingRateHistory") => true,
@@ -189,6 +190,7 @@ function describe(self::Coinbaseinternational, )
         Symbol("setMargin") => true,
         Symbol("setMarginMode") => false,
         Symbol("setPositionMode") => false,
+        Symbol("transfer") => true,
         Symbol("withdraw") => true
     ),
     Symbol("urls") => Dict{Symbol, Any}(
@@ -212,13 +214,123 @@ function describe(self::Coinbaseinternational, )
     Symbol("api") => Dict{Symbol, Any}(
         Symbol("v1") => Dict{Symbol, Any}(
             Symbol("public") => Dict{Symbol, Any}(
-                Symbol("get") => ["assets", "assets/{assets}", "assets/{asset}/networks", "instruments", "instruments/{instrument}", "instruments/{instrument}/quote", "instruments/{instrument}/funding", "instruments/{instrument}/candles"]
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("assets") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("assets/{assets}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("assets/{asset}/networks") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("instruments") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("instruments/{instrument}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("instruments/{instrument}/quote") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("instruments/{instrument}/funding") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("instruments/{instrument}/candles") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             ),
             Symbol("private") => Dict{Symbol, Any}(
-                Symbol("get") => ["orders", "orders/{id}", "portfolios", "portfolios/{portfolio}", "portfolios/{portfolio}/detail", "portfolios/{portfolio}/summary", "portfolios/{portfolio}/balances", "portfolios/{portfolio}/balances/{asset}", "portfolios/{portfolio}/positions", "portfolios/{portfolio}/positions/{instrument}", "portfolios/fills", "portfolios/{portfolio}/fills", "transfers", "transfers/{transfer_uuid}"],
-                Symbol("post") => ["orders", "portfolios", "portfolios/margin", "portfolios/transfer", "transfers/withdraw", "transfers/address", "transfers/create-counterparty-id", "transfers/validate-counterparty-id", "transfers/withdraw/counterparty"],
-                Symbol("put") => ["orders/{id}", "portfolios/{portfolio}"],
-                Symbol("delete") => ["orders", "orders/{id}"]
+                Symbol("get") => Dict{Symbol, Any}(
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/{portfolio}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/{portfolio}/detail") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/{portfolio}/summary") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/{portfolio}/balances") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/{portfolio}/balances/{asset}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/{portfolio}/positions") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/{portfolio}/positions/{instrument}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/{portfolio}/fills") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("transfers") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("transfers/{transfer_uuid}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                ),
+                Symbol("post") => Dict{Symbol, Any}(
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/margin") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/transfer") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("transfers/withdraw") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("transfers/address") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("transfers/create-counterparty-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("transfers/validate-counterparty-id") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("transfers/withdraw/counterparty") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                ),
+                Symbol("put") => Dict{Symbol, Any}(
+                    Symbol("orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("portfolios/{portfolio}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                ),
+                Symbol("delete") => Dict{Symbol, Any}(
+                    Symbol("orders") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+),
+                    Symbol("orders/{id}") => Dict{Symbol, Any}(
+    Symbol("cost") => 1
+)
+                )
             )
         )
     ),
@@ -453,8 +565,8 @@ function fetchFundingRateHistory(self::Coinbaseinternational, symbol=nothing, si
     end
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "paginate");
-    maxEntriesPerRequest = nothing;
-    (maxEntriesPerRequest, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "maxEntriesPerRequest", 100);
+    maxEntriesPerRequest = 100;
+    (maxEntriesPerRequest, params) = self.handleOptionAndParams(params, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
     pageKey = "ccxtPageKey";
     if functions.ccxtruthy(paginate)
             return Base.fetch(self.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
@@ -628,7 +740,10 @@ function createDepositAddress(self::Coinbaseinternational, code, params=Dict())
         (networkId, params) = Base.fetch(self.handleNetworkIdAndParams(code, "createDepositAddress", params));
         request[Symbol("network_arn_id")] = networkId;
     end
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    if functions.ccxtruthy(method == nothing)
+        throw(ArgumentsRequired(string(self.id, " method is required")));
+    end
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     tag = safeString(response, "destination_tag");
     address = safeString2(response, "address", "counterparty_id");
     return Dict{Symbol, Any}(
@@ -717,7 +832,8 @@ function setMargin(self::Coinbaseinternational, symbol, amount, params=Dict())
         Symbol("portfolio") => portfolio,
         Symbol("margin_override") => amount
     );
-    return Base.fetch(self.v1PrivatePostPortfoliosMargin(extend(request, params)))
+    response = Base.fetch(self.v1PrivatePostPortfoliosMargin(extend(request, params)));
+    return response
 
 end
 function fetchDepositsWithdrawals(self::Coinbaseinternational, code=nothing, since=nothing, limit=nothing, params=Dict())
@@ -726,8 +842,8 @@ function fetchDepositsWithdrawals(self::Coinbaseinternational, code=nothing, sin
     end
     paginate = nothing;
     (paginate, params) = self.handleOptionAndParams(params, "fetchDepositsWithdrawals", "paginate");
-    maxEntriesPerRequest = nothing;
-    (maxEntriesPerRequest, params) = self.handleOptionAndParams(params, "fetchDepositsWithdrawals", "maxEntriesPerRequest", 100);
+    maxEntriesPerRequest = 100;
+    (maxEntriesPerRequest, params) = self.handleOptionAndParams(params, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
     pageKey = "ccxtPageKey";
     if functions.ccxtruthy(paginate)
             return Base.fetch(self.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, params, pageKey, maxEntriesPerRequest))
@@ -929,7 +1045,10 @@ function parseMarket(self::Coinbaseinternational, market)
     end
     isLinear = functions.ccxtruthy(isSpot) ? nothing : (settleId == quoteId);
     isInverse = functions.ccxtruthy(isSpot) ? nothing : (settleId != quoteId);
-    return Dict{Symbol, Any}(
+    if functions.ccxtruthy(marketId == nothing)
+        throw(ExchangeError(string(self.id, " parseMarket() missing marketId")));
+    end
+    return self.safeMarketStructure(Dict{Symbol, Any}(
     Symbol("id") => marketId,
     Symbol("lowercaseId") => lowercase(marketId),
     Symbol("symbol") => symbol,
@@ -981,7 +1100,7 @@ function parseMarket(self::Coinbaseinternational, market)
     ),
     Symbol("info") => market,
     Symbol("created") => nothing
-)
+))
 
 end
 function fetchCurrencies(self::Coinbaseinternational, params=Dict())
@@ -1016,9 +1135,13 @@ function fetchTickers(self::Coinbaseinternational, symbols=nothing, params=Dict(
     symbols = self.marketSymbols(symbols);
     instruments = Base.fetch(self.v1PublicGetInstruments(params));
     tickers = Dict{Symbol, Any}();
+    rows = [];
+    if functions.ccxtruthy(functions.ccxt_isArray(instruments))
+        rows = instruments;
+    end
     i = 0
-    while functions.ccxtruthy(functions.ccxt_lt(i, length(instruments)))
-        instrument = get(instruments, i + 1, nothing);
+    while functions.ccxtruthy(functions.ccxt_lt(i, length(rows)))
+        instrument = get(rows, i + 1, nothing);
         marketId = safeString(instrument, "symbol");
         symbol = self.safeSymbol(marketId);
         quote_var = self.safeDict(instrument, "quote", Dict{Symbol, Any}());
@@ -1093,7 +1216,9 @@ function parseBalance(self::Coinbaseinternational, response)
         account = self.account();
         account[Symbol("total")] = safeString(rawBalance, "quantity");
         account[Symbol("used")] = safeString(rawBalance, "hold");
-        result[Symbol(code)] = account;
+        if functions.ccxtruthy(code != nothing)
+            result[Symbol(code)] = account;
+        end
         i += 1
     end
     return self.safeBalance(result)
@@ -1106,7 +1231,7 @@ function transfer(self::Coinbaseinternational, code, amount, fromAccount, toAcco
     currency = self.currency(code);
     request = Dict{Symbol, Any}(
         Symbol("asset") => get(currency, Symbol("id"), nothing),
-        Symbol("ammount") => amount,
+        Symbol("amount") => amount,
         Symbol("from") => fromAccount,
         Symbol("to") => toAccount
     );
@@ -1134,7 +1259,10 @@ function createOrder(self::Coinbaseinternational, symbol, type_var, side, amount
     triggerPrice = self.safeNumberN(params, ["triggerPrice", "stopPrice", "stop_price"]);
     clientOrderIdprefix = safeString(self.options, "brokerId", "nfqkvdjp");
     clientOrderId = string(clientOrderIdprefix, "-", uuid());
-    clientOrderId = clientOrderId[0 + 1:17];
+    clientOrderId = functions.ccxt_slice(clientOrderId, 0, 17);
+    if functions.ccxtruthy(side == nothing)
+        throw(ArgumentsRequired(string(self.id, " createOrder() requires a side argument")));
+    end
     request = Dict{Symbol, Any}(
         Symbol("client_order_id") => clientOrderId,
         Symbol("side") => uppercase(side),
@@ -1338,8 +1466,8 @@ function fetchOpenOrders(self::Coinbaseinternational, symbol=nothing, since=noth
     (portfolio, params) = Base.fetch(self.handlePortfolioAndParams("fetchOpenOrders", params));
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "paginate");
-    maxEntriesPerRequest = nothing;
-    (maxEntriesPerRequest, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "maxEntriesPerRequest", 100);
+    maxEntriesPerRequest = 100;
+    (maxEntriesPerRequest, params) = self.handleOptionAndParams(params, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
     pageKey = "ccxtPageKey";
     if functions.ccxtruthy(paginate)
             return Base.fetch(self.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
@@ -1376,8 +1504,8 @@ function fetchMyTrades(self::Coinbaseinternational, symbol=nothing, since=nothin
     paginate = false;
     (paginate, params) = self.handleOptionAndParams(params, "fetchMyTrades", "paginate");
     pageKey = "ccxtPageKey";
-    maxEntriesPerRequest = nothing;
-    (maxEntriesPerRequest, params) = self.handleOptionAndParams(params, "fetchMyTrades", "maxEntriesPerRequest", 100);
+    maxEntriesPerRequest = 100;
+    (maxEntriesPerRequest, params) = self.handleOptionAndParams(params, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
     if functions.ccxtruthy(paginate)
             return Base.fetch(self.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
     end
@@ -1399,7 +1527,7 @@ function fetchMyTrades(self::Coinbaseinternational, symbol=nothing, since=nothin
     if functions.ccxtruthy(since != nothing)
         request[Symbol("time_from")] = self.iso8601(since);
     end
-    until = safeStringN(params, ["until"]);
+    until = safeString(params, "until");
     if functions.ccxtruthy(until != nothing)
         params = omit(params, ["until"]);
         request[Symbol("ref_datetime")] = self.iso8601(until);
@@ -1432,7 +1560,10 @@ function withdraw(self::Coinbaseinternational, code, amount, address, tag=nothin
         Symbol("network_arn_id") => networkId,
         Symbol("nonce") => self.nonce()
     );
-    response = Base.fetch(getproperty(self, Symbol(method))(self, extend(request, params)));
+    if functions.ccxtruthy(method == nothing)
+        throw(ArgumentsRequired(string(self.id, " method is required")));
+    end
+    response = Base.fetch(getproperty(self, Symbol(method))(extend(request, params)));
     return self.parseTransaction(response, currency)
 
 end
@@ -1490,7 +1621,7 @@ function handleErrors(self::Coinbaseinternational, code, reason, url, method, he
 
 end
 
-# Property resolution is shared by every generated exchange; see
+# Property resolution is centralised so every exchange shares one order; see
 # `ccxt_getproperty` in src/CCXTBase.jl for the lookup order.
 Base.getproperty(self::Coinbaseinternational, name::Symbol) = ccxt_getproperty(self, name)
 
@@ -1637,9 +1768,62 @@ end
 
 function Coinbaseinternational(; kwargs...)
     inst = Coinbaseinternational(Exchange(), describe, handlePortfolioAndParams, handleNetworkIdAndParams, fetchAccounts, parseAccount, fetchOHLCV, parseOHLCV, fetchFundingRateHistory, parseFundingRateHistory, parseFundingRate, fetchFundingHistory, parseIncome, fetchTransfers, parseTransfer, parseTransferStatus, createDepositAddress, findDefaultNetwork, loadCurrencyNetworks, parseNetworks, parseNetwork, setMargin, fetchDepositsWithdrawals, fetchPosition, parsePosition, fetchPositions, fetchWithdrawals, fetchDeposits, parseTransactionStatus, parseTransaction, parseTrade, fetchMarkets, parseMarket, fetchCurrencies, parseCurrency, fetchTickers, fetchTicker, parseTicker, fetchBalance, parseBalance, transfer, createOrder, parseOrder, parseOrderStatus, parseOrderType, cancelOrder, cancelAllOrders, editOrder, fetchOrder, fetchOpenOrders, fetchMyTrades, withdraw, sign, handleErrors, v1PublicGetAssets, v1PublicGetAssetsAssets, v1PublicGetAssetsAssetNetworks, v1PublicGetInstruments, v1PublicGetInstrumentsInstrument, v1PublicGetInstrumentsInstrumentQuote, v1PublicGetInstrumentsInstrumentFunding, v1PublicGetInstrumentsInstrumentCandles, v1PrivateGetOrders, v1PrivateGetOrdersId, v1PrivateGetPortfolios, v1PrivateGetPortfoliosPortfolio, v1PrivateGetPortfoliosPortfolioDetail, v1PrivateGetPortfoliosPortfolioSummary, v1PrivateGetPortfoliosPortfolioBalances, v1PrivateGetPortfoliosPortfolioBalancesAsset, v1PrivateGetPortfoliosPortfolioPositions, v1PrivateGetPortfoliosPortfolioPositionsInstrument, v1PrivateGetPortfoliosFills, v1PrivateGetPortfoliosPortfolioFills, v1PrivateGetTransfers, v1PrivateGetTransfersTransferUuid, v1PrivatePostOrders, v1PrivatePostPortfolios, v1PrivatePostPortfoliosMargin, v1PrivatePostPortfoliosTransfer, v1PrivatePostTransfersWithdraw, v1PrivatePostTransfersAddress, v1PrivatePostTransfersCreateCounterpartyId, v1PrivatePostTransfersValidateCounterpartyId, v1PrivatePostTransfersWithdrawCounterparty, v1PrivatePutOrdersId, v1PrivatePutPortfoliosPortfolio, v1PrivateDeleteOrders, v1PrivateDeleteOrdersId)
+    # describe() first, then the user config — the same order, and the same
+    # merge rule, as the TS base constructor (Exchange.ts, "merge constructor
+    # overrides to this instance"): a plain object is deep-merged onto the
+    # current value, anything else is assigned. Assigning dictionaries
+    # wholesale would drop the base defaults an exchange does not restate —
+    # e.g. `options.defaultNetworkCodeReplacements`, which every
+    # networkIdToCode lookup needs.
+    #
+    # `features` is the exception, and is assigned rather than merged.
+    # Julia models inheritance by composition, so a child's `parent` is a
+    # fully-built instance that has already run `afterConstruct` — and
+    # `featuresGenerator` rewrites `features` in place, expanding the raw
+    # `{'default': ...}` / `{'swap': {'extends': ...}}` shorthand into a
+    # per-market-type table and recording absent types as `nothing`. Merging
+    # that derived table with the raw `describe()` value it was derived from
+    # feeds the generator its own output on the child's pass: a market type
+    # the parent recorded as absent comes back as a present-but-`nothing`
+    # entry, which the generator then tries to index into. In TS the
+    # generator only ever sees the raw value, so assign it here too.
     desc = inst.describe()
     for (k, v) in desc
-        inst[Symbol(k)] = v
+        key = Symbol(k)
+        if v isa AbstractDict && key !== :features
+            inst[key] = deepExtend(get(inst, key, nothing), v)
+        else
+            inst[key] = v
+        end
     end
+    for (k, v) in kwargs
+        if v isa AbstractDict && k !== :features
+            inst[k] = deepExtend(get(inst, k, nothing), v)
+        else
+            inst[k] = v
+        end
+    end
+    # Re-run the tail of the TS base constructor now that this exchange's
+    # own describe() has been merged in. The composed parent Exchange only
+    # ever saw the base describe(), so these derived values are still the
+    # base ones until they are recomputed here.
+    #
+    # defineRestApi is deliberately not repeated: the generator emits every
+    # api endpoint as a real Julia function (and a struct field), so the
+    # dynamic closures the TS constructor installs have no work to do.
+    for k in objectKeys(inst.has)
+        inst[Symbol(string("has", capitalize(k)))] = ccxtruthy(get(inst.has, Symbol(k), nothing))
+    end
+    newUpdates = get(inst.options, Symbol("newUpdates"), nothing)
+    inst.newUpdates = newUpdates === nothing ? true : newUpdates
+    # afterConstruct already honours `options.sandbox`/`options.testnet`; the
+    # TS constructor's extra `setSandboxMode` call reads the *user config*,
+    # which arrives here as kwargs. Repeating the options-based check would
+    # swap the api/test URLs a second time and clobber the apiBackup snapshot.
+    inst.afterConstruct()
+    if ccxtruthy(get(kwargs, :sandbox, false)) || ccxtruthy(get(kwargs, :testnet, false))
+        inst.setSandboxMode(true)
+    end
+    inst.loadExchangeSpecificFiles()
     return inst
 end
