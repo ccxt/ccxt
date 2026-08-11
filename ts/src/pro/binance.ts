@@ -4265,7 +4265,10 @@ export default class binance extends binanceRest {
             const stockUrl = this.getStockWsUrl ('user');
             const stockStreamName = stockListenKey + '@orderReport';
             const stockRequestId = this.requestId (stockUrl);
-            const stockMessageHash = (symbol === undefined) ? 'orders' : 'orders:' + this.symbol (symbol);
+            let stockMessageHash = 'orders';
+            if (symbol !== undefined) {
+                stockMessageHash = 'orders:' + this.symbol (symbol);
+            }
             const stockRequest: Dict = {
                 'method': 'SUBSCRIBE',
                 'params': [ stockStreamName ],

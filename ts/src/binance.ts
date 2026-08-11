@@ -7239,17 +7239,20 @@ export default class binance extends Exchange {
                 if (upperCaseSide === 'BUY') {
                     const precision = this.safeValue (market['precision'], 'price');
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
+                    let notional: Str = undefined;
                     if (quoteOrderQtyNew !== undefined) {
-                        request['notional'] = (precision === undefined) ? quoteOrderQtyNew : this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
+                        notional = quoteOrderQtyNew;
                     } else if (price !== undefined) {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
-                        const notional = Precise.stringMul (amountString, priceString);
-                        request['notional'] = (precision === undefined) ? notional : this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
+                        notional = Precise.stringMul (amountString, priceString);
                     } else {
-                        const precisionAvailable = this.safeValue (market['precision'], 'price');
-                        const notional = this.numberToString (amount);
-                        request['notional'] = (precisionAvailable === undefined) ? notional : this.decimalToPrecision (notional, TRUNCATE, precisionAvailable, this.precisionMode);
+                        notional = this.numberToString (amount);
+                    }
+                    if (precision === undefined) {
+                        request['notional'] = notional;
+                    } else {
+                        request['notional'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
                     }
                 } else {
                     // Redeem stock to underlying using sapiPostEquityTokenizedRedeem or call redeemTokenizedAsset (tokenizedAsset, tokenizedAssetAmount, params)
