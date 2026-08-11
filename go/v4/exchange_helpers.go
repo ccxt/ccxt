@@ -2637,6 +2637,10 @@ func Capitalize(s string) string {
 	return firstLetter + s[1:]
 }
 
+func (this *BaseExchange) IsDictionary(value any) any {
+	return IsDictionary(value)
+}
+
 func SetDefaults(p any) {
 	setDefaults(p)
 }

@@ -922,10 +922,6 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $defaultValue;
     }
 
-    public function is_dictionary(mixed $value) {
-        return ($value !== null) && (gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)));
-    }
-
     public function safe_list_2(mixed $dictionaryOrList, int|string|null $key1, string $key2, ?array $defaultValue = null) {
         /**
          * @ignore
