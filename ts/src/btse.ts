@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/btse.js';
-import { ArgumentsRequired, BadRequest, InvalidOrder } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound } from './base/errors.js';
 import { sha384 } from '@noble/hashes/sha2.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Bool, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface } from './base/types.js';
@@ -476,8 +476,21 @@ export default class btse extends Exchange {
                     // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
                     // {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
                     // {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
+                    '-1': OrderNotFound,
+                    '-2': BadRequest,
+                    '-7': AuthenticationError,
+                    '-11': ExchangeNotAvailable,
+                    '134': BadRequest,
+                    '10002': AuthenticationError,
+                    '51523': InsufficientFunds,
+                    '33001001': InvalidOrder,
+                    '33001003': InvalidOrder,
                 },
                 'broad': {
+                    'Insufficient wallet balance': InsufficientFunds,
+                    'Authentication Failed': AuthenticationError,
+                    'Authenticate failed': AuthenticationError,
+                    'BADREQUEST': BadRequest,
                 },
             },
             'commonCurrencies': {
@@ -1798,7 +1811,13 @@ export default class btse extends Exchange {
         const triggerPrice = this.safeString (params, 'triggerPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        const triggerPriceToSend = triggerPrice || takeProfitPrice || stopLossPrice;
+        let triggerPriceToSend = triggerPrice;
+        if (triggerPriceToSend === undefined) {
+            triggerPriceToSend = takeProfitPrice;
+        }
+        if (triggerPriceToSend === undefined) {
+            triggerPriceToSend = stopLossPrice;
+        }
         const isTriggerOrder = (triggerPrice !== undefined) || (takeProfitPrice !== undefined);
         const isStopLossOrder = (stopLossPrice !== undefined);
         if (isTriggerOrder || isStopLossOrder) {
@@ -1955,7 +1974,7 @@ export default class btse extends Exchange {
         if ((type === 'PEG') || (deviation !== undefined) || (stealth !== undefined)) {
             // contract PEG orders have own endpoint and do not require type
             request['price'] = this.priceToPrecision (symbol, price);
-            response = await this.privatePostSpotApiV33OrderPeg (this.extend (request, params));
+            response = await this.privatePostFuturesApiV23OrderPeg (this.extend (request, params));
         } else {
             request['type'] = type;
             const isMarketOrder = (type === 'MARKET');
@@ -1988,7 +2007,13 @@ export default class btse extends Exchange {
             // first we handling with simple tp/sl order
             const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
             const stopLossPrice = this.safeString (params, 'stopLossPrice');
-            const triggerPriceToSend = triggerPrice || takeProfitPrice || stopLossPrice;
+            let triggerPriceToSend = triggerPrice;
+            if (triggerPriceToSend === undefined) {
+                triggerPriceToSend = takeProfitPrice;
+            }
+            if (triggerPriceToSend === undefined) {
+                triggerPriceToSend = stopLossPrice;
+            }
             const isTriggerOrder = (triggerPrice !== undefined) || (takeProfitPrice !== undefined);
             const isStopLossOrder = (stopLossPrice !== undefined);
             if (isTriggerOrder || isStopLossOrder) {
@@ -3013,6 +3038,41 @@ export default class btse extends Exchange {
         };
         const response = await this.privatePostFuturesApiV23Leverage (this.extend (request, params));
         return response;
+    }
+
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        //
+        // spot
+        //
+        //     {"code":10002,"msg":"UNAUTHORIZED: Authentication Failed","time":1770477230034,"data":null,"success":false}
+        //     {"code":51523,"msg":"BADREQUEST: Insufficient wallet balance","time":1770814875493,"data":null,"success":false}
+        //
+        // futures
+        //
+        //     {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
+        //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
+        //
+        const success = this.safeBool (response, 'success');
+        if (success === false) {
+            const errorCode = this.safeString (response, 'code');
+            const message = this.safeString (response, 'msg');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback);
+        }
+        const errorCode = this.safeString (response, 'errorCode');
+        if (errorCode !== undefined) {
+            const message = this.safeString (response, 'message');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
