@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official okx API documentation:** [okx.com](https://www.okx.com/docs-v5/en/)
 
-> 433 implicit endpoints across 2 access groups.
+> 446 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -212,6 +212,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetAssetConvertCurrencies` | GET | `asset/convert/currencies` | 1.6666666666666667 |
 | `privateGetAssetConvertCurrencyPair` | GET | `asset/convert/currency-pair` | 1.6666666666666667 |
 | `privateGetAssetConvertHistory` | GET | `asset/convert/history` | 1.6666666666666667 |
+| `privateGetFiatDepositPaymentMethods` | GET | `fiat/deposit-payment-methods` | 3.3333333333333335 |
+| `privateGetFiatWithdrawalPaymentMethods` | GET | `fiat/withdrawal-payment-methods` | 3.3333333333333335 |
+| `privateGetFiatDepositOrderHistory` | GET | `fiat/deposit-order-history` | 3.3333333333333335 |
+| `privateGetFiatDeposit` | GET | `fiat/deposit` | 3.3333333333333335 |
+| `privateGetFiatWithdrawalOrderHistory` | GET | `fiat/withdrawal-order-history` | 3.3333333333333335 |
+| `privateGetFiatWithdrawal` | GET | `fiat/withdrawal` | 3.3333333333333335 |
+| `privateGetFiatBuySellCurrencies` | GET | `fiat/buy-sell/currencies` | 1.6666666666666667 |
+| `privateGetFiatBuySellCurrencyPair` | GET | `fiat/buy-sell/currency-pair` | 1.6666666666666667 |
+| `privateGetFiatBuySellHistory` | GET | `fiat/buy-sell/history` | 1.6666666666666667 |
 | `privateGetAccountInstruments` | GET | `account/instruments` | 1 |
 | `privateGetAccountBalance` | GET | `account/balance` | 2 |
 | `privateGetAccountPositions` | GET | `account/positions` | 2 |
@@ -379,6 +388,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAssetMonthlyStatement` | POST | `asset/monthly-statement` | 1296000 |
 | `privatePostAssetConvertEstimateQuote` | POST | `asset/convert/estimate-quote` | 50 |
 | `privatePostAssetConvertTrade` | POST | `asset/convert/trade` | 1 |
+| `privatePostFiatCreateWithdrawal` | POST | `fiat/create-withdrawal` | 3.3333333333333335 |
+| `privatePostFiatCancelWithdrawal` | POST | `fiat/cancel-withdrawal` | 3.3333333333333335 |
+| `privatePostFiatBuySellQuote` | POST | `fiat/buy-sell/quote` | 50 |
+| `privatePostFiatBuySellTrade` | POST | `fiat/buy-sell/trade` | 50 |
 | `privatePostAccountBillsHistoryArchive` | POST | `account/bills-history-archive` | 72000 |
 | `privatePostAccountSetPositionMode` | POST | `account/set-position-mode` | 4 |
 | `privatePostAccountSetLeverage` | POST | `account/set-leverage` | 1 |

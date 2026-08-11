@@ -93,8 +93,8 @@ public partial class xt : Exchange
                 { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
-                { "fetchTradingFee", false },
-                { "fetchTradingFees", false },
+                { "fetchTradingFee", true },
+                { "fetchTradingFees", true },
                 { "fetchTradingLimits", false },
                 { "fetchTransactionFee", false },
                 { "fetchTransactionFees", false },
@@ -433,6 +433,9 @@ public partial class xt : Exchange
                             { "future/user/v1/position/list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/user/v1/user/step-rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/user/v1/user/collection/list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -557,6 +560,9 @@ public partial class xt : Exchange
                                 { "cost", 1 },
                             } },
                             { "future/user/v1/position/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/user/v1/user/step-rate", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/user/v1/user/collection/list", new Dictionary<string, object>() {
@@ -5450,6 +5456,120 @@ public partial class xt : Exchange
 
     /**
      * @method
+     * @name xt#fetchTradingFee
+     * @description fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+     * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "contract")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchTradingFee() supports contract markets only")) ;
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new object[] { parameters }));
+        } else
+        {
+            response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new object[] { parameters }));
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "specialType": false,
+        //             "vipProType": false,
+        //             "stepRateProName": null,
+        //             "discountLevel": 0,
+        //             "makerFee": "0.0002",
+        //             "takerFee": "0.0006",
+        //             "levelReturnDay": 90,
+        //             "totalTradeVolume": "78.708",
+        //             "walletBalance": "21.95",
+        //             "nextLvTradeVolume": "200000",
+        //             "nextLvMakerFee": "0.00018",
+        //             "nextLvTakerFee": "0.00054",
+        //             "feeSource": "step_rate"
+        //         }
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseTradingFee(result, market);
+    }
+
+    /**
+     * @method
+     * @name xt#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+     * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] 'linear' (default) or 'inverse'
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol
+     */
+    public async override Task<object> fetchTradingFees(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTradingFees", null, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object isInverse = (isEqual(subType, "inverse"));
+        object response = null;
+        if (isTrue(isInverse))
+        {
+            response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new object[] { parameters }));
+        } else
+        {
+            response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new object[] { parameters }));
+        }
+        //
+        // same response as fetchTradingFee
+        //
+        object fee = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object result = new Dictionary<string, object>() {};
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            object market = this.market(symbol);
+            object matchesSubType = ((bool) isTrue((isInverse))) ? getValue(market, "inverse") : getValue(market, "linear");
+            if (isTrue(isTrue(getValue(market, "contract")) && isTrue(matchesSubType)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(fee, market);
+            }
+        }
+        return result;
+    }
+
+    public virtual object parseTradingFee(object fee, object market = null)
+    {
+        object symbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
+        return new Dictionary<string, object>() {
+            { "info", fee },
+            { "symbol", symbol },
+            { "maker", this.safeNumber(fee, "makerFee") },
+            { "taker", this.safeNumber(fee, "takerFee") },
+            { "percentage", null },
+            { "tierBased", true },
+        };
+    }
+
+    /**
+     * @method
      * @name xt#fetchFundingHistory
      * @description fetch the funding history
      * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
@@ -5830,10 +5950,10 @@ public partial class xt : Exchange
         object response = null;
         if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1PositionListHistory", new object[] { this.extend(request, parameters) }));
+            response = await this.privateInverseGetFutureTradeV1PositionListHistory(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1PositionListHistory", new object[] { this.extend(request, parameters) }));
+            response = await this.privateLinearGetFutureTradeV1PositionListHistory(this.extend(request, parameters));
         }
         //
         //     {

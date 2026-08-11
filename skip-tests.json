@@ -2490,6 +2490,8 @@
         }
     },
     "weex": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. weex does not have currency code AXL"

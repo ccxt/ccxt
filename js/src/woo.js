@@ -1737,12 +1737,12 @@ export default class woo extends Exchange {
     /**
      * @method
      * @name woo#cancelAllOrders
-     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
      * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
      * @description cancel all open orders in a market
-     * @param {string} [symbol] unified market symbol
+     * @param {string} [symbol] unified market symbol, cancels orders in all markets when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] whether the order is a trigger/algo order
+     * @param {boolean} [params.trigger] set to true to cancel only trigger/algo orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -1761,7 +1761,8 @@ export default class woo extends Exchange {
             response = await this.v3PrivateDeleteTradeAlgoOrders(params);
         }
         else {
-            response = await this.v3PrivateDeleteTradeOrders(this.extend(request, params));
+            // cancels both regular and algo orders
+            response = await this.v3PrivateDeleteTradeAllOrders(this.extend(request, params));
         }
         //
         //     {

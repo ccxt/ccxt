@@ -243,6 +243,196 @@
         }
       }
     ],
+    "fetchTradingFee": [
+      {
+        "description": "swap trading fee from the account step rate",
+        "method": "fetchTradingFee",
+        "input": [
+          "BTC/USDT:USDT"
+        ],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "specialType": false,
+            "vipProType": false,
+            "stepRateProName": null,
+            "discountLevel": 0,
+            "makerFee": "0.0002",
+            "takerFee": "0.0006",
+            "levelReturnDay": 90,
+            "totalTradeVolume": "78.708",
+            "walletBalance": "21.95",
+            "nextLvTradeVolume": "200000",
+            "nextLvMakerFee": "0.00018",
+            "nextLvTakerFee": "0.00054",
+            "feeSource": "step_rate"
+          }
+        },
+        "parsedResponse": {
+          "info": {
+            "specialType": false,
+            "vipProType": false,
+            "stepRateProName": null,
+            "discountLevel": 0,
+            "makerFee": "0.0002",
+            "takerFee": "0.0006",
+            "levelReturnDay": 90,
+            "totalTradeVolume": "78.708",
+            "walletBalance": "21.95",
+            "nextLvTradeVolume": "200000",
+            "nextLvMakerFee": "0.00018",
+            "nextLvTakerFee": "0.00054",
+            "feeSource": "step_rate"
+          },
+          "symbol": "BTC/USDT:USDT",
+          "maker": 0.0002,
+          "taker": 0.0006,
+          "percentage": null,
+          "tierBased": true
+        }
+      }
+    ],
+    "fetchTradingFees": [
+      {
+        "description": "the account-level linear step rate is applied to every linear swap market",
+        "method": "fetchTradingFees",
+        "input": [],
+        "httpResponse": {
+          "returnCode": 0,
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "specialType": false,
+            "vipProType": false,
+            "stepRateProName": null,
+            "discountLevel": 0,
+            "makerFee": "0.0002",
+            "takerFee": "0.0006",
+            "levelReturnDay": 90,
+            "totalTradeVolume": "78.708",
+            "walletBalance": "21.95",
+            "nextLvTradeVolume": "200000",
+            "nextLvMakerFee": "0.00018",
+            "nextLvTakerFee": "0.00054",
+            "feeSource": "step_rate"
+          }
+        },
+        "parsedResponse": {
+          "LTC/USDT:USDT": {
+            "info": {
+              "specialType": false,
+              "vipProType": false,
+              "stepRateProName": null,
+              "discountLevel": 0,
+              "makerFee": "0.0002",
+              "takerFee": "0.0006",
+              "levelReturnDay": 90,
+              "totalTradeVolume": "78.708",
+              "walletBalance": "21.95",
+              "nextLvTradeVolume": "200000",
+              "nextLvMakerFee": "0.00018",
+              "nextLvTakerFee": "0.00054",
+              "feeSource": "step_rate"
+            },
+            "symbol": "LTC/USDT:USDT",
+            "maker": 0.0002,
+            "taker": 0.0006,
+            "percentage": null,
+            "tierBased": true
+          },
+          "BTC/USDT:USDT": {
+            "info": {
+              "specialType": false,
+              "vipProType": false,
+              "stepRateProName": null,
+              "discountLevel": 0,
+              "makerFee": "0.0002",
+              "takerFee": "0.0006",
+              "levelReturnDay": 90,
+              "totalTradeVolume": "78.708",
+              "walletBalance": "21.95",
+              "nextLvTradeVolume": "200000",
+              "nextLvMakerFee": "0.00018",
+              "nextLvTakerFee": "0.00054",
+              "feeSource": "step_rate"
+            },
+            "symbol": "BTC/USDT:USDT",
+            "maker": 0.0002,
+            "taker": 0.0006,
+            "percentage": null,
+            "tierBased": true
+          },
+          "XRP/USDT:USDT": {
+            "info": {
+              "specialType": false,
+              "vipProType": false,
+              "stepRateProName": null,
+              "discountLevel": 0,
+              "makerFee": "0.0002",
+              "takerFee": "0.0006",
+              "levelReturnDay": 90,
+              "totalTradeVolume": "78.708",
+              "walletBalance": "21.95",
+              "nextLvTradeVolume": "200000",
+              "nextLvMakerFee": "0.00018",
+              "nextLvTakerFee": "0.00054",
+              "feeSource": "step_rate"
+            },
+            "symbol": "XRP/USDT:USDT",
+            "maker": 0.0002,
+            "taker": 0.0006,
+            "percentage": null,
+            "tierBased": true
+          },
+          "ADA/USDT:USDT": {
+            "info": {
+              "specialType": false,
+              "vipProType": false,
+              "stepRateProName": null,
+              "discountLevel": 0,
+              "makerFee": "0.0002",
+              "takerFee": "0.0006",
+              "levelReturnDay": 90,
+              "totalTradeVolume": "78.708",
+              "walletBalance": "21.95",
+              "nextLvTradeVolume": "200000",
+              "nextLvMakerFee": "0.00018",
+              "nextLvTakerFee": "0.00054",
+              "feeSource": "step_rate"
+            },
+            "symbol": "ADA/USDT:USDT",
+            "maker": 0.0002,
+            "taker": 0.0006,
+            "percentage": null,
+            "tierBased": true
+          },
+          "RIVER/USDT:USDT": {
+            "info": {
+              "specialType": false,
+              "vipProType": false,
+              "stepRateProName": null,
+              "discountLevel": 0,
+              "makerFee": "0.0002",
+              "takerFee": "0.0006",
+              "levelReturnDay": 90,
+              "totalTradeVolume": "78.708",
+              "walletBalance": "21.95",
+              "nextLvTradeVolume": "200000",
+              "nextLvMakerFee": "0.00018",
+              "nextLvTakerFee": "0.00054",
+              "feeSource": "step_rate"
+            },
+            "symbol": "RIVER/USDT:USDT",
+            "maker": 0.0002,
+            "taker": 0.0006,
+            "percentage": null,
+            "tierBased": true
+          }
+        }
+      }
+    ],
     "fetchPositions": [
       {
         "description": "isolated short position with a real margin-call price (position/list and position/break-list share one mocked response here since the static test harness returns the same httpResponse for every fetch() call within a method; the raw payload below carries both position/list fields and position/break-list fields so the merge + parse logic is still exercised end-to-end)",

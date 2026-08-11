@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.71'
+__version__ = '4.5.73'
 
 # -----------------------------------------------------------------------------
 
@@ -1071,6 +1071,10 @@ class BaseExchange(object):
     @staticmethod
     def uuid5(namespace: str, name):
         return str(uuid.uuid5(uuid.UUID(namespace), name))
+
+    @staticmethod
+    def is_dictionary(value: Any):
+        return(value is not None) and isinstance(value, dict)
 
     @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
@@ -3135,9 +3139,6 @@ class BaseExchange(object):
         if isinstance(value, list):
             return value
         return defaultValue
-
-    def is_dictionary(self, value: Any):
-        return(value is not None) and isinstance(value, dict)
 
     def safe_list_2(self, dictionaryOrList: Any, key1: NullableIndexType, key2: str, defaultValue: List[Any] = None):
         """

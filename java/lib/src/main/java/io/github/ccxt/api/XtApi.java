@@ -1032,6 +1032,17 @@ public class XtApi extends Exchange
     }
 
     /**
+     * Calls the privateLinearGetFutureUserV1UserStepRate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateLinearGetFutureUserV1UserStepRate (Object... optionalArgs)
+    {
+        return this.callAsync ("privateLinearGetFutureUserV1UserStepRate", optionalArgs);
+    }
+
+    /**
      * Calls the privateLinearGetFutureUserV1UserCollectionList endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1469,6 +1480,17 @@ public class XtApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateInverseGetFutureUserV1PositionList (Object... optionalArgs)
     {
         return this.callAsync ("privateInverseGetFutureUserV1PositionList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateInverseGetFutureUserV1UserStepRate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateInverseGetFutureUserV1UserStepRate (Object... optionalArgs)
+    {
+        return this.callAsync ("privateInverseGetFutureUserV1UserStepRate", optionalArgs);
     }
 
     /**

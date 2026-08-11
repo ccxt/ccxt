@@ -1259,6 +1259,51 @@ func (this *Xt) FetchOpenInterest(symbol string, options ...FetchOpenInterestOpt
 
 /**
  * @method
+ * @name xt#fetchTradingFee
+ * @description fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+ * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *Xt) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
+
+	opts := FetchTradingFeeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTradingFee(symbol, params)
+	if IsError(res) {
+		return TradingFeeInterface{}, CreateReturnError(res)
+	}
+	return NewTradingFeeInterface(res), nil
+}
+
+/**
+ * @method
+ * @name xt#fetchTradingFees
+ * @description fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+ * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] 'linear' (default) or 'inverse'
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol
+ */
+func (this *Xt) FetchTradingFees(params ...any) (TradingFees, error) {
+	res := <-this.Core.FetchTradingFees(params...)
+	if IsError(res) {
+		return TradingFees{}, CreateReturnError(res)
+	}
+	return NewTradingFees(res), nil
+}
+
+/**
+ * @method
  * @name xt#fetchFundingHistory
  * @description fetch the funding history
  * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
@@ -1777,12 +1822,6 @@ func (this *Xt) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumInd
 }
 func (this *Xt) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Xt) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
-	return this.exchangeTyped.FetchTradingFee(symbol, options...)
-}
-func (this *Xt) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
 }
 func (this *Xt) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)

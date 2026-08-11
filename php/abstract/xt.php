@@ -562,6 +562,12 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_linear_get_future_user_v1_user_step_rate($params = array()) {
+        return $this->request('future/user/v1/user/step-rate', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_linear_get_future_user_v1_user_collection_list($params = array()) {
         return $this->request('future/user/v1/user/collection/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -798,6 +804,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function private_inverse_get_future_user_v1_position_list($params = array()) {
         return $this->request('future/user/v1/position/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_inverse_get_future_user_v1_user_step_rate($params = array()) {
+        return $this->request('future/user/v1/user/step-rate', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1522,6 +1534,12 @@ abstract class xt extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateLinearGetFutureUserV1UserStepRate($params = array()) {
+        return $this->request('future/user/v1/user/step-rate', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateLinearGetFutureUserV1UserCollectionList($params = array()) {
         return $this->request('future/user/v1/user/collection/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1758,6 +1776,12 @@ abstract class xt extends \ccxt\Exchange {
      */
     public function privateInverseGetFutureUserV1PositionList($params = array()) {
         return $this->request('future/user/v1/position/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateInverseGetFutureUserV1UserStepRate($params = array()) {
+        return $this->request('future/user/v1/user/step-rate', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

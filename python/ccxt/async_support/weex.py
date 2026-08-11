@@ -73,7 +73,7 @@ class weex(Exchange, ImplicitAPI):
                 'createTakeProfitOrder': True,
                 'createTrailingAmountOrder': False,
                 'createTrailingPercentOrder': False,
-                'createTriggerOrder': False,
+                'createTriggerOrder': True,
                 'deposit': False,
                 'editOrder': False,
                 'editOrders': False,
@@ -630,7 +630,7 @@ class weex(Exchange, ImplicitAPI):
                     'sandbox': True,
                     'createOrder': {
                         'marginMode': True,
-                        'triggerPrice': False,
+                        'triggerPrice': True,
                         'triggerPriceType': None,
                         'triggerDirection': False,
                         'stopLossPrice': True,
@@ -2166,17 +2166,20 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-        :param float [params.takeProfit.triggerPrice]: The price at which the take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: The price at which the take profit order will be triggered, takeProfit.stopPrice is supported alias
         :param str [params.takeProfit.triggerPriceType]: The type of the trigger price for the take profit order, either 'last' or 'mark'(default is 'last')
+        :param float [params.takeProfit.price]: not supported, the attached take profit always executes at market price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-        :param float [params.stopLoss.triggerPrice]: The price at which the stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: The price at which the stop loss order will be triggered, stopLoss.stopPrice is supported alias
         :param str [params.stopLoss.triggerPriceType]: The type of the trigger price for the stop loss order, either 'last' or 'mark'(default is 'last')
-        :param float [params.stopLossPrice]: price to trigger stop-loss orders
+        :param float [params.stopLoss.price]: not supported, the attached stop loss always executes at market price
+        :param float [params.stopLossPrice]: price to trigger a standalone stop-loss order on an open position, the price argument is used execution price for limit orders
         :param str [params.stopLossPriceType]: The type of the trigger price for the stop loss order, either 'last' or 'mark'(default is 'last')
-        :param float [params.takeProfitPrice]: price to trigger take-profit orders
+        :param float [params.takeProfitPrice]: price to trigger a standalone take-profit order on an open position, the price argument is used execution price for limit orders
         :param str [params.takeProfitPriceType]: The type of the trigger price for the take profit order, either 'last' or 'mark'(default is 'last')
+        :param float [params.triggerPrice]: the price at which a trigger(entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
         :param bool [params.reduceOnly]: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
-        :param str [params.timeInForce]: GTC, IOC, or FOK(default is GTC for limit orders)
+        :param str [params.timeInForce]: GTC, IOC, or FOK(default is GTC for limit orders, not supported for trigger orders)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -2216,10 +2219,11 @@ class weex(Exchange, ImplicitAPI):
         if not isMarketOrder:
             request['price'] = self.price_to_precision(symbol, price)
         triggerPrice, stopLossPrice, takeProfitPrice, query = self.handle_trigger_prices_and_params(symbol, params)
-        if triggerPrice is not None:
-            raise NotSupported(self.id + ' createOrder() does not support the triggerPrice parameter')
+        isTrigger = (triggerPrice is not None)
         isStopLoss = (stopLossPrice is not None)
         isTakeProfit = (takeProfitPrice is not None)
+        if isTrigger and (isStopLoss or isTakeProfit):
+            raise BadRequest(self.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters')
         reduceOnly = self.safe_bool(query, 'reduceOnly')
         if isStopLoss or isTakeProfit:
             reduceOnly = True
@@ -2235,13 +2239,43 @@ class weex(Exchange, ImplicitAPI):
         hasTakeProfit = (takeProfit is not None)
         stopLoss = self.safe_dict(params, 'stopLoss')
         hasStopLoss = (stopLoss is not None)
+        # the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
+        if hasTakeProfit and (self.safe_number(takeProfit, 'price') is not None):
+            raise NotSupported(self.id + ' createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price')
+        if hasStopLoss and (self.safe_number(stopLoss, 'price') is not None):
+            raise NotSupported(self.id + ' createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price')
         timeInForce = self.safe_string(params, 'timeInForce')
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
             partner = self.safe_string(params, 'partner', 'b-WEEX111125')
             clientOrderId = partner + '-' + self.uuid22()
         callerMethodName = self.safe_string(params, 'callerMethodName')
-        if isStopLoss or isTakeProfit:
+        if isTrigger:
+            # entry conditional order, triggers a regular order when the trigger price is reached
+            if callerMethodName == 'createOrders':
+                raise NotSupported(self.id + ' createOrders() does not support trigger orders')
+            if timeInForce is not None:
+                raise BadRequest(self.id + ' createOrder() cannot use the timeInForce parameter with trigger orders')
+            request['clientAlgoId'] = clientOrderId
+            params['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+            if isMarketOrder:
+                params['type'] = 'STOP_MARKET'
+            else:
+                params['type'] = 'STOP'
+            # conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
+            if hasStopLoss:
+                stopLossTriggerPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'stopPrice')
+                request['presetStopLossPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                stopLossPriceType = self.safe_string(stopLoss, 'triggerPriceType')
+                if stopLossPriceType is not None:
+                    params['SlWorkingType'] = self.encode_trigger_price_type(stopLossPriceType)
+            if hasTakeProfit:
+                takeProfitTriggerPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'stopPrice')
+                request['presetTakeProfitPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                takeProfitPriceType = self.safe_string(takeProfit, 'triggerPriceType')
+                if takeProfitPriceType is not None:
+                    params['TpWorkingType'] = self.encode_trigger_price_type(takeProfitPriceType)
+        elif isStopLoss or isTakeProfit:
             if callerMethodName == 'createOrders':
                 raise NotSupported(self.id + ' createOrders() does not support stop loss and take profit orders')
             if timeInForce is not None:
@@ -2276,13 +2310,13 @@ class weex(Exchange, ImplicitAPI):
                 request['timeInForce'] = 'GTC'
             request['newClientOrderId'] = clientOrderId
             if hasStopLoss:
-                stopLossTriggerPrice = self.safe_number(stopLoss, 'triggerPrice')
+                stopLossTriggerPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'stopPrice')
                 request['slTriggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                 stopLossPriceType = self.safe_string(stopLoss, 'triggerPriceType')
                 if stopLossPriceType is not None:
                     params['SlWorkingType'] = self.encode_trigger_price_type(stopLossPriceType)
             if hasTakeProfit:
-                takeProfitTriggerPrice = self.safe_number(takeProfit, 'triggerPrice')
+                takeProfitTriggerPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'stopPrice')
                 request['tpTriggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 takeProfitPriceType = self.safe_string(takeProfit, 'triggerPriceType')
                 if takeProfitPriceType is not None:
@@ -2934,15 +2968,24 @@ class weex(Exchange, ImplicitAPI):
             marketType = 'spot' if (positionSide is None) else 'swap'
             market = self.safe_market(marketId, None, None, marketType)
         timestamp = self.safe_integer_n(order, ['transactTime', 'time', 'createTime'])
-        rawStatus = self.safe_string_lower(order, 'status')
+        rawStatus = self.safe_string_lower_2(order, 'status', 'algoStatus')  # algo(trigger) order payloads carry algoStatus instead of status
         triggerPrice = self.omit_zero(self.safe_string_2(order, 'triggerPrice', 'stopPrice'))
         rawType = self.safe_string_upper_2(order, 'type', 'orderType')
+        isReduceOnly = self.safe_bool(order, 'reduceOnly')
+        # entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to False, their trigger price is not a stop loss / take profit price
+        # a missing reduceOnly counts-only to keep the legacy mapping for responses that omit the field
+        isEntryTrigger = not (self.safe_bool(order, 'reduceOnly', True))
         takeProfitPrice = None
         stopLossPrice = None
-        if rawType == 'TAKE_PROFIT_MARKET' or rawType == 'TAKE_PROFIT':
-            takeProfitPrice = triggerPrice
-        elif rawType == 'STOP_LOSS' or rawType == 'STOP' or rawType == 'STOP_MARKET':
-            stopLossPrice = triggerPrice
+        if not isEntryTrigger:
+            if rawType == 'TAKE_PROFIT_MARKET' or rawType == 'TAKE_PROFIT':
+                takeProfitPrice = triggerPrice
+            elif rawType == 'STOP_LOSS' or rawType == 'STOP' or rawType == 'STOP_MARKET':
+                stopLossPrice = triggerPrice
+        if takeProfitPrice is None:
+            takeProfitPrice = self.omit_zero(self.safe_string(order, 'tpTriggerPrice'))  # attached take profit of a regular or conditional order
+        if stopLossPrice is None:
+            stopLossPrice = self.omit_zero(self.safe_string(order, 'slTriggerPrice'))  # attached stop loss of a regular or conditional order
         return self.safe_order({
             'id': self.safe_string_n(order, ['orderId', 'algoId', 'successOrderId']),
             'clientOrderId': self.safe_string_n(order, ['clientOrderId', 'origClientOrderId', 'clientAlgoId']),
@@ -2950,7 +2993,7 @@ class weex(Exchange, ImplicitAPI):
             'type': self.parse_order_type(rawType),
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
-            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
+            'reduceOnly': isReduceOnly,
             'side': self.safe_string_lower(order, 'side'),
             'amount': self.safe_string_2(order, 'origQty', 'quantity'),
             'price': self.safe_string(order, 'price'),

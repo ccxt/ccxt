@@ -90,7 +90,9 @@ public partial class woofipro : Exchange
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", true },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
                 { "fetchOption", false },
@@ -1445,6 +1447,130 @@ public partial class woofipro : Exchange
             ((IList<object>)result).Add(this.parseTicker(ticker));
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        object marketId = this.safeString(interest, "symbol");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeInteger(interest, "timestamp");
+        object amount = this.safeNumber2(interest, "open_interest", "openInterest");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "openInterestAmount", amount },
+            { "openInterestValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "info", interest },
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
+        return this.parseOpenInterest(data, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        object response = await this.v1PublicGetPublicFutures(parameters);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "open_interest": 110.64612,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "rows", new List<object>() {});
+        object timestamp = this.safeInteger(response, "timestamp");
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        {
+            object row = getValue(rows, i);
+            object marketId = this.safeString(row, "symbol", "");
+            if (isTrue(isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))
+            {
+                continue;
+            }
+            object interest = this.extend(new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+            }, row);
+            ((IList<object>)result).Add(this.parseOpenInterest(interest));
+        }
+        return this.filterByArray(result, "symbol", symbols);
     }
 
     /**

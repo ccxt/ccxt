@@ -201,6 +201,46 @@ public partial class woofipro
         return new Tickers(res);
     }
     /// <summary>
+    /// retrieves the open interest of a contract trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterest(symbol, parameters);
+        return new OpenInterest(res);
+    }
+    /// <summary>
+    /// retrieves the open interest for a list of contract trading pairs
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterests(symbols, parameters);
+        return new OpenInterests(res);
+    }
+    /// <summary>
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>

@@ -105,8 +105,8 @@ public class XtCore extends XtApi
                 put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
-                put( "fetchTradingFee", false );
-                put( "fetchTradingFees", false );
+                put( "fetchTradingFee", true );
+                put( "fetchTradingFees", true );
                 put( "fetchTradingLimits", false );
                 put( "fetchTransactionFee", false );
                 put( "fetchTransactionFees", false );
@@ -445,6 +445,9 @@ public class XtCore extends XtApi
                             put( "future/user/v1/position/list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/user/v1/user/step-rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/user/v1/user/collection/list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -569,6 +572,9 @@ public class XtCore extends XtApi
                                 put( "cost", 1 );
                             }} );
                             put( "future/user/v1/position/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/user/v1/user/step-rate", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/user/v1/user/collection/list", new java.util.HashMap<String, Object>() {{
@@ -5769,6 +5775,131 @@ final Object finalMarket = market;
 
     /**
      * @method
+     * @name xt#fetchTradingFee
+     * @description fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+     * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object market = this.market(symbol);
+            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() supports contract markets only")) ;
+            }
+            Object subType = null;
+            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
+            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
+            {
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+            } else
+            {
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+            }
+            //
+            //     {
+            //         "returnCode": 0,
+            //         "msgInfo": "success",
+            //         "error": null,
+            //         "result": {
+            //             "specialType": false,
+            //             "vipProType": false,
+            //             "stepRateProName": null,
+            //             "discountLevel": 0,
+            //             "makerFee": "0.0002",
+            //             "takerFee": "0.0006",
+            //             "levelReturnDay": 90,
+            //             "totalTradeVolume": "78.708",
+            //             "walletBalance": "21.95",
+            //             "nextLvTradeVolume": "200000",
+            //             "nextLvMakerFee": "0.00018",
+            //             "nextLvTakerFee": "0.00054",
+            //             "feeSource": "step_rate"
+            //         }
+            //     }
+            //
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            return this.parseTradingFee(result, market);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name xt#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+     * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] 'linear' (default) or 'inverse'
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFees(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object subType = null;
+            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTradingFees", null, parameters);
+            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            Object isInverse = (Helpers.isEqual(subType, "inverse"));
+            Object response = null;
+            if (Helpers.isTrue(isInverse))
+            {
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+            } else
+            {
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureUserV1UserStepRate", new Object[] { parameters })).join();
+            }
+            //
+            // same response as fetchTradingFee
+            //
+            Object fee = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            Object result = new java.util.HashMap<String, Object>() {{}};
+            Object symbols = this.symbols;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            {
+                Object symbol = Helpers.GetValue(symbols, i);
+                Object market = this.market(symbol);
+                Object matchesSubType = ((Helpers.isTrue((isInverse)))) ? Helpers.GetValue(market, "inverse") : Helpers.GetValue(market, "linear");
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "contract")) && Helpers.isTrue(matchesSubType)))
+                {
+                    Helpers.addElementToObject(result, symbol, this.parseTradingFee(fee, market));
+                }
+            }
+            return result;
+        });
+
+    }
+
+    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    {
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object symbol = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "symbol") : null;
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", fee );
+            put( "symbol", symbol );
+            put( "maker", XtCore.this.safeNumber(fee, "makerFee") );
+            put( "taker", XtCore.this.safeNumber(fee, "takerFee") );
+            put( "percentage", null );
+            put( "tierBased", true );
+        }};
+    }
+
+    /**
+     * @method
      * @name xt#fetchFundingHistory
      * @description fetch the funding history
      * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
@@ -6176,10 +6307,10 @@ final Object finalMarket = market;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureTradeV1PositionListHistory", new Object[] { this.extend(request, parameters) })).join();
+                response = (this.privateInverseGetFutureTradeV1PositionListHistory(this.extend(request, parameters))).join();
             } else
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureTradeV1PositionListHistory", new Object[] { this.extend(request, parameters) })).join();
+                response = (this.privateLinearGetFutureTradeV1PositionListHistory(this.extend(request, parameters))).join();
             }
             //
             //     {

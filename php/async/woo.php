@@ -1798,13 +1798,13 @@ class woo extends Exchange {
     private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+         * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
          * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
          *
          * cancel all open orders in a $market
-         * @param {string} [$symbol] unified $market $symbol
+         * @param {string} [$symbol] unified $market $symbol, cancels orders in all markets when omitted
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
+         * @param {boolean} [$params->trigger] set to true to cancel only trigger/algo orders
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
@@ -1821,7 +1821,8 @@ class woo extends Exchange {
         if ($trigger) {
             $response = Async\await($this->v3PrivateDeleteTradeAlgoOrders($params));
         } else {
-            $response = Async\await($this->v3PrivateDeleteTradeOrders($this->extend($request, $params)));
+            // cancels both regular and algo orders
+            $response = Async\await($this->v3PrivateDeleteTradeAllOrders($this->extend($request, $params)));
         }
         //
         //     {

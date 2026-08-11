@@ -180,7 +180,7 @@ export default class tokocrypto extends Exchange {
                         'aggTrades': { 'cost': 1 } as Endpoint<List>,
                         'historicalTrades': { 'cost': 5 } as Endpoint<List>,
                         'klines': { 'cost': 1 } as Endpoint<List>,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'exchangeInfo': { 'cost': 10 } as Endpoint<Dict>,
@@ -1307,6 +1307,12 @@ export default class tokocrypto extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.binanceGetTicker24hr (params);
+        if (!Array.isArray (response)) {
+            // a user-supplied symbol param makes the endpoint answer a single
+            // ticker object, the unified fetchTickers contract returns a
+            // symbol-keyed dict either way
+            return this.parseTickers ([ response ], symbols);
+        }
         return this.parseTickers (response, symbols);
     }
 

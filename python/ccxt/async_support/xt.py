@@ -8,7 +8,7 @@ from ccxt.abstract.xt import ImplicitAPI
 import asyncio
 import hashlib
 import math
-from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, OpenInterest, Transaction, TransferEntry
+from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Tickers, FundingRate, OpenInterest, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -121,8 +121,8 @@ class xt(Exchange, ImplicitAPI):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': False,
-                'fetchTradingFees': False,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchTradingLimits': False,
                 'fetchTransactionFee': False,
                 'fetchTransactionFees': False,
@@ -280,6 +280,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/user/v1/position/adl': {'cost': 1},
                             'future/user/v1/position/break-list': {'cost': 1},
                             'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/user/step-rate': {'cost': 1},
                             'future/user/v1/user/collection/list': {'cost': 1},
                             'future/user/v1/user/listen-key': {'cost': 1},
                         },
@@ -326,6 +327,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/user/v1/position/adl': {'cost': 1},
                             'future/user/v1/position/break-list': {'cost': 1},
                             'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/user/step-rate': {'cost': 1},
                             'future/user/v1/user/collection/list': {'cost': 1},
                             'future/user/v1/user/listen-key': {'cost': 1},
                         },
@@ -4521,6 +4523,96 @@ class xt(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': interest,
         }, market)
+
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+        """
+        fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+
+        https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise NotSupported(self.id + ' fetchTradingFee() supports contract markets only')
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTradingFee', market, params)
+        response = None
+        if subType == 'inverse':
+            response = await self.privateInverseGetFutureUserV1UserStepRate(params)
+        else:
+            response = await self.privateLinearGetFutureUserV1UserStepRate(params)
+        #
+        #     {
+        #         "returnCode": 0,
+        #         "msgInfo": "success",
+        #         "error": null,
+        #         "result": {
+        #             "specialType": False,
+        #             "vipProType": False,
+        #             "stepRateProName": null,
+        #             "discountLevel": 0,
+        #             "makerFee": "0.0002",
+        #             "takerFee": "0.0006",
+        #             "levelReturnDay": 90,
+        #             "totalTradeVolume": "78.708",
+        #             "walletBalance": "21.95",
+        #             "nextLvTradeVolume": "200000",
+        #             "nextLvMakerFee": "0.00018",
+        #             "nextLvTakerFee": "0.00054",
+        #             "feeSource": "step_rate"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_trading_fee(result, market)
+
+    async def fetch_trading_fees(self, params={}) -> TradingFees:
+        """
+        fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+
+        https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: 'linear'(default) or 'inverse'
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbol
+        """
+        await self.load_markets()
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTradingFees', None, params)
+        isInverse = (subType == 'inverse')
+        response = None
+        if isInverse:
+            response = await self.privateInverseGetFutureUserV1UserStepRate(params)
+        else:
+            response = await self.privateLinearGetFutureUserV1UserStepRate(params)
+        #
+        # same response
+        #
+        fee = self.safe_dict(response, 'result', {})
+        result = {}
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            matchesSubType = market['inverse'] if (isInverse) else market['linear']
+            if market['contract'] and matchesSubType:
+                result[symbol] = self.parse_trading_fee(fee, market)
+        return result
+
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
+        symbol = market['symbol'] if (market is not None) else None
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number(fee, 'makerFee'),
+            'taker': self.safe_number(fee, 'takerFee'),
+            'percentage': None,
+            'tierBased': True,
+        }
 
     async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

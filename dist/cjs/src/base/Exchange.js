@@ -78,7 +78,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.71'; }
+    static { this.ccxtVersion = '4.5.73'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -1731,6 +1731,9 @@ class BaseExchange {
     setProperty(obj, property, defaultValue = undefined) {
         obj[property] = defaultValue;
     }
+    isDictionary(value) {
+        return (value !== undefined) && (value !== null) && (typeof value === 'object') && !Array.isArray(value);
+    }
     exceptionMessage(exc, includeStack = true) {
         const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
         const length = Math.min(100000, message.length);
@@ -2730,9 +2733,6 @@ class BaseExchange {
             return value;
         }
         return defaultValue;
-    }
-    isDictionary(value) {
-        return (value !== undefined) && (typeof value === 'object') && !Array.isArray(value);
     }
     safeList2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**

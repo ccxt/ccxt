@@ -7,6 +7,19 @@ public class  Binance: binance { public Binance(object args = null) : base(args)
 public partial class binance
 {
     /// <summary>
+    /// subscribe to the tokenized stock market data stream
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the raw stream subscription response.</returns>
+    public async Task<Dictionary<string, object>> WatchStockMarketStream(List<string> streams, List<string> messageHashes, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchStockMarketStream(streams, messageHashes, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// watch the public liquidations of a trading pair
     /// </summary>
     /// <remarks>
@@ -339,6 +352,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -356,6 +370,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true to use stocks market streams
     /// </description>
     /// </item>
     /// <item>
@@ -381,6 +401,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -398,6 +419,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true to use stocks market streams
     /// </description>
     /// </item>
     /// <item>
@@ -473,11 +500,18 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true to use the stocks aggregated price stream
     /// </description>
     /// </item>
     /// <item>
@@ -556,11 +590,18 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true to use the stocks price stream
     /// </description>
     /// </item>
     /// </list>
@@ -578,11 +619,18 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#symbol-order-book-ticker"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#quote-stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true to use stocks quote streams
     /// </description>
     /// </item>
     /// </list>
@@ -939,6 +987,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update"/>  <br/>
+    /// See <see href="https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/user-streams#order-report-stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -956,6 +1005,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stock</term>
+    /// <description>
+    /// boolean : set to true to use stocks user data streams
     /// </description>
     /// </item>
     /// <item>

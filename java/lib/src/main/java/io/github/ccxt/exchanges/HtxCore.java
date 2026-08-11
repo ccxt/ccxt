@@ -10108,8 +10108,15 @@ public class HtxCore extends HtxApi
         Object entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price");
         Object initialMargin = this.safeString2(position, "position_margin", "initial_margin");
         Object rawSide = this.safeString(position, "direction");
-        Object rawPositionSide = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "long" : "short";
-        Object side = this.safeString(position, "position_side", rawPositionSide);
+        Object directionSide = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "long" : "short";
+        Object rawPositionSide = this.safeString(position, "position_side");
+        // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
+        Object side = directionSide;
+        Object isHedgedPositionSide = Helpers.isTrue((Helpers.isEqual(rawPositionSide, "long"))) || Helpers.isTrue((Helpers.isEqual(rawPositionSide, "short")));
+        if (Helpers.isTrue(isHedgedPositionSide))
+        {
+            side = rawPositionSide;
+        }
         Object unrealizedProfit = this.safeNumber(position, "profit_unreal");
         Object marginMode = this.safeString(position, "margin_mode");
         Object leverage = this.safeString(position, "lever_rate");
@@ -10151,6 +10158,7 @@ public class HtxCore extends HtxApi
             marginRatio = marginRatioLinear;
         }
         Object timestamp = this.safeInteger(position, "created_time");
+        final Object finalSide = side;
         final Object finalMarginMode = marginMode;
         final Object finalNotional = notional;
         final Object finalMaintenanceMargin = maintenanceMargin;
@@ -10164,7 +10172,7 @@ public class HtxCore extends HtxApi
             put( "contractSize", contractSize );
             put( "entryPrice", entryPrice );
             put( "collateral", HtxCore.this.parseNumber(collateral) );
-            put( "side", side );
+            put( "side", finalSide );
             put( "unrealizedPnl", unrealizedProfit );
             put( "leverage", HtxCore.this.parseNumber(leverage) );
             put( "percentage", HtxCore.this.parseNumber(percentage) );

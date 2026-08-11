@@ -3895,9 +3895,15 @@ func (this *ExtendedCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any)
 			"countdownTime": Ternary(IsTrue((IsGreaterThan(timeout, 0))), this.ParseToInt(Divide(timeout, 1000)), 0),
 		}
 
-		retRes307815 := (<-this.V1PrivatePostUserDeadmanswitch(this.Extend(request, params)))
-		PanicOnError(retRes307815)
-		ch <- retRes307815
+		response := (<-this.V1PrivatePostUserDeadmanswitch(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		// the endpoint answers with an empty string body
+		//
+		ch <- map[string]any{
+			"info": response,
+		}
 		return nil
 
 	}()
@@ -3926,8 +3932,8 @@ func (this *ExtendedCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30948 := (<-this.LoadMarkets())
-		PanicOnError(retRes30948)
+		retRes30988 := (<-this.LoadMarkets())
+		PanicOnError(retRes30988)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3990,8 +3996,8 @@ func (this *ExtendedCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes31358 := (<-this.LoadMarkets())
-		PanicOnError(retRes31358)
+		retRes31398 := (<-this.LoadMarkets())
+		PanicOnError(retRes31398)
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -4064,17 +4070,17 @@ func (this *ExtendedCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes31888 := (<-this.LoadMarkets())
-		PanicOnError(retRes31888)
+		retRes31928 := (<-this.LoadMarkets())
+		PanicOnError(retRes31928)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes319219 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
-			PanicOnError(retRes319219)
-			ch <- retRes319219
+			retRes319619 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
+			PanicOnError(retRes319619)
+			ch <- retRes319619
 			return nil
 		}
 		var market any = nil

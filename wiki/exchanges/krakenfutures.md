@@ -8,6 +8,7 @@
 * [fetchMarkets](#fetchmarkets)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTickers](#fetchtickers)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
 * [createOrder](#createorder)
@@ -23,6 +24,7 @@
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchCanceledOrders](#fetchcanceledorders)
 * [fetchMyTrades](#fetchmytrades)
+* [fetchLedger](#fetchledger)
 * [fetchBalance](#fetchbalance)
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
@@ -94,6 +96,30 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 ```javascript
 krakenfutures.fetchTickers (symbols, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**
+
+- https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+- https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+krakenfutures.fetchTradingFees (params?)
 ```
 
 
@@ -459,6 +485,30 @@ fetch all trades made by the user
 
 ```javascript
 krakenfutures.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchLedger" id="fetchledger"></a>
+
+### fetchLedger{docsify-ignore}
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-history/get-account-log  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest ledger entry |
+
+
+```javascript
+krakenfutures.fetchLedger (code?, since?, limit?, params?)
 ```
 
 

@@ -53,7 +53,7 @@ public partial class weex : Exchange
                 { "createTakeProfitOrder", true },
                 { "createTrailingAmountOrder", false },
                 { "createTrailingPercentOrder", false },
-                { "createTriggerOrder", false },
+                { "createTriggerOrder", true },
                 { "deposit", false },
                 { "editOrder", false },
                 { "editOrders", false },
@@ -705,7 +705,7 @@ public partial class weex : Exchange
                     { "sandbox", true },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
-                        { "triggerPrice", false },
+                        { "triggerPrice", true },
                         { "triggerPriceType", null },
                         { "triggerDirection", false },
                         { "stopLossPrice", true },
@@ -2275,7 +2275,7 @@ public partial class weex : Exchange
             //
             if (isTrue(sandboxMode))
             {
-                response = await ((Task<object>)callDynamically(this, "contractPrivateGetCapiV3SimBalance", new object[] { parameters }));
+                response = await this.contractPrivateGetCapiV3SimBalance(parameters);
             } else
             {
                 response = await this.contractPrivateGetCapiV3AccountBalance(parameters);
@@ -2535,17 +2535,20 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-     * @param {float} [params.takeProfit.triggerPrice] The price at which the take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] The price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias
      * @param {string} [params.takeProfit.triggerPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+     * @param {float} [params.takeProfit.price] not supported, the attached take profit always executes at market price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-     * @param {float} [params.stopLoss.triggerPrice] The price at which the stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] The price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias
      * @param {string} [params.stopLoss.triggerPriceType] The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
-     * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+     * @param {float} [params.stopLoss.price] not supported, the attached stop loss always executes at market price
+     * @param {float} [params.stopLossPrice] price to trigger a standalone stop-loss order on an open position, the price argument is used as its execution price for limit orders
      * @param {string} [params.stopLossPriceType] The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
-     * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+     * @param {float} [params.takeProfitPrice] price to trigger a standalone take-profit order on an open position, the price argument is used as its execution price for limit orders
      * @param {string} [params.takeProfitPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+     * @param {float} [params.triggerPrice] the price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-     * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
+     * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> createContractOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -2569,7 +2572,7 @@ public partial class weex : Exchange
             response = await this.contractPrivatePostCapiV3AlgoOrder(request);
         } else if (isTrue(sandboxMode))
         {
-            response = await ((Task<object>)callDynamically(this, "contractPrivatePostCapiV3SimOrder", new object[] { request }));
+            response = await this.contractPrivatePostCapiV3SimOrder(request);
         } else
         {
             response = await this.contractPrivatePostCapiV3Order(request);
@@ -2613,12 +2616,13 @@ public partial class weex : Exchange
         var stopLossPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPricequeryVariable)[1];
         var takeProfitPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPricequeryVariable)[2];
         var query = ((IList<object>) triggerPricestopLossPricetakeProfitPricequeryVariable)[3];
-        if (isTrue(!isEqual(triggerPrice, null)))
-        {
-            throw new NotSupported ((string)add(this.id, " createOrder() does not support the triggerPrice parameter")) ;
-        }
+        object isTrigger = (!isEqual(triggerPrice, null));
         object isStopLoss = (!isEqual(stopLossPrice, null));
         object isTakeProfit = (!isEqual(takeProfitPrice, null));
+        if (isTrue(isTrue(isTrigger) && isTrue((isTrue(isStopLoss) || isTrue(isTakeProfit)))))
+        {
+            throw new BadRequest ((string)add(this.id, " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
+        }
         object reduceOnly = this.safeBool(query, "reduceOnly");
         if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
         {
@@ -2641,6 +2645,15 @@ public partial class weex : Exchange
         object hasTakeProfit = (!isEqual(takeProfit, null));
         object stopLoss = this.safeDict(parameters, "stopLoss");
         object hasStopLoss = (!isEqual(stopLoss, null));
+        // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
+        if (isTrue(isTrue(hasTakeProfit) && isTrue((!isEqual(this.safeNumber(takeProfit, "price"), null)))))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price")) ;
+        }
+        if (isTrue(isTrue(hasStopLoss) && isTrue((!isEqual(this.safeNumber(stopLoss, "price"), null)))))
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price")) ;
+        }
         object timeInForce = this.safeString(parameters, "timeInForce");
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(isEqual(clientOrderId, null)))
@@ -2649,7 +2662,48 @@ public partial class weex : Exchange
             clientOrderId = add(add(partner, "-"), this.uuid22());
         }
         object callerMethodName = this.safeString(parameters, "callerMethodName");
-        if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
+        if (isTrue(isTrigger))
+        {
+            // entry conditional order, triggers a regular order when the trigger price is reached
+            if (isTrue(isEqual(callerMethodName, "createOrders")))
+            {
+                throw new NotSupported ((string)add(this.id, " createOrders() does not support trigger orders")) ;
+            }
+            if (isTrue(!isEqual(timeInForce, null)))
+            {
+                throw new BadRequest ((string)add(this.id, " createOrder() cannot use the timeInForce parameter with trigger orders")) ;
+            }
+            ((IDictionary<string,object>)request)["clientAlgoId"] = clientOrderId;
+            ((IDictionary<string,object>)parameters)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+            if (isTrue(isMarketOrder))
+            {
+                ((IDictionary<string,object>)parameters)["type"] = "STOP_MARKET";
+            } else
+            {
+                ((IDictionary<string,object>)parameters)["type"] = "STOP";
+            }
+            // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
+            if (isTrue(hasStopLoss))
+            {
+                object stopLossTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
+                ((IDictionary<string,object>)request)["presetStopLossPrice"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                object stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
+                if (isTrue(!isEqual(stopLossPriceType, null)))
+                {
+                    ((IDictionary<string,object>)parameters)["SlWorkingType"] = this.encodeTriggerPriceType(stopLossPriceType);
+                }
+            }
+            if (isTrue(hasTakeProfit))
+            {
+                object takeProfitTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
+                ((IDictionary<string,object>)request)["presetTakeProfitPrice"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                object takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
+                if (isTrue(!isEqual(takeProfitPriceType, null)))
+                {
+                    ((IDictionary<string,object>)parameters)["TpWorkingType"] = this.encodeTriggerPriceType(takeProfitPriceType);
+                }
+            }
+        } else if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
         {
             if (isTrue(isEqual(callerMethodName, "createOrders")))
             {
@@ -2710,7 +2764,7 @@ public partial class weex : Exchange
             ((IDictionary<string,object>)request)["newClientOrderId"] = clientOrderId;
             if (isTrue(hasStopLoss))
             {
-                object stopLossTriggerPrice = this.safeNumber(stopLoss, "triggerPrice");
+                object stopLossTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                 ((IDictionary<string,object>)request)["slTriggerPrice"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 object stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
                 if (isTrue(!isEqual(stopLossPriceType, null)))
@@ -2720,7 +2774,7 @@ public partial class weex : Exchange
             }
             if (isTrue(hasTakeProfit))
             {
-                object takeProfitTriggerPrice = this.safeNumber(takeProfit, "triggerPrice");
+                object takeProfitTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                 ((IDictionary<string,object>)request)["tpTriggerPrice"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 object takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
                 if (isTrue(!isEqual(takeProfitPriceType, null)))
@@ -3416,7 +3470,7 @@ public partial class weex : Exchange
         object response = null;
         if (isTrue(sandboxMode))
         {
-            response = await ((Task<object>)callDynamically(this, "contractPrivateGetCapiV3SimOrderHistory", new object[] { this.extend(request, parameters) }));
+            response = await this.contractPrivateGetCapiV3SimOrderHistory(this.extend(request, parameters));
         } else
         {
             response = await this.contractPrivateGetCapiV3OrderHistory(this.extend(request, parameters));
@@ -3564,17 +3618,32 @@ public partial class weex : Exchange
             market = this.safeMarket(marketId, null, null, marketType);
         }
         object timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
-        object rawStatus = this.safeStringLower(order, "status");
+        object rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         object triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
         object rawType = this.safeStringUpper2(order, "type", "orderType");
+        object isReduceOnly = this.safeBool(order, "reduceOnly");
+        // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
+        // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
+        object isEntryTrigger = !isTrue((this.safeBool(order, "reduceOnly", true)));
         object takeProfitPrice = null;
         object stopLossPrice = null;
-        if (isTrue(isTrue(isEqual(rawType, "TAKE_PROFIT_MARKET")) || isTrue(isEqual(rawType, "TAKE_PROFIT"))))
+        if (!isTrue(isEntryTrigger))
         {
-            takeProfitPrice = triggerPrice;
-        } else if (isTrue(isTrue(isTrue(isEqual(rawType, "STOP_LOSS")) || isTrue(isEqual(rawType, "STOP"))) || isTrue(isEqual(rawType, "STOP_MARKET"))))
+            if (isTrue(isTrue(isEqual(rawType, "TAKE_PROFIT_MARKET")) || isTrue(isEqual(rawType, "TAKE_PROFIT"))))
+            {
+                takeProfitPrice = triggerPrice;
+            } else if (isTrue(isTrue(isTrue(isEqual(rawType, "STOP_LOSS")) || isTrue(isEqual(rawType, "STOP"))) || isTrue(isEqual(rawType, "STOP_MARKET"))))
+            {
+                stopLossPrice = triggerPrice;
+            }
+        }
+        if (isTrue(isEqual(takeProfitPrice, null)))
         {
-            stopLossPrice = triggerPrice;
+            takeProfitPrice = this.omitZero(this.safeString(order, "tpTriggerPrice")); // attached take profit of a regular or conditional order
+        }
+        if (isTrue(isEqual(stopLossPrice, null)))
+        {
+            stopLossPrice = this.omitZero(this.safeString(order, "slTriggerPrice")); // attached stop loss of a regular or conditional order
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeStringN(order, new List<object>() {"orderId", "algoId", "successOrderId"}) },
@@ -3583,7 +3652,7 @@ public partial class weex : Exchange
             { "type", this.parseOrderType(rawType) },
             { "timeInForce", this.safeString(order, "timeInForce") },
             { "postOnly", null },
-            { "reduceOnly", this.safeBool(order, "reduceOnly") },
+            { "reduceOnly", isReduceOnly },
             { "side", this.safeStringLower(order, "side") },
             { "amount", this.safeString2(order, "origQty", "quantity") },
             { "price", this.safeString(order, "price") },
@@ -4028,7 +4097,7 @@ public partial class weex : Exchange
         object response = null;
         if (isTrue(sandboxMode))
         {
-            response = await ((Task<object>)callDynamically(this, "contractPrivateGetCapiV3SimPositionAllPosition", new object[] { parameters }));
+            response = await this.contractPrivateGetCapiV3SimPositionAllPosition(parameters);
         } else
         {
             response = await this.contractPrivateGetCapiV3AccountPositionAllPosition(parameters);

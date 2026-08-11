@@ -48,6 +48,7 @@ class Client {
             futures: {},
             subscriptions: {},
             rejections: {}, // so that we can reject things in the future
+            pendingResults: {}, // latest value resolved without a waiter, per message hash
             connected: undefined, // connection-related Future
             error: undefined, // stores low-level networking exception, if any
             connectionStarted: undefined, // initiation timestamp in milliseconds
@@ -75,6 +76,16 @@ class Client {
         return this.future(messageHash);
     }
     future(messageHash) {
+        // a value that arrived while no future existed satisfies this
+        // consumer immediately, the spent future intentionally stays out of
+        // the map so the next consumer waits for fresh data
+        if (messageHash in this.pendingResults) {
+            const pending = this.pendingResults[messageHash];
+            delete this.pendingResults[messageHash];
+            const spent = Future.Future();
+            spent.resolve(pending);
+            return spent;
+        }
         if (!(messageHash in this.futures)) {
             this.futures[messageHash] = Future.Future();
         }
@@ -89,10 +100,21 @@ class Client {
         if (this.verbose && (messageHash === undefined)) {
             this.log(new Date(), 'resolve received undefined messageHash');
         }
-        if ((messageHash !== undefined) && (messageHash in this.futures)) {
-            const promise = this.futures[messageHash];
-            promise.resolve(result);
-            delete this.futures[messageHash];
+        if (messageHash !== undefined) {
+            if (messageHash in this.futures) {
+                const promise = this.futures[messageHash];
+                promise.resolve(result);
+                delete this.futures[messageHash];
+            }
+            else {
+                // no consumer future right now, keep the latest value so the
+                // next future() call is resolved with it instead of waiting
+                // for data that already arrived. A successful resolve after a
+                // retained error means the stream recovered, the stale error
+                // must not fail a later waiter
+                this.pendingResults[messageHash] = result;
+                delete this.rejections[messageHash];
+            }
         }
         return result;
     }
@@ -111,12 +133,15 @@ class Client {
                 // instead we store the rejection for later
                 this.rejections[messageHash] = result;
             }
+            // stale pre-error values must not satisfy post-error consumers
+            delete this.pendingResults[messageHash];
         }
         else {
             const messageHashes = Object.keys(this.futures);
             for (let i = 0; i < messageHashes.length; i++) {
                 this.reject(result, messageHashes[i]);
             }
+            this.pendingResults = {};
         }
         return result;
     }

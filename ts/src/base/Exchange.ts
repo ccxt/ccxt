@@ -193,7 +193,7 @@ export class BaseExchange {
     [key: string]: any;
 
     // this is updated by vss.js when building
-    static ccxtVersion = '4.5.71';
+    static ccxtVersion = '4.5.73';
 
     options: Dict;
 
@@ -2031,6 +2031,10 @@ export class BaseExchange {
         obj[property] = defaultValue;
     }
 
+    isDictionary (value: any): boolean {
+        return (value !== undefined) && (value !== null) && (typeof value === 'object') && !Array.isArray (value);
+    }
+
     exceptionMessage (exc: any, includeStack: boolean = true): string {
         const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
         const length = Math.min (100000, message.length);
@@ -3239,10 +3243,6 @@ export class BaseExchange {
             return value;
         }
         return defaultValue;
-    }
-
-    isDictionary (value: any): boolean {
-        return (value !== undefined) && (typeof value === 'object') && !Array.isArray (value);
     }
 
     safeList2 (dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: any[]): any[];

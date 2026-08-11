@@ -75,6 +75,7 @@ from ccxt.test.base.test_binary_concat import test_binary_concat  # noqa E402
 from ccxt.test.base.test_constants import test_constants  # noqa E402
 from ccxt.test.base.test_base58_to_binary import test_base58_to_binary  # noqa E402
 from ccxt.test.base.test_is_json_encoded_object import test_is_json_encoded_object  # noqa E402
+from ccxt.test.base.test_is_dictionary import test_is_dictionary  # noqa E402
 from ccxt.test.base.test_encode_decode import test_encode_decode  # noqa E402
 
 async def base_tests_init():
@@ -93,6 +94,7 @@ async def base_tests_init():
     test_number_to_be()
     test_decimal_to_precision()
     test_capitalize()
+    test_is_dictionary()
     test_number_to_string()
     test_precise()
     test_safe_methods()

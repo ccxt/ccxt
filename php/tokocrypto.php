@@ -1301,6 +1301,12 @@ class tokocrypto extends Exchange {
             $this->load_markets();
         }
         $response = $this->binanceGetTicker24hr($params);
+        if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
+            // a user-supplied symbol param makes the endpoint answer a single
+            // ticker object, the unified fetchTickers contract returns a
+            // symbol-keyed dict either way
+            return $this->parse_tickers(array( $response ), $symbols);
+        }
         return $this->parse_tickers($response, $symbols);
     }
 

@@ -107,6 +107,7 @@ public partial class binance : ccxt.binance
                         { "margin", "wss://stream.binance.com:9443/ws" },
                         { "future", "wss://fstream.binance.com/ws" },
                         { "delivery", "wss://dstream.binance.com/ws" },
+                        { "stock", "wss://nbstream.binance.com/equity/ws" },
                         { "option", "wss://fstream.binance.com/public/ws" },
                         { "optionMarket", "wss://fstream.binance.com/market/ws" },
                         { "optionPrivate", "wss://fstream.binance.com/private/ws" },
@@ -130,6 +131,7 @@ public partial class binance : ccxt.binance
                     { "margin", 50 },
                     { "future", 50 },
                     { "delivery", 50 },
+                    { "stock", 50 },
                     { "option", 50 },
                     { "optionMarket", 50 },
                 } },
@@ -138,6 +140,7 @@ public partial class binance : ccxt.binance
                     { "margin", 200 },
                     { "future", 200 },
                     { "delivery", 200 },
+                    { "stock", 200 },
                     { "option", 200 },
                     { "optionMarket", 200 },
                 } },
@@ -184,10 +187,13 @@ public partial class binance : ccxt.binance
                 } },
                 { "wallet", "wb" },
                 { "listenKeyRefreshRate", 1200000 },
+                { "stockListenKeyRefreshRate", 1200000 },
                 { "ws", new Dictionary<string, object>() {
                     { "cost", 5 },
                 } },
                 { "tickerChannelsMap", new Dictionary<string, object>() {
+                    { "price", "price" },
+                    { "quote", "quote" },
                     { "24hrTicker", "ticker" },
                     { "24hrMiniTicker", "miniTicker" },
                     { "markPriceUpdate", "markPrice" },
@@ -300,6 +306,129 @@ public partial class binance : ccxt.binance
             return add(add(this.getWsUrl(type, "private"), "?listenKey="), listenKey);
         }
         return add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), ((string)type)), "/"), listenKey);
+    }
+
+    public virtual object getStockWsUrl(object streamType = null)
+    {
+        streamType ??= "market";
+        object baseUrl = getValue(getValue(getValue(this.urls, "api"), "ws"), "stock");
+        if (isTrue(isEqual(streamType, "combined")))
+        {
+            return ((string)baseUrl).Replace((string)"/ws", (string)"/stream");
+        }
+        return baseUrl;
+    }
+
+    public virtual object getStockTickerFromSymbol(object symbol)
+    {
+        object market = this.market(symbol);
+        object bs = this.safeString2(market, "base", "id");
+        return ((bool) isTrue((isEqual(bs, null)))) ? null : ((string)bs).ToLower();
+    }
+
+    public virtual object getStockUnifiedSymbol(object stockSymbol, object quote = null)
+    {
+        if (isTrue(isEqual(stockSymbol, null)))
+        {
+            return null;
+        }
+        object safeQuote = ((bool) isTrue((isEqual(quote, null)))) ? "USDC" : quote;
+        object parsed = this.safeSymbol(stockSymbol, null, "/", "spot");
+        if (isTrue(isTrue((!isEqual(parsed, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(parsed, "/"), 0)))))
+        {
+            return parsed;
+        }
+        return add(add(stockSymbol, "/"), safeQuote);
+    }
+
+    /**
+     * @method
+     * @name binance#watchStockMarketStream
+     * @ignore
+     * @description subscribe to the tokenized stock market data stream
+     * @param {string[]} streams stream names to subscribe to
+     * @param {string[]} messageHashes message hashes to listen to
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} the raw stream subscription response
+     */
+    public async virtual Task<object> watchStockMarketStream(object streams, object messageHashes, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object url = this.getStockWsUrl("market");
+        object requestId = this.requestId(url);
+        object query = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
+        object request = new Dictionary<string, object>() {
+            { "method", "SUBSCRIBE" },
+            { "params", streams },
+            { "id", requestId },
+        };
+        object subscribe = new Dictionary<string, object>() {
+            { "id", requestId },
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
+    }
+
+    public async virtual Task authenticateStock(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object options = this.safeDict(this.options, "stock", new Dictionary<string, object>() {});
+        object lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
+        object listenKeyRefreshRate = this.safeInteger(this.options, "stockListenKeyRefreshRate", 1200000);
+        object now = this.milliseconds();
+        object delay = this.sum(listenKeyRefreshRate, 10000);
+        if (isTrue(isGreaterThan((subtract(now, lastAuthenticatedTime)), delay)))
+        {
+            object requestParams = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
+            object response = await this.sapiPostEquityListenKey(requestParams);
+            object listenKey = this.safeString(response, "listenKey");
+            ((IDictionary<string,object>)this.options)["stock"] = this.extend(options, new Dictionary<string, object>() {
+                { "listenKey", listenKey },
+                { "lastAuthenticatedTime", now },
+            });
+            this.delay(listenKeyRefreshRate,  this.keepAliveStockListenKey, new object[] { parameters});
+        }
+    }
+
+    public async virtual Task keepAliveStockListenKey(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        try
+        {
+            object options = this.safeDict(this.options, "stock", new Dictionary<string, object>() {});
+            object requestParams = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
+            object response = await this.sapiPostEquityListenKey(requestParams);
+            object listenKey = this.safeString(response, "listenKey");
+            object now = this.milliseconds();
+            ((IDictionary<string,object>)this.options)["stock"] = this.extend(options, new Dictionary<string, object>() {
+                { "listenKey", listenKey },
+                { "lastAuthenticatedTime", now },
+            });
+        } catch(Exception error)
+        {
+            object options = this.safeDict(this.options, "stock", new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.options)["stock"] = this.extend(options, new Dictionary<string, object>() {
+                { "listenKey", null },
+                { "lastAuthenticatedTime", 0 },
+            });
+            return;
+        }
+        object clients = new List<object>(((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Values);
+        object listenKeyRefreshRate = this.safeInteger(this.options, "stockListenKeyRefreshRate", 1200000);
+        for (object i = 0; isLessThan(i, getArrayLength(clients)); postFixIncrement(ref i))
+        {
+            var client = getValue(clients, i);
+            object clientSubscriptions = this.safeDict(client as WebSocketClient, "subscriptions", new Dictionary<string, object>() {});
+            object subscriptionKeys = new List<object>(((IDictionary<string,object>)clientSubscriptions).Keys);
+            for (object j = 0; isLessThan(j, getArrayLength(subscriptionKeys)); postFixIncrement(ref j))
+            {
+                object subscribeType = getValue(subscriptionKeys, j);
+                if (isTrue(isEqual(subscribeType, "stock")))
+                {
+                    this.delay(listenKeyRefreshRate,  this.keepAliveStockListenKey, new object[] { parameters});
+                    return;
+                }
+            }
+        }
     }
 
     /**
@@ -1146,11 +1275,13 @@ public partial class binance : ccxt.binance
         //     }
         //
         object marketId = this.safeString(message, "s");
-        object marketsByIdList = this.safeValue(this.markets_by_id, marketId);
-        object marketById = this.safeValue(marketsByIdList, 0);
+        // the client url is the authoritative source for the market type — an
+        // ambiguous id like BTCUSDT maps to both the spot and the linear swap
+        // market, and picking the first match drops the message under the wrong
+        // symbol and stalls the orderbook future (delivery/option ids are
+        // unique, so the swap hint resolves those correctly too)
         object isSpot = this.isSpotUrl(client);
-        object fallbackType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
-        object marketType = ((bool) isTrue((!isEqual(marketById, null)))) ? getValue(marketById, "type") : fallbackType;
+        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook::", symbol);
@@ -1694,11 +1825,9 @@ public partial class binance : ccxt.binance
             }
         }
         object marketId = this.safeString(trade, "s");
-        object marketsByIdList = this.safeValue(this.markets_by_id, marketId);
-        object marketById = this.safeValue(marketsByIdList, 0);
         object fallbackType = ((bool) isTrue((inOp(trade, "ps")))) ? "contract" : "spot";
-        object marketType = ((bool) isTrue((!isEqual(marketById, null)))) ? getValue(marketById, "type") : fallbackType;
-        object symbol = this.safeSymbol(marketId, null, null, marketType);
+        object marketType = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "type") : fallbackType;
+        object symbol = this.safeSymbol(marketId, market, null, marketType);
         object side = this.safeStringLower(trade, "S");
         object takerOrMaker = null;
         object orderId = this.safeString(trade, "i");
@@ -1744,11 +1873,10 @@ public partial class binance : ccxt.binance
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         object marketId = this.safeString(message, "s");
-        object marketsByIdList = this.safeValue(this.markets_by_id, marketId);
-        object marketById = this.safeValue(marketsByIdList, 0);
+        // resolve the market from the transport url — an ambiguous id like
+        // BTCUSDT maps to both the spot and the linear swap market
         object isSpot = this.isSpotUrl(client);
-        object fallbackType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
-        object marketType = ((bool) isTrue((!isEqual(marketById, null)))) ? getValue(marketById, "type") : fallbackType;
+        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("trade::", symbol);
@@ -1771,11 +1899,13 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks market streams
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -1789,6 +1919,18 @@ public partial class binance : ccxt.binance
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
+        object stock = this.safeBool(market, "stock", false);
+        var stockparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCV", "stock");
+        stock = ((IList<object>)stockparametersVariable)[0];
+        parameters = ((IList<object>)stockparametersVariable)[1];
+        if (isTrue(stock))
+        {
+            if (isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(timeframe, "5m"))) && isTrue((!isEqual(timeframe, "1h")))) && isTrue((!isEqual(timeframe, "1d")))) && isTrue((!isEqual(timeframe, "1w")))) && isTrue((!isEqual(timeframe, "1M")))))
+            {
+                throw new BadRequest ((string)add(this.id, " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
+            }
+            ((IDictionary<string,object>)parameters)["stock"] = true;
+        }
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
         object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, since, limit, parameters);
         return getValue(getValue(result, symbol), timeframe);
@@ -1801,10 +1943,12 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks market streams
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -1814,6 +1958,42 @@ public partial class binance : ccxt.binance
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
+        }
+        object stock = false;
+        var stockparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
+        stock = ((IList<object>)stockparametersVariable)[0];
+        parameters = ((IList<object>)stockparametersVariable)[1];
+        if (isTrue(stock))
+        {
+            object stockStreams = new List<object>() {};
+            object stockMessageHashes = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+            {
+                object stockSymAndTf = getValue(symbolsAndTimeframes, i);
+                object stockSymbolString = this.symbol(getValue(stockSymAndTf, 0));
+                object stockMarket = this.market(stockSymbolString);
+                object stockTicker = this.safeString2(stockMarket, "base", "id");
+                object stockTickerString = ((bool) isTrue((isEqual(stockTicker, null)))) ? "" : ((string)stockTicker).ToLower();
+                object stockTimeframeString = getValue(stockSymAndTf, 1);
+                object stockInterval = this.safeString(this.timeframes, stockTimeframeString, stockTimeframeString);
+                if (isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(stockInterval, "5m"))) && isTrue((!isEqual(stockInterval, "1h")))) && isTrue((!isEqual(stockInterval, "1d")))) && isTrue((!isEqual(stockInterval, "1w")))) && isTrue((!isEqual(stockInterval, "1M")))))
+                {
+                    throw new BadRequest ((string)add(this.id, " watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
+                }
+                ((IList<object>)stockStreams).Add(add(add(stockTickerString, "@kline_"), stockInterval));
+                ((IList<object>)stockMessageHashes).Add(add(add(add("ohlcv::", getValue(stockMarket, "symbol")), "::"), stockTimeframeString));
+            }
+            object stockRes = await this.watchStockMarketStream(stockStreams, stockMessageHashes, parameters);
+            var stockSymbolstockTimeframestockCandlesVariable = stockRes;
+            var stockSymbol = ((IList<object>) stockSymbolstockTimeframestockCandlesVariable)[0];
+            var stockTimeframe = ((IList<object>) stockSymbolstockTimeframestockCandlesVariable)[1];
+            var stockCandles = ((IList<object>) stockSymbolstockTimeframestockCandlesVariable)[2];
+            if (isTrue(this.newUpdates))
+            {
+                limit = callDynamically(stockCandles, "getLimit", new object[] {stockSymbol, limit});
+            }
+            object stockFiltered = this.filterBySinceLimit(stockCandles, since, limit, 0, true);
+            return this.createOHLCVObject(stockSymbol, stockTimeframe, stockFiltered);
         }
         object klineType = null;
         var klineTypeparametersVariable = this.handleParamString2(parameters, "channel", "name", "kline");
@@ -2050,11 +2230,10 @@ public partial class binance : ccxt.binance
         // use a reverse lookup in a static map instead
         object unifiedTimeframe = this.findTimeframe(interval);
         object parsed = new List<object> {this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, "v")};
-        object marketsByIdList = this.safeValue(this.markets_by_id, marketId);
-        object marketById = this.safeValue(marketsByIdList, 0);
+        // resolve the market from the transport url — an ambiguous id like
+        // BTCUSDT maps to both the spot and the linear swap market
         object isSpot = this.isSpotUrl(client);
-        object fallbackType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
-        object marketType = ((bool) isTrue((!isEqual(marketById, null)))) ? getValue(marketById, "type") : fallbackType;
+        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object symbol = this.safeSymbol(marketId, null, null, marketType);
         object messageHash = add(add(add("ohlcv::", symbol), "::"), unifiedTimeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -2241,8 +2420,10 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use the stocks aggregated price stream
      * @param {string} [params.name] stream to use can be ticker or miniTicker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -2322,13 +2503,33 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use the stocks price stream
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object stock = false;
+        var stockparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "stock", false);
+        stock = ((IList<object>)stockparametersVariable)[0];
+        parameters = ((IList<object>)stockparametersVariable)[1];
+        if (isTrue(stock))
+        {
+            if (isTrue(isEqual(symbols, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " watchTickers() with stock stream requires symbols")) ;
+            }
+            symbols = this.marketSymbols(symbols, null, false, false, true);
+            object stockResult = await this.watchStockMarketStream(new List<object>() {"price"}, new List<object>() {"stock:price"}, parameters);
+            if (isTrue(this.newUpdates))
+            {
+                return stockResult;
+            }
+            return this.filterByArray(this.tickers, "symbol", symbols);
+        }
         object channelName = null;
         var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", "miniTicker");
         channelName = ((IList<object>)channelNameparametersVariable)[0];
@@ -2454,8 +2655,10 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#symbol-order-book-ticker
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#quote-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks quote streams
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
@@ -2464,6 +2667,32 @@ public partial class binance : ccxt.binance
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
+        }
+        object stock = false;
+        var stockparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "stock", false);
+        stock = ((IList<object>)stockparametersVariable)[0];
+        parameters = ((IList<object>)stockparametersVariable)[1];
+        if (isTrue(stock))
+        {
+            if (isTrue(isEqual(symbols, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " watchBidsAsks() with stock stream requires symbols")) ;
+            }
+            symbols = this.marketSymbols(symbols, null, false, false, true);
+            object stockStreams = new List<object>() {};
+            object stockMessageHashes = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object stockTicker = this.getStockTickerFromSymbol(getValue(symbols, i));
+                ((IList<object>)stockStreams).Add(add(stockTicker, "@quote"));
+                ((IList<object>)stockMessageHashes).Add(add("stock:quote:", getValue(symbols, i)));
+            }
+            object stockResult = await this.watchStockMarketStream(stockStreams, stockMessageHashes, parameters);
+            if (isTrue(this.newUpdates))
+            {
+                return stockResult;
+            }
+            return this.filterByArray(this.bidsasks, "symbol", symbols);
         }
         symbols = this.marketSymbols(symbols, null, true, false, true);
         object result = await this.watchMultiTickerHelper("watchBidsAsks", "bookTicker", symbols, parameters);
@@ -2951,7 +3180,11 @@ public partial class binance : ccxt.binance
             }
             object tickerMarketId = this.safeString(ticker, "s");
             object tickerMarketsByIdList = this.safeValue(this.markets_by_id, tickerMarketId);
-            object tickerMarketById = this.safeValue(tickerMarketsByIdList, 0);
+            object numTickerMarkets = ((bool) isTrue((isEqual(tickerMarketsByIdList, null)))) ? 0 : getArrayLength(tickerMarketsByIdList);
+            // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
+            // blind first pick, the stream url decides; only a unique match, like an
+            // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
+            object tickerMarketById = ((bool) isTrue((isEqual(numTickerMarkets, 1)))) ? this.safeValue(tickerMarketsByIdList, 0) : null;
             object isSpot = this.isSpotUrl(client);
             object tickerFallbackType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
             object tickerMarketType = ((bool) isTrue((!isEqual(tickerMarketById, null)))) ? getValue(tickerMarketById, "type") : tickerFallbackType;
@@ -3375,7 +3608,8 @@ public partial class binance : ccxt.binance
         for (object i = 0; isLessThan(i, getArrayLength(clients)); postFixIncrement(ref i))
         {
             var client = getValue(clients, i);
-            object subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+            object clientSubscriptions = this.safeDict(client as WebSocketClient, "subscriptions", new Dictionary<string, object>() {});
+            object subscriptionKeys = new List<object>(((IDictionary<string,object>)clientSubscriptions).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(subscriptionKeys)); postFixIncrement(ref j))
             {
                 object subscribeType = getValue(subscriptionKeys, j);
@@ -4599,10 +4833,12 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/user-streams#order-report-stream
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] set to true to use stocks user data streams
      * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for spot margin
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch portfolio margin account orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -4613,6 +4849,43 @@ public partial class binance : ccxt.binance
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
+        }
+        object stock = false;
+        var stockparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "stock", false);
+        stock = ((IList<object>)stockparametersVariable)[0];
+        parameters = ((IList<object>)stockparametersVariable)[1];
+        if (isTrue(stock))
+        {
+            await this.authenticateStock(parameters);
+            object stockOptions = this.safeDict(this.options, "stock", new Dictionary<string, object>() {});
+            object stockListenKey = this.safeString(stockOptions, "listenKey");
+            if (isTrue(isEqual(stockListenKey, null)))
+            {
+                throw new BadRequest ((string)add(this.id, " watchOrders() failed to initialize stock listenKey")) ;
+            }
+            object stockUrl = this.getStockWsUrl("user");
+            object stockStreamName = add(stockListenKey, "@orderReport");
+            object stockRequestId = this.requestId(stockUrl);
+            object stockMessageHash = "orders";
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                stockMessageHash = add("orders:", this.symbol(symbol));
+            }
+            object stockRequest = new Dictionary<string, object>() {
+                { "method", "SUBSCRIBE" },
+                { "params", new List<object>() {stockStreamName} },
+                { "id", stockRequestId },
+            };
+            object stockQuery = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
+            object stockSubscribe = new Dictionary<string, object>() {
+                { "id", stockRequestId },
+            };
+            object stockOrders = await this.watch(stockUrl, stockMessageHash, this.extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe);
+            if (isTrue(this.newUpdates))
+            {
+                limit = callDynamically(stockOrders, "getLimit", new object[] {symbol, limit});
+            }
+            return this.filterBySymbolSinceLimit(stockOrders, symbol, since, limit, true);
         }
         object messageHash = "orders";
         object market = null;
@@ -4797,12 +5070,95 @@ public partial class binance : ccxt.binance
         //         "rm": "Reduce Only reject"           // algo order failed reason
         //     }
         //
+        // watchOrders: tokenized equities
+        //
+        //     {
+        //         "e": "orderReport",
+        //         "E": 1786010067484,
+        //         "x": "ORDER_UPDATE",
+        //         "i": "6c62d749-b1e5-4559-9747-d4237f55ff26",
+        //         "ai": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+        //         "b": "EQ_AAPL",
+        //         "q": "USDC",
+        //         "S": "buy",
+        //         "o": "limit",
+        //         "p": 290,
+        //         "Q": 0.02,
+        //         "N": null,
+        //         "fq": 0,
+        //         "FN": 0,
+        //         "tc": 5.97,
+        //         "Z": 0,
+        //         "n": "24H",
+        //         "s": "new",
+        //         "T": 1786010067361,
+        //         "U": 1786010067366
+        //     }
+        //
+        object eventVar = this.safeString(order, "e");
+        if (isTrue(isEqual(eventVar, "orderReport")))
+        {
+            object baseAssetCode = this.safeString(order, "b");
+            object stockBaseSymbol = baseAssetCode;
+            if (isTrue(isTrue((!isEqual(stockBaseSymbol, null))) && isTrue((isEqual(getIndexOf(stockBaseSymbol, "EQ_"), 0)))))
+            {
+                stockBaseSymbol = slice(stockBaseSymbol, 3, null);
+            }
+            if (isTrue(isEqual(stockBaseSymbol, null)))
+            {
+                stockBaseSymbol = this.safeString(order, "symbol");
+            }
+            object stockQuote = this.safeString(order, "q", "USDC");
+            object stockSymbol = this.getStockUnifiedSymbol(stockBaseSymbol, stockQuote);
+            object stockRawStatus = this.safeStringLower(order, "s");
+            object statuses = new Dictionary<string, object>() {
+                { "accepted", "open" },
+                { "new", "open" },
+                { "partially_filled", "open" },
+                { "filled", "closed" },
+                { "canceled", "canceled" },
+                { "rejected", "rejected" },
+                { "expired", "expired" },
+            };
+            object stockStatus = this.safeString(statuses, stockRawStatus, stockRawStatus);
+            object stockAmount = this.safeString(order, "Q");
+            object stockFilled = this.safeString(order, "fq");
+            object stockRemaining = null;
+            if (isTrue(isTrue((!isEqual(stockAmount, null))) && isTrue((!isEqual(stockFilled, null)))))
+            {
+                stockRemaining = Precise.stringSub(stockAmount, stockFilled);
+            }
+            object stockTimestamp = this.safeInteger(order, "T");
+            object stockLastUpdateTimestamp = this.safeInteger(order, "U", stockTimestamp);
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "symbol", stockSymbol },
+                { "id", this.safeString(order, "i") },
+                { "timestamp", stockTimestamp },
+                { "datetime", this.iso8601(stockTimestamp) },
+                { "lastUpdateTimestamp", stockLastUpdateTimestamp },
+                { "type", this.parseOrderTypeByMarket(this.safeStringLower(order, "o"), "spot") },
+                { "timeInForce", null },
+                { "postOnly", null },
+                { "reduceOnly", null },
+                { "side", this.safeStringLower(order, "S") },
+                { "price", this.safeString(order, "p") },
+                { "stopPrice", null },
+                { "triggerPrice", null },
+                { "amount", stockAmount },
+                { "cost", this.safeString(order, "FN") },
+                { "average", null },
+                { "filled", stockFilled },
+                { "remaining", stockRemaining },
+                { "status", stockStatus },
+                { "fee", null },
+                { "trades", null },
+            });
+        }
         object executionType = this.safeString(order, "x");
         object marketId = this.safeString(order, "s");
-        object marketsByIdList = this.safeValue(this.markets_by_id, marketId);
-        object marketById = this.safeValue(marketsByIdList, 0);
-        object fallbackType = ((bool) isTrue((inOp(order, "ps")))) ? "contract" : "spot";
-        object marketType = ((bool) isTrue((!isEqual(marketById, null)))) ? getValue(marketById, "type") : fallbackType;
+        // futures user-data events carry the position side field, spot ones do not
+        object marketType = ((bool) isTrue((inOp(order, "ps")))) ? "contract" : "spot";
         object symbol = this.safeSymbol(marketId, null, null, marketType);
         object timestamp = this.safeInteger(order, "O");
         object T = this.safeInteger(order, "T");
@@ -4990,6 +5346,11 @@ public partial class binance : ccxt.binance
         //     }
         //
         object e = this.safeString(message, "e");
+        if (isTrue(isEqual(e, "orderReport")))
+        {
+            this.handleOrder(client as WebSocketClient, message);
+            return;
+        }
         if (isTrue(isTrue((isEqual(e, "ORDER_TRADE_UPDATE"))) || isTrue((isEqual(e, "ALGO_UPDATE")))))
         {
             object oField = this.safeValue(message, "o");
@@ -5004,6 +5365,74 @@ public partial class binance : ccxt.binance
         this.handleMyTrade(client as WebSocketClient, message);
         this.handleOrder(client as WebSocketClient, message);
         this.handleMyLiquidation(client as WebSocketClient, message);
+    }
+
+    public virtual void handleStockPrice(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "rates": [
+        //             {
+        //                 "s": "JAVA",
+        //                 "ac": "EQ_JAVA",
+        //                 "p": "83.26",
+        //                 "t": 1785959875000,
+        //                 "pc": "83.1800",
+        //                 "mp": "ON"
+        //             },
+        //         ],
+        //         "e": "price"
+        //     }
+        //
+        object rates = this.safeList(message, "rates", new List<object>() {});
+        object tickers = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
+        {
+            object rate = this.safeDict(rates, i, new Dictionary<string, object>() {});
+            object stockSymbol = this.safeString(rate, "s");
+            object symbol = this.getStockUnifiedSymbol(stockSymbol, "USDC");
+            if (isTrue(isEqual(symbol, null)))
+            {
+                continue;
+            }
+            object timestamp = this.safeInteger(rate, "t");
+            object parsed = this.safeTicker(new Dictionary<string, object>() {
+                { "symbol", symbol },
+                { "timestamp", timestamp },
+                { "datetime", this.iso8601(timestamp) },
+                { "last", this.safeString(rate, "p") },
+                { "close", this.safeString(rate, "p") },
+                { "previousClose", this.safeString(rate, "pc") },
+                { "info", rate },
+            });
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+            ((IDictionary<string,object>)tickers)[(string)symbol] = parsed;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, add("stock:price:", symbol)});
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, "stock:price"});
+    }
+
+    public virtual void handleStockQuote(WebSocketClient client, object message)
+    {
+        object stockSymbol = this.safeString(message, "s");
+        object symbol = this.getStockUnifiedSymbol(stockSymbol, "USDC");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
+        object timestamp = this.safeInteger2(message, "E", "T");
+        object parsed = this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "bid", this.safeString(message, "bp") },
+            { "ask", this.safeString(message, "ap") },
+            { "bidVolume", this.safeString(message, "bs") },
+            { "askVolume", this.safeString(message, "as") },
+            { "info", message },
+        });
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsed;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, add("stock:quote:", symbol)});
     }
 
     public virtual void handleOptionsOrderUpdate(WebSocketClient client, object message)
@@ -6021,6 +6450,12 @@ public partial class binance : ccxt.binance
         {
             message = eventMsg;
         }
+        // handle combined stream wrapper payloads
+        object eventData = this.safeDict(message, "data");
+        if (isTrue(!isEqual(eventData, null)))
+        {
+            message = eventData;
+        }
         object status = this.safeString(message, "status");
         object error = this.safeValue(message, "error");
         if (isTrue(isTrue((!isEqual(error, null))) || isTrue((isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "200"))))))
@@ -6042,6 +6477,8 @@ public partial class binance : ccxt.binance
             { "depthUpdate", this.handleOrderBook },
             { "trade", this.handleTrade },
             { "aggTrade", this.handleTrade },
+            { "price", this.handleStockPrice },
+            { "quote", this.handleStockQuote },
             { "optionTrade", this.handleTrade },
             { "markPrice", this.handleMarkPrices },
             { "kline", this.handleOHLCV },
@@ -6066,6 +6503,7 @@ public partial class binance : ccxt.binance
             { "ACCOUNT_UPDATE", this.handleAcountUpdate },
             { "BALANCE_POSITION_UPDATE", this.handleOptionsAccountUpdate },
             { "executionReport", this.handleOrderUpdate },
+            { "orderReport", this.handleOrderUpdate },
             { "ORDER_TRADE_UPDATE", this.handleOrderUpdate },
             { "ALGO_UPDATE", this.handleOrderUpdate },
             { "forceOrder", this.handleLiquidation },
@@ -6075,8 +6513,8 @@ public partial class binance : ccxt.binance
         object eventVar = this.safeString(message, "e");
         if (isTrue(((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object data = getValue(message, 0);
-            eventVar = add(this.safeString(data, "e"), "@arr");
+            object arrayMessage = getValue(message, 0);
+            eventVar = add(this.safeString(arrayMessage, "e"), "@arr");
         }
         method = this.safeValue(methods, eventVar);
         if (isTrue(isEqual(method, null)))

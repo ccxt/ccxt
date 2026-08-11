@@ -1305,6 +1305,12 @@ class tokocrypto extends tokocrypto$1["default"] {
             await this.loadMarkets();
         }
         const response = await this.binanceGetTicker24hr(params);
+        if (!Array.isArray(response)) {
+            // a user-supplied symbol param makes the endpoint answer a single
+            // ticker object, the unified fetchTickers contract returns a
+            // symbol-keyed dict either way
+            return this.parseTickers([response], symbols);
+        }
         return this.parseTickers(response, symbols);
     }
     getMarketIdByType(market) {

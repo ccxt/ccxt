@@ -7680,8 +7680,13 @@ class htx(Exchange, ImplicitAPI):
         entryPrice = self.safe_number_2(position, 'cost_open', 'open_avg_price')
         initialMargin = self.safe_string_2(position, 'position_margin', 'initial_margin')
         rawSide = self.safe_string(position, 'direction')
-        rawPositionSide = 'long' if (rawSide == 'buy') else 'short'
-        side = self.safe_string(position, 'position_side', rawPositionSide)
+        directionSide = 'long' if (rawSide == 'buy') else 'short'
+        rawPositionSide = self.safe_string(position, 'position_side')
+        # in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
+        side = directionSide
+        isHedgedPositionSide = (rawPositionSide == 'long') or (rawPositionSide == 'short')
+        if isHedgedPositionSide:
+            side = rawPositionSide
         unrealizedProfit = self.safe_number(position, 'profit_unreal')
         marginMode = self.safe_string(position, 'margin_mode')
         leverage = self.safe_string(position, 'lever_rate')

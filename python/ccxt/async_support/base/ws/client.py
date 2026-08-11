@@ -32,6 +32,14 @@ class Client(object):
     options = {}  # ws-specific options
     subscriptions = {}
     rejections = {}
+    # latest resolved value per message_hash that arrived while no consumer
+    # future existed, so an update landing between a resolve and the
+    # consumer's next future() call is delivered instead of silently
+    # dropped, latest value wins matching watch coalescing semantics, see
+    # https://github.com/ccxt/ccxt/issues/28089 and
+    # https://github.com/ccxt/ccxt/issues/23251 and the go lane fix
+    # https://github.com/ccxt/ccxt/pull/29719
+    pending_results = {}
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
@@ -64,6 +72,7 @@ class Client(object):
             'futures': {},
             'subscriptions': {},
             'rejections': {},
+            'pending_results': {},
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,
@@ -83,8 +92,33 @@ class Client(object):
         else:
             self.options = config
         self.connected = Future()
+        # a rejected connection future may end up with no awaiter, e.g. on
+        # already-subscribed watch paths or abandoned dials, retrieving the
+        # exception in a done callback keeps asyncio from dumping
+        # "Future exception was never retrieved" walls at gc
+
+        def _consume_connected_exception(fut):
+            if not fut.cancelled():
+                fut.exception()
+        self.connected.add_done_callback(_consume_connected_exception)
+        # Retry-After from the last failed handshake response, seconds,
+        # consumed by the exchange-level dial backoff
+        self.last_retry_after = None
+        # set by open() when a handshake fails, consumed by the exchange
+        # error callback so that only genuine dial failures grow the dial
+        # backoff, mid-session errors and the ws warn noise floor must not
+        self.dial_failed = False
+        self.last_message_at = None
 
     def future(self, message_hash):
+        # a value that arrived while no future existed satisfies this
+        # consumer immediately, the spent future intentionally stays out of
+        # the map so the next consumer waits for fresh data
+        if message_hash in self.pending_results:
+            pending = self.pending_results.pop(message_hash)
+            spent = Future()
+            spent.resolve(pending)
+            return spent
         if message_hash not in self.futures or self.futures[message_hash].cancelled():
             self.futures[message_hash] = Future()
         future = self.futures[message_hash]
@@ -106,6 +140,14 @@ class Client(object):
             future = self.futures[message_hash]
             future.resolve(result)
             del self.futures[message_hash]
+        else:
+            # no consumer future right now, keep the latest value so the
+            # next future() call is resolved with it instead of waiting for
+            # data that already arrived. A successful resolve after a
+            # retained error means the stream recovered, the stale error
+            # must not fail a later waiter
+            self.pending_results[message_hash] = result
+            self.rejections.pop(message_hash, None)
         return result
 
     def reject(self, result, message_hash=None):
@@ -116,10 +158,13 @@ class Client(object):
                 del self.futures[message_hash]
             else:
                 self.rejections[message_hash] = result
+            # stale pre-error values must not satisfy post-error consumers
+            self.pending_results.pop(message_hash, None)
         else:
             message_hashes = list(self.futures.keys())
             for message_hash in message_hashes:
                 self.reject(result, message_hash)
+            self.pending_results = {}
         return result
 
     def receive_loop(self):
@@ -185,12 +230,22 @@ class Client(object):
             self.asyncio_loop.call_soon(self.receive_loop)
         except TimeoutError:
             # connection timeout
+            self.dial_failed = True
             error = RequestTimeout('Connection timeout')
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'RequestTimeout', error)
             self.on_error(error)
         except Exception as e:
             # connection failed or rejected (ConnectionRefusedError, ClientConnectorError)
+            self.dial_failed = True
+            headers = getattr(e, 'headers', None)
+            if headers is not None:
+                retry_after = headers.get('Retry-After')
+                if retry_after is not None:
+                    try:
+                        self.last_retry_after = float(retry_after)
+                    except ValueError:
+                        pass
             error = NetworkError(e)
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'NetworkError', error)
@@ -261,6 +316,9 @@ class Client(object):
 
     def handle_message(self, message):
         # self.log(iso8601(milliseconds()), message)
+        # timestamp of the last inbound frame, lets timeout forensics tell a
+        # dead pipe apart from frames arriving that never resolve a future
+        self.last_message_at = milliseconds()
         if message.type == WSMsgType.TEXT:
             self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
@@ -333,12 +391,15 @@ class Client(object):
         await self.aiohttp_close()
 
     async def aiohttp_close(self):
-        if not self.closed():
-            await self.connection.close()
-        # these will end automatically once self.closed() = True
-        # so we don't need to cancel them
+        # cancel the keepalive before closing the transport, matching the php
+        # client's teardown ordering, otherwise a ping tick during the close
+        # await writes into the closing transport and raises out of the ping
+        # task as unretrieved noise, see
+        # https://github.com/ccxt/ccxt/issues/22075
         if self.ping_looper:
             self.ping_looper.cancel()
+        if not self.closed():
+            await self.connection.close()
 
     async def ping_loop(self):
         if self.verbose:
@@ -364,4 +425,14 @@ class Client(object):
                     except Exception as e:
                         self.on_error(e)
                 else:
-                    await self.connection.ping()
+                    try:
+                        await self.connection.ping()
+                    except Exception as e:
+                        # the transport can enter closing between the loop
+                        # condition and the write, a server initiated close or
+                        # a network drop, which raised out of the ping task as
+                        # unretrieved noise, see
+                        # https://github.com/ccxt/ccxt/issues/22075
+                        if not self.closed():
+                            self.on_error(e)
+                        return

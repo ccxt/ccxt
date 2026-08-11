@@ -681,6 +681,46 @@
                 "options": {
                     "sandboxMode": true
                 }
+            },
+            {
+                "description": "create trigger order with attached take profit and stop loss",
+                "method": "createOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.13,
+                    {
+                        "triggerPrice": 0.14,
+                        "takeProfit": {
+                            "triggerPrice": 0.2
+                        },
+                        "stopLoss": {
+                            "triggerPrice": 0.02
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"STOP\",\"price\":\"0.13\",\"positionSide\":\"LONG\",\"clientAlgoId\":\"b-WEEX111125-5b08e54a32294fc7a8123d\",\"presetStopLossPrice\":\"0.02\",\"presetTakeProfitPrice\":\"0.2\",\"triggerPrice\":\"0.14\"}"
+            },
+            {
+                "description": "create swap limit order with attached stop loss via stopPrice alias",
+                "method": "createOrder",
+                "url": "https://api-contract.weex.com/capi/v3/order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.03,
+                    {
+                        "stopLoss": {
+                            "stopPrice": 0.02
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"LIMIT\",\"price\":\"0.03\",\"positionSide\":\"LONG\",\"timeInForce\":\"GTC\",\"newClientOrderId\":\"b-WEEX111125-29bd77c2b6d94b9581e6e4\",\"slTriggerPrice\":\"0.02\"}"
             }
         ],
         "fetchTransfers": [
@@ -1053,6 +1093,36 @@
                 "url": "https://api-contract.weex.com/capi/v3/market/premiumIndex",
                 "input": [],
                 "output": null
+            }
+        ],
+        "createTriggerOrder": [
+            {
+                "description": "create trigger order",
+                "method": "createTriggerOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.13,
+                    0.14
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"STOP\",\"price\":\"0.13\",\"positionSide\":\"LONG\",\"clientAlgoId\":\"b-WEEX111125-f476448c55af482c883dd6\",\"triggerPrice\":\"0.14\"}"
+            },
+            {
+                "description": "create market trigger order",
+                "method": "createTriggerOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100,
+                    null,
+                    0.14
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"STOP_MARKET\",\"positionSide\":\"LONG\",\"clientAlgoId\":\"b-WEEX111125-f476448c55af482c883dd6\",\"triggerPrice\":\"0.14\"}"
             }
         ]
     },

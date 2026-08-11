@@ -661,7 +661,7 @@ public partial class weex
     /// <item>
     /// <term>params.stopLossPrice</term>
     /// <description>
-    /// float : price to trigger stop-loss orders
+    /// float : price to trigger a standalone stop-loss order on an open position, the price argument is used as its execution price for limit orders
     /// </description>
     /// </item>
     /// <item>
@@ -673,13 +673,19 @@ public partial class weex
     /// <item>
     /// <term>params.takeProfitPrice</term>
     /// <description>
-    /// float : price to trigger take-profit orders
+    /// float : price to trigger a standalone take-profit order on an open position, the price argument is used as its execution price for limit orders
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.takeProfitPriceType</term>
     /// <description>
     /// string : The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : the price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
     /// </description>
     /// </item>
     /// <item>
@@ -691,7 +697,7 @@ public partial class weex
     /// <item>
     /// <term>params.timeInForce</term>
     /// <description>
-    /// string : GTC, IOC, or FOK (default is GTC for limit orders)
+    /// string : GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
     /// </description>
     /// </item>
     /// </list>

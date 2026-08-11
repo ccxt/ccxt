@@ -562,9 +562,9 @@ public class BitrueApi extends Exchange
      * Calls the dapiV1PublicGetTicker endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiV1PublicGetTicker (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  dapiV1PublicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("dapiV1PublicGetTicker", optionalArgs);
     }
@@ -573,9 +573,9 @@ public class BitrueApi extends Exchange
      * Calls the dapiV1PublicGetKlines endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  dapiV1PublicGetKlines (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  dapiV1PublicGetKlines (Object... optionalArgs)
     {
         return this.callAsync ("dapiV1PublicGetKlines", optionalArgs);
     }

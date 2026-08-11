@@ -15,6 +15,8 @@
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchTicker](#fetchticker)
 * [fetchTickers](#fetchtickers)
+* [fetchOpenInterest](#fetchopeninterest)
+* [fetchOpenInterests](#fetchopeninterests)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchTradingFees](#fetchtradingfees)
@@ -262,6 +264,48 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 ```javascript
 woofipro.fetchTickers (symbols?, params?)
+```
+
+
+<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+
+### fetchOpenInterest{docsify-ignore}
+retrieves the open interest of a contract trading pair
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified CCXT market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.fetchOpenInterest (symbol, params?)
+```
+
+
+<a name="fetchOpenInterests" id="fetchopeninterests"></a>
+
+### fetchOpenInterests{docsify-ignore}
+retrieves the open interest for a list of contract trading pairs
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a dictionary of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified CCXT market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.fetchOpenInterests (symbols?, params?)
 ```
 
 

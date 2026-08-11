@@ -635,6 +635,7 @@ class coinex extends coinex$1["default"] {
                     '3008': errors.RequestTimeout, // Service busy, please try again later.
                     '3109': errors.InsufficientFunds, // {"code":3109,"data":{},"message":"balance not enough"}
                     '3127': errors.InvalidOrder, // The order quantity is below the minimum requirement. Please adjust the order quantity.
+                    '3157': errors.BadSymbol, // {"code":3157,"data":{},"message":"Service has been stopped in this market"}
                     '3600': errors.OrderNotFound, // {"code":3600,"data":{},"message":"Order not found"}
                     '3606': errors.InvalidOrder, // The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610': errors.ExchangeError, // Order cancellation prohibited during the Call Auction period.

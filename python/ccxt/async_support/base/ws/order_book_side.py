@@ -15,7 +15,6 @@ class OrderBookSide(list):
     def __init__(self, deltas=[], depth=None):
         super(OrderBookSide, self).__init__()
         self._depth = depth or sys.maxsize
-        self._n = sys.maxsize
         # parallel to self
         self._index = []
         for delta in deltas:
@@ -50,10 +49,6 @@ class OrderBookSide(list):
 
     def remove_index(self, order):
         pass
-
-    def __len__(self):
-        length = super(OrderBookSide, self).__len__()
-        return min(length, self._n)
 
     def __getitem__(self, item):
         if isinstance(item, slice):

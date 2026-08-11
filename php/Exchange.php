@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.71';
+$version = '4.5.73';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,10 +63,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.71';
+    const VERSION = '4.5.73';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.71';
+    public static $ccxt_version = '4.5.73';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -684,6 +684,18 @@ class BaseExchange {
 
     public static function safe_map_to_map($dictionary) {
         return $dictionary;  // wrapper for go
+    }
+
+    public function is_dictionary(mixed $value) {
+        if ($value === null) {
+            return false;
+        }
+        if (is_array($value)) {
+            if (count($value) === 0 || array_keys($value) !== array_keys(array_keys($value))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static function truncate($number, $precision = 0) {
@@ -3419,10 +3431,6 @@ class BaseExchange {
             return $value;
         }
         return $defaultValue;
-    }
-
-    public function is_dictionary(mixed $value) {
-        return ($value !== null) && (gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)));
     }
 
     public function safe_list_2(mixed $dictionaryOrList, int|string|null $key1, string $key2, ?array $defaultValue = null) {

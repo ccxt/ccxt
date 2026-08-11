@@ -491,6 +491,7 @@ export declare class BaseExchange {
     arraySlice(array: any, first: any, second?: Int): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
+    isDictionary(value: any): boolean;
     exceptionMessage(exc: any, includeStack?: boolean): string;
     fixStringifiedJsonMembers(content: string): string;
     ethAbiEncode(types: any, args: any): Uint8Array<ArrayBufferLike>;
@@ -556,7 +557,6 @@ export declare class BaseExchange {
     safeDict2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
     safeListN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: any[]): any[];
     safeListN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: any[]): any[] | undefined;
-    isDictionary(value: any): boolean;
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: any[]): any[];
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: any[]): any[] | undefined;
     safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue: any[]): any[];

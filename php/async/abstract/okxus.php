@@ -886,6 +886,60 @@ abstract class okxus extends \ccxt\async\okx {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_fiat_deposit_payment_methods($params = array()) {
+        return $this->request('fiat/deposit-payment-methods', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_fiat_withdrawal_payment_methods($params = array()) {
+        return $this->request('fiat/withdrawal-payment-methods', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_fiat_deposit_order_history($params = array()) {
+        return $this->request('fiat/deposit-order-history', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_fiat_deposit($params = array()) {
+        return $this->request('fiat/deposit', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_fiat_withdrawal_order_history($params = array()) {
+        return $this->request('fiat/withdrawal-order-history', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_fiat_withdrawal($params = array()) {
+        return $this->request('fiat/withdrawal', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_fiat_buy_sell_currencies($params = array()) {
+        return $this->request('fiat/buy-sell/currencies', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_fiat_buy_sell_currency_pair($params = array()) {
+        return $this->request('fiat/buy-sell/currency-pair', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_fiat_buy_sell_history($params = array()) {
+        return $this->request('fiat/buy-sell/history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_account_instruments($params = array()) {
         return $this->request('account/instruments', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1884,6 +1938,30 @@ abstract class okxus extends \ccxt\async\okx {
      */
     public function private_post_asset_convert_trade($params = array()) {
         return $this->request('asset/convert/trade', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_fiat_create_withdrawal($params = array()) {
+        return $this->request('fiat/create-withdrawal', 'private', 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_fiat_cancel_withdrawal($params = array()) {
+        return $this->request('fiat/cancel-withdrawal', 'private', 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_fiat_buy_sell_quote($params = array()) {
+        return $this->request('fiat/buy-sell/quote', 'private', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_fiat_buy_sell_trade($params = array()) {
+        return $this->request('fiat/buy-sell/trade', 'private', 'POST', $params, null, null, array("cost" => 50));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -3484,6 +3562,60 @@ abstract class okxus extends \ccxt\async\okx {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetFiatDepositPaymentMethods($params = array()) {
+        return $this->request('fiat/deposit-payment-methods', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetFiatWithdrawalPaymentMethods($params = array()) {
+        return $this->request('fiat/withdrawal-payment-methods', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetFiatDepositOrderHistory($params = array()) {
+        return $this->request('fiat/deposit-order-history', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetFiatDeposit($params = array()) {
+        return $this->request('fiat/deposit', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetFiatWithdrawalOrderHistory($params = array()) {
+        return $this->request('fiat/withdrawal-order-history', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetFiatWithdrawal($params = array()) {
+        return $this->request('fiat/withdrawal', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetFiatBuySellCurrencies($params = array()) {
+        return $this->request('fiat/buy-sell/currencies', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetFiatBuySellCurrencyPair($params = array()) {
+        return $this->request('fiat/buy-sell/currency-pair', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetFiatBuySellHistory($params = array()) {
+        return $this->request('fiat/buy-sell/history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetAccountInstruments($params = array()) {
         return $this->request('account/instruments', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -4482,6 +4614,30 @@ abstract class okxus extends \ccxt\async\okx {
      */
     public function privatePostAssetConvertTrade($params = array()) {
         return $this->request('asset/convert/trade', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostFiatCreateWithdrawal($params = array()) {
+        return $this->request('fiat/create-withdrawal', 'private', 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostFiatCancelWithdrawal($params = array()) {
+        return $this->request('fiat/cancel-withdrawal', 'private', 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostFiatBuySellQuote($params = array()) {
+        return $this->request('fiat/buy-sell/quote', 'private', 'POST', $params, null, null, array("cost" => 50));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostFiatBuySellTrade($params = array()) {
+        return $this->request('fiat/buy-sell/trade', 'private', 'POST', $params, null, null, array("cost" => 50));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

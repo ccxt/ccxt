@@ -3798,7 +3798,13 @@ public class ExtendedCore extends ExtendedApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "countdownTime", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ExtendedCore.this.parseToInt(Helpers.divide(timeout, 1000)) : 0 );
             }};
-            return (this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters))).join();
+            Object response = (this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters))).join();
+            //
+            // the endpoint answers with an empty string body
+            //
+            return new java.util.HashMap<String, Object>() {{
+                put( "info", response );
+            }};
         });
 
     }
