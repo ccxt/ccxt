@@ -641,6 +641,33 @@ public class OkxCore extends OkxApi
                         put( "asset/convert/history", new java.util.HashMap<String, Object>() {{
                             put( "cost", Helpers.divide(5, 3) );
                         }} );
+                        put( "fiat/deposit-payment-methods", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/withdrawal-payment-methods", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/deposit-order-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/deposit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/withdrawal-order-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/buy-sell/currencies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(5, 3) );
+                        }} );
+                        put( "fiat/buy-sell/currency-pair", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(5, 3) );
+                        }} );
+                        put( "fiat/buy-sell/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(5, 3) );
+                        }} );
                         put( "account/instruments", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -1143,6 +1170,18 @@ public class OkxCore extends OkxApi
                         }} );
                         put( "asset/convert/trade", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
+                        }} );
+                        put( "fiat/create-withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/cancel-withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/buy-sell/quote", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
+                        put( "fiat/buy-sell/trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
                         }} );
                         put( "account/bills-history-archive", new java.util.HashMap<String, Object>() {{
                             put( "cost", 72000 );
