@@ -199,7 +199,7 @@ var polymarket = require('./src/prediction/polymarket.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.72';
+const version = '4.5.73';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
