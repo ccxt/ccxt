@@ -5,7 +5,7 @@ import Exchange from './abstract/btse.js';
 import { ArgumentsRequired, BadRequest, InvalidOrder } from './base/errors.js';
 import { sha384 } from '@noble/hashes/sha2.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface } from './base/types.js';
+import type { Bool, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, List, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -204,19 +204,19 @@ export default class btse extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'spot/api/v3.3/market_summary': 5, // done
-                        'spot/api/v3.3/ohlcv': 5, // done
+                        'spot/api/v3.3/market_summary': { 'cost': 5 } as Endpoint<List>, // done
+                        'spot/api/v3.3/ohlcv': { 'cost': 5 } as Endpoint<List>, // done
                         'spot/api/v3.3/price': 5, // not used
                         'spot/api/v3.3/orderbook': 5, // not used
                         'spot/api/v3.3/orderbook/L2': 5, // done
-                        'spot/api/v3.3/trades': 5, // done
+                        'spot/api/v3.3/trades': { 'cost': 5 } as Endpoint<List>, // done
                         'spot/api/v3.3/time': 5, // done
-                        'futures/api/v2.3/market_summary': 5, // done
-                        'futures/api/v2.3/ohlcv': 5, // done
+                        'futures/api/v2.3/market_summary': { 'cost': 5 } as Endpoint<List>, // done
+                        'futures/api/v2.3/ohlcv': { 'cost': 5 } as Endpoint<List>, // done
                         'futures/api/v2.3/price': 5, // not used
                         'futures/api/v2.3/orderbook': 5, // not used
                         'futures/api/v2.3/orderbook/L2': 5, // done
-                        'futures/api/v2.3/trades': 5, // done
+                        'futures/api/v2.3/trades': { 'cost': 5 } as Endpoint<List>, // done
                         'futures/api/v2.3/funding_history': 5, // done
                         'futures/api/v2.3/market/risk_limit': 5, // done
                         'spot/api/v3.2/availableCurrencyNetworks': 15, // not used
@@ -229,18 +229,18 @@ export default class btse extends Exchange {
                     'get': {
                         'spot/api/v3.3/order': 1, // done
                         'spot/api/v3.3/user/open_orders': 5, // done
-                        'spot/api/v3.3/user/trade_history': 5, // done
-                        'spot/api/v3.3/user/fees': 5, // done
+                        'spot/api/v3.3/user/trade_history': { 'cost': 5 } as Endpoint<List>, // done
+                        'spot/api/v3.3/user/fees': { 'cost': 5 } as Endpoint<List>, // done
                         'spot/api/v3.3/invest/products': 5,
                         'spot/api/v3.3/invest/orders': 5,
                         'spot/api/v3.3/invest/history': 5,
                         'futures/api/v2.3/order': 1, // done
                         'futures/api/v2.3/user/open_orders': 1, // done
-                        'futures/api/v2.3/user/trade_history': 5, // done
-                        'futures/api/v2.3/user/positions': 5, // done
+                        'futures/api/v2.3/user/trade_history': { 'cost': 5 } as Endpoint<List>, // done
+                        'futures/api/v2.3/user/positions': { 'cost': 5 } as Endpoint<List>, // done
                         'futures/api/v2.3/risk_limit': 5, // not used
                         'futures/api/v2.3/leverage': 5, // done
-                        'futures/api/v2.3/user/fees': 5, // done
+                        'futures/api/v2.3/user/fees': { 'cost': 5 } as Endpoint<List>, // done
                         'futures/api/v2.3/position_mode': 5, // done
                         'futures/api/v2.3/user/margin_setting': 5, // not used
                         'futures/api/v2.3/user/wallet': 5,
