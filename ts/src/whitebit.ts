@@ -235,7 +235,8 @@ export default class whitebit extends Exchange {
                             'main-account/fee': { 'cost': 1 } as Endpoint<List>,
                             'main-account/smart/interest-payment-history': { 'cost': 1 } as Endpoint<Dict>,
                             'trade-account/balance': { 'cost': 1 } as Endpoint<Dict>,
-                            'trade-account/executed-history': { 'cost': 1 } as Endpoint<Dict>,
+                            // answers with a list when a market is set and a dict of lists otherwise — no shape assertion
+                            'trade-account/executed-history': { 'cost': 1 },
                             'trade-account/order/history': { 'cost': 1 } as Endpoint<Dict>,
                             'trade-account/order': { 'cost': 1 } as Endpoint<Dict>,
                             'order/collateral/limit': { 'cost': 1 } as Endpoint<Dict>,
