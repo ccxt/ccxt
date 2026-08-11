@@ -95,6 +95,15 @@ jobs:
       - name: Build prediction
         if: env.prediction_modified == 'true'
         run: go build -C go ./v4/prediction
+      - name: Build selected exchange
+        if: env.important_modified == 'true'
+        run: go build -tags ccxt_select,ccxt_binance -C go ./v4
+      - name: Build selected exchange Ws
+        if: env.important_modified == 'true'
+        run: go build -tags ccxt_select,ccxt_binance -C go ./v4/pro
+      - name: Build selected child exchange
+        if: env.important_modified == 'true'
+        run: go build -tags ccxt_select,ccxt_binanceus -C go ./v4
       - name: Build tests
         run: go -C go build ./tests/main.go
       - name: Test GO Types
