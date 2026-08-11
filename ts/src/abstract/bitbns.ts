@@ -10,7 +10,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     wwwGetOrderFetchMarkets (params?: {}): Promise<List>;
-    wwwGetOrderFetchTickers (params?: {}): Promise<List>;
+    wwwGetOrderFetchTickers (params?: {}): Promise<Dict>;
     wwwGetOrderFetchOrderbook (params?: {}): Promise<Dict>;
     wwwGetOrderGetTickerWithVolume (params?: {}): Promise<Dict>;
     wwwGetExchangeDataOhlc (params?: {}): Promise<List>;

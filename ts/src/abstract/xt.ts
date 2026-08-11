@@ -91,6 +91,7 @@ interface Exchange {
     privateLinearGetFutureTradeV1OrderDetail (params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1OrderList (params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1OrderListHistory (params?: {}): Promise<Dict>;
+    privateLinearGetFutureTradeV1PositionListHistory (params?: {}): Promise<Dict>;
     privateLinearGetFutureTradeV1OrderTradeList (params?: {}): Promise<Dict>;
     privateLinearGetFutureUserV1AccountInfo (params?: {}): Promise<Dict>;
     privateLinearGetFutureUserV1BalanceBills (params?: {}): Promise<Dict>;
@@ -130,6 +131,7 @@ interface Exchange {
     privateInverseGetFutureTradeV1OrderDetail (params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1OrderList (params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1OrderListHistory (params?: {}): Promise<Dict>;
+    privateInverseGetFutureTradeV1PositionListHistory (params?: {}): Promise<Dict>;
     privateInverseGetFutureTradeV1OrderTradeList (params?: {}): Promise<Dict>;
     privateInverseGetFutureUserV1AccountInfo (params?: {}): Promise<Dict>;
     privateInverseGetFutureUserV1BalanceBills (params?: {}): Promise<Dict>;
