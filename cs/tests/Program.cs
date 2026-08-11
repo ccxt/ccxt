@@ -142,6 +142,7 @@ public class Tests
             {
                 WsCacheTests();
                 WsOrderBookTests();
+                WsOrderBookDefaultsTests();
                 await WsClientRetentionTests();
                 Helper.Green("[C#] base WS tests passed");
             }
@@ -182,6 +183,12 @@ public class Tests
     {
         await baseTestInstance.testWsClientRetention();
         Helper.Green(" [C#] WebSocketClient retention tests passed");
+    }
+
+    static void WsOrderBookDefaultsTests()
+    {
+        baseTestInstance.testWsOrderBookNullSnapshotDefaults();
+        Helper.Green(" [C#] OrderBook null-snapshot defaults tests passed");
     }
 
     static void WsOrderBookTests()
