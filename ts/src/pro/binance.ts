@@ -4243,7 +4243,6 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let client = undefined;
         let stock = false;
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOrders', 'stock', false);
         if (stock) {
@@ -4264,10 +4263,6 @@ export default class binance extends binanceRest {
             };
             const stockQuery = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]);
             const stockSubscribe: Dict = {
-                'id': stockRequestId,
-            };
-            client = this.client (stockUrl);
-            client.subscriptions['stock'] = {
                 'id': stockRequestId,
             };
             const stockOrders = await this.watch (stockUrl, stockMessageHash, this.extend (stockRequest, stockQuery), stockMessageHash, stockSubscribe);
@@ -4318,7 +4313,7 @@ export default class binance extends binanceRest {
             }
             url = this.getPrivateWsUrl (urlType, this.options[type]['listenKey']);
         }
-        client = this.client (url);
+        const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
         const message = undefined;
