@@ -6176,10 +6176,10 @@ final Object finalMarket = market;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInverseGetFutureTradeV1PositionListHistory", new Object[] { this.extend(request, parameters) })).join();
+                response = (this.privateInverseGetFutureTradeV1PositionListHistory(this.extend(request, parameters))).join();
             } else
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateLinearGetFutureTradeV1PositionListHistory", new Object[] { this.extend(request, parameters) })).join();
+                response = (this.privateLinearGetFutureTradeV1PositionListHistory(this.extend(request, parameters))).join();
             }
             //
             //     {

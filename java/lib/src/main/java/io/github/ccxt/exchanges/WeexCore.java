@@ -2421,7 +2421,7 @@ public class WeexCore extends WeexApi
                 //
                 if (Helpers.isTrue(sandboxMode))
                 {
-                    response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivateGetCapiV3SimBalance", new Object[] { parameters })).join();
+                    response = (this.contractPrivateGetCapiV3SimBalance(parameters)).join();
                 } else
                 {
                     response = (this.contractPrivateGetCapiV3AccountBalance(parameters)).join();
@@ -2745,7 +2745,7 @@ public class WeexCore extends WeexApi
                 response = (this.contractPrivatePostCapiV3AlgoOrder(request)).join();
             } else if (Helpers.isTrue(sandboxMode))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivatePostCapiV3SimOrder", new Object[] { request })).join();
+                response = (this.contractPrivatePostCapiV3SimOrder(request)).join();
             } else
             {
                 response = (this.contractPrivatePostCapiV3Order(request)).join();
@@ -3659,7 +3659,7 @@ public class WeexCore extends WeexApi
             Object response = null;
             if (Helpers.isTrue(sandboxMode))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivateGetCapiV3SimOrderHistory", new Object[] { this.extend(request, parameters) })).join();
+                response = (this.contractPrivateGetCapiV3SimOrderHistory(this.extend(request, parameters))).join();
             } else
             {
                 response = (this.contractPrivateGetCapiV3OrderHistory(this.extend(request, parameters))).join();
@@ -4309,7 +4309,7 @@ public class WeexCore extends WeexApi
             Object response = null;
             if (Helpers.isTrue(sandboxMode))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivateGetCapiV3SimPositionAllPosition", new Object[] { parameters })).join();
+                response = (this.contractPrivateGetCapiV3SimPositionAllPosition(parameters)).join();
             } else
             {
                 response = (this.contractPrivateGetCapiV3AccountPositionAllPosition(parameters)).join();
