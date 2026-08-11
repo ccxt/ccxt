@@ -273,7 +273,7 @@ Lighter is available as part of CCXT and it works similarly to any other CCXT ex
 
 After the latest upgrade CCXT has simplified the authentication process and now using the L1 private key is enough.
 
-## Credentials requirements
+### Credentials requirements
 
 Lighter requires the following :
 - `privateKey`: the L1 private key **mandatory**
