@@ -52,7 +52,9 @@ export default class lighter extends lighterRest {
                     'ws': 'wss://testnet.zklighter.elliot.ai/stream',
                 },
             },
-            'options': {},
+            'options': {
+                'requestId': this.createSafeDictionary (),
+            },
         });
     }
 
@@ -1151,6 +1153,14 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
+    requestId (url: string): string {
+        const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
+        const previousValue = this.safeInteger (options, url, 0);
+        const newValue = this.sum (previousValue, 1);
+        this.options['requestId'][url] = newValue;
+        return this.numberToString (newValue);
+    }
+
     /**
      * @method
      * @name lighter#createOrderWs
@@ -1177,7 +1187,8 @@ export default class lighter extends lighterRest {
             await this.loadMarkets ();
         }
         const url = this.urls['api']['ws'];
-        const messageHash = 'createOrderWs';
+        const requestId = this.requestId (url);
+        const messageHash = 'jsonapi/sendtx:' + requestId;
         let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'createOrderWs', 'accountIndex', 'account_index');
         params['accountIndex'] = accountIndex;
@@ -1223,16 +1234,24 @@ export default class lighter extends lighterRest {
         const message: Dict = {
             'type': 'jsonapi/sendtx',
             'data': {
-                'id': this.safeInteger (parsedTx, 'Nonce'),
+                'id': requestId,
                 'tx_type': txType,
                 'tx_info': parsedTx,
             },
         };
         const subscription: Dict = {
-            'id': this.safeInteger (parsedTx, 'Nonce'),
-            'messageHash': messageHash,
+            'id': requestId,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.parseOrder (this.deepExtend (rawMessage, order), market);
+    }
+
+    handleWsSendtxApi (client: Client, message: any) {
+        //
+        //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
+        //
+        const id = this.safeString (message, 'id');
+        client.resolve (message, 'jsonapi/sendtx:' + id);
     }
 
     handleOrders (client: Client, message: any) {
@@ -1304,6 +1323,21 @@ export default class lighter extends lighterRest {
                 }
             }
         } catch (e) {
+            const id = this.safeString (message, 'id');
+            if (id !== undefined) {
+                const subscriptionKeys = Object.keys (client.subscriptions);
+                for (let i = 0; i < subscriptionKeys.length; i++) {
+                    const subscriptionHash = subscriptionKeys[i];
+                    const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                    const subscription = this.safeString (client.subscriptions[subscriptionHash], 'subscription');
+                    if (id === subscriptionId) {
+                        client.reject (e, subscriptionHash);
+                        if (subscription !== undefined) {
+                            delete client.subscriptions[subscription];
+                        }
+                    }
+                }
+            }
             client.reject (e);
         }
         return true;
@@ -1316,6 +1350,10 @@ export default class lighter extends lighterRest {
         const type = this.safeString (message, 'type', '');
         if (type === 'ping') {
             this.handlePing (client, message);
+            return;
+        }
+        if (type === 'jsonapi/sendtx') {
+            this.handleWsSendtxApi (client, message);
             return;
         }
         const channel = this.safeString (message, 'channel', '');
