@@ -1391,6 +1391,15 @@ func IsDictionary(v any) bool {
 		return true
 	case map[any]any:
 		return true
+	case OrderBookInterface:
+		// live ws orderbooks are dictionaries in every other runtime — js
+		// objects, python dicts, java WsOrderBook extends AbstractMap
+		// (https://github.com/ccxt/ccxt/pull/29594), C# OrderBook implements
+		// IDictionary — and the shared structure test asserts
+		// isDictionary(entry) on them; the native go check introduced in
+		// https://github.com/ccxt/ccxt/pull/29704 must agree or every ws
+		// orderbook live test fails with "entry is not a dict"
+		return true
 	default:
 		return false
 	}
