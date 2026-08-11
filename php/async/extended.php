@@ -3213,7 +3213,7 @@ class extended extends Exchange {
         return array();
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders_after(...))($timeout, $params);
     }
 
@@ -3231,7 +3231,11 @@ class extended extends Exchange {
         $request = array(
             'countdownTime' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
         );
-        return Async\await($this->v1PrivatePostUserDeadmanswitch($this->extend($request, $params)));
+        $response = Async\await($this->v1PrivatePostUserDeadmanswitch($this->extend($request, $params)));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return array( 'info' => $response );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
