@@ -2185,8 +2185,9 @@ ${constStatements.join('\n')}
     createDynamicInstanceFile(ws = false, prediction = false, force = true){
         const subFolder = ws ? '/pro' : (prediction ? '/prediction' : '');
         const dynamicInstanceFile = `./go/v4${subFolder}/exchange_dynamic.go`;
-        // this file is a pure function of the exchange id lists in exchanges.json
-        if (skipUpToDateStage ('go', `dynamic instance file (${subFolder || '/v4'})`, force, [ './exchanges.json' ], [ dynamicInstanceFile ])) {
+        // this file is a function of the exchange id lists in exchanges.json and of the case
+        // template below, which carries the nil guard the stub files rely on
+        if (skipUpToDateStage ('go', `dynamic instance file (${subFolder || '/v4'})`, force, [ './exchanges.json', './build/goTranspiler.ts' ], [ dynamicInstanceFile ])) {
             return;
         }
         const exchanges = ws ? exchangeIdsWs : (prediction ? predictionIds : ['Exchange'].concat(exchangeIds));
