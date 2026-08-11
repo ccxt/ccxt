@@ -102,7 +102,9 @@ public class WoofiproCore extends WoofiproApi
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMyTrades", true );
                 put( "fetchOHLCV", true );
+                put( "fetchOpenInterest", true );
                 put( "fetchOpenInterestHistory", false );
+                put( "fetchOpenInterests", true );
                 put( "fetchOpenOrder", false );
                 put( "fetchOpenOrders", true );
                 put( "fetchOption", false );
@@ -1521,6 +1523,143 @@ public class WoofiproCore extends WoofiproApi
                 ((java.util.List<Object>)result).add(this.parseTicker(ticker));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
+        });
+
+    }
+
+    public Object parseOpenInterest(Object interest, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object marketId = this.safeString(interest, "symbol");
+        market = this.safeMarket(marketId, market);
+        Object timestamp = this.safeInteger(interest, "timestamp");
+        Object amount = this.safeNumber2(interest, "open_interest", "openInterest");
+        final Object finalMarket = market;
+        return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "openInterestAmount", amount );
+            put( "openInterestValue", null );
+            put( "timestamp", timestamp );
+            put( "datetime", WoofiproCore.this.iso8601(timestamp) );
+            put( "info", interest );
+        }}, market);
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object market = this.market(symbol);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+            }};
+            Object response = (this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters))).join();
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1786022130191,
+            //     "data": {
+            //         "symbol": "PERP_BTC_USDC",
+            //         "index_price": 64185.4,
+            //         "mark_price": 64171.0,
+            //         "open_interest": 110.64612,
+            //         "24h_volume": 102.2817,
+            //         "24h_amount": 6595662.199482
+            //     }
+            // }
+            //
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
+            return this.parseOpenInterest(data, market);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterests(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            symbols = this.marketSymbols(symbols);
+            Object response = (this.v1PublicGetPublicFutures(parameters)).join();
+            //
+            // {
+            //     "success": true,
+            //     "timestamp": 1786022130191,
+            //     "data": {
+            //         "rows": [{
+            //             "symbol": "PERP_BTC_USDC",
+            //             "index_price": 64185.4,
+            //             "mark_price": 64171.0,
+            //             "open_interest": 110.64612,
+            //             "24h_volume": 102.2817,
+            //             "24h_amount": 6595662.199482
+            //         }]
+            //     }
+            // }
+            //
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object timestamp = this.safeInteger(response, "timestamp");
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+            {
+                Object row = Helpers.GetValue(rows, i);
+                Object marketId = this.safeString(row, "symbol", "");
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.markets_by_id, null))) || !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
+                {
+                    continue;
+                }
+                Object interest = this.extend(new java.util.HashMap<String, Object>() {{
+                    put( "timestamp", timestamp );
+                }}, row);
+                ((java.util.List<Object>)result).add(this.parseOpenInterest(interest));
+            }
+            return this.filterByArray(result, "symbol", symbols);
         });
 
     }
