@@ -58,10 +58,21 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
             array_splice($tmp, $index, 1);
             $this->exchangeArray($tmp);
         }
+        $this->assertIndexAligned();
     }
 
     public function store($price, $size, $id = null) {
         $this->storeArray(array($price, $size));
+    }
+
+    protected function assertIndexAligned() {
+        // the parallel index and data arrays have exactly one invariant and a
+        // desync surfaces as corruption only several mutations later, so trip
+        // at the first desynced mutation instead; zero cost in production,
+        // zend.assertions set to -1 compiles asserts out, see
+        // https://github.com/ccxt/ccxt/pull/29603 and
+        // https://github.com/ccxt/ccxt/issues/26967
+        assert(count($this->index) === parent::count(), 'ccxt OrderBookSide index and data desynced: index=' . count($this->index) . ' data=' . parent::count());
     }
 
     public function copy() {
@@ -80,6 +91,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
             array_splice($tmp, -$difference);
             $this->exchangeArray($tmp);
         }
+        $this->assertIndexAligned();
     }
 
     public function JsonSerialize () : array {
@@ -155,6 +167,7 @@ class CountedOrderBookSide extends OrderBookSide {
             array_splice($tmp, $index, 1);
             $this->exchangeArray($tmp);
         }
+        $this->assertIndexAligned();
     }
 }
 
@@ -193,6 +206,7 @@ class IndexedOrderBookSide extends OrderBookSide {
                         $index++;
                     }
                     $this[$index] = $delta;
+                    $this->assertIndexAligned();
                     return;
                 } else {
                     // remove old price from index
@@ -216,6 +230,7 @@ class IndexedOrderBookSide extends OrderBookSide {
             $tmp = $this->exchangeArray(tmp);
             array_splice($tmp, $index, 0, array($delta));
             $this->exchangeArray($tmp);
+            $this->assertIndexAligned();
         } else if (array_key_exists($id, $this->hashmap)) {
             $old_price = $this->hashmap[$id];
             $index = bisectLeft($this->index, $old_price);
@@ -227,6 +242,7 @@ class IndexedOrderBookSide extends OrderBookSide {
             array_splice($tmp, $index, 1);
             $this->exchangeArray($tmp);
             unset($this->hashmap[$id]);
+            $this->assertIndexAligned();
         }
     }
 }
