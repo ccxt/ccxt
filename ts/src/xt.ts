@@ -4766,8 +4766,8 @@ export default class xt extends Exchange {
     override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['swap']) {
-            throw new NotSupported (this.id + ' fetchTradingFee() supports swap contracts only');
+        if (!market['contract']) {
+            throw new NotSupported (this.id + ' fetchTradingFee() supports contract markets only');
         }
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFee', market, params);
@@ -4833,7 +4833,7 @@ export default class xt extends Exchange {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const matchesSubType = (isInverse) ? market['inverse'] : market['linear'];
-            if (market['swap'] && matchesSubType) {
+            if (market['contract'] && matchesSubType) {
                 result[symbol] = this.parseTradingFee (fee, market);
             }
         }
