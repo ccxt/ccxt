@@ -381,5 +381,41 @@ public partial class BaseTest
                     Assert(!isEqual(getValue(row, 0), null));
                 }
             }
+            
+        // --------------------------------------------------------------------------------------------------------------------
+        
+            // indexed sides must clean their hashmap when limit trims rows away: a
+            // delta arriving later for a trimmed id previously threw in js and looped
+            // in php while python handled it, an update of a trimmed id must reinsert
+            // cleanly and a delete of a trimmed id must be a no op
+            object trimIndexedInput = new Dictionary<string, object>() {
+                { "bids", new List<object>() {new List<object>() {10, 1, "x"}, new List<object>() {9, 1, "y"}, new List<object>() {8, 1, "z"}, new List<object>() {7, 1, "w"}, new List<object>() {6, 1, "v"}} },
+                { "asks", new List<object>() {new List<object>() {11, 1, "a"}, new List<object>() {12, 1, "b"}, new List<object>() {13, 1, "c"}, new List<object>() {14, 1, "d"}, new List<object>() {15, 1, "e"}} },
+                { "timestamp", 1574827239000 },
+                { "nonce", 70 },
+                { "symbol", null },
+            };
+            object trimIndexedTarget = new Dictionary<string, object>() {
+                { "bids", new List<object>() {new List<object>() {10, 1, "x"}, new List<object>() {9, 1, "y"}, new List<object>() {8, 1, "z"}} },
+                { "asks", new List<object>() {new List<object>() {11, 1, "a"}, new List<object>() {12, 1, "b"}, new List<object>() {13, 1, "c"}} },
+                { "timestamp", 1574827239000 },
+                { "datetime", "2019-11-27T04:00:39.000Z" },
+                { "nonce", 70 },
+                { "symbol", null },
+            };
+            var trimIndexedBook = new IndexedOrderBook(trimIndexedInput, 3);
+            trimIndexedBook.limit();
+            var trimAsks = trimIndexedBook.asks;
+            var trimBids = trimIndexedBook.bids;
+            // update of a trimmed id reinserts cleanly
+            trimAsks.storeArray(new List<object>() {15, 2, "e"});
+            trimBids.storeArray(new List<object>() {7, 2, "w"});
+            // delete of a trimmed id is a no op, on both sides via ids that were
+            // trimmed and never reinserted (d on asks, v on bids); the final limit
+            // below also re-trims the reinserted w, exercising the cleanup twice
+            trimAsks.storeArray(new List<object>() {14, 0, "d"});
+            trimBids.storeArray(new List<object>() {6, 0, "v"});
+            trimIndexedBook.limit();
+            Assert(equals(trimIndexedBook, trimIndexedTarget));
         }
 }
