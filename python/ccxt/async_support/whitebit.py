@@ -247,6 +247,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'main-account/fee': {'cost': 1},
                             'main-account/smart/interest-payment-history': {'cost': 1},
                             'trade-account/balance': {'cost': 1},
+                            # answers with a list when a market is set and a dict of lists otherwise — no shape assertion
                             'trade-account/executed-history': {'cost': 1},
                             'trade-account/order/history': {'cost': 1},
                             'trade-account/order': {'cost': 1},
