@@ -343,3 +343,40 @@ def test_ws_order_book():
     reset_book.reset(order_book_input)
     reset_book.limit()
     assert equals(reset_book, order_book_target)
+    # --------------------------------------------------------------------------------------------------------------------
+    # regression for the php phantom index desync under limit, the corruption
+    # sequence was a reset with a snapshot, a depth trim via limit, then
+    # deltas landing on and beyond the trimmed tail, which produced rows
+    # holding only an amount and stale levels in php before the fix, see
+    # https://github.com/ccxt/ccxt/pull/29603 and
+    # https://github.com/ccxt/ccxt/issues/26967
+    desync_book = OrderBook({}, 3)
+    desync_book.reset(order_book_input)
+    desync_book.limit()
+    desync_bids = desync_book['bids']
+    desync_asks = desync_book['asks']
+    # a delta beyond the trimmed tail must reinsert cleanly
+    desync_bids.store_array([6.4, 14])
+    # a delta on a surviving level must update that level in place
+    desync_asks.store_array([11.1, 7])
+    # a delete on a surviving level must remove exactly that level
+    desync_bids.store_array([9.1, 0])
+    desync_book.limit()
+    desync_target = {
+        'bids': [[10, 10], [8.2, 12], [6.4, 14]],
+        'asks': [[11.1, 7], [12.2, 14], [13.3, 13]],
+        'timestamp': 1574827239000,
+        'datetime': '2019-11-27T04:00:39.000Z',
+        'nonce': 69,
+        'symbol': None,
+    }
+    assert equals(desync_book, desync_target)
+    # every row must be a well formed price and amount pair, the php
+    # corruption produced rows holding only an amount
+    desync_sides = [desync_book['bids'], desync_book['asks']]
+    for i in range(0, len(desync_sides)):
+        side = desync_sides[i]
+        for k in range(0, len(side)):
+            row = side[k]
+            assert len(row) >= 2
+            assert row[0] is not None
