@@ -1,8 +1,8 @@
 // @ts-nocheck
 
-import WebSocket from 'ws'
+import WebSocket, { WebSocketServer as WsServer } from 'ws'
 import http from 'http'
-import { extend } from 'ccxt'
+import { extend } from '../../../base/functions.js'
 
 // ----------------------------------------------------------------------------
 // a sandbox ws server for testing and debugging
@@ -18,6 +18,8 @@ class WebSocketServer {
             "closeCode": 1000, // default closing code 1000 = ok
             "handshakeDelay": undefined, // delay the handshake to simulate connection timeout
             "port": 8080,
+            "onEcho": undefined, // callback (ws, message) invoked after each echoed message
+            "onNewConnection": undefined, // callback (ws, connectionIndex) invoked when a connection is established
         }
 
         // merge to this
@@ -27,9 +29,11 @@ class WebSocketServer {
             this[property] = value
         }
 
+        this.connections = [] // active sockets
+        this.connectionCount = 0
         this.server = http.createServer ()
-        thiss = new WebSocket.Server ({ "noServer": true })
-        thiss.on ('connection', this.onConnection.bind (this))
+        this.wsServer = new WsServer ({ "noServer": true })
+        this.wsServer.on ('connection', this.onConnection.bind (this))
         this.server.on ('upgrade', this.onUpgrade.bind (this))
 
         console.log (new Date (), 'listening port', this.port)
@@ -39,6 +43,12 @@ class WebSocketServer {
     onConnection (ws, request) {
 
         console.log (new Date (), 'onConnection')
+
+        this.connections.push (ws)
+        this.connectionCount++
+        if (this.onNewConnection !== undefined) {
+            this.onNewConnection (ws, this.connectionCount)
+        }
 
         // terminate any incoming connection
         // immediately after it has been successfully established
@@ -79,7 +89,7 @@ class WebSocketServer {
         // ws.send ('something')
 
         // other stuff that might be useful
-        ws.on ('message', function incoming (message) {
+        ws.on ('message', (message) => {
             console.log (new Date (), 'onMessage', message)
             if (message === 'error') {
                 invalidFrame (ws)
@@ -88,6 +98,9 @@ class WebSocketServer {
             } else {
                 // echo back
                 ws.send (message)
+            }
+            if (this.onEcho !== undefined) {
+                this.onEcho (ws, message)
             }
         })
         ws.on ('ping', (message) => {
@@ -107,28 +120,42 @@ class WebSocketServer {
         ws._sender._socket.write ('invalid frame')
     }
 
+    send (message) {
+        // send a frame to every open connection, used by the tests to emit scripted messages
+        const frame = (typeof message === 'string') ? message : JSON.stringify (message)
+        for (let i = 0; i < this.connections.length; i++) {
+            const ws = this.connections[i]
+            if (ws !== undefined && ws.readyState === WebSocket.OPEN) {
+                ws.send (frame)
+            }
+        }
+    }
+
+    terminateAll () {
+        // terminate every open connection with the close code 1006
+        for (let i = 0; i < this.connections.length; i++) {
+            const ws = this.connections[i]
+            if (ws !== undefined) {
+                ws.terminate ()
+            }
+        }
+    }
+
     onUpgrade (request, socket, head) {
         console.log (new Date (), 'onUpgrade')
         if (Number.isInteger (this.handshakeDelay)) {
             console.log (new Date (), 'handshake delay', this.handshakeDelay)
             setTimeout (() => {
-                thiss.handleUpgrade (request, socket, head, ((ws) => {
-                    thiss.emit ('connection', ws, request)
+                this.wsServer.handleUpgrade (request, socket, head, ((ws) => {
+                    this.wsServer.emit ('connection', ws, request)
                 }))
             }, this.handshakeDelay)
         } else {
-            thiss.handleUpgrade (request, socket, head, ((ws) => {
-                thiss.emit ('connection', ws, request)
+            this.wsServer.handleUpgrade (request, socket, head, ((ws) => {
+                this.wsServer.emit ('connection', ws, request)
             }))
         }
     }
 }
 
 export default WebSocketServer
-
-// ----------------------------------------------------------------------------
-// if launched in console instead of being required as a module
-
-if (require.main === module) {
-    (async () => { const wss = new WebSocketServer () }) ()
-}
