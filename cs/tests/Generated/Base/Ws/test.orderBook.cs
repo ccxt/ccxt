@@ -338,5 +338,48 @@ public partial class BaseTest
             resetBook.reset(orderBookInput);
             resetBook.limit();
             Assert(equals(resetBook, orderBookTarget));
+            
+        // --------------------------------------------------------------------------------------------------------------------
+        
+            // regression for the php phantom index desync under limit, the corruption
+            // sequence was a reset with a snapshot, a depth trim via limit, then
+            // deltas landing on and beyond the trimmed tail, which produced rows
+            // holding only an amount and stale levels in php before the fix, see
+            // https://github.com/ccxt/ccxt/pull/29603 and
+            // https://github.com/ccxt/ccxt/issues/26967
+            var desyncBook = new OrderBook(new Dictionary<string, object>() {}, 3);
+            desyncBook.reset(orderBookInput);
+            desyncBook.limit();
+            var desyncBids = desyncBook.bids;
+            var desyncAsks = desyncBook.asks;
+            // a delta beyond the trimmed tail must reinsert cleanly
+            desyncBids.storeArray(new List<object>() {6.4, 14});
+            // a delta on a surviving level must update that level in place
+            desyncAsks.storeArray(new List<object>() {11.1, 7});
+            // a delete on a surviving level must remove exactly that level
+            desyncBids.storeArray(new List<object>() {9.1, 0});
+            desyncBook.limit();
+            object desyncTarget = new Dictionary<string, object>() {
+                { "bids", new List<object>() {new List<object>() {10, 10}, new List<object>() {8.2, 12}, new List<object>() {6.4, 14}} },
+                { "asks", new List<object>() {new List<object>() {11.1, 7}, new List<object>() {12.2, 14}, new List<object>() {13.3, 13}} },
+                { "timestamp", 1574827239000 },
+                { "datetime", "2019-11-27T04:00:39.000Z" },
+                { "nonce", 69 },
+                { "symbol", null },
+            };
+            Assert(equals(desyncBook, desyncTarget));
+            // every row must be a well formed price and amount pair, the php
+            // corruption produced rows holding only an amount
+            object desyncSides = new List<object>() {getValue(desyncBook, "bids"), getValue(desyncBook, "asks")};
+            for (object i = 0; isLessThan(i, getArrayLength(desyncSides)); postFixIncrement(ref i))
+            {
+                object side = getValue(desyncSides, i);
+                for (object k = 0; isLessThan(k, getArrayLength(side)); postFixIncrement(ref k))
+                {
+                    object row = getValue(side, k);
+                    Assert(isGreaterThanOrEqual(getArrayLength(row), 2));
+                    Assert(!isEqual(getValue(row, 0), null));
+                }
+            }
         }
 }
