@@ -7,7 +7,7 @@ diff=$(echo "$diff" | sed -e "s/^run\-tests\-simul\.sh//")
 diff=$(echo "$diff" | sed -e "s/^\w+.yml//") # tmp remove actions files
 diff_without_statics=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//")
 
-critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|go\/v4\/exchange_|ccxt\/ws\/|^build|static_dependencies|^run-tests|composer\.json|ccxt\.ts|__init__.py|test' # ccxt\/ws\/ covers hand-written cs/ccxt/ws/ and java .../io/github/ccxt/ws/ base files, see https://github.com/ccxt/ccxt/pull/29740 for the go sibling # add \/test| # remove package json temporatily todo revert this!!
+critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|go\/v4\/exchange_|ccxt\/ws\/|io\/github\/ccxt\/(BaseExchange|Client|Exchange|Helpers|IOrderBookSide|PredictionExchange|Throttler)\.java|io\/github\/ccxt\/types\/|build\.gradle|^build|static_dependencies|^run-tests|composer\.json|ccxt\.ts|__init__.py|test' # ccxt\/ws\/ covers hand-written cs/ccxt/ws/ and java .../io/github/ccxt/ws/ base files, see https://github.com/ccxt/ccxt/pull/29740 for the go sibling # the java-root arm is a file list because a blanket io/github/ccxt/*.java would fire on auto-bumped Version.java (build/vss.js) and generated MetaData.java (build/export-exchanges.ts); types/ is listed because java base types escape the \/base and go\/v4\/exchange_ arms their cs/go siblings match; build\.gradle (also matches .gradle.kts) because ^build is anchored and the gradle wiring otherwise escapes # add \/test| # remove package json temporatily todo revert this!!
 # critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
 
 COMMIT_MESSAGE=$(git log -1 --pretty=%B)
