@@ -2458,10 +2458,17 @@ export default class krakenfutures extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const before = this.safeString (item, 'old_balance');
         const after = this.safeString (item, 'new_balance');
+        const feeCost = this.safeString (item, 'fee');
         let amount: Str = undefined;
         let direction: Str = undefined;
         if ((before !== undefined) && (after !== undefined)) {
             amount = Precise.stringSub (after, before);
+            if (feeCost !== undefined) {
+                // the fee is already deducted from the balance delta, add it
+                // back so that amount does not include the fee, matching the
+                // unified ledger contract: after = before +/- amount - fee
+                amount = Precise.stringAdd (amount, feeCost);
+            }
             if (Precise.stringLt (amount, '0')) {
                 direction = 'out';
                 amount = Precise.stringAbs (amount);
@@ -2485,7 +2492,7 @@ export default class krakenfutures extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': {
-                'cost': this.safeNumber (item, 'fee'),
+                'cost': this.parseNumber (feeCost),
                 'currency': code,
             },
         }, currency) as LedgerEntry;
