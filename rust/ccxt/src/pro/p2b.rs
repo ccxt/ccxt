@@ -299,6 +299,13 @@ impl P2bCore {
             "on_close" => { self.on_close(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "on_error" => { self.on_error(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "subscribe" => { crate::exchange_stubs::enqueue_spawn("subscribe", args.to_vec()); crate::Value::Null },
+            "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.to_vec()); crate::Value::Null },
+            "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.to_vec()); crate::Value::Null },
+            "watch_ticker" => { crate::exchange_stubs::enqueue_spawn("watch_ticker", args.to_vec()); crate::Value::Null },
+            "watch_tickers" => { crate::exchange_stubs::enqueue_spawn("watch_tickers", args.to_vec()); crate::Value::Null },
+            "watch_trades" => { crate::exchange_stubs::enqueue_spawn("watch_trades", args.to_vec()); crate::Value::Null },
+            "watch_trades_for_symbols" => { crate::exchange_stubs::enqueue_spawn("watch_trades_for_symbols", args.to_vec()); crate::Value::Null },
             _ => crate::Value::Null,
         }
     }

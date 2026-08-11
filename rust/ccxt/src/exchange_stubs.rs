@@ -534,6 +534,14 @@ pub(crate) fn drain_spawn_queue() -> Vec<(String, Vec<Value>)> {
     SPAWN_QUEUE.with(|q| std::mem::take(&mut *q.borrow_mut()))
 }
 
+/// Queue an async WS handler for the drive loop to run. The sync
+/// `dispatch_ws_handler` can't `.await` an async handler (e.g. htx's
+/// `handle_order_book_snapshot`), so it enqueues it here; `ws_run` drains and
+/// dispatches it asynchronously right after the current `handle_message`.
+pub fn enqueue_spawn(name: &str, args: Vec<Value>) {
+    SPAWN_QUEUE.with(|q| q.borrow_mut().push((name.to_string(), args)));
+}
+
 impl Exchange {
     // ── safe_* aliases (above-marker in TS) ─────────────────────────────────
 

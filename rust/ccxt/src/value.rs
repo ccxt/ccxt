@@ -586,6 +586,9 @@ pub fn get_value_k(obj: &Value, key: &str) -> Value {
         if is_book_meta_key(key) {
             if let Some(id) = book_id_of(m) { return book_meta_get(id, key); }
         }
+        if key == "cache" {
+            if let Some(id) = book_id_of(m) { return book_cache_handle(id); }
+        }
         if let Some(v) = m.get(key) {
             if !matches!(v, Value::Null) {
                 return v.clone();
@@ -609,6 +612,9 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
     // transpiled `get_value(&cache, &Value::Int(0))` calls reach the
     // right backing buffer.
     if let (Value::Dict(m), Value::Int(i)) = (obj, key) {
+        if let Some(id) = book_cache_id_of(m) {
+            return book_cache_at(id, *i as usize);
+        }
         if m.contains_key("__cacheKind") {
             if let Some(Value::Arr(data)) = m.get("_data") {
                 return data.get(*i as usize).cloned().unwrap_or(Value::Null);
@@ -624,6 +630,9 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             // the book store so mutations propagate across clones.
             if is_book_meta_key(k) {
                 if let Some(id) = book_id_of(m) { return book_meta_get(id, k); }
+            }
+            if k == "cache" {
+                if let Some(id) = book_id_of(m) { return book_cache_handle(id); }
             }
             // Snapshot value wins WHEN PRESENT AND NON-NULL. Tests that
             // mutate `exchange.options` (e.g. kucoin broker-id test) need
@@ -1152,11 +1161,70 @@ fn book_meta_snapshot(id: i64) -> Vec<(String, Value)> {
         .unwrap_or_default()
 }
 
+// A JS `OrderBook` also carries a mutable `cache` array — venues that fetch a
+// REST/`req` snapshot buffer live deltas into `orderbook.cache` while the
+// snapshot is in flight (binance, htx, …). Like the sides/meta, the cache must
+// be shared across clones: `orderbook.cache.push(msg)` transpiles to
+// `append_to_array(get_value(&book, "cache"), msg)`, and get_value returns a COW
+// clone. So `get_value(book, "cache")` returns a lightweight handle carrying
+// `__book_cache_id`, and length/index/append/clear route through this store.
+static BOOK_CACHE: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, Vec<Value>>>> =
+    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+
+/// Build a cache handle for a book id (returned by `get_value(book, "cache")`).
+fn book_cache_handle(id: i64) -> Value {
+    let mut h = HashMap::new();
+    h.insert("__book_cache_id".to_string(), Value::Int(id));
+    Value::Dict(Arc::new(h))
+}
+
+fn book_cache_id_of(m: &HashMap<String, Value>) -> Option<i64> {
+    match m.get("__book_cache_id") { Some(Value::Int(n)) => Some(*n), _ => None }
+}
+
+pub(crate) fn book_cache_push(id: i64, v: Value) {
+    BOOK_CACHE.lock().unwrap().entry(id).or_default().push(v);
+}
+
+fn book_cache_len(id: i64) -> usize {
+    BOOK_CACHE.lock().unwrap().get(&id).map(|c| c.len()).unwrap_or(0)
+}
+
+/// Length of a cache handle Dict's backing store, or None if `m` isn't a handle.
+pub(crate) fn book_cache_len_of(m: &HashMap<String, Value>) -> Option<usize> {
+    book_cache_id_of(m).map(book_cache_len)
+}
+
+/// If `obj` is a cache handle, push `v` into its store and return true.
+pub(crate) fn try_book_cache_push(obj: &Value, v: &Value) -> bool {
+    if let Value::Dict(m) = obj {
+        if let Some(id) = book_cache_id_of(m) { book_cache_push(id, v.clone()); return true; }
+    }
+    false
+}
+
+fn book_cache_at(id: i64, i: usize) -> Value {
+    BOOK_CACHE.lock().unwrap().get(&id).and_then(|c| c.get(i).cloned()).unwrap_or(Value::Null)
+}
+
+/// Replace a book's cache contents (from `book.cache = [...]`, usually to clear).
+pub(crate) fn book_cache_set(id: i64, items: Vec<Value>) {
+    BOOK_CACHE.lock().unwrap().insert(id, items);
+}
+
 /// If `m` is a shared book and `k` a meta key, write `v` to the book store and
 /// return true (the caller should skip its own Dict insert); else false.
 pub(crate) fn try_book_meta_write(m: &HashMap<String, Value>, k: &str, v: &Value) -> bool {
     if is_book_meta_key(k) {
         if let Some(id) = book_id_of(m) { book_meta_set(id, k, v.clone()); return true; }
+    }
+    // `book.cache = [...]` — replace the shared cache store (usually a clear).
+    if k == "cache" {
+        if let Some(id) = book_id_of(m) {
+            let items = match v { Value::Arr(a) => a.as_ref().clone(), _ => Vec::new() };
+            book_cache_set(id, items);
+            return true;
+        }
     }
     false
 }

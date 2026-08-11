@@ -288,6 +288,9 @@ impl MudrexCore {
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "request_id" => self.request_id(),
             "set_broker_headers" => { self.set_broker_headers(); crate::Value::Null },
+            "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.to_vec()); crate::Value::Null },
+            "watch_ticker" => { crate::exchange_stubs::enqueue_spawn("watch_ticker", args.to_vec()); crate::Value::Null },
+            "watch_tickers" => { crate::exchange_stubs::enqueue_spawn("watch_tickers", args.to_vec()); crate::Value::Null },
             _ => crate::Value::Null,
         }
     }

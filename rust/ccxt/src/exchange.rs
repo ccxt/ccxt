@@ -1100,6 +1100,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 Some(m) => m,
                 None => panic!("[NetworkError] {} websocket connection closed", url),
             };
+            if std::env::var("CCXT_WS_DEBUG").is_ok() {
+                let s = msg.to_json().to_string();
+                eprintln!("[wsmsg] {}", s.chars().take(220).collect::<String>());
+            }
             let client_value = crate::pro::ws_client::client_value(&url);
             let _ = self
                 .dispatch_to_derived("handle_message", vec![client_value, msg])
@@ -1108,6 +1112,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             // binance's REST order-book snapshot fetch). We can't truly
             // background them (they need `&mut self`), so run them inline here.
             for (method, args) in crate::exchange_stubs::drain_spawn_queue() {
+                if std::env::var("CCXT_WS_DEBUG").is_ok() {
+                    eprintln!("[wsdrain] {}", method);
+                }
                 let _ = self.dispatch_to_derived(&method, args).await;
             }
         }

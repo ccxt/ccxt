@@ -5245,10 +5245,18 @@ ${fallthrough}
             const name = m[2];
             const argList = m[3];
             const retType = (m[4] || '').trim();
-            if (isAsync) continue; // sync dispatch only (handle_message is sync)
             if (['new', 'bind', 'init', 'describe', 'dispatch_ws_handler'].includes(name)) continue;
             if (!/\bself\b/.test(argList)) continue;
             if (seen.has(name)) continue;
+            // Async handlers (e.g. htx `handle_order_book_snapshot`, fetched via a
+            // subscription-status dispatch table) can't be `.await`ed from the sync
+            // dispatcher. Queue them onto the spawn queue — `ws_run` drains and
+            // awaits them right after `handle_message`, same as `this.spawn(...)`.
+            if (isAsync) {
+                seen.add(name);
+                arms.push(`            "${name}" => { crate::exchange_stubs::enqueue_spawn("${name}", args.to_vec()); crate::Value::Null },`);
+                continue;
+            }
             const isVoid = retType === '';
             const isValue = /->\s*(crate::)?Value\s*$/.test(retType);
             if (!isVoid && !isValue) continue; // e.g. `-> bool` — not dispatchable

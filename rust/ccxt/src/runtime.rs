@@ -462,6 +462,9 @@ pub fn get_array_length(v: &Value) -> Value {
     // backing array, not the marker dict's keys. Look those up first
     // so `get_array_length(&cache)` reports the right number.
     if let Value::Dict(d) = v {
+        if let Some(n) = crate::value::book_cache_len_of(d) {
+            return Value::Int(n as i64);
+        }
         if d.contains_key("__cacheKind") {
             if let Some(Value::Arr(data)) = d.get("_data") {
                 return Value::Int(data.len() as i64);
@@ -587,6 +590,7 @@ pub fn get_arg(args: &[Value], idx: usize, default: Value) -> Value {
 }
 
 pub fn append_to_array(arr: &mut Value, v: Value) {
+    if crate::value::try_book_cache_push(arr, &v) { return; }
     if let Value::Arr(a) = arr {
         Arc::make_mut(a).push(v);
     }

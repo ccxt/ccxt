@@ -278,7 +278,9 @@ impl KucoinfuturesCore {
     pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
         let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
         match __n {
+            "fetch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("fetch_bids_asks", args.to_vec()); crate::Value::Null },
             "parse_transfer_type" => self.parse_transfer_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "transfer" => { crate::exchange_stubs::enqueue_spawn("transfer", args.to_vec()); crate::Value::Null },
             _ => crate::Value::Null,
         }
     }
