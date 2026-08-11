@@ -2891,6 +2891,105 @@ public class BinanceApi extends Exchange
     }
 
     /**
+     * Calls the sapiGetEquityMarketExchangeInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityMarketExchangeInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiGetEquityMarketExchangeInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiGetEquityMarketTokenizedAssets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityMarketTokenizedAssets (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiGetEquityMarketTokenizedAssets", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiGetEquityMarketQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityMarketQuote (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiGetEquityMarketQuote", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiGetEquityOrderOpenOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiGetEquityOrderOpenOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiGetEquityOrderOpenOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiGetEquityOrderHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityOrderHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiGetEquityOrderHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiGetEquityOrderDetail endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityOrderDetail (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiGetEquityOrderDetail", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiGetEquityTradeHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityTradeHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiGetEquityTradeHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiGetEquityTokenizedConvertStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityTokenizedConvertStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiGetEquityTokenizedConvertStatus", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiGetEquityTokenizedHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiGetEquityTokenizedHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiGetEquityTokenizedHistory", optionalArgs);
+    }
+
+    /**
      * Calls the sapiPostAssetDust endpoint.
      *
      * @param optionalArgs the request parameters
@@ -4252,6 +4351,83 @@ public class BinanceApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostAccumulatorProductSubscribe (Object... optionalArgs)
     {
         return this.callAsync ("sapiPostAccumulatorProductSubscribe", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiPostEquityOrderPlace endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityOrderPlace (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiPostEquityOrderPlace", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiPostEquityOrderCancel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityOrderCancel (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiPostEquityOrderCancel", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiPostEquityOrderCancelAll endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityOrderCancelAll (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiPostEquityOrderCancelAll", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiPostEquityTokenizedMint endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityTokenizedMint (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiPostEquityTokenizedMint", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiPostEquityTokenizedRedeem endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityTokenizedRedeem (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiPostEquityTokenizedRedeem", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiPostEquityAccountDisclaimer endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityAccountDisclaimer (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiPostEquityAccountDisclaimer", optionalArgs);
+    }
+
+    /**
+     * Calls the sapiPostEquityListenKey endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  sapiPostEquityListenKey (Object... optionalArgs)
+    {
+        return this.callAsync ("sapiPostEquityListenKey", optionalArgs);
     }
 
     /**
