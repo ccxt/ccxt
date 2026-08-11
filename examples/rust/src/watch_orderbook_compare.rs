@@ -18,23 +18,15 @@
 //
 // Live network is required (it connects to the real exchanges).
 //
-// STATUS: the WS runtime is live end-to-end. bybit and okx both stream fully-
-// resolved, live-updating order books: order-book sides are shared-mutable (the
-// delta handlers mutate a shared backing store, so `handle_deltas(side.clone(),
-// …)` reflects into the cached book) and the book's scalar meta (nonce/…) is
-// shared too, so okx's per-message seqId check passes across updates.
-//
-// binance now fetches its REST depth snapshot (via `spawn`, executed inline on
-// the drive loop) and resolves an initial book, but then holds on that first
-// snapshot for BTC/USDT:USDT specifically. Its diff-stream messages carry the
-// market id "BTCUSDT", which collides between the spot market (BTC/USDT) and the
-// USDT-margined perpetual (BTC/USDT:USDT). handleOrderBook resolves that id via
-// markets_by_id[0], which is the spot market (ccxt sorts spot markets first),
-// so the deltas are keyed to "BTC/USDT" while the book is stored under
-// "BTC/USDT:USDT" and get dropped by the `symbol in this.orderbooks` guard.
-// This id-collision behaviour is identical in the TS source (a pre-existing
-// upstream quirk, not a porting gap) — binance's own perpetual books are
-// normally driven via options.defaultType rather than the ":USDT" suffix.
+// STATUS: the WS runtime is live end-to-end for all three venues — each streams
+// a fully-resolved, live-updating order book. This works because order books are
+// shared-mutable: a side's entries live in a backing store keyed by `__side_id`
+// (so `handle_deltas(side.clone(), …)` reflects into the cached book) and a
+// book's scalar meta (nonce/timestamp/…) lives in a store keyed by `__book_id`
+// (so okx's seqId check and binance's U/u sequencing see the persisted nonce).
+// binance additionally needs its REST depth snapshot, fetched via `spawn`
+// (executed inline on the drive loop), and is configured below to load only
+// linear markets so the "BTCUSDT" id resolves to the perpetual, not spot.
 
 use std::collections::BTreeMap;
 use std::panic::AssertUnwindSafe;
@@ -175,7 +167,17 @@ async fn async_main() {
 
     // One Core + WS connection per venue. `bind()` runs each Core's init
     // (describe → options/urls/has) before it's moved into its task.
-    let mut binance = Box::new(ccxt::pro::binance::BinanceCore::new(None));
+    //
+    // binance is told to load ONLY linear (USDⓈ-M) futures markets. Its WS depth
+    // stream tags messages with the market id "BTCUSDT", which otherwise collides
+    // between spot (BTC/USDT) and the perpetual (BTC/USDT:USDT); with both loaded
+    // `handleOrderBook` resolves the collision to the spot market (ccxt lists spot
+    // first) and drops the perp deltas. Loading only linear markets leaves a
+    // single "BTCUSDT" so it resolves to the perpetual we're watching.
+    let binance_cfg = ccxt::runtime::json_parse(&Value::Str(
+        r#"{"options":{"fetchMarkets":{"types":["linear"]}}}"#.to_string(),
+    ));
+    let mut binance = Box::new(ccxt::pro::binance::BinanceCore::new(Some(binance_cfg)));
     binance.bind();
     let mut bybit = Box::new(ccxt::pro::bybit::BybitCore::new(None));
     bybit.bind();

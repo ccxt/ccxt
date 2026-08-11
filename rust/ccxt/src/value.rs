@@ -580,6 +580,12 @@ fn live_set_markets_get() -> Option<LiveSetMarketsFn> {
 #[inline]
 pub fn get_value_k(obj: &Value, key: &str) -> Value {
     if let Value::Dict(m) = obj {
+        // A shared order book keeps its scalar meta (nonce/timestamp/…) in the
+        // book store; route those through it so the safe_* helpers (which go via
+        // get_value_k) see the shared value, not the empty Dict slot.
+        if is_book_meta_key(key) {
+            if let Some(id) = book_id_of(m) { return book_meta_get(id, key); }
+        }
         if let Some(v) = m.get(key) {
             if !matches!(v, Value::Null) {
                 return v.clone();
