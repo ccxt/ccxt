@@ -1,7 +1,7 @@
 import Exchange from '../abstract/prediction/insightx.js';
 import { AuthenticationError, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
-import type { Bool, Dict, Int, Market, Num, PredictionEvent, Str, fetchEventsParams, int } from '../base/types.js';
+import type { Bool, Dict, Int, Market, Num, PredictionEvent, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams, int } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -26,9 +26,12 @@ export default class insightx extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'fetchEvent': true,
+                'fetchEvent': false,
                 'fetchEvents': true,
                 'fetchMarkets': true,
+                'fetchOutcome': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'prediction': true,
             },
             'urls': {
@@ -142,12 +145,17 @@ export default class insightx extends Exchange {
      * @param {object} [params] extra exchange-specific parameters
      * @param {int} [params.page] page number to start from, defaults to 1
      * @param {int} [params.size] number of markets per request, defaults to 100
-     * @param {int} [params.limit] maximum number of markets to collect, defaults to 100
+     * @param {int} [params.marketLimit] maximum number of markets to collect before completing the current event, defaults to 100
+     * @param {int} [params.eventLimit] maximum number of complete events to collect
      * @param {int} [params.marketStatus] raw insightx market status, defaults to 1 (active)
      * @returns {object[]} a list of raw insightx market objects
      */
     async fetchRawMarkets (params = {}): Promise<Dict[]> {
-        const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 100));
+        const maxMarkets = this.safeInteger (params, 'marketLimit', this.safeInteger (this.options, 'fetchMarketsLimit', 100));
+        const maxEvents = this.safeInteger (params, 'eventLimit');
+        if (maxMarkets <= 0) {
+            return [];
+        }
         const initialPage = this.safeInteger (params, 'page', 1);
         let pageSize = this.safeInteger (params, 'size', this.safeInteger (this.options, 'marketsPageSize', 100));
         if (pageSize > maxMarkets) {
@@ -170,12 +178,18 @@ export default class insightx extends Exchange {
         } else {
             statuses.push (this.safeInteger (this.options, 'defaultMarketStatus', 1));
         }
-        const rest = this.omit (params, [ 'query', 'queries', 'searchIn', 'sort', 'tags', 'eventId', 'slug', 'limit', 'page', 'size', 'status', 'marketStatus' ]);
+        const statusesLength = statuses.length;
+        const effectiveMaxEvents = (statusesLength === 1) ? maxEvents : undefined;
+        const rest = this.omit (params, [ 'query', 'queries', 'searchIn', 'sort', 'tags', 'eventId', 'slug', 'limit', 'marketLimit', 'eventLimit', 'page', 'size', 'status', 'marketStatus' ]);
         const result: Dict[] = [];
-        let collected = 0;
-        for (let statusIndex = 0; statusIndex < statuses.length; statusIndex++) {
+        let collectedEvents = 0;
+        const seenEventIds: Dict = {};
+        for (let statusIndex = 0; statusIndex < statusesLength; statusIndex++) {
+            let collected = 0;
+            let boundaryEventId: Str = undefined;
             let page = initialPage;
-            while (collected < maxMarkets) {
+            let statusDone = false;
+            while (!statusDone) {
                 const request: Dict = {
                     'page': page,
                     'size': pageSize,
@@ -186,12 +200,32 @@ export default class insightx extends Exchange {
                 const markets = this.safeList (data, 'list', []);
                 const marketsLength = markets.length;
                 for (let i = 0; i < marketsLength; i++) {
+                    const raw = this.safeDict (markets, i, {});
+                    const eventId = this.safeString (raw, 'event_id', this.safeString (raw, 'id'));
+                    const isNewEvent = (eventId !== undefined) && !(eventId in seenEventIds);
+                    if (isNewEvent && (effectiveMaxEvents !== undefined) && (collectedEvents >= effectiveMaxEvents)) {
+                        statusDone = true;
+                        break;
+                    }
+                    if (isNewEvent) {
+                        seenEventIds[eventId] = true;
+                        collectedEvents = this.sum (collectedEvents, 1);
+                    }
                     if (collected < maxMarkets) {
-                        result.push (this.safeDict (markets, i, {}));
+                        result.push (raw);
                         collected = this.sum (collected, 1);
+                        if (collected >= maxMarkets) {
+                            boundaryEventId = eventId;
+                        }
+                    } else if ((boundaryEventId !== undefined) && (eventId === boundaryEventId)) {
+                        result.push (raw);
+                        collected = this.sum (collected, 1);
+                    } else {
+                        statusDone = true;
+                        break;
                     }
                 }
-                if ((marketsLength === 0) || (marketsLength < pageSize) || (collected >= maxMarkets)) {
+                if (statusDone || (marketsLength === 0) || (marketsLength < pageSize)) {
                     break;
                 }
                 page = this.sum (page, 1);
@@ -236,7 +270,7 @@ export default class insightx extends Exchange {
      * @param {object} [params] extra exchange-specific parameters
      * @param {int} [params.page] page number to start from, defaults to 1
      * @param {int} [params.size] number of markets per request, defaults to 100
-     * @param {int} [params.limit] maximum number of markets to collect, defaults to 100
+     * @param {int} [params.limit] maximum number of markets to return
      * @param {string} [params.status] unified event status, 'active', 'closed', 'inactive' or 'all'
      * @param {int} [params.marketStatus] raw insightx market status, defaults to 1 (active)
      * @param {string} [params.query] client-side title or description filter over the bounded result
@@ -244,13 +278,21 @@ export default class insightx extends Exchange {
      * @returns {object[]} an array of prediction market structures
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        const events = await this.fetchEvents (params);
+        const marketLimit = this.safeInteger (params, 'limit');
+        let eventParams = this.omit (params, [ 'limit', 'marketLimit', 'eventLimit' ]);
+        if (marketLimit !== undefined) {
+            eventParams = this.extend ({ 'marketLimit': marketLimit }, eventParams);
+        }
+        const events = await this.fetchEvents (eventParams);
         const result: Market[] = [];
         for (let i = 0; i < events.length; i++) {
             const markets = this.safeList (events[i], 'markets', []);
             for (let j = 0; j < markets.length; j++) {
                 result.push (markets[j] as Market);
             }
+        }
+        if ((marketLimit !== undefined) && (result.length > marketLimit)) {
+            return this.arraySlice (result, 0, marketLimit) as Market[];
         }
         return result;
     }
@@ -265,25 +307,24 @@ export default class insightx extends Exchange {
      * @param {string[]} [params.queries] multiple client-side search terms
      * @param {string} [params.searchIn] 'title', 'description' or 'both', defaults to 'both' when searching
      * @param {string[]} [params.tags] client-side tag filter over the bounded result
-     * @param {string} [params.eventId] raw market id for a direct market-detail lookup
+     * @param {string} [params.eventId] raw event id used as a client-side filter over the bounded result
      * @param {int} [params.page] page number to start from, defaults to 1
      * @param {int} [params.size] number of markets per request, defaults to 100
-     * @param {int} [params.limit] maximum number of markets to collect, defaults to 100
+     * @param {int} [params.limit] maximum number of complete events to return
+     * @param {int} [params.marketLimit] safety bound on raw markets fetched before completing the current event, defaults to 100
      * @param {string} [params.status] unified event status, 'active', 'closed', 'inactive' or 'all'
      * @param {int} [params.marketStatus] raw insightx market status, defaults to 1 (active)
      * @returns {object[]} an array of prediction event structures
      */
     override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
-        const eventId = this.safeString (params, 'eventId');
         const queries = this.parseSearchQueries (params);
-        let events: PredictionEvent[] = [];
-        if (eventId !== undefined) {
-            const directParams = this.omit (params, [ 'eventId', 'query', 'queries', 'searchIn', 'sort', 'tags', 'limit', 'page', 'size', 'status', 'marketStatus' ]);
-            events = [ await this.fetchEvent (eventId, directParams) ];
-        } else {
-            const rawMarkets = await this.fetchRawMarkets (params);
-            events = this.parseEvents (rawMarkets);
+        const eventLimit = this.safeInteger (params, 'limit');
+        let rawParams = this.omit (params, [ 'limit', 'eventLimit' ]);
+        if (eventLimit !== undefined) {
+            rawParams = this.extend ({ 'eventLimit': eventLimit }, rawParams);
         }
+        const rawMarkets = await this.fetchRawMarkets (rawParams);
+        const events = this.parseEvents (rawMarkets);
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
@@ -308,24 +349,293 @@ export default class insightx extends Exchange {
     }
 
     /**
+     * @ignore
      * @method
-     * @name insightx#fetchEvent
-     * @description fetches one insightx market by raw market id and wraps its parent event as a partial single-market event
+     * @name insightx#fetchRawMarket
+     * @description fetches one raw insightx market by market id
      * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#id-10.6-market-data
-     * @param {string} id raw insightx market id
+     * @param {string} marketId raw insightx market id
      * @param {object} [params] extra exchange-specific parameters
-     * @returns {object} a prediction event structure containing the requested market
+     * @returns {object} the raw insightx market object
      */
-    override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+    async fetchRawMarket (marketId: string, params = {}): Promise<Dict> {
         const request: Dict = {
-            'market_id': id,
+            'market_id': marketId,
         };
         const response = await this.insightxPublicGetPredictV2Market (this.extend (request, params));
-        const raw = this.safeDict (response, 'data', {});
-        const event = this.parseEvent ([ raw ]);
+        return this.safeDict (response, 'data', {});
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#parseOutcomeId
+     * @description parses a raw insightx outcome id in marketId:outcomeIndex format
+     * @param {string} outcomeId raw insightx outcome id
+     * @returns {object} the raw market id and outcome index, or an empty object for a unified handle
+     */
+    parseOutcomeId (outcomeId: string): Dict {
+        const parts: string[] = outcomeId.split (':');
+        const partsLength = parts.length;
+        if (partsLength !== 2) {
+            return {};
+        }
+        const marketId = parts[0];
+        const outcomeIndex = this.safeInteger (parts, 1);
+        if ((outcomeIndex !== 1) && (outcomeIndex !== 2)) {
+            return {};
+        }
+        const chars: string[] = this.stringToCharsArray (marketId);
+        const charsLength = chars.length;
+        if (charsLength === 0) {
+            return {};
+        }
+        const digits = '0123456789';
+        for (let i = 0; i < charsLength; i++) {
+            if (digits.indexOf (chars[i]) < 0) {
+                return {};
+            }
+        }
+        return {
+            'marketId': marketId,
+            'outcomeIndex': outcomeIndex,
+        };
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#cacheRawMarket
+     * @description parses and caches one raw insightx market and its outcomes
+     * @param {object} raw raw insightx market object
+     * @returns {object} the parsed partial parent event
+     */
+    cacheRawMarket (raw: Dict): PredictionEvent {
+        const marketId = this.safeString (raw, 'id');
+        const eventId = this.safeString (raw, 'event_id', marketId);
+        const rawMarkets: Dict[] = [];
+        let replaced = false;
+        const existingEvent = this.safeDict (this.events, eventId);
+        const existingMarkets = this.safeList (existingEvent, 'markets', []);
+        for (let i = 0; i < existingMarkets.length; i++) {
+            const existingMarket = this.safeDict (existingMarkets, i, {});
+            const existingMarketId = this.safeString (existingMarket, 'id');
+            if ((marketId !== undefined) && (existingMarketId === marketId)) {
+                rawMarkets.push (raw);
+                replaced = true;
+            } else {
+                const existingRaw = this.safeDict (existingMarket, 'info');
+                if (existingRaw !== undefined) {
+                    rawMarkets.push (existingRaw);
+                }
+            }
+        }
+        if (!replaced) {
+            rawMarkets.push (raw);
+        }
+        const event = this.parseEvent (rawMarkets);
         this.setEvents ([ event ]);
         this.indexEventOutcomes (event);
         return event;
+    }
+
+    /**
+     * @method
+     * @name insightx#fetchOutcome
+     * @description resolves a single outcome by raw insightx outcome id, falling back to the unified handle search path
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#id-10.6-market-data
+     * @param {string} outcomeSymbol unified outcome handle or raw outcome id in marketId:outcomeIndex format
+     * @returns {object} the resolved outcome object
+     */
+    override async fetchOutcome (outcomeSymbol: string): Promise<any> {
+        const parsedId = this.parseOutcomeId (outcomeSymbol);
+        const marketId = this.safeString (parsedId, 'marketId');
+        if (marketId !== undefined) {
+            const raw = await this.fetchRawMarket (marketId);
+            this.cacheRawMarket (raw);
+            if (this.hasOutcome (outcomeSymbol)) {
+                return this.safeOutcome (outcomeSymbol);
+            }
+            throw new BadSymbol (this.id + ' could not resolve outcome ' + outcomeSymbol);
+        }
+        return await super.fetchOutcome (outcomeSymbol);
+    }
+
+    /**
+     * @method
+     * @name insightx#fetchTicker
+     * @description fetches the latest published probability for one insightx outcome
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#id-10.6-market-data
+     * @param {string} outcome unified outcome handle or raw outcome id in marketId:outcomeIndex format
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    override async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+        const parsedId = this.parseOutcomeId (outcome);
+        const directMarketId = this.safeString (parsedId, 'marketId');
+        let raw: Dict;
+        let outcomeObj: any;
+        if (directMarketId !== undefined) {
+            raw = await this.fetchRawMarket (directMarketId, params);
+            this.cacheRawMarket (raw);
+            if (!this.hasOutcome (outcome)) {
+                throw new BadSymbol (this.id + ' could not resolve outcome ' + outcome);
+            }
+            outcomeObj = this.safeOutcome (outcome);
+        } else {
+            outcomeObj = await this.loadOutcome (outcome);
+            const marketId = this.safeString (outcomeObj, 'marketId');
+            if (marketId === undefined) {
+                throw new BadSymbol (this.id + ' fetchTicker() could not resolve the parent market for ' + outcome);
+            }
+            raw = await this.fetchRawMarket (marketId, params);
+            this.cacheRawMarket (raw);
+            outcomeObj = this.safeOutcome (outcome);
+        }
+        return this.parsePredictionTicker (raw, outcomeObj);
+    }
+
+    /**
+     * @method
+     * @name insightx#fetchTickers
+     * @description fetches latest published probabilities for requested outcomes, or for a bounded active market listing when outcomes are omitted
+     * @see https://insightx-2.gitbook.io/whitepaper/insightx-whitepaper/10.-developer-resources-and-api-integration#id-10.6-market-data
+     * @param {string[]} [outcomes] unified outcome handles or raw outcome ids in marketId:outcomeIndex format
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {int} [params.limit] maximum number of markets to fetch when outcomes are omitted, defaults to 100
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
+     */
+    override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+        const result: PredictionTickers = {};
+        if (outcomes === undefined) {
+            const markets = await this.fetchMarkets (params);
+            for (let i = 0; i < markets.length; i++) {
+                const market = markets[i];
+                const raw = this.safeDict (market, 'info', {});
+                const marketOutcomes = this.safeList (market, 'outcomes', []);
+                for (let j = 0; j < marketOutcomes.length; j++) {
+                    const outcomeObj = this.safeDict (marketOutcomes, j, {});
+                    const ticker = this.parsePredictionTicker (raw, outcomeObj as unknown as Market);
+                    const outcomeSymbol = this.safeString (ticker, 'outcome');
+                    if (outcomeSymbol !== undefined) {
+                        result[outcomeSymbol] = ticker;
+                    }
+                }
+            }
+            return result;
+        }
+        const rawByMarketId: Dict = {};
+        const marketIds: string[] = [];
+        for (let i = 0; i < outcomes.length; i++) {
+            if (!this.hasOutcome (outcomes[i])) {
+                const parsedId = this.parseOutcomeId (outcomes[i]);
+                const marketId = this.safeString (parsedId, 'marketId');
+                if ((marketId !== undefined) && !(marketId in rawByMarketId)) {
+                    rawByMarketId[marketId] = undefined;
+                    marketIds.push (marketId);
+                }
+            }
+        }
+        const directPromises: any[] = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            directPromises.push (this.fetchRawMarket (marketIds[i], params));
+        }
+        const directResponses = await Promise.all (directPromises);
+        for (let i = 0; i < marketIds.length; i++) {
+            const raw = directResponses[i];
+            rawByMarketId[marketIds[i]] = raw;
+            this.cacheRawMarket (raw);
+        }
+        await this.loadOutcomes (outcomes);
+        const grouped: Dict = {};
+        const groupedMarketIds: string[] = [];
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome (outcomes[i]);
+            const marketId = this.safeString (outcomeObj, 'marketId');
+            if (marketId === undefined) {
+                throw new BadSymbol (this.id + ' fetchTickers() could not resolve the parent market for ' + outcomes[i]);
+            }
+            if (!(marketId in grouped)) {
+                grouped[marketId] = [];
+                groupedMarketIds.push (marketId);
+            }
+            const marketOutcomes = this.safeList (grouped, marketId, []);
+            marketOutcomes.push (outcomeObj);
+            grouped[marketId] = marketOutcomes;
+        }
+        const promises: any[] = [];
+        const pendingMarketIds: string[] = [];
+        for (let i = 0; i < groupedMarketIds.length; i++) {
+            const marketId = groupedMarketIds[i];
+            if (this.safeValue (rawByMarketId, marketId) === undefined) {
+                pendingMarketIds.push (marketId);
+                promises.push (this.fetchRawMarket (marketId, params));
+            }
+        }
+        const responses = await Promise.all (promises);
+        for (let i = 0; i < pendingMarketIds.length; i++) {
+            rawByMarketId[pendingMarketIds[i]] = responses[i];
+        }
+        for (let i = 0; i < groupedMarketIds.length; i++) {
+            const marketId = groupedMarketIds[i];
+            const raw = this.safeDict (rawByMarketId, marketId, {});
+            const marketOutcomes = this.safeList (grouped, marketId, []);
+            for (let j = 0; j < marketOutcomes.length; j++) {
+                const ticker = this.parsePredictionTicker (raw, marketOutcomes[j] as unknown as Market);
+                const outcomeSymbol = this.safeString (ticker, 'outcome');
+                if (outcomeSymbol !== undefined) {
+                    result[outcomeSymbol] = ticker;
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name insightx#parsePredictionTicker
+     * @description parses an insightx market response into a unified ticker for the specified outcome
+     * @param {object} raw raw insightx market object
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    override parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
+        const info = this.safeDict (market, 'info', {});
+        const outcomeIndex = this.safeInteger (info, 'outcome_idx');
+        let price: Num = undefined;
+        const parsedPrices = this.parseJson (this.safeString (raw, 'outcome_prices', '[]'));
+        if ((parsedPrices !== undefined) && (outcomeIndex !== undefined)) {
+            const prices = parsedPrices as any[];
+            const priceIndex = this.sum (outcomeIndex, -1);
+            price = this.safeNumber (prices, priceIndex);
+        }
+        const timestamp = this.safeTimestamp (raw, 'updated_at');
+        return this.safePredictionTicker ({
+            'outcome': this.safeString (market, 'outcome'),
+            'outcomeId': this.safeString (market, 'outcomeId'),
+            'label': this.safeString (market, 'label'),
+            'market': this.safeString (market, 'market'),
+            'event': this.safeString (market, 'event'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'open': undefined,
+            'close': price,
+            'last': price,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'openInterest': undefined,
+            'info': raw,
+        }, market as unknown as Dict);
     }
 
     /**
@@ -420,7 +730,10 @@ export default class insightx extends Exchange {
         const closed = (status !== undefined) && (status !== 1);
         const winnerIndex = this.safeInteger (raw, 'winner_idx', 0);
         const resolved = (status === 3) && (winnerIndex > 0);
-        const end = this.safeTimestamp (raw, 'end_time');
+        let end = this.safeTimestamp (raw, 'end_time');
+        if (end === 0) {
+            end = undefined;
+        }
         const created = this.safeTimestamp (raw, 'created_at');
         const pricePrecision = 0.0001;
         const labels: Str[] = [
