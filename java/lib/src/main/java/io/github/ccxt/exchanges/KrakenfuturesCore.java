@@ -67,6 +67,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 put( "fetchIsolatedBorrowRate", false );
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchIsolatedPositions", false );
+                put( "fetchLedger", true );
                 put( "fetchLeverage", true );
                 put( "fetchLeverages", true );
                 put( "fetchLeverageTiers", true );
@@ -2872,6 +2873,205 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             return this.parseTrades(fills, market, since, limit);
         });
 
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchLedger(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object currency = null;
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                currency = this.currency(code);
+            }
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "since", since);
+                Object sort = this.safeString(parameters, "sort");
+                if (Helpers.isTrue(Helpers.isEqual(sort, null)))
+                {
+                    Helpers.addElementToObject(request, "sort", "asc");
+                }
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                // each trade execution emits two rows and the position-size legs are
+                // filtered out below, so ask for twice the limit to compensate,
+                // parseLedger re-applies the limit on the filtered entries
+                Helpers.addElementToObject(request, "count", Helpers.multiply(limit, 2));
+            }
+            Object until = this.safeInteger(parameters, "until");
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                Helpers.addElementToObject(request, "before", until);
+            }
+            Object response = (this.historyGetAccountLog(this.extend(request, parameters))).join();
+            //
+            //    {
+            //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+            //        "logs": [
+            //            {
+            //                "asset": "usd",
+            //                "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+            //                "contract": "pf_dogeusd",
+            //                "date": "2026-08-11T19:55:24.251Z",
+            //                "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+            //                "fee": 0.0035,
+            //                "funding_rate": 0.000001129880786375,
+            //                "id": 9,
+            //                "info": "futures trade",
+            //                "margin_account": "flex",
+            //                "mark_price": 0.07091471613,
+            //                "new_balance": 0,
+            //                "old_balance": 0.0077,
+            //                "realized_funding": null,
+            //                "realized_pnl": -0.0042,
+            //                "trade_price": 0.070914
+            //            },
+            //            ...
+            //        ]
+            //    }
+            //
+            Object logs = this.safeList(response, "logs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            // each execution emits two rows: a cash leg(asset is a currency) and
+            // a position-size leg(asset equals the contract id) - keep the cash legs only
+            Object rows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(logs)); i++)
+            {
+                Object row = Helpers.GetValue(logs, i);
+                Object asset = this.safeString(row, "asset");
+                Object contract = this.safeString(row, "contract");
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(asset, null))) && Helpers.isTrue((!Helpers.isEqual(asset, contract)))))
+                {
+                    ((java.util.List<Object>)rows).add(row);
+                }
+            }
+            return this.parseLedger(rows, currency, since, limit);
+        });
+
+    }
+
+    public Object parseLedgerEntryType(Object type)
+    {
+        Object types = new java.util.HashMap<String, Object>() {{
+            put( "futures trade", "trade" );
+            put( "futures liquidation", "trade" );
+            put( "futures assignee", "trade" );
+            put( "futures assignor", "trade" );
+            put( "futures unwind counterparty", "trade" );
+            put( "futures unwind bankrupt", "trade" );
+            put( "covered liquidation", "trade" );
+            put( "settlement", "trade" );
+            put( "conversion", "trade" );
+            put( "funding rate change", "fee" );
+            put( "interest payment", "fee" );
+            put( "kfee applied", "fee" );
+            put( "tax withheld", "fee" );
+            put( "tax refund", "rebate" );
+            put( "transfer", "transfer" );
+            put( "subaccount transfer", "transfer" );
+            put( "cross-exchange transfer", "transfer" );
+            put( "admin transfer", "transfer" );
+        }};
+        return this.safeString(types, ((String)type), type);
+    }
+
+    public Object parseLedgerEntry(Object item, Object... optionalArgs)
+    {
+        //
+        //    {
+        //        "asset": "usd",
+        //        "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        //        "contract": "pf_dogeusd",
+        //        "date": "2026-08-11T19:55:24.251Z",
+        //        "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        //        "fee": 0.0035,
+        //        "funding_rate": 0.000001129880786375,
+        //        "id": 9,
+        //        "info": "futures trade",
+        //        "margin_account": "flex",
+        //        "mark_price": 0.07091471613,
+        //        "new_balance": 0,
+        //        "old_balance": 0.0077,
+        //        "realized_funding": null,
+        //        "realized_pnl": -0.0042,
+        //        "trade_price": 0.070914
+        //    }
+        //
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object timestamp = this.parse8601(this.safeString(item, "date"));
+        Object currencyId = this.safeString(item, "asset");
+        Object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
+        Object before = this.safeString(item, "old_balance");
+        Object after = this.safeString(item, "new_balance");
+        Object feeCost = this.safeString(item, "fee");
+        Object amount = null;
+        Object direction = null;
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(before, null))) && Helpers.isTrue((!Helpers.isEqual(after, null)))))
+        {
+            amount = Precise.stringSub(after, before);
+            if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+            {
+                // the fee is already deducted from the balance delta, add it
+                // back so that amount does not include the fee, matching the
+                // unified ledger contract: after = before +/- amount - fee
+                amount = Precise.stringAdd(amount, feeCost);
+            }
+            if (Helpers.isTrue(Precise.stringLt(amount, "0")))
+            {
+                direction = "out";
+                amount = Precise.stringAbs(amount);
+            } else
+            {
+                direction = "in";
+            }
+        }
+        final Object finalDirection = direction;
+        final Object finalAmount = amount;
+        final Object finalBefore = before;
+        final Object finalAfter = after;
+        final Object finalFeeCost = feeCost;
+        return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
+            put( "info", item );
+            put( "id", KrakenfuturesCore.this.safeString(item, "id") );
+            put( "direction", finalDirection );
+            put( "account", KrakenfuturesCore.this.safeString(item, "margin_account") );
+            put( "referenceId", KrakenfuturesCore.this.safeString2(item, "execution", "booking_uid") );
+            put( "referenceAccount", null );
+            put( "type", KrakenfuturesCore.this.parseLedgerEntryType(KrakenfuturesCore.this.safeString(item, "info")) );
+            put( "currency", code );
+            put( "amount", KrakenfuturesCore.this.parseNumber(finalAmount) );
+            put( "before", KrakenfuturesCore.this.parseNumber(finalBefore) );
+            put( "after", KrakenfuturesCore.this.parseNumber(finalAfter) );
+            put( "status", "ok" );
+            put( "timestamp", timestamp );
+            put( "datetime", KrakenfuturesCore.this.iso8601(timestamp) );
+            put( "fee", new java.util.HashMap<String, Object>() {{
+                put( "cost", KrakenfuturesCore.this.parseNumber(finalFeeCost) );
+                put( "currency", code );
+            }} );
+        }}, currency);
     }
 
     /**
