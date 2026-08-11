@@ -1,6 +1,3 @@
-using ccxt;
-using ccxt.pro;
-
 namespace Tests;
 
 // native cs test: the ts orderbook constructors default snapshot to {} — the
@@ -15,15 +12,15 @@ public partial class BaseTest
 {
     public void testWsOrderBookNullSnapshotDefaults()
     {
-        var plain = new OrderBook();
+        var plain = new ccxt.pro.OrderBook();
         Assert(plain["asks"] != null && plain["bids"] != null, "bare OrderBook() must build empty sides like the ts snapshot = {} default");
         plain.limit();
 
-        var indexed = new IndexedOrderBook();
+        var indexed = new ccxt.pro.IndexedOrderBook();
         Assert(indexed.asks != null && indexed.bids != null, "bare IndexedOrderBook() must build empty sides like the ts snapshot = {} default");
         indexed.limit();
 
-        var counted = new CountedOrderBook();
+        var counted = new ccxt.pro.CountedOrderBook();
         Assert(counted.asks != null && counted.bids != null, "bare CountedOrderBook() must build empty sides like the ts snapshot = {} default");
         counted.limit();
     }
