@@ -1103,6 +1103,7 @@ Each network is an associative array (aka dictionary) with the following keys:
     'future':   false,        // whether the market is a expiring future
     'swap':     false,        // whether the market is a perpetual swap
     'option':   false,        // whether the market is an option contract
+    'stock':    false,        // whether the market is for a stock
     'contract': false,        // whether the market is a future, a perpetual swap, or an option
     'settle':   'USDT',       // the unified currency code that the contract will settle in, only set if `contract` is true
     'settleId': 'usdt',       // the currencyId of that the contract will settle in, only set if `contract` is true
@@ -1159,6 +1160,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
 - `optionType`. The type of the option, `call` option represents an option with the right to buy and `put` an option with the right to sell.
 - `strike`. Price at which an option can be bought or sold when it is exercised.
+- `stock`. A boolean indicating whether the market represents a stock instrument.
 
 ## Active Status
 
