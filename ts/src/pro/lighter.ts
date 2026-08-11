@@ -2,6 +2,7 @@
 
 import Precise from '../base/Precise.js';
 import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num, NullableDict } from '../base/types.js';
+import { ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -43,6 +44,7 @@ export default class lighter extends lighterRest {
                 'unWatchMarkPrices': true,
                 'unWatchOrders': true,
                 'createOrderWs': true,
+                'cancelOrderWs': true,
             },
             'urls': {
                 'api': {
@@ -1244,6 +1246,69 @@ export default class lighter extends lighterRest {
         };
         const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
         return this.parseOrder (this.deepExtend (rawMessage, order), market);
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelOrderWs
+     * @description cancel multiple orders
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrderWs() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = 'jsonapi/sendtx:' + requestId;
+        let apiKeyIndex: Int = undefined;
+        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'cancelOrderWs', 'apiKeyIndex', 'api_key_index');
+        const clientOrderId = this.safeString2 (params, 'client_order_index', 'clientOrderId');
+        params = this.omit (params, [ 'client_order_index', 'clientOrderId' ]);
+        let accountIndex: Int = undefined;
+        [ accountIndex, params ] = await this.handleAccountIndex (params, 'cancelOrderWs', 'accountIndex', 'account_index');
+        const strAccountIndex = this.numberToString (accountIndex) as string;
+        const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
+        const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, params);
+        const signRaw: Dict = {
+            'market_index': this.parseToInt (market['id']),
+            'nonce': nonce,
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        if (clientOrderId !== undefined) {
+            signRaw['order_index'] = this.parseToInt (clientOrderId);
+        } else if (id !== undefined) {
+            signRaw['order_index'] = this.parseToInt (id);
+        } else {
+            throw new ArgumentsRequired (this.id + ' cancelOrderWs requires order id or client order id');
+        }
+        const [ txType, txInfo ] = this.lighterSignCancelOrder (signer, this.extend (signRaw, params));
+        const parsedTx = this.parseJson (txInfo);
+        const message: Dict = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        };
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.parseOrder (rawMessage, market);
     }
 
     handleWsSendtxApi (client: Client, message: any) {
