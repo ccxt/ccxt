@@ -515,6 +515,25 @@ fn key_str(key: &Value) -> String {
     stringify_param(key)
 }
 
+// ── deferred coroutine (`spawn`) queue ───────────────────────────────────────
+// JS `this.spawn(this.method, ...args)` backgrounds a coroutine. We can't truly
+// background it (it needs `&mut self`, held by the WS drive loop), so `spawn`
+// records the (method-name, args) and the drive loop (`ws_run`) drains and runs
+// them inline right after each `handle_message`. The transpiler already lowers
+// the method reference to a dispatchable name string. The queue is thread-local:
+// `spawn` is only ever called from inside a handler running synchronously on the
+// drive-loop task, and the loop drains it before its next `.await`, so entries
+// never cross venues/tasks.
+thread_local! {
+    static SPAWN_QUEUE: std::cell::RefCell<Vec<(String, Vec<Value>)>> =
+        std::cell::RefCell::new(Vec::new());
+}
+
+/// Take everything queued by `spawn` since the last drain.
+pub(crate) fn drain_spawn_queue() -> Vec<(String, Vec<Value>)> {
+    SPAWN_QUEUE.with(|q| std::mem::take(&mut *q.borrow_mut()))
+}
+
 impl Exchange {
     // ── safe_* aliases (above-marker in TS) ─────────────────────────────────
 
@@ -898,7 +917,12 @@ impl Exchange {
     // function reference to `Value::Null` (it has no Rust callable to pass), so
     // these can't invoke the coroutine and are necessarily no-ops. Background
     // keep-alive/auth-refresh loops that rely on them are a known gap.
-    pub fn spawn(&self, _args: &[Value]) -> Value {
+    pub fn spawn(&self, args: &[Value]) -> Value {
+        // args = [ method_name, ...call_args ]; queue it for the drive loop.
+        if let Some(Value::Str(name)) = args.get(0) {
+            let call_args: Vec<Value> = args.get(1..).map(|s| s.to_vec()).unwrap_or_default();
+            SPAWN_QUEUE.with(|q| q.borrow_mut().push((name.clone(), call_args)));
+        }
         Value::Null
     }
     pub async fn delay(&mut self, _ms: Value, _args: &[Value]) -> Value {

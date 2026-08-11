@@ -1104,6 +1104,12 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             let _ = self
                 .dispatch_to_derived("handle_message", vec![client_value, msg])
                 .await;
+            // Run any coroutines the handler scheduled via `spawn` (e.g.
+            // binance's REST order-book snapshot fetch). We can't truly
+            // background them (they need `&mut self`), so run them inline here.
+            for (method, args) in crate::exchange_stubs::drain_spawn_queue() {
+                let _ = self.dispatch_to_derived(&method, args).await;
+            }
         }
     } }
 
