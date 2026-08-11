@@ -91,7 +91,7 @@ interface Exchange {
     v4PrivatePostOrderBulk (params?: {}): Promise<List>;
     v4PrivatePostOrderModify (params?: {}): Promise<Dict>;
     v4PrivatePostOrderConditionalCancel (params?: {}): Promise<List>;
-    v4PrivatePostOrders (params?: {}): Promise<Dict>;
+    v4PrivatePostOrders (params?: {}): Promise<List>;
     v4PrivatePostOcoOrders (params?: {}): Promise<List>;
     v4PrivatePostOrderCollateralOco (params?: {}): Promise<Dict>;
     v4PrivatePostOrderOcoCancel (params?: {}): Promise<Dict>;
