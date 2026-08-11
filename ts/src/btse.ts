@@ -187,7 +187,7 @@ export default class btse extends Exchange {
                 'ws': false,
             },
             'urls': {
-                'logo': '', // todo add logo
+                'logo': 'https://github.com/user-attachments/assets/879ce771-6db1-4d8f-868a-77c9621635dc', // todo add logo
                 'api': {
                     'public': 'https://api.btse.com',
                     'private': 'https://api.btse.com',
