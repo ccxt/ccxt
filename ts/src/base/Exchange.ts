@@ -294,6 +294,7 @@ export class BaseExchange {
     orders: ArrayCache | undefined = undefined;
     triggerOrders!: ArrayCache;
     trades: Dictionary<ArrayCache>;
+    gapFill: Dict;
     transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     myLiquidations: any = undefined;
@@ -582,6 +583,7 @@ export class BaseExchange {
         this.liquidations = undefined;
         this.orders = undefined;
         this.trades = {};
+        this.gapFill = {};
         this.transactions = {};
         this.ohlcvs = {};
         this.myLiquidations = undefined;

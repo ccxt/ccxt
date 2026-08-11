@@ -21,6 +21,7 @@ export default class binance extends binanceRest {
     }
 
     describeData () {
+        this.gapFill = {}; // transient per-symbol trades gap-fill state, see watchTrades()
         return {
             'has': {
                 'ws': true,
@@ -155,6 +156,7 @@ export default class binance extends binanceRest {
                 'liquidationsLimit': 1000,
                 'myLiquidationsLimit': 1000,
                 'tradesLimit': 1000,
+                'gapFillTrades': false, // fills the trades cache gap after a websocket reconnect via a REST backfill, see watchTrades()
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
                 'requestId': this.createSafeDictionary (),
@@ -1206,6 +1208,7 @@ export default class binance extends binanceRest {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+     * @param {boolean} [params.gapFillTrades] whether to fill the gap in the trades cache left by a websocket reconnect with a REST backfill, default is false, the backfill is best-effort, only fills up to a 1-hour window per REST call and returns aggregate trades for the default 'trade' channel
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1224,6 +1227,8 @@ export default class binance extends binanceRest {
         let name: Str = undefined;
         [ name, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
         params = this.omit (params, 'callerMethodName');
+        let gapFillTrades: Bool = undefined;
+        [ gapFillTrades, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'gapFillTrades', false);
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
         const isOption = firstMarket['option'];
@@ -1269,8 +1274,14 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         const subscribe: Dict = {
-            'id': requestId,
+            'id': requestId.toString (),
+            'symbols': symbols,
+            'name': name,
         };
+        if (gapFillTrades) {
+            subscribe['method'] = this.handleTradeSubscription;
+            subscribe['gapFillTrades'] = gapFillTrades;
+        }
         const trades = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
@@ -1397,6 +1408,7 @@ export default class binance extends binanceRest {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+     * @param {boolean} [params.gapFillTrades] whether to fill the gap in the trades cache left by a websocket reconnect with a REST backfill, default is false, the backfill is best-effort, only fills up to a 1-hour window per REST call and returns aggregate trades for the default 'trade' channel
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
@@ -1570,6 +1582,105 @@ export default class binance extends binanceRest {
         });
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name binance#handleTradeSubscription
+     * @description handles the trades subscription acknowledgment and, when the gap-fill option is enabled, triggers a REST backfill to fill the gap left by a websocket reconnect
+     */
+    handleTradeSubscription (client: Client, message: any, subscription: any) {
+        const gapFillTrades = this.safeValue (subscription, 'gapFillTrades', false);
+        if (!gapFillTrades) {
+            return;
+        }
+        if (this.gapFill === undefined) {
+            this.gapFill = {};
+        }
+        const symbols = this.safeValue (subscription, 'symbols');
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            if (market['option']) {
+                continue;
+            }
+            const tradesArray = this.safeValue (this.trades, symbol);
+            if ((tradesArray === undefined) || (tradesArray.length === 0)) {
+                // first subscribe, the cache is empty, there is nothing to backfill
+                delete this.gapFill[symbol];
+                continue;
+            }
+            if (this.gapFill[symbol] !== undefined) {
+                // a backfill is already pending for this symbol
+                continue;
+            }
+            const lastTrade = this.safeValue (tradesArray, tradesArray.length - 1);
+            const lastTimestamp = this.safeInteger (lastTrade, 'timestamp');
+            if (lastTimestamp === undefined) {
+                continue;
+            }
+            this.gapFill[symbol] = {
+                'since': lastTimestamp + 1,
+                'buffered': [],
+            };
+            this.spawn (this.fetchTradesBackfill, client, message, subscription, symbol);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name binance#fetchTradesBackfill
+     * @description fetches the trades that were missed during a websocket reconnect and merges them into the trades cache, resolving the pending watchTrades promise once with the contiguous cache
+     */
+    async fetchTradesBackfill (client: Client, message: any, subscription: any, symbol: string) {
+        const messageHash = 'trade::' + symbol;
+        const state = this.safeValue (this.gapFill, symbol);
+        if (state === undefined) {
+            return undefined;
+        }
+        const since = this.safeInteger (state, 'since');
+        let tradesArray = this.safeValue (this.trades, symbol);
+        if (tradesArray === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            tradesArray = new ArrayCache (limit);
+            this.trades[symbol] = tradesArray;
+        }
+        try {
+            const fetched = await this.fetchTrades (symbol, since, 1000, { 'paginate': true, 'paginationDirection': 'forward' });
+            const buffered = this.safeList (state, 'buffered', []);
+            const boundary = (buffered.length > 0) ? this.safeInteger (buffered[0], 'timestamp') : undefined;
+            // append the fetched gap trades strictly inside the window [since, boundary): buffered[0] is the
+            // first live trade after the ack and the ws stream delivers every trade with a timestamp >= boundary,
+            // so a fetched trade at or past the boundary would be a duplicate delivered out of order
+            for (let j = 0; j < fetched.length; j++) {
+                const fetchedTrade = fetched[j];
+                const timestamp = this.safeInteger (fetchedTrade, 'timestamp');
+                if ((since !== undefined) && (timestamp !== undefined) && (timestamp < since)) {
+                    continue;
+                }
+                if ((boundary !== undefined) && (timestamp !== undefined) && (timestamp >= boundary)) {
+                    continue;
+                }
+                tradesArray.append (fetchedTrade);
+            }
+            // then append the buffered live trades in arrival order
+            for (let j = 0; j < buffered.length; j++) {
+                tradesArray.append (buffered[j]);
+            }
+            delete this.gapFill[symbol];
+            client.resolve (tradesArray, messageHash);
+        } catch (e) {
+            // the backfill is best-effort, never block the live stream
+            this.log (this.id, 'gapFillTrades backfill failed for', symbol, e);
+            const buffered = this.safeList (state, 'buffered', []);
+            for (let j = 0; j < buffered.length; j++) {
+                tradesArray.append (buffered[j]);
+            }
+            delete this.gapFill[symbol];
+            client.resolve (tradesArray, messageHash);
+        }
+    }
+
     handleTrade (client: Client, message: any) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
@@ -1583,6 +1694,14 @@ export default class binance extends binanceRest {
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
         const trade = this.parseWsTrade (message, market);
+        const gapFill = this.safeValue (this.gapFill, symbol);
+        if (gapFill !== undefined) {
+            // a gap-fill is pending for this symbol, buffer the trade and resolve it with the backfill
+            const buffered = this.safeList (gapFill, 'buffered', []);
+            buffered.push (trade);
+            gapFill['buffered'] = buffered;
+            return;
+        }
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);

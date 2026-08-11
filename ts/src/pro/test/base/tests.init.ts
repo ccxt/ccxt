@@ -1,10 +1,12 @@
 
 import testWsOrderBook from "./test.orderBook.js";
 import testWsCache from "./test.cache.js";
+import testReconnectTrades from "./test.reconnectTrades.js";
 
-function testBaseWs () {
+async function testBaseWs () {
     testWsOrderBook ();
     testWsCache ();
+    await testReconnectTrades ();
     // todo : testWsClose ();
 }
 
