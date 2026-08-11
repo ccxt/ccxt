@@ -3057,11 +3057,11 @@ export default class btse extends Exchange {
         //
         const success = this.safeBool (response, 'success');
         if (success === false) {
-            const errorCode = this.safeString (response, 'code');
-            const message = this.safeString (response, 'msg');
+            const spotErrorCode = this.safeString (response, 'code');
+            const spotMessage = this.safeString (response, 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], spotErrorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], spotMessage, feedback);
             throw new ExchangeError (feedback);
         }
         const errorCode = this.safeString (response, 'errorCode');
