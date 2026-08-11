@@ -144,6 +144,7 @@ public class Tests
                 WsOrderBookTests();
                 WsOrderBookDefaultsTests();
                 await WsClientRetentionTests();
+                await WsClientKeepAliveLivenessTests();
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -189,6 +190,12 @@ public class Tests
     {
         baseTestInstance.testWsOrderBookNullSnapshotDefaults();
         Helper.Green(" [C#] OrderBook null-snapshot defaults tests passed");
+    }
+
+    static async Task WsClientKeepAliveLivenessTests()
+    {
+        await baseTestInstance.testWsClientKeepAliveLiveness();
+        Helper.Green(" [C#] WebSocketClient keepalive liveness tests passed");
     }
 
     static void WsOrderBookTests()
