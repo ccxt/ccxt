@@ -902,38 +902,17 @@ export default class lighter extends Exchange {
         return this.safeInteger (response, 'nonce');
     }
 
-    /**
-     * @method
-     * @name lighter#createOrder
-     * @description create a trade order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
-     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
-     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
-     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
-     * @param {int} [params.nonce] nonce for the account
-     * @param {int} [params.apiKeyIndex] apiKeyIndex
-     * @param {int} [params.accountIndex] accountIndex
-     * @param {int} [params.orderExpiry] orderExpiry
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
+    async signAndCreateOrder (method: string, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<any[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'createOrder', 'accountIndex', 'account_index');
+        [ accountIndex, params ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
         params['accountIndex'] = accountIndex;
         const market = this.market (symbol);
         let groupingType: Int = undefined;
-        [ groupingType, params ] = this.handleOptionAndParams (params, 'createOrder', 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        [ groupingType, params ] = this.handleOptionAndParams (params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest (symbol, type, side, amount, price, params);
-        // for php
         const totalOrderRequests = orderRequests.length;
         let apiKeyIndex: Int = undefined;
         let order: NullableDict = undefined;
@@ -967,6 +946,31 @@ export default class lighter extends Exchange {
             }
             [ txType, txInfo ] = this.lighterSignCreateGroupedOrders (signer, signingPayload);
         }
+        return [ txType, txInfo, order, market ];
+    }
+
+    /**
+     * @method
+     * @name lighter#createOrder
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+     * @param {int} [params.nonce] nonce for the account
+     * @param {int} [params.apiKeyIndex] apiKeyIndex
+     * @param {int} [params.accountIndex] accountIndex
+     * @param {int} [params.orderExpiry] orderExpiry
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
+        const [ txType, txInfo, order, market ] = await this.signAndCreateOrder ('createOrder', symbol, type, side, amount, price, params);
         const request = {
             'tx_type': txType,
             'tx_info': txInfo,
