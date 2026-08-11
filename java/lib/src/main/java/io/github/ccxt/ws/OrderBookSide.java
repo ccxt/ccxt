@@ -109,6 +109,18 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
         }
     }
 
+    /** The inherited ArrayList.clear() dropped the rows but left the price
+     *  index populated; WsOrderBook.reset() compensated with a separate
+     *  index.clear(), so the live path was fine, but a standalone clear()
+     *  would leave bisect operating against ghost prices — keep the two in
+     *  lockstep here, see the review note on
+     *  https://github.com/ccxt/ccxt/pull/29753 */
+    @Override
+    public synchronized void clear() {
+        super.clear();
+        this.index.clear();
+    }
+
     /** Snapshot copy for safe iteration outside the side's monitor. */
     public synchronized List<Object> snapshot() {
         return new ArrayList<>(this);

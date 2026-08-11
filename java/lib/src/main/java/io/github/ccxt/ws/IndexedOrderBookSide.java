@@ -160,7 +160,10 @@ public class IndexedOrderBookSide extends OrderBookSide {
         }
     }
 
-    /** reset() clears sides through this; the id map must go with the rows. */
+    /** reset() clears sides through this; the id map must go with the rows,
+     *  and the base override keeps the price index in lockstep, so the whole
+     *  side clears self-contained even outside reset(), see the review note
+     *  on https://github.com/ccxt/ccxt/pull/29753 */
     @Override
     public synchronized void clear() {
         super.clear();

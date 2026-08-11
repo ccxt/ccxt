@@ -157,6 +157,30 @@ public class IndexedOrderBookSideTest {
     }
 
     @Test
+    public void standaloneClearIsSelfContained() {
+        // rows, price index and id map must clear in lockstep even outside
+        // WsOrderBook.reset(), which used to compensate with its own
+        // index.clear(), see https://github.com/ccxt/ccxt/pull/29753 review
+        IndexedOrderBookSide asks = seedAsks(3, null);
+        asks.clear();
+        assertEquals(0, asks.size());
+        assertEquals(0, asks.index.size());
+        assertEquals(0, asks.hashmap.size());
+        assertDoesNotThrow(() -> asks.storeArray(row(10.0, 1.0, "fresh")));
+        assertEquals(1, asks.size());
+        assertEquals(1, asks.index.size());
+        // plain sides too: the base override keeps rows and index together
+        OrderBookSide plain = new OrderBookSide.Asks(null, null);
+        plain.storeArray(new ArrayList<>(Arrays.asList(10.0, 1.0)));
+        plain.storeArray(new ArrayList<>(Arrays.asList(11.0, 2.0)));
+        plain.clear();
+        assertEquals(0, plain.size());
+        assertEquals(0, plain.index.size());
+        assertDoesNotThrow(() -> plain.storeArray(new ArrayList<>(Arrays.asList(12.0, 3.0))));
+        assertEquals(1, plain.size());
+    }
+
+    @Test
     public void indexedOrderBookSeedsResetsAndCopies() {
         Map<String, Object> snapshot = new HashMap<>();
         snapshot.put("asks", new ArrayList<>(Arrays.asList(
