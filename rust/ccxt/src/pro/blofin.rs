@@ -293,6 +293,28 @@ impl crate::exchange_generated::ExchangeBase for BlofinCore {
         })
     }
 }
+impl BlofinCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_funding_rate" => { self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_pong" => { self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for BlofinCore {
     type Target = crate::exchange::Exchange;
@@ -376,7 +398,7 @@ impl BlofinCore {
 }));
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
         m.insert("keepAlive".to_string(), Value::Int(25000));
     m
 }));
@@ -456,7 +478,7 @@ impl BlofinCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //       arg: {
@@ -487,7 +509,7 @@ impl BlofinCore {
             if is_equal(&stored, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 stored = ArrayCache::new(limit.clone());
-                add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+                add_element_to_object(&mut self.trades, &symbol, stored.clone());
             }
             stored.append(trade.clone());
             let mut messageHash: Value = add(&add(&channelName, &Value::Str(":".to_string())), &symbol);
@@ -559,7 +581,7 @@ impl BlofinCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //   {
         //     arg: {
@@ -584,7 +606,7 @@ impl BlofinCore {
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&add(&channelName, &Value::Str(":".to_string())), &symbol);
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "ts", &[]);
@@ -601,7 +623,7 @@ impl BlofinCore {
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
             add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         }
-        add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
@@ -660,7 +682,7 @@ impl BlofinCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         // message
         //
@@ -685,7 +707,7 @@ impl BlofinCore {
             let mut ticker: Value = self.parse_ws_ticker(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             let mut messageHash: Value = add(&add(&channelName, &Value::Str(":".to_string())), &symbol);
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             client.resolve(&[get_value(&self.tickers, &symbol), messageHash.clone()]);
         }
         }
@@ -755,7 +777,7 @@ impl BlofinCore {
     Value::Null
 }
 
-    pub fn handle_bid_ask(&self, mut client: Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
@@ -764,7 +786,7 @@ impl BlofinCore {
             let mut ticker: Value = self.parse_ws_bid_ask(get_value(&data, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             let mut messageHash: Value = add(&Value::Str("bidask:".to_string()), &symbol);
-            add_element_to_object(&mut self.bidsasks.clone(), &symbol, ticker.clone());
+            add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
             client.resolve(&[ticker.clone(), messageHash.clone()]);
         }
         }
@@ -856,7 +878,7 @@ impl BlofinCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         // message
         //
@@ -881,7 +903,7 @@ impl BlofinCore {
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), unifiedTimeframe.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -939,7 +961,7 @@ impl BlofinCore {
     Value::Null
 }
 
-    pub fn handle_balance(&self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         arg: {
@@ -950,12 +972,12 @@ impl BlofinCore {
         //
         let mut marketType: Value = Value::Str("swap".to_string()); // for now
         if !is_true(&(Value::Bool(in_op(&self.balance, &marketType)))) {
-            add_element_to_object(&mut self.balance.clone(), &marketType, Value::Map({
+            add_element_to_object(&mut self.balance, &marketType, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         }
-        { let __be_tmp = self.parse_ws_balance(message.clone()); add_element_to_object(&mut self.balance.clone(), &marketType, __be_tmp); };
+        { let __be_tmp = self.parse_ws_balance(message.clone()); add_element_to_object(&mut self.balance, &marketType, __be_tmp); };
         let mut messageHash: Value = add(&marketType, &Value::Str(":balance".to_string()));
         client.resolve(&[get_value(&self.balance, &marketType), messageHash.clone()]);
 }
@@ -1175,7 +1197,7 @@ impl BlofinCore {
     Value::Null
 }
 
-    pub fn handle_funding_rate(&self, mut client: Value, mut message: Value) {
+    pub fn handle_funding_rate(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "arg": {
@@ -1198,7 +1220,7 @@ impl BlofinCore {
         })]);
         let mut fundingRate: Value = self.parse_funding_rate(first.clone(), &[]);
         let mut symbol: Value = get_value(&fundingRate, &Value::Str("symbol".to_string()));
-        add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+        add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
         let mut messageHash: Value = add(&Value::Str("fundingRate:".to_string()), &symbol);
         client.resolve(&[fundingRate.clone(), messageHash.clone()]);
 }
@@ -1299,7 +1321,7 @@ impl BlofinCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         //
         // message examples
         //
@@ -1315,16 +1337,16 @@ impl BlofinCore {
         //
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pong".to_string(), Value::Null.clone());
-                m.insert("trades".to_string(), Value::Null.clone());
-                m.insert("books".to_string(), Value::Null.clone());
-                m.insert("tickers".to_string(), Value::Null.clone());
-                m.insert("candle".to_string(), Value::Null.clone());
-                m.insert("account".to_string(), Value::Null.clone());
-                m.insert("orders".to_string(), Value::Null.clone());
-                m.insert("orders-algo".to_string(), Value::Null.clone());
-                m.insert("positions".to_string(), Value::Null.clone());
-                m.insert("funding-rate".to_string(), Value::Null.clone());
+                m.insert("pong".to_string(), Value::Str("handle_pong".to_string()).clone());
+                m.insert("trades".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("books".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("tickers".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("candle".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("account".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("orders".to_string(), Value::Str("handle_orders".to_string()).clone());
+                m.insert("orders-algo".to_string(), Value::Str("handle_orders".to_string()).clone());
+                m.insert("positions".to_string(), Value::Str("handle_positions".to_string()).clone());
+                m.insert("funding-rate".to_string(), Value::Str("handle_funding_rate".to_string()).clone());
             m
         });
         let mut method: Value = Value::Null;
@@ -1349,7 +1371,7 @@ impl BlofinCore {
             }
         }
         if is_true(&method) {
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
 }
 

@@ -310,6 +310,32 @@ impl crate::exchange_generated::ExchangeBase for WeexCore {
         })
     }
 }
+impl WeexCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "authenticate" => { self.authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ping" => { self.handle_ping(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trade" => { self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for WeexCore {
     type Target = crate::exchange::Exchange;
@@ -426,10 +452,10 @@ impl WeexCore {
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("requestId".to_string()), requestId.clone());
+        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), requestId.clone());
         self.unlock_id(&[]);
         return self.number_to_string(requestId.clone());
 
@@ -717,7 +743,7 @@ impl WeexCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "e": "ticker",
@@ -755,7 +781,7 @@ impl WeexCore {
         let mut ticker: Value = self.parse_ws_ticker(data.clone(), &[market.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("ticker::".to_string()), &symbol);
-        add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         client.resolve(&[get_value(&self.tickers, &symbol), messageHash.clone()]);
 }
 
@@ -962,7 +988,7 @@ impl WeexCore {
     Value::Null
 }
 
-    pub fn handle_trade(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "e": "trade",
@@ -988,7 +1014,7 @@ impl WeexCore {
         let mut messageHash: Value = add(&Value::Str("trade::".to_string()), &symbol);
         if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            add_element_to_object(&mut self.trades.clone(), &symbol, ArrayCache::new(limit.clone()));
+            add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
         }
         let mut tradesArray: Value = get_value(&self.trades, &symbol);
         let mut data: Value = self.safe_list_k(message.clone(), "d", &[Value::List(vec![])]);
@@ -1015,7 +1041,7 @@ impl WeexCore {
             tradesArray.append(sortedTrade.clone());
         }
         }
-        add_element_to_object(&mut self.trades.clone(), &symbol, tradesArray.clone());
+        add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
         client.resolve(&[tradesArray.clone(), messageHash.clone()]);
 }
 
@@ -1241,7 +1267,7 @@ impl WeexCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         e: 'kline',
@@ -1273,7 +1299,7 @@ impl WeexCore {
         }
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
-            add_element_to_object(&mut self.ohlcvs.clone(), &symbol, Value::Map({
+            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -1479,7 +1505,7 @@ impl WeexCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "e": "depth",
@@ -1509,12 +1535,12 @@ impl WeexCore {
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             }  else {
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
@@ -1649,7 +1675,7 @@ impl WeexCore {
     Value::Null
 }
 
-    pub fn handle_bid_ask(&self, mut client: Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "e": "bookTicker",
@@ -1669,7 +1695,7 @@ impl WeexCore {
         let mut ticker: Value = self.parse_ws_bid_ask(message.clone(), &[market.clone()]);
         let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
         if !is_equal(&symbol, &Value::Null) {
-            add_element_to_object(&mut self.bidsasks.clone(), &symbol, ticker.clone());
+            add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
         }
         let mut messageHash: Value = add(&Value::Str("bidask::".to_string()), &symbol);
         client.resolve(&[ticker.clone(), messageHash.clone()]);
@@ -2329,10 +2355,10 @@ impl WeexCore {
             let mut messageHash: Value = add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()));
             if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
                 client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Null.clone(), client.clone(), messageHash.clone(), type_var.clone()]);
+                self.spawn(&[Value::Str("load_balance_snapshot".to_string()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
         }  else {
-            add_element_to_object(&mut self.balance.clone(), &type_var, Value::Map({
+            add_element_to_object(&mut self.balance, &type_var, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -2361,7 +2387,7 @@ impl WeexCore {
     Value::Null
 }
 
-    pub fn handle_balance(&self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
         //
         // spot
         //     {
@@ -2426,7 +2452,7 @@ impl WeexCore {
         }
         let mut messageHash: Value = add(&accountType, &Value::Str(":balance".to_string()));
         if is_equal(&get_value(&self.balance, &accountType), &Value::Null) {
-            add_element_to_object(&mut self.balance.clone(), &accountType, Value::Map({
+            add_element_to_object(&mut self.balance, &accountType, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -2452,7 +2478,7 @@ impl WeexCore {
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
         add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &Value::Str("timestamp".to_string()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &Value::Str("datetime".to_string()), __be_tmp); };
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &accountType)); add_element_to_object(&mut self.balance.clone(), &accountType, __be_tmp); };
+        { let __be_tmp = self.safe_balance(get_value(&self.balance, &accountType)); add_element_to_object(&mut self.balance, &accountType, __be_tmp); };
         client.resolve(&[get_value(&self.balance, &accountType), messageHash.clone()]);
 }
 
@@ -2515,7 +2541,7 @@ impl WeexCore {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".to_string());
             if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
                 client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Null.clone(), client.clone(), messageHash.clone(), params.clone()]);
+                self.spawn(&[Value::Str("load_positions_snapshot".to_string()).clone(), client.clone(), messageHash.clone(), params.clone()]);
             }
         }  else {
             self.positions = ArrayCacheBySymbolById::new(Value::Null);
@@ -2693,7 +2719,7 @@ impl WeexCore {
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {
-        self.spawn(&[Value::Null.clone(), client.clone(), message.clone()]);
+        self.spawn(&[Value::Str("pong".to_string()).clone(), client.clone(), message.clone()]);
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) -> Value {

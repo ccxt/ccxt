@@ -277,6 +277,22 @@ impl crate::exchange_generated::ExchangeBase for DydxCore {
         })
     }
 }
+impl DydxCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for DydxCore {
     type Target = crate::exchange::Exchange;
@@ -408,7 +424,7 @@ impl DydxCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         // {
         //     "type": "subscribed",
@@ -440,7 +456,7 @@ impl DydxCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut parsedTrades: Value = self.parse_trades(rawTrades.clone(), &[market.clone()]);
         {
@@ -560,7 +576,7 @@ impl DydxCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         // {
         //     "type": "subscribed",
@@ -599,7 +615,7 @@ impl DydxCore {
         self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(message.clone(), "message_id", &[]));
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
-        add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
@@ -695,7 +711,7 @@ impl DydxCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         // {
         //     "type": "subscribed",
@@ -762,7 +778,7 @@ impl DydxCore {
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -786,7 +802,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
         if is_equal(&type_var, &Value::Str("error".to_string())) {
             self.handle_error_message(client.clone(), message.clone());
@@ -796,14 +812,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut topic: Value = self.safe_string_k(message.clone(), "channel", &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("v4_trades".to_string(), Value::Null.clone());
-                    m.insert("v4_orderbook".to_string(), Value::Null.clone());
-                    m.insert("v4_candles".to_string(), Value::Null.clone());
+                    m.insert("v4_trades".to_string(), Value::Str("handle_trades".to_string()).clone());
+                    m.insert("v4_orderbook".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                    m.insert("v4_candles".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods.clone(), topic.clone(), &[]);
             if !is_equal(&method, &Value::Null) {
-                method.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }
 }

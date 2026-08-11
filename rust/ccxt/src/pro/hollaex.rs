@@ -279,6 +279,25 @@ impl crate::exchange_generated::ExchangeBase for HollaexCore {
         })
     }
 }
+impl HollaexCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "on_close" => { self.on_close(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "on_error" => { self.on_error(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for HollaexCore {
     type Target = crate::exchange::Exchange;
@@ -335,7 +354,7 @@ impl HollaexCore {
 }));
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
@@ -385,7 +404,7 @@ impl HollaexCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "topic":"orderbook",
@@ -421,7 +440,7 @@ impl HollaexCore {
         let mut orderbook: Value = Value::Null;
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
             orderbook = self.order_book(&[snapshot.clone()]);
-            add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+            add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         }  else {
             orderbook = get_value(&self.orderbooks, &symbol);
             if is_equal(&orderbook, &Value::Null) {
@@ -466,7 +485,7 @@ impl HollaexCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "topic": "trade",
@@ -490,7 +509,7 @@ impl HollaexCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
@@ -809,9 +828,9 @@ impl HollaexCore {
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
         let mut keys: Value = object_keys(&data);
         let mut timestamp: Value = self.safe_timestamp(message.clone(), Value::Str("time".to_string()), &[]);
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), data.clone());
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("timestamp".to_string()), timestamp.clone());
-        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance.clone(), &Value::Str("datetime".to_string()), __be_tmp); };
+        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
+        add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), timestamp.clone());
+        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_394: bool = true;
@@ -829,7 +848,7 @@ impl HollaexCore {
             let mut freeOrTotal: Value = ternary(is_true(&(is_equal(&second, &Value::Str("available".to_string())))), Value::Str("free".to_string()), Value::Str("total".to_string()));
             add_element_to_object(&mut account, &freeOrTotal, self.safe_string(data.clone(), key.clone(), &[]));
             if !is_equal(&code, &Value::Null) {
-                add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                add_element_to_object(&mut self.balance, &code, account.clone());
             }
         }
         }
@@ -918,7 +937,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         //
         // pong
         //
@@ -1014,17 +1033,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("trade".to_string(), Value::Null.clone());
-                m.insert("orderbook".to_string(), Value::Null.clone());
-                m.insert("order".to_string(), Value::Null.clone());
-                m.insert("wallet".to_string(), Value::Null.clone());
-                m.insert("usertrade".to_string(), Value::Null.clone());
+                m.insert("trade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("orderbook".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("order".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("wallet".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("usertrade".to_string(), Value::Str("handle_my_trades".to_string()).clone());
             m
         });
         let mut topic: Value = self.safe_value_k(message.clone(), "topic", &[]);
         let mut method: Value = self.safe_value(methods.clone(), topic.clone(), &[]);
         if !is_equal(&method, &Value::Null) {
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
 }
 
@@ -1045,13 +1064,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn on_error(&self, mut client: Value, mut error: Value) {
-        add_element_to_object(&mut self.options.clone(), &Value::Str("ws-expires".to_string()), Value::Null);
+    pub fn on_error(&mut self, mut client: Value, mut error: Value) {
+        add_element_to_object(&mut self.options, &Value::Str("ws-expires".to_string()), Value::Null);
         self.parent.on_error(&[client.clone(), error.clone()]);
 }
 
-    pub fn on_close(&self, mut client: Value, mut error: Value) {
-        add_element_to_object(&mut self.options.clone(), &Value::Str("ws-expires".to_string()), Value::Null);
+    pub fn on_close(&mut self, mut client: Value, mut error: Value) {
+        add_element_to_object(&mut self.options, &Value::Str("ws-expires".to_string()), Value::Null);
         self.parent.on_close(&[client.clone(), error.clone()]);
 }
 }

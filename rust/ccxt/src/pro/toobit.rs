@@ -295,6 +295,32 @@ impl crate::exchange_generated::ExchangeBase for ToobitCore {
         })
     }
 }
+impl ToobitCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_incoming_pong" => { self.handle_incoming_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_partial_snapshot" => { self.handle_order_book_partial_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_tickers" => { self.handle_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "set_balance_cache" => { self.set_balance_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]); crate::Value::Null },
+            "set_order_book_snapshot" => { self.set_order_book_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for ToobitCore {
     type Target = crate::exchange::Exchange;
@@ -373,7 +399,7 @@ impl ToobitCore {
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("keepAlive".to_string(), multiply(&multiply(&(subtract(&Value::Int(60), &Value::Int(1))), &Value::Int(5)), &Value::Int(1000)));
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
@@ -404,7 +430,7 @@ impl ToobitCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         //
         // public
         //
@@ -457,22 +483,22 @@ impl ToobitCore {
         }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("trade".to_string(), Value::Null.clone());
-                m.insert("kline".to_string(), Value::Null.clone());
-                m.insert("realtimes".to_string(), Value::Null.clone());
-                m.insert("depth".to_string(), Value::Null.clone());
-                m.insert("diffDepth".to_string(), Value::Null.clone());
-                m.insert("outboundAccountInfo".to_string(), Value::Null.clone());
-                m.insert("outboundContractAccountInfo".to_string(), Value::Null.clone());
-                m.insert("executionReport".to_string(), Value::Null.clone());
-                m.insert("contractExecutionReport".to_string(), Value::Null.clone());
-                m.insert("ticketInfo".to_string(), Value::Null.clone());
-                m.insert("outboundContractPositionInfo".to_string(), Value::Null.clone());
+                m.insert("trade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("kline".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("realtimes".to_string(), Value::Str("handle_tickers".to_string()).clone());
+                m.insert("depth".to_string(), Value::Str("handle_order_book_partial_snapshot".to_string()).clone());
+                m.insert("diffDepth".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("outboundAccountInfo".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("outboundContractAccountInfo".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("executionReport".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("contractExecutionReport".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("ticketInfo".to_string(), Value::Str("handle_my_trade".to_string()).clone());
+                m.insert("outboundContractPositionInfo".to_string(), Value::Str("handle_positions".to_string()).clone());
             m
         });
         let mut method: Value = ternary(is_true(&(is_equal(&topic, &Value::Null))), Value::Null, self.safe_value(methods.clone(), topic.clone(), &[]));
         if !is_equal(&method, &Value::Null) {
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
@@ -483,7 +509,7 @@ impl ToobitCore {
                 let mut event: Value = self.safe_string_k(item.clone(), "e", &[]);
                 let mut method2: Value = ternary(is_true(&(is_equal(&event, &Value::Null))), Value::Null, self.safe_value(methods.clone(), event.clone(), &[]));
                 if !is_equal(&method2, &Value::Null) {
-                    method2.call(&[client.clone(), item.clone()]);
+                    self.dispatch_ws_handler(&method2, &[client.clone(), item.clone()]);
                 }
             }
             }
@@ -575,7 +601,7 @@ impl ToobitCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         symbol: "DOGEUSDT",
@@ -604,7 +630,7 @@ impl ToobitCore {
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            add_element_to_object(&mut self.trades.clone(), &symbol, ArrayCache::new(limit.clone()));
+            add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
         }
         let mut stored: Value = get_value(&self.trades, &symbol);
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
@@ -729,7 +755,7 @@ impl ToobitCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -765,7 +791,7 @@ impl ToobitCore {
         let mut timeframeId: Value = self.safe_string_k(params.clone(), "klineType", &[]);
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
         if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
-            add_element_to_object(&mut self.ohlcvs.clone(), &symbol, Value::Map({
+            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -896,7 +922,7 @@ impl ToobitCore {
     Value::Null
 }
 
-    pub fn handle_tickers(&self, mut client: Value, mut message: Value) {
+    pub fn handle_tickers(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "symbol": "DOGEUSDT",
@@ -949,7 +975,7 @@ impl ToobitCore {
             let mut parsed: Value = self.parse_ws_ticker(ticker.clone(), &[]);
             let mut symbol: Value = get_value(&parsed, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {
-                add_element_to_object(&mut self.tickers.clone(), &symbol, parsed.clone());
+                add_element_to_object(&mut self.tickers, &symbol, parsed.clone());
             }
             if !is_equal(&symbol, &Value::Null) {
                 add_element_to_object(&mut newTickers, &symbol, parsed.clone());
@@ -1047,7 +1073,7 @@ impl ToobitCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -1090,7 +1116,7 @@ impl ToobitCore {
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             }
             let mut orderBook: Value = get_value(&self.orderbooks, &symbol);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "t", &[]);
@@ -1099,7 +1125,7 @@ impl ToobitCore {
             self.handle_deltas(get_value(&orderBook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderBook, &Value::Str("bids".to_string())), bids.clone());
             add_element_to_object(&mut orderBook, &Value::Str("timestamp".to_string()), timestamp.clone());
-            add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderBook.clone());
+            add_element_to_object(&mut self.orderbooks, &symbol, orderBook.clone());
             client.resolve(&[orderBook.clone(), messageHash.clone()]);
         }
         }
@@ -1110,7 +1136,7 @@ impl ToobitCore {
         bookside.store_array(bidAsk.clone());
 }
 
-    pub fn handle_order_book_partial_snapshot(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book_partial_snapshot(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -1136,7 +1162,7 @@ impl ToobitCore {
         self.set_order_book_snapshot(client.clone(), message.clone(), Value::Str("depth".to_string()));
 }
 
-    pub fn set_order_book_snapshot(&self, mut client: Value, mut message: Value, mut channel: Value) {
+    pub fn set_order_book_snapshot(&mut self, mut client: Value, mut message: Value, mut channel: Value) {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut length: Value = get_array_length(&data);
         if is_equal(&length, &Value::Int(0)) {
@@ -1156,7 +1182,7 @@ impl ToobitCore {
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "t", &[]);
@@ -1220,11 +1246,11 @@ impl ToobitCore {
         let mut messageHash: Value = add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()));
         if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
             client.future(&[messageHash.clone()]);
-            self.spawn(&[Value::Null.clone(), client.clone(), messageHash.clone(), marketType.clone()]);
+            self.spawn(&[Value::Str("load_balance_snapshot".to_string()).clone(), client.clone(), messageHash.clone(), marketType.clone()]);
         }
 }
 
-    pub fn handle_balance(&self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
         //
         // spot
         //
@@ -1263,7 +1289,7 @@ impl ToobitCore {
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
         let mut type_var: Value = ternary(is_true(&(is_equal(&channel, &Value::Str("outboundContractAccountInfo".to_string())))), Value::Str("contract".to_string()), Value::Str("spot".to_string()));
         if !is_true(&(Value::Bool(in_op(&self.balance, &type_var)))) {
-            add_element_to_object(&mut self.balance.clone(), &type_var, Value::Map({
+            add_element_to_object(&mut self.balance, &type_var, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -1288,7 +1314,7 @@ impl ToobitCore {
             }
         }
         }
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance.clone(), &type_var, __be_tmp); };
+        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
         client.resolve(&[get_value(&self.balance, &type_var), add(&type_var, &Value::Str(":balance".to_string()))]);
 }
 
@@ -1615,10 +1641,10 @@ impl ToobitCore {
             let mut messageHash: Value = add(&type_var, &Value::Str(":fetchPositionsSnapshot".to_string()));
             if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
                 client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Null.clone(), client.clone(), messageHash.clone(), type_var.clone(), isPortfolioMargin.clone()]);
+                self.spawn(&[Value::Str("load_positions_snapshot".to_string()).clone(), client.clone(), messageHash.clone(), type_var.clone(), isPortfolioMargin.clone()]);
             }
         }  else {
-            add_element_to_object(&mut self.positions.clone(), &type_var, ArrayCacheBySymbolBySide::new(Value::Null));
+            add_element_to_object(&mut self.positions, &type_var, ArrayCacheBySymbolBySide::new(Value::Null));
         }
 }
 
@@ -1684,7 +1710,7 @@ impl ToobitCore {
             });
         }
         if !is_true(&(Value::Bool(in_op(&self.positions, &accountType)))) {
-            add_element_to_object(&mut self.positions.clone(), &accountType, ArrayCacheBySymbolBySide::new(Value::Null));
+            add_element_to_object(&mut self.positions, &accountType, ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Value = get_value(&self.positions, &accountType);
         let mut newPositions: Value = Value::List(vec![]);
@@ -1779,7 +1805,7 @@ impl ToobitCore {
                     { let __be_tmp = self.safe_string_k(response.clone(), "listenKey", &[]); add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".to_string())), &Value::Str("listenKey".to_string()), __be_tmp); };
                     add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".to_string())), &Value::Str("lastAuthenticatedTime".to_string()), time.clone());
                     future.resolve(&[Value::Bool(true)]);
-                    self.delay(listenKeyRefreshRate.clone(), &[Value::Null.clone(), params.clone()]).await;
+                    self.delay(listenKeyRefreshRate.clone(), &[Value::Str("keep_alive_listen_key".to_string()).clone(), params.clone()]).await;
                  #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut err = Value::from(crate::exchange_errors::authentication_error(add(&add(&self.id, &Value::Str(" ".to_string())), &self.exception_message(e.clone(), &[]))));
@@ -1832,7 +1858,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         // whether or not to schedule another listenKey keepAlive request
         let mut listenKeyRefreshRate: Value = self.safe_integer(get_value(&self.options, &Value::Str("ws".to_string())), Value::Str("listenKeyRefreshRate".to_string()), &[Value::Int(1200000)]);
-        self.delay(listenKeyRefreshRate.clone(), &[Value::Null.clone(), params.clone()]).await;
+        self.delay(listenKeyRefreshRate.clone(), &[Value::Str("keep_alive_listen_key".to_string()).clone(), params.clone()]).await;
 
     Value::Null
 }

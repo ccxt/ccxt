@@ -287,6 +287,26 @@ impl crate::exchange_generated::ExchangeBase for BitrueCore {
         })
     }
 }
+impl BitrueCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ping" => { self.handle_ping(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "parse_ws_balances" => { self.parse_ws_balances(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for BitrueCore {
     type Target = crate::exchange::Exchange;
@@ -502,7 +522,7 @@ impl BitrueCore {
         //         "t": 1657799510000
         //     }]
         //
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), balances.clone());
+        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), balances.clone());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_149: bool = true;
@@ -526,7 +546,7 @@ impl BitrueCore {
                     add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
                 }
                 if !is_equal(&code, &Value::Null) {
-                    add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                    add_element_to_object(&mut self.balance, &code, account.clone());
                 }
             }
         }
@@ -729,7 +749,7 @@ impl BitrueCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "channel": "market_ethbtc_simple_depth_step0",
@@ -792,7 +812,7 @@ impl BitrueCore {
             });
         }
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut snapshot: Value = self.parse_order_book(parseable.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("buys".to_string()), Value::Str("asks".to_string())]);
@@ -913,7 +933,7 @@ impl BitrueCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "event_rep": "",
@@ -956,7 +976,7 @@ impl BitrueCore {
             if is_equal(&stored, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 stored = ArrayCache::new(limit.clone());
-                add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+                add_element_to_object(&mut self.trades, &symbol, stored.clone());
             }
             let mut trade: Value = self.parse_ws_trade(get_value(&data, &i), &[market.clone()]);
             stored.append(trade.clone());
@@ -1061,7 +1081,7 @@ impl BitrueCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "channel": "market_e_btcusdt_kline_1min",
@@ -1100,7 +1120,7 @@ impl BitrueCore {
         }
         let mut parsed: Value = self.parse_ws_ohlcv(tick.clone(), &[market.clone()]);
         if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
-            add_element_to_object(&mut self.ohlcvs.clone(), &symbol, Value::Map({
+            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -1176,7 +1196,7 @@ impl BitrueCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "channel": "market_e_btcusdt_ticker",
@@ -1207,7 +1227,7 @@ impl BitrueCore {
         }
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
         let mut parsed: Value = self.parse_ws_ticker(tick.clone(), market.clone(), &[timestamp.clone()]);
-        add_element_to_object(&mut self.tickers.clone(), &symbol, parsed.clone());
+        add_element_to_object(&mut self.tickers, &symbol, parsed.clone());
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
         client.resolve(&[parsed.clone(), messageHash.clone()]);
 }
@@ -1280,7 +1300,7 @@ impl BitrueCore {
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {
-        self.spawn(&[Value::Null.clone(), client.clone(), message.clone()]);
+        self.spawn(&[Value::Str("pong".to_string()).clone(), client.clone(), message.clone()]);
 }
 
     pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
@@ -1318,13 +1338,13 @@ impl BitrueCore {
             let mut event: Value = self.safe_string_k(message.clone(), "e", &[]);
             let mut handlers: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("BALANCE".to_string(), Value::Null.clone());
-                    m.insert("ORDER".to_string(), Value::Null.clone());
+                    m.insert("BALANCE".to_string(), Value::Str("handle_balance".to_string()).clone());
+                    m.insert("ORDER".to_string(), Value::Str("handle_order".to_string()).clone());
                 m
             });
             let mut handler: Value = self.safe_value(handlers.clone(), event.clone(), &[]);
             if !is_equal(&handler, &Value::Null) {
-                handler.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
             }
         }
 }
@@ -1354,7 +1374,7 @@ impl BitrueCore {
             add_element_to_object(&mut self.options, &Value::Str("listenKey".to_string()), key.clone());
             { let __be_tmp = add(&add(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("private".to_string())), &Value::Str("/stream?listenKey=".to_string())), &key); add_element_to_object(&mut self.options, &Value::Str("listenKeyUrl".to_string()), __be_tmp); };
             let mut refreshTimeout: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1800000)]);
-            self.delay(refreshTimeout.clone(), &[Value::Null.clone()]).await;
+            self.delay(refreshTimeout.clone(), &[Value::Str("keep_alive_listen_key".to_string()).clone()]).await;
         }
         return get_value(&self.options, &Value::Str("listenKeyUrl".to_string()));
 
@@ -1382,7 +1402,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             return Value::Null;
         }
         let mut refreshTimeout: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1800000)]);
-        self.delay(refreshTimeout.clone(), &[Value::Null.clone()]).await;
+        self.delay(refreshTimeout.clone(), &[Value::Str("keep_alive_listen_key".to_string()).clone()]).await;
 
     Value::Null
 }

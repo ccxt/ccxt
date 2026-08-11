@@ -284,6 +284,25 @@ impl crate::exchange_generated::ExchangeBase for DeriveCore {
         })
     }
 }
+impl DeriveCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_auth" => { self.handle_auth(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_un_subscription" => { self.handle_order_book_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trade" => { self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades_un_subscription" => { self.handle_trades_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for DeriveCore {
     type Target = crate::exchange::Exchange;
@@ -441,7 +460,7 @@ impl DeriveCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         // {
         //     method: 'subscription',
@@ -473,7 +492,7 @@ impl DeriveCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
@@ -523,7 +542,7 @@ impl DeriveCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         // {
         //     method: 'subscription',
@@ -630,7 +649,7 @@ impl DeriveCore {
         }
         let mut tickerSymbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
         if !is_equal(&tickerSymbol, &Value::Null) {
-            add_element_to_object(&mut self.tickers.clone(), &tickerSymbol, ticker.clone());
+            add_element_to_object(&mut self.tickers, &tickerSymbol, ticker.clone());
         }
         client.resolve(&[ticker.clone(), topic.clone()]);
         return message;
@@ -740,13 +759,13 @@ impl DeriveCore {
     Value::Null
 }
 
-    pub fn handle_order_book_un_subscription(&self, mut client: Value, mut topic: Value) {
+    pub fn handle_order_book_un_subscription(&mut self, mut client: Value, mut topic: Value) {
         let mut parsedTopic: Value = split(&topic, &Value::Str(".".to_string()));
         let mut marketId: Value = self.safe_string(parsedTopic.clone(), Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
-            remove(&mut self.orderbooks.clone(), &symbol);
+            remove(&mut self.orderbooks, &symbol);
         }
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
@@ -756,13 +775,13 @@ impl DeriveCore {
         client.resolve(&[error.clone(), add(&Value::Str("unwatch".to_string()), &topic)]);
 }
 
-    pub fn handle_trades_un_subscription(&self, mut client: Value, mut topic: Value) {
+    pub fn handle_trades_un_subscription(&mut self, mut client: Value, mut topic: Value) {
         let mut parsedTopic: Value = split(&topic, &Value::Str(".".to_string()));
         let mut marketId: Value = self.safe_string(parsedTopic.clone(), Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
-            remove(&mut self.trades.clone(), &symbol);
+            remove(&mut self.trades, &symbol);
         }
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &topic))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &topic);
@@ -772,7 +791,7 @@ impl DeriveCore {
         client.resolve(&[error.clone(), add(&Value::Str("unwatch".to_string()), &topic)]);
 }
 
-    pub fn handle_un_subscribe(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_un_subscribe(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         // {
         //     id: 1,
@@ -854,7 +873,7 @@ impl DeriveCore {
     Value::Null
 }
 
-    pub fn handle_trade(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
         //
         //
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
@@ -880,7 +899,7 @@ impl DeriveCore {
             tradesArray.append(trade.clone());
         }
         }
-        add_element_to_object(&mut self.trades.clone(), &symbol, tradesArray.clone());
+        add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
         client.resolve(&[tradesArray.clone(), topic.clone()]);
 }
 
@@ -1209,18 +1228,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
         }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderbook".to_string(), Value::Null.clone());
-                m.insert("ticker".to_string(), Value::Null.clone());
-                m.insert("ticker_slim".to_string(), Value::Null.clone());
-                m.insert("trades".to_string(), Value::Null.clone());
-                m.insert("orders".to_string(), Value::Null.clone());
-                m.insert("mytrades".to_string(), Value::Null.clone());
+                m.insert("orderbook".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("ticker_slim".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("trades".to_string(), Value::Str("handle_trade".to_string()).clone());
+                m.insert("orders".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("mytrades".to_string(), Value::Str("handle_my_trade".to_string()).clone());
             m
         });
         let mut event: Value = Value::Null;
@@ -1242,7 +1261,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut method: Value = ternary(is_true(&(is_equal(&event, &Value::Null))), Value::Null, self.safe_value(methods.clone(), event.clone(), &[]));
         if !is_equal(&method, &Value::Null) {
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
         }
         if is_true(&Value::Bool(in_op(&message, &Value::Str("id".to_string())))) {

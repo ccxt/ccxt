@@ -288,6 +288,28 @@ impl crate::exchange_generated::ExchangeBase for DeribitCore {
         })
     }
 }
+impl DeribitCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for DeribitCore {
     type Target = crate::exchange::Exchange;
@@ -384,9 +406,9 @@ impl DeribitCore {
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&mut self) -> Value {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("requestId".to_string()), requestId.clone());
+        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), requestId.clone());
         return requestId;
 
     Value::Null
@@ -437,7 +459,7 @@ impl DeribitCore {
     Value::Null
 }
 
-    pub fn handle_balance(&self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
         //
         // subscription
         //     {
@@ -489,12 +511,12 @@ impl DeribitCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), data.clone());
+        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
         let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
         let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut balance: Value = self.parse_balance(data.clone());
         if !is_equal(&currencyCode, &Value::Null) {
-            add_element_to_object(&mut self.balance.clone(), &currencyCode, balance.clone());
+            add_element_to_object(&mut self.balance, &currencyCode, balance.clone());
         }
         let mut messageHash: Value = Value::Str("balance".to_string());
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
@@ -612,7 +634,7 @@ impl DeribitCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -654,7 +676,7 @@ impl DeribitCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut ticker: Value = self.parse_ticker(data.clone(), &[]);
         let mut messageHash: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
 
@@ -714,7 +736,7 @@ impl DeribitCore {
     Value::Null
 }
 
-    pub fn handle_bid_ask(&self, mut client: Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -742,7 +764,7 @@ impl DeribitCore {
         })]);
         let mut ticker: Value = self.parse_ws_bid_ask(data.clone(), &[]);
         let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
-        add_element_to_object(&mut self.bidsasks.clone(), &symbol, ticker.clone());
+        add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
         let mut messageHash: Value = self.safe_string_k(params.clone(), "channel", &[]);
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
@@ -828,7 +850,7 @@ impl DeribitCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -863,7 +885,7 @@ impl DeribitCore {
         let mut trades: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
         if is_equal(&self.safe_value(self.trades.clone(), symbol.clone(), &[]), &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            add_element_to_object(&mut self.trades.clone(), &symbol, ArrayCache::new(limit.clone()));
+            add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
         }
         let mut stored: Value = get_value(&self.trades, &symbol);
         {
@@ -876,7 +898,7 @@ impl DeribitCore {
             stored.append(parsed.clone());
         }
         }
-        add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+        add_element_to_object(&mut self.trades, &symbol, stored.clone());
         let mut messageHash: Value = add(&add(&add(&Value::Str("trades|".to_string()), &symbol), &Value::Str("|".to_string())), &interval);
         client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
 }
@@ -1054,7 +1076,7 @@ impl DeribitCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //  snapshot
         //     {
@@ -1126,7 +1148,7 @@ impl DeribitCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-            { let __be_tmp = self.counted_order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.counted_order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
         let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]);
@@ -1137,7 +1159,7 @@ impl DeribitCore {
         add_element_to_object(&mut storedOrderBook, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut storedOrderBook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         add_element_to_object(&mut storedOrderBook, &Value::Str("symbol".to_string()), symbol.clone());
-        add_element_to_object(&mut self.orderbooks.clone(), &symbol, storedOrderBook.clone());
+        add_element_to_object(&mut self.orderbooks, &symbol, storedOrderBook.clone());
         let mut messageHash: Value = add(&add(&add(&Value::Str("book|".to_string()), &symbol), &Value::Str("|".to_string())), &descriptor);
         client.resolve(&[storedOrderBook.clone(), messageHash.clone()]);
 }
@@ -1373,7 +1395,7 @@ impl DeribitCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1414,7 +1436,7 @@ impl DeribitCore {
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         if is_equal(&self.safe_value(get_value(&self.ohlcvs, &symbol), unifiedTimeframe.clone(), &[]), &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &unifiedTimeframe, ArrayCacheByTimestamp::new(limit.clone()));
@@ -1504,7 +1526,7 @@ impl DeribitCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         //
         // error
         //     {
@@ -1575,24 +1597,24 @@ impl DeribitCore {
             let mut channelId: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut userHandlers: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("trades".to_string(), Value::Null.clone());
-                    m.insert("portfolio".to_string(), Value::Null.clone());
-                    m.insert("orders".to_string(), Value::Null.clone());
+                    m.insert("trades".to_string(), Value::Str("handle_my_trades".to_string()).clone());
+                    m.insert("portfolio".to_string(), Value::Str("handle_balance".to_string()).clone());
+                    m.insert("orders".to_string(), Value::Str("handle_orders".to_string()).clone());
                 m
             });
             let mut handlers: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("ticker".to_string(), Value::Null.clone());
-                    m.insert("quote".to_string(), Value::Null.clone());
-                    m.insert("book".to_string(), Value::Null.clone());
-                    m.insert("trades".to_string(), Value::Null.clone());
-                    m.insert("chart".to_string(), Value::Null.clone());
+                    m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                    m.insert("quote".to_string(), Value::Str("handle_bid_ask".to_string()).clone());
+                    m.insert("book".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                    m.insert("trades".to_string(), Value::Str("handle_trades".to_string()).clone());
+                    m.insert("chart".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
                     m.insert("user".to_string(), self.safe_value(userHandlers.clone(), self.safe_string(parts.clone(), Value::Int(1), &[]), &[]));
                 m
             });
             let mut handler: Value = self.safe_value(handlers.clone(), channelId.clone(), &[]);
             if !is_equal(&handler, &Value::Null) {
-                handler.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
                 return;
             }
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" no handler found for this message ".to_string())), &self.json(message.clone()))));

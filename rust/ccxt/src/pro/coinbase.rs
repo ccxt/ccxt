@@ -291,6 +291,24 @@ impl crate::exchange_generated::ExchangeBase for CoinbaseCore {
         })
     }
 }
+impl CoinbaseCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_helper" => { self.handle_order_book_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_tickers" => { self.handle_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trade" => { self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "try_resolve_usdc" => { self.try_resolve_usdc(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for CoinbaseCore {
     type Target = crate::exchange::Exchange;
@@ -611,7 +629,7 @@ impl CoinbaseCore {
     Value::Null
 }
 
-    pub fn create_ws_auth(&self, mut name: Value, mut productIds: Value) -> Value {
+    pub fn create_ws_auth(&mut self, mut name: Value, mut productIds: Value) -> Value {
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -634,8 +652,8 @@ impl CoinbaseCore {
             if is_equal(&currentToken, &Value::Null) || is_less_than(&add(&tokenTimestamp, &Value::Int(120)), &seconds) {
                 // we should generate new token
                 let mut token: Value = self.parent.create_auth_token(seconds.clone(), &[]);
-                add_element_to_object(&mut self.options.clone(), &Value::Str("wsToken".to_string()), token.clone());
-                add_element_to_object(&mut self.options.clone(), &Value::Str("wsTokenTimestamp".to_string()), seconds.clone());
+                add_element_to_object(&mut self.options, &Value::Str("wsToken".to_string()), token.clone());
+                add_element_to_object(&mut self.options, &Value::Str("wsTokenTimestamp".to_string()), seconds.clone());
             }
             add_element_to_object(&mut subscribe, &Value::Str("jwt".to_string()), self.safe_string_k(self.options.clone(), "wsToken", &[]));
         }
@@ -753,7 +771,7 @@ impl CoinbaseCore {
     Value::Null
 }
 
-    pub fn handle_tickers(&self, mut client: Value, mut message: Value) {
+    pub fn handle_tickers(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "channel": "ticker",
@@ -870,7 +888,7 @@ impl CoinbaseCore {
                 add_element_to_object(&mut result, &Value::Str("datetime".to_string()), datetime.clone());
                 let mut symbol: Value = get_value(&result, &Value::Str("symbol".to_string()));
                 if !is_equal(&symbol, &Value::Null) {
-                    add_element_to_object(&mut self.tickers.clone(), &symbol, result.clone());
+                    add_element_to_object(&mut self.tickers, &symbol, result.clone());
                 }
                 append_to_array(&mut newTickers, result.clone());
                 let mut messageHash: Value = add(&add(&channel, &Value::Str("::".to_string())), &symbol);
@@ -1178,7 +1196,7 @@ impl CoinbaseCore {
     Value::Null
 }
 
-    pub fn handle_trade(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "channel": "market_trades",
@@ -1216,7 +1234,7 @@ impl CoinbaseCore {
         if is_equal(&tradesArray, &Value::Null) {
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             tradesArray = ArrayCacheBySymbolById::new(tradesLimit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, tradesArray.clone());
+            add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
         }
         {
                         let mut i: Value = Value::Int(0);
@@ -1401,7 +1419,7 @@ impl CoinbaseCore {
         }
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "channel": "l2_data",
@@ -1457,7 +1475,7 @@ impl CoinbaseCore {
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             }
             // unknown bug, can't reproduce, but sometimes orderbook is undefined
             if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) && is_equal(&get_value(&self.orderbooks, &symbol), &Value::Null) {
@@ -1540,17 +1558,17 @@ impl CoinbaseCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("subscriptions".to_string(), Value::Null.clone());
-                m.insert("ticker".to_string(), Value::Null.clone());
-                m.insert("ticker_batch".to_string(), Value::Null.clone());
-                m.insert("market_trades".to_string(), Value::Null.clone());
-                m.insert("user".to_string(), Value::Null.clone());
-                m.insert("l2_data".to_string(), Value::Null.clone());
-                m.insert("heartbeats".to_string(), Value::Null.clone());
+                m.insert("subscriptions".to_string(), Value::Str("handle_subscription_status".to_string()).clone());
+                m.insert("ticker".to_string(), Value::Str("handle_tickers".to_string()).clone());
+                m.insert("ticker_batch".to_string(), Value::Str("handle_tickers".to_string()).clone());
+                m.insert("market_trades".to_string(), Value::Str("handle_trade".to_string()).clone());
+                m.insert("user".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("l2_data".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("heartbeats".to_string(), Value::Str("handle_heartbeats".to_string()).clone());
             m
         });
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
@@ -1562,7 +1580,7 @@ impl CoinbaseCore {
         }
         let mut method: Value = self.safe_value(methods.clone(), channel.clone(), &[]);
         if is_true(&method) {
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
 }
 }

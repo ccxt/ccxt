@@ -282,6 +282,29 @@ impl crate::exchange_generated::ExchangeBase for ExtendedCore {
         })
     }
 }
+impl ExtendedCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_funding_rate" => { self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_mark_price" => { self.handle_mark_price(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for ExtendedCore {
     type Target = crate::exchange::Exchange;
@@ -387,7 +410,7 @@ impl ExtendedCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -425,7 +448,7 @@ impl ExtendedCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if is_equal(&type_var, &Value::Str("SNAPSHOT".to_string())) {
@@ -438,7 +461,7 @@ impl ExtendedCore {
         let mut previousNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
         if is_true(&(!is_equal(&previousNonce, &Value::Null))) && is_true(&(!is_equal(&nonce, &add(&previousNonce, &Value::Int(1))))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
-            remove(&mut self.orderbooks.clone(), &symbol);
+            remove(&mut self.orderbooks, &symbol);
             let mut error = Value::from(crate::exchange_errors::invalid_nonce(add(&self.id, &Value::Str(" watchOrderBook received invalid nonce".to_string()))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             return;
@@ -1007,7 +1030,7 @@ impl ExtendedCore {
     Value::Null
 }
 
-    pub fn handle_funding_rate(&self, mut client: Value, mut message: Value) {
+    pub fn handle_funding_rate(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -1025,7 +1048,7 @@ impl ExtendedCore {
         })]);
         let mut fundingRate: Value = self.parse_ws_funding_rate(data.clone(), &[Value::Null, message.clone()]);
         let mut symbol: Value = self.safe_string_k(fundingRate.clone(), "symbol", &[]);
-        add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+        add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
         let mut messageHash: Value = add(&Value::Str("fundingRate:".to_string()), &symbol);
         client.resolve(&[fundingRate.clone(), messageHash.clone()]);
 }
@@ -1099,7 +1122,7 @@ impl ExtendedCore {
     Value::Null
 }
 
-    pub fn handle_mark_price(&self, mut client: Value, mut message: Value) {
+    pub fn handle_mark_price(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "type": "MP",
@@ -1132,7 +1155,7 @@ impl ExtendedCore {
                 m.insert("info".to_string(), message.clone());
             m
         }), &[market.clone()]);
-        add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         let mut messageHash: Value = add(&Value::Str("markPrice:".to_string()), &symbol);
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
@@ -1180,7 +1203,7 @@ impl ExtendedCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -1216,7 +1239,7 @@ impl ExtendedCore {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit.clone()]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut previousNonce: Value = self.safe_integer_k(subscription.clone(), "nonce", &[]);
         let mut nonce: Value = self.safe_integer_k(message.clone(), "seq", &[]);
@@ -1301,7 +1324,7 @@ impl ExtendedCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "ts": 1695738675123,
@@ -1330,7 +1353,7 @@ impl ExtendedCore {
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), cacheKey.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);

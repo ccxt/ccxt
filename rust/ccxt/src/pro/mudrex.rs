@@ -274,6 +274,22 @@ impl crate::exchange_generated::ExchangeBase for MudrexCore {
         })
     }
 }
+impl MudrexCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_error_message" => { self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "set_broker_headers" => { self.set_broker_headers(); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for MudrexCore {
     type Target = crate::exchange::Exchange;
@@ -312,7 +328,7 @@ impl MudrexCore {
 }));
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
         m.insert("keepAlive".to_string(), Value::Int(20000));
     m
 }));
@@ -322,7 +338,7 @@ impl MudrexCore {
     Value::Null
 }
 
-    pub fn ping(&self, mut client: Value) -> Value {
+    pub fn ping(&mut self, mut client: Value) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.request_id());
@@ -333,9 +349,9 @@ impl MudrexCore {
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&mut self) -> Value {
         let mut reqid: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "correlationId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("correlationId".to_string()), reqid.clone());
+        add_element_to_object(&mut self.options, &Value::Str("correlationId".to_string()), reqid.clone());
         return reqid;
 
     Value::Null
@@ -346,7 +362,7 @@ impl MudrexCore {
  * @method
  * @description injects the broker Partner-Id into the websocket connection headers
  */
-    pub fn set_broker_headers(&self) {
+    pub fn set_broker_headers(&mut self) {
         let mut brokerId: Value = self.safe_string_k(self.options.clone(), "broker", &[]);
         if is_equal(&brokerId, &Value::Null) {
             return;
@@ -366,7 +382,7 @@ impl MudrexCore {
         add_element_to_object(&mut headers, &Value::Str("Partner-Id".to_string()), brokerId.clone());
         add_element_to_object(&mut innerOptions, &Value::Str("headers".to_string()), headers.clone());
         add_element_to_object(&mut wsOptions, &Value::Str("options".to_string()), innerOptions.clone());
-        add_element_to_object(&mut self.options.clone(), &Value::Str("ws".to_string()), wsOptions.clone());
+        add_element_to_object(&mut self.options, &Value::Str("ws".to_string()), wsOptions.clone());
 }
 
     pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -495,7 +511,7 @@ impl MudrexCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if is_equal(&self.safe_string_k(message.clone(), "method", &[]), &Value::Str("PONG".to_string())) {
             return;
         }
@@ -528,7 +544,7 @@ impl MudrexCore {
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         let mut stream: Value = self.safe_string_k(message.clone(), "stream", &[]);
         if is_equal(&stream, &Value::Null) {
             return;
@@ -550,7 +566,7 @@ impl MudrexCore {
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), tf.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -564,7 +580,7 @@ impl MudrexCore {
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
@@ -590,7 +606,7 @@ impl MudrexCore {
                     m.insert("info".to_string(), t.clone());
                 m
             }), &[]);
-            add_element_to_object(&mut self.tickers.clone(), &symbol, result.clone());
+            add_element_to_object(&mut self.tickers, &symbol, result.clone());
             let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
             client.resolve(&[result.clone(), messageHash.clone()]);
             client.resolve(&[result.clone(), Value::Str("tickers".to_string())]);

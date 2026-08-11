@@ -298,6 +298,31 @@ impl crate::exchange_generated::ExchangeBase for DeepcoinCore {
         })
     }
 }
+impl DeepcoinCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_error_message" => { self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_message" => { self.handle_order_book_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_snapshot" => { self.handle_order_book_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_position" => { self.handle_position(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_subscription_status" => { self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_un_subscription" => { self.handle_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for DeepcoinCore {
     type Target = crate::exchange::Exchange;
@@ -395,7 +420,7 @@ impl DeepcoinCore {
 }));
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
     m
 }));
     m
@@ -421,11 +446,11 @@ impl DeepcoinCore {
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut previousValue: Value = self.safe_integer_k(self.options.clone(), "lastRequestId", &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue.clone(), Value::Int(1)]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("lastRequestId".to_string()), newValue.clone());
+        add_element_to_object(&mut self.options, &Value::Str("lastRequestId".to_string()), newValue.clone());
         self.unlock_id(&[]);
         return newValue;
 
@@ -624,7 +649,7 @@ impl DeepcoinCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //     a: 'PO',
         //     m: 'Success',
@@ -669,7 +694,7 @@ impl DeepcoinCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         let mut parsedTicker: Value = self.parse_ws_ticker(data.clone(), &[market.clone()]);
         let mut messageHash: Value = add(&add(&Value::Str("ticker".to_string()), &Value::Str("::".to_string())), &symbol);
-        add_element_to_object(&mut self.tickers.clone(), &symbol, parsedTicker.clone());
+        add_element_to_object(&mut self.tickers, &symbol, parsedTicker.clone());
         client.resolve(&[parsedTicker.clone(), messageHash.clone()]);
 }
 
@@ -800,7 +825,7 @@ impl DeepcoinCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "a": "PMT",
@@ -835,7 +860,7 @@ impl DeepcoinCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            add_element_to_object(&mut self.trades.clone(), &symbol, ArrayCache::new(limit.clone()));
+            add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
         }
         let mut strored: Value = get_value(&self.trades, &symbol);
         if !is_equal(&data, &Value::Null) {
@@ -1019,7 +1044,7 @@ impl DeepcoinCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "a": "PK",
@@ -1058,7 +1083,7 @@ impl DeepcoinCore {
         let mut interval: Value = self.safe_string_k(data.clone(), "P", &[]);
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
         if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
-            add_element_to_object(&mut self.ohlcvs.clone(), &symbol, Value::Map({
+            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -1141,7 +1166,7 @@ impl DeepcoinCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "a": "PMO",
@@ -1171,7 +1196,7 @@ impl DeepcoinCore {
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("/".to_string())]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut type_var: Value = self.safe_string_k(message.clone(), "t", &[]);

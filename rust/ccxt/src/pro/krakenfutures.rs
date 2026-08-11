@@ -295,6 +295,27 @@ impl crate::exchange_generated::ExchangeBase for KrakenfuturesCore {
         })
     }
 }
+impl KrakenfuturesCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_snapshot" => { self.handle_order_book_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_snapshot" => { self.handle_order_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trade" => { self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for KrakenfuturesCore {
     type Target = crate::exchange::Exchange;
@@ -950,7 +971,7 @@ impl KrakenfuturesCore {
     Value::Null
 }
 
-    pub fn handle_trade(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
         //
         // snapshot
         //
@@ -995,7 +1016,7 @@ impl KrakenfuturesCore {
             let mut messageHash: Value = self.get_message_hash(Value::Str("trade".to_string()), &[Value::Null, symbol.clone()]);
             if is_equal(&self.safe_list(self.trades.clone(), symbol.clone(), &[]), &Value::Null) {
                 let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-                add_element_to_object(&mut self.trades.clone(), &symbol, ArrayCache::new(tradesLimit.clone()));
+                add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(tradesLimit.clone()));
             }
             let mut tradesArray: Value = get_value(&self.trades, &symbol);
             if is_equal(&channel, &Value::Str("trade_snapshot".to_string())) {
@@ -1484,7 +1505,7 @@ impl KrakenfuturesCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "time": 1680811086487,
@@ -1521,14 +1542,14 @@ impl KrakenfuturesCore {
             let mut ticker: Value = self.parse_ws_ticker(message.clone(), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {
-                add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+                add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             }
             let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[Value::Null, symbol.clone()]);
             client.resolve(&[ticker.clone(), messageHash.clone()]);
         }
 }
 
-    pub fn handle_bid_ask(&self, mut client: Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "feed": "ticker_lite",
@@ -1550,7 +1571,7 @@ impl KrakenfuturesCore {
             let mut ticker: Value = self.parse_ws_ticker(message.clone(), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {
-                add_element_to_object(&mut self.bidsasks.clone(), &symbol, ticker.clone());
+                add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
             }
             let mut messageHash: Value = self.get_message_hash(Value::Str("bidask".to_string()), &[Value::Null, symbol.clone()]);
             client.resolve(&[ticker.clone(), messageHash.clone()]);
@@ -1643,7 +1664,7 @@ impl KrakenfuturesCore {
     Value::Null
 }
 
-    pub fn handle_order_book_snapshot(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book_snapshot(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "feed": "book_snapshot",
@@ -1686,7 +1707,7 @@ impl KrakenfuturesCore {
         { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut bids: Value = self.safe_list_k(message.clone(), "bids", &[]);
         if is_equal(&bids, &Value::Null) {
@@ -1759,7 +1780,7 @@ impl KrakenfuturesCore {
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_balance(&self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
         //
         // snapshot
         //
@@ -1933,8 +1954,8 @@ impl KrakenfuturesCore {
                 }
             }
             }
-            add_element_to_object(&mut self.balance.clone(), &Value::Str("cash".to_string()), holdingResult.clone());
-            { let __be_tmp = self.safe_balance(get_value(&self.balance, &Value::Str("cash".to_string()))); add_element_to_object(&mut self.balance.clone(), &Value::Str("cash".to_string()), __be_tmp); };
+            add_element_to_object(&mut self.balance, &Value::Str("cash".to_string()), holdingResult.clone());
+            { let __be_tmp = self.safe_balance(get_value(&self.balance, &Value::Str("cash".to_string()))); add_element_to_object(&mut self.balance, &Value::Str("cash".to_string()), __be_tmp); };
             client.resolve(&[holdingResult.clone(), messageHash.clone()]);
         }
         if !is_equal(&futures, &Value::Null) {
@@ -1969,8 +1990,8 @@ impl KrakenfuturesCore {
                 }
             }
             }
-            add_element_to_object(&mut self.balance.clone(), &Value::Str("margin".to_string()), futuresResult.clone());
-            { let __be_tmp = self.safe_balance(get_value(&self.balance, &Value::Str("margin".to_string()))); add_element_to_object(&mut self.balance.clone(), &Value::Str("margin".to_string()), __be_tmp); };
+            add_element_to_object(&mut self.balance, &Value::Str("margin".to_string()), futuresResult.clone());
+            { let __be_tmp = self.safe_balance(get_value(&self.balance, &Value::Str("margin".to_string()))); add_element_to_object(&mut self.balance, &Value::Str("margin".to_string()), __be_tmp); };
             client.resolve(&[get_value(&self.balance, &Value::Str("margin".to_string())), add(&messageHash, &Value::Str("futures".to_string()))]);
         }
         if !is_equal(&flexFutures, &Value::Null) {
@@ -2003,8 +2024,8 @@ impl KrakenfuturesCore {
                 }
             }
             }
-            add_element_to_object(&mut self.balance.clone(), &Value::Str("flex".to_string()), flexFuturesResult.clone());
-            { let __be_tmp = self.safe_balance(get_value(&self.balance, &Value::Str("flex".to_string()))); add_element_to_object(&mut self.balance.clone(), &Value::Str("flex".to_string()), __be_tmp); };
+            add_element_to_object(&mut self.balance, &Value::Str("flex".to_string()), flexFuturesResult.clone());
+            { let __be_tmp = self.safe_balance(get_value(&self.balance, &Value::Str("flex".to_string()))); add_element_to_object(&mut self.balance, &Value::Str("flex".to_string()), __be_tmp); };
             client.resolve(&[get_value(&self.balance, &Value::Str("flex".to_string())), add(&messageHash, &Value::Str("flex_futures".to_string()))]);
         }
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
@@ -2231,7 +2252,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         if is_equal(&event, &Value::Str("challenge".to_string())) {
             self.handle_authenticate(client.clone(), message.clone());
@@ -2243,31 +2264,31 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut feed: Value = self.safe_string_k(message.clone(), "feed", &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("ticker".to_string(), Value::Null.clone());
-                    m.insert("ticker_lite".to_string(), Value::Null.clone());
-                    m.insert("trade".to_string(), Value::Null.clone());
-                    m.insert("trade_snapshot".to_string(), Value::Null.clone());
-                    m.insert("book".to_string(), Value::Null.clone());
-                    m.insert("book_snapshot".to_string(), Value::Null.clone());
-                    m.insert("open_orders_verbose".to_string(), Value::Null.clone());
-                    m.insert("open_orders_verbose_snapshot".to_string(), Value::Null.clone());
-                    m.insert("fills".to_string(), Value::Null.clone());
-                    m.insert("fills_snapshot".to_string(), Value::Null.clone());
-                    m.insert("open_orders".to_string(), Value::Null.clone());
-                    m.insert("open_orders_snapshot".to_string(), Value::Null.clone());
-                    m.insert("balances".to_string(), Value::Null.clone());
-                    m.insert("balances_snapshot".to_string(), Value::Null.clone());
-                    m.insert("open_positions".to_string(), Value::Null.clone());
+                    m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                    m.insert("ticker_lite".to_string(), Value::Str("handle_bid_ask".to_string()).clone());
+                    m.insert("trade".to_string(), Value::Str("handle_trade".to_string()).clone());
+                    m.insert("trade_snapshot".to_string(), Value::Str("handle_trade".to_string()).clone());
+                    m.insert("book".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                    m.insert("book_snapshot".to_string(), Value::Str("handle_order_book_snapshot".to_string()).clone());
+                    m.insert("open_orders_verbose".to_string(), Value::Str("handle_order".to_string()).clone());
+                    m.insert("open_orders_verbose_snapshot".to_string(), Value::Str("handle_order_snapshot".to_string()).clone());
+                    m.insert("fills".to_string(), Value::Str("handle_my_trades".to_string()).clone());
+                    m.insert("fills_snapshot".to_string(), Value::Str("handle_my_trades".to_string()).clone());
+                    m.insert("open_orders".to_string(), Value::Str("handle_order".to_string()).clone());
+                    m.insert("open_orders_snapshot".to_string(), Value::Str("handle_order_snapshot".to_string()).clone());
+                    m.insert("balances".to_string(), Value::Str("handle_balance".to_string()).clone());
+                    m.insert("balances_snapshot".to_string(), Value::Str("handle_balance".to_string()).clone());
+                    m.insert("open_positions".to_string(), Value::Str("handle_positions".to_string()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods.clone(), feed.clone(), &[]);
             if !is_equal(&method, &Value::Null) {
-                method.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }
 }
 
-    pub fn handle_authenticate(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_authenticate(&mut self, mut client: Value, mut message: Value) -> Value {
         /*
          * @ignore
          * @method
@@ -2286,8 +2307,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut hashedChallenge: Value = self.hash(self.encode(challenge.clone()), Value::Str("sha256".to_string()), &[Value::Str("binary".to_string())]);
             let mut base64Secret: Value = self.base64_to_binary(self.secret.clone(), &[]);
             let mut signature: Value = self.hmac(hashedChallenge.clone(), base64Secret.clone(), Value::Str("sha512".to_string()), &[Value::Str("base64".to_string())]);
-            add_element_to_object(&mut self.options.clone(), &Value::Str("challenge".to_string()), challenge.clone());
-            add_element_to_object(&mut self.options.clone(), &Value::Str("signedChallenge".to_string()), signature.clone());
+            add_element_to_object(&mut self.options, &Value::Str("challenge".to_string()), challenge.clone());
+            add_element_to_object(&mut self.options, &Value::Str("signedChallenge".to_string()), signature.clone());
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {

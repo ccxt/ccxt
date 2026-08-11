@@ -302,6 +302,26 @@ impl crate::exchange_generated::ExchangeBase for LighterCore {
         })
     }
 }
+impl LighterCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_liquidation" => { self.handle_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ping" => { self.handle_ping(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_un_subscription" => { self.handle_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for LighterCore {
     type Target = crate::exchange::Exchange;
@@ -504,7 +524,7 @@ impl LighterCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         // {
         //     "channel": "order_book:0",
@@ -541,7 +561,7 @@ impl LighterCore {
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]);
@@ -619,7 +639,7 @@ impl LighterCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         // watchTicker
         //     {
@@ -687,7 +707,7 @@ impl LighterCore {
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
                 let mut ticker: Value = self.parse_ticker(get_value(&data, &marketId), &[market.clone()]);
-                add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+                add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
                 client.resolve(&[ticker.clone(), self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()])]);
                 client.resolve(&[ticker.clone(), self.get_message_hash(Value::Str("ticker".to_string()), &[])]);
             }
@@ -697,7 +717,7 @@ impl LighterCore {
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
             let mut ticker: Value = self.parse_ticker(data.clone(), &[market.clone()]);
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             client.resolve(&[ticker.clone(), self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()])]);
         }
 }
@@ -1037,7 +1057,7 @@ impl LighterCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut dataLength: Value = get_array_length(&data);
         {
@@ -1573,7 +1593,7 @@ impl LighterCore {
     Value::Null
 }
 
-    pub fn handle_balance(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         //    spot balance
         //    {
@@ -1675,7 +1695,7 @@ impl LighterCore {
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         add_element_to_object(&mut balance, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut balance, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
-        { let __be_tmp = self.safe_balance(balance.clone()); add_element_to_object(&mut self.balance.clone(), &type_var, __be_tmp); };
+        { let __be_tmp = self.safe_balance(balance.clone()); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
         let mut messageHash: Value = self.get_message_hash(Value::Str("balances".to_string()), &[Value::Null, type_var.clone()]);
         client.resolve(&[get_value(&self.balance, &type_var), messageHash.clone()]);
         return Value::Bool(true);
@@ -1954,7 +1974,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         //     { "type": "ping" }
         //
-        self.spawn(&[Value::Null.clone(), client.clone(), message.clone()]);
+        self.spawn(&[Value::Str("pong".to_string()).clone(), client.clone(), message.clone()]);
 }
 
     pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {

@@ -300,6 +300,31 @@ impl crate::exchange_generated::ExchangeBase for KrakenCore {
         })
     }
 }
+impl KrakenCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "custom_handle_deltas" => { self.custom_handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_cancel_all_orders" => { self.handle_cancel_all_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_cancel_order" => { self.handle_cancel_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_create_edit_order" => { self.handle_create_edit_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_heartbeat" => { self.handle_heartbeat(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]); crate::Value::Null },
+            "handle_subscription_status" => { self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for KrakenCore {
     type Target = crate::exchange::Exchange;
@@ -371,7 +396,7 @@ impl KrakenCore {
 }));
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
         m.insert("keepAlive".to_string(), Value::Int(6000));
     m
 }));
@@ -896,7 +921,7 @@ impl KrakenCore {
         client.resolve(&[message.clone(), reqId.clone()]);
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "channel": "ticker",
@@ -954,11 +979,11 @@ impl KrakenCore {
                 m.insert("info".to_string(), ticker.clone());
             m
         }), &[]);
-        add_element_to_object(&mut self.tickers.clone(), &symbol, result.clone());
+        add_element_to_object(&mut self.tickers, &symbol, result.clone());
         client.resolve(&[result.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "channel": "trade",
@@ -984,7 +1009,7 @@ impl KrakenCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut market: Value = self.market(symbol.clone());
         let mut parsed: Value = self.parse_trades(data.clone(), &[market.clone()]);
@@ -998,7 +1023,7 @@ impl KrakenCore {
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "channel": "ohlc",
@@ -1026,7 +1051,7 @@ impl KrakenCore {
         let mut marketId: Value = self.safe_string_k(first.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
-            add_element_to_object(&mut self.ohlcvs.clone(), &symbol, Value::Map({
+            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -1038,7 +1063,7 @@ impl KrakenCore {
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
@@ -1059,11 +1084,11 @@ impl KrakenCore {
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&mut self) -> Value {
         // their support said that reqid must be an int32, not documented
         self.lock_id(&[]);
         let mut reqid: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "reqid", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("reqid".to_string()), reqid.clone());
+        add_element_to_object(&mut self.options, &Value::Str("reqid".to_string()), reqid.clone());
         self.unlock_id(&[]);
         return reqid;
 
@@ -1399,7 +1424,7 @@ impl KrakenCore {
         client.resolve(&[message.clone(), event.clone()]);
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         // first message (snapshot)
         //
@@ -1487,7 +1512,7 @@ impl KrakenCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), depth.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), depth.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             orderbook = get_value(&self.orderbooks, &symbol);
             let mut keys: Value = Value::List(vec![Value::Str("asks".to_string()), Value::Str("bids".to_string())]);
             {
@@ -1544,7 +1569,7 @@ impl KrakenCore {
             if !is_equal(&localChecksum, &c) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(add(&add(&self.id, &Value::Str(" ".to_string())), &self.orderbook_checksum_message(symbol.clone()))));
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
-                remove(&mut self.orderbooks.clone(), &symbol);
+                remove(&mut self.orderbooks, &symbol);
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
                 return;
             }
@@ -2109,7 +2134,7 @@ impl KrakenCore {
     Value::Null
 }
 
-    pub fn handle_balance(&self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "channel": "balances",
@@ -2156,7 +2181,7 @@ impl KrakenCore {
             m
         })]);
         let mut newBalance: Value = self.deep_extend(oldBalance.clone(), &[balance.clone()]);
-        { let __be_tmp = self.safe_balance(newBalance.clone()); add_element_to_object(&mut self.balance.clone(), &type_var, __be_tmp); };
+        { let __be_tmp = self.safe_balance(newBalance.clone()); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         client.resolve(&[get_value(&self.balance, &type_var), channel.clone()]);
 }
@@ -2252,7 +2277,7 @@ impl KrakenCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         if !is_equal(&channel, &Value::Null) {
             if is_equal(&channel, &Value::Str("executions".to_string())) {
@@ -2266,37 +2291,37 @@ impl KrakenCore {
             }
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("balances".to_string(), Value::Null.clone());
-                    m.insert("book".to_string(), Value::Null.clone());
-                    m.insert("ohlc".to_string(), Value::Null.clone());
-                    m.insert("ticker".to_string(), Value::Null.clone());
-                    m.insert("trade".to_string(), Value::Null.clone());
-                    m.insert("myTrades".to_string(), Value::Null.clone());
-                    m.insert("orders".to_string(), Value::Null.clone());
+                    m.insert("balances".to_string(), Value::Str("handle_balance".to_string()).clone());
+                    m.insert("book".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                    m.insert("ohlc".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                    m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                    m.insert("trade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                    m.insert("myTrades".to_string(), Value::Str("handle_my_trades".to_string()).clone());
+                    m.insert("orders".to_string(), Value::Str("handle_orders".to_string()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods.clone(), channel.clone(), &[]);
             if !is_equal(&method, &Value::Null) {
-                method.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }
         if is_true(&self.handle_error_message(client.clone(), message.clone())) {
             let mut event: Value = self.safe_string2(message.clone(), Value::Str("event".to_string()), Value::Str("method".to_string()), &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("heartbeat".to_string(), Value::Null.clone());
-                    m.insert("systemStatus".to_string(), Value::Null.clone());
-                    m.insert("subscriptionStatus".to_string(), Value::Null.clone());
-                    m.insert("add_order".to_string(), Value::Null.clone());
-                    m.insert("amend_order".to_string(), Value::Null.clone());
-                    m.insert("cancel_order".to_string(), Value::Null.clone());
-                    m.insert("cancel_all".to_string(), Value::Null.clone());
-                    m.insert("pong".to_string(), Value::Null.clone());
+                    m.insert("heartbeat".to_string(), Value::Str("handle_heartbeat".to_string()).clone());
+                    m.insert("systemStatus".to_string(), Value::Str("handle_system_status".to_string()).clone());
+                    m.insert("subscriptionStatus".to_string(), Value::Str("handle_subscription_status".to_string()).clone());
+                    m.insert("add_order".to_string(), Value::Str("handle_create_edit_order".to_string()).clone());
+                    m.insert("amend_order".to_string(), Value::Str("handle_create_edit_order".to_string()).clone());
+                    m.insert("cancel_order".to_string(), Value::Str("handle_cancel_order".to_string()).clone());
+                    m.insert("cancel_all".to_string(), Value::Str("handle_cancel_all_orders".to_string()).clone());
+                    m.insert("pong".to_string(), Value::Str("handle_pong".to_string()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods.clone(), event.clone(), &[]);
             if !is_equal(&method, &Value::Null) {
-                method.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }
 }

@@ -272,6 +272,20 @@ impl crate::exchange_generated::ExchangeBase for CoincheckCore {
         })
     }
 }
+impl CoincheckCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for CoincheckCore {
     type Target = crate::exchange::Exchange;
@@ -372,7 +386,7 @@ impl CoincheckCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     [
         //         "btc_jpy",
@@ -403,7 +417,7 @@ impl CoincheckCore {
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if is_equal(&orderbook, &Value::Null) {
             orderbook = self.order_book(&[snapshot.clone()]);
-            add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+            add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         }  else {
             orderbook = get_value(&self.orderbooks, &symbol);
             orderbook.reset(snapshot.clone());
@@ -453,7 +467,7 @@ impl CoincheckCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     [
         //         [
@@ -474,7 +488,7 @@ impl CoincheckCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         {
                         let mut i: Value = Value::Int(0);
@@ -529,7 +543,7 @@ impl CoincheckCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut data: Value = self.safe_value(message.clone(), Value::Int(0), &[]);
         if !is_true(&Value::Bool(is_array(&data))) {
             self.handle_order_book(client.clone(), message.clone());

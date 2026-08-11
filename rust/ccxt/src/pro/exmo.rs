@@ -282,6 +282,29 @@ impl crate::exchange_generated::ExchangeBase for ExmoCore {
         })
     }
 }
+impl ExmoCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "parse_margin_balance" => { self.parse_margin_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "parse_spot_balance" => { self.parse_spot_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for ExmoCore {
     type Target = crate::exchange::Exchange;
@@ -342,10 +365,10 @@ impl ExmoCore {
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("requestId".to_string()), requestId.clone());
+        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), requestId.clone());
         self.unlock_id(&[]);
         return requestId;
 
@@ -467,7 +490,7 @@ impl ExmoCore {
         //
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), data.clone());
+        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
         if is_equal(&event, &Value::Str("snapshot".to_string())) {
             let mut balances: Value = self.safe_value_k(data.clone(), "balances", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -489,7 +512,7 @@ impl ExmoCore {
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(balances.clone(), currencyId.clone(), &[]));
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string(reserved.clone(), currencyId.clone(), &[]));
                 if !is_equal(&code, &Value::Null) {
-                    add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                    add_element_to_object(&mut self.balance, &code, account.clone());
                 }
             }
             }
@@ -500,7 +523,7 @@ impl ExmoCore {
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(data.clone(), "balance", &[]));
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "reserved", &[]));
             if !is_equal(&code, &Value::Null) {
-                add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                add_element_to_object(&mut self.balance, &code, account.clone());
             }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
@@ -522,7 +545,7 @@ impl ExmoCore {
         //     }
         //
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), data.clone());
+        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
         let mut currencies: Value = object_keys(&data);
         {
                         let mut i: Value = Value::Int(0);
@@ -537,7 +560,7 @@ impl ExmoCore {
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(wallet.clone(), "used", &[]));
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(wallet.clone(), "balance", &[]));
             if !is_equal(&code, &Value::Null) {
-                add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                add_element_to_object(&mut self.balance, &code, account.clone());
             }
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         }
@@ -623,7 +646,7 @@ impl ExmoCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //  spot
         //      {
@@ -657,7 +680,7 @@ impl ExmoCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut parsedTicker: Value = self.parse_ticker(ticker.clone(), &[market.clone()]);
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
-        add_element_to_object(&mut self.tickers.clone(), &symbol, parsedTicker.clone());
+        add_element_to_object(&mut self.tickers, &symbol, parsedTicker.clone());
         client.resolve(&[parsedTicker.clone(), messageHash.clone()]);
 }
 
@@ -699,7 +722,7 @@ impl ExmoCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //      {
         //          "ts": 1654206084001,
@@ -729,7 +752,7 @@ impl ExmoCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         {
                         let mut i: Value = Value::Int(0);
@@ -741,7 +764,7 @@ impl ExmoCore {
             stored.append(parsed.clone());
         }
         }
-        add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+        add_element_to_object(&mut self.trades, &symbol, stored.clone());
         client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
 }
 
@@ -945,7 +968,7 @@ impl ExmoCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "ts": 1574427585174,
@@ -996,7 +1019,7 @@ impl ExmoCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
@@ -1287,7 +1310,7 @@ impl ExmoCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         //
         // {
         //     "ts": 1654206362552,
@@ -1306,14 +1329,14 @@ impl ExmoCore {
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         let mut events: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("logged_in".to_string(), Value::Null.clone());
-                m.insert("info".to_string(), Value::Null.clone());
-                m.insert("subscribed".to_string(), Value::Null.clone());
+                m.insert("logged_in".to_string(), Value::Str("handle_authentication_message".to_string()).clone());
+                m.insert("info".to_string(), Value::Str("handle_info".to_string()).clone());
+                m.insert("subscribed".to_string(), Value::Str("handle_subscribed".to_string()).clone());
             m
         });
         let mut eventHandler: Value = self.safe_value(events.clone(), event.clone(), &[]);
         if !is_equal(&eventHandler, &Value::Null) {
-            eventHandler.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&eventHandler, &[client.clone(), message.clone()]);
             return;
         }
         if is_true(&(is_equal(&event, &Value::Str("update".to_string())))) || is_true(&(is_equal(&event, &Value::Str("snapshot".to_string())))) {
@@ -1323,22 +1346,22 @@ impl ExmoCore {
                 let mut channel: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
                 let mut handlers: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("spot/ticker".to_string(), Value::Null.clone());
-                        m.insert("spot/wallet".to_string(), Value::Null.clone());
-                        m.insert("margin/wallet".to_string(), Value::Null.clone());
-                        m.insert("margin/wallets".to_string(), Value::Null.clone());
-                        m.insert("spot/trades".to_string(), Value::Null.clone());
-                        m.insert("margin/trades".to_string(), Value::Null.clone());
-                        m.insert("spot/order_book_updates".to_string(), Value::Null.clone());
-                        m.insert("spot/orders".to_string(), Value::Null.clone());
-                        m.insert("margin/orders".to_string(), Value::Null.clone());
-                        m.insert("spot/user_trades".to_string(), Value::Null.clone());
-                        m.insert("margin/user_trades".to_string(), Value::Null.clone());
+                        m.insert("spot/ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                        m.insert("spot/wallet".to_string(), Value::Str("handle_balance".to_string()).clone());
+                        m.insert("margin/wallet".to_string(), Value::Str("handle_balance".to_string()).clone());
+                        m.insert("margin/wallets".to_string(), Value::Str("handle_balance".to_string()).clone());
+                        m.insert("spot/trades".to_string(), Value::Str("handle_trades".to_string()).clone());
+                        m.insert("margin/trades".to_string(), Value::Str("handle_trades".to_string()).clone());
+                        m.insert("spot/order_book_updates".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                        m.insert("spot/orders".to_string(), Value::Str("handle_orders".to_string()).clone());
+                        m.insert("margin/orders".to_string(), Value::Str("handle_orders".to_string()).clone());
+                        m.insert("spot/user_trades".to_string(), Value::Str("handle_my_trades".to_string()).clone());
+                        m.insert("margin/user_trades".to_string(), Value::Str("handle_my_trades".to_string()).clone());
                     m
                 });
                 let mut handler: Value = self.safe_value(handlers.clone(), channel.clone(), &[]);
                 if !is_equal(&handler, &Value::Null) {
-                    handler.call(&[client.clone(), message.clone()]);
+                    self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
                     return;
                 }
             }

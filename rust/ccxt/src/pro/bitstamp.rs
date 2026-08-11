@@ -278,6 +278,26 @@ impl crate::exchange_generated::ExchangeBase for BitstampCore {
         })
     }
 }
+impl BitstampCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_bid_asks" => { self.handle_bid_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_subscription" => { self.handle_order_book_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_subject" => { self.handle_subject(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_subscription_status" => { self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trade" => { self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for BitstampCore {
     type Target = crate::exchange::Exchange;
@@ -428,7 +448,7 @@ impl BitstampCore {
             // usually it takes at least 4-5 deltas to resolve
             let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("snapshotDelay".to_string()), &[Value::Int(6)]);
             if is_equal(&cacheLength, &snapshotDelay) {
-                self.spawn(&[Value::Null.clone(), client.clone(), messageHash.clone(), symbol.clone(), Value::Null, Value::Map({
+                self.spawn(&[Value::Str("load_order_book".to_string()).clone(), client.clone(), messageHash.clone(), symbol.clone(), Value::Null, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -587,7 +607,7 @@ impl BitstampCore {
     Value::Null
 }
 
-    pub fn handle_trade(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "data": {
@@ -623,7 +643,7 @@ impl BitstampCore {
         if is_equal(&tradesArray, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             tradesArray = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, tradesArray.clone());
+            add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
         }
         tradesArray.append(trade.clone());
         client.resolve(&[tradesArray.clone(), messageHash.clone()]);
@@ -794,7 +814,7 @@ impl BitstampCore {
     Value::Null
 }
 
-    pub fn handle_order_book_subscription(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value) {
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         if is_equal(&channel, &Value::Null) {
             return;
@@ -802,10 +822,10 @@ impl BitstampCore {
         let mut parts: Value = split(&channel, &Value::Str("_".to_string()));
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
-        { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+        { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
 }
 
-    pub fn handle_subscription_status(&self, mut client: Value, mut message: Value) {
+    pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "event": "bts:subscription_succeeded",
@@ -827,7 +847,7 @@ impl BitstampCore {
         }
 }
 
-    pub fn handle_subject(&self, mut client: Value, mut message: Value) {
+    pub fn handle_subject(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "data": {
@@ -871,9 +891,9 @@ impl BitstampCore {
         }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("live_trades".to_string(), Value::Null.clone());
-                m.insert("diff_order_book".to_string(), Value::Null.clone());
-                m.insert("private-my_orders".to_string(), Value::Null.clone());
+                m.insert("live_trades".to_string(), Value::Str("handle_trade".to_string()).clone());
+                m.insert("diff_order_book".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("private-my_orders".to_string(), Value::Str("handle_orders".to_string()).clone());
             m
         });
         let mut keys: Value = object_keys(&methods);
@@ -886,7 +906,7 @@ impl BitstampCore {
             if is_greater_than(&get_index_of(&channel, &key), &negate(&Value::Int(1))) {
                 let mut method: Value = get_value(&methods, &key);
                 let mut method: Value = get_value(&methods, &key);
-                method.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }
         }
@@ -913,7 +933,7 @@ impl BitstampCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if !is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
         }

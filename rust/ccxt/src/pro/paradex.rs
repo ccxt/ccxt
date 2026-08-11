@@ -282,6 +282,22 @@ impl crate::exchange_generated::ExchangeBase for ParadexCore {
         })
     }
 }
+impl ParadexCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_funding_rate" => { self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for ParadexCore {
     type Target = crate::exchange::Exchange;
@@ -344,9 +360,9 @@ impl ParadexCore {
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&mut self) -> Value {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("requestId".to_string()), requestId.clone());
+        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), requestId.clone());
         return requestId;
 
     Value::Null
@@ -452,7 +468,7 @@ impl ParadexCore {
     Value::Null
 }
 
-    pub fn handle_trade(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -485,7 +501,7 @@ impl ParadexCore {
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             stored = ArrayCache::new(self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]));
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         stored.append(parsedTrade.clone());
         client.resolve(&[stored.clone(), messageHash.clone()]);
@@ -534,7 +550,7 @@ impl ParadexCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -577,7 +593,7 @@ impl ParadexCore {
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "last_updated_at", &[]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbookData: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -813,7 +829,7 @@ impl ParadexCore {
         }
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -852,7 +868,7 @@ impl ParadexCore {
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
         let mut messageHash: Value = add(&add(&channel, &Value::Str(".".to_string())), &symbol);
         let mut ticker: Value = self.parse_ticker(data.clone(), &[market.clone()]);
-        add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         client.resolve(&[ticker.clone(), channel.clone()]);
         client.resolve(&[ticker.clone(), messageHash.clone()]);
         return message;
@@ -963,7 +979,7 @@ impl ParadexCore {
     Value::Null
 }
 
-    pub fn handle_funding_rate(&self, mut client: Value, mut message: Value) {
+    pub fn handle_funding_rate(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -992,7 +1008,7 @@ impl ParadexCore {
         })]);
         let mut fundingRate: Value = self.parse_funding_rate_ws(data.clone(), &[]);
         let mut symbol: Value = get_value(&fundingRate, &Value::Str("symbol".to_string()));
-        add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+        add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
         let mut messageHash: Value = add(&add(&channel, &Value::Str(".".to_string())), &symbol);
         client.resolve(&[fundingRate.clone(), messageHash.clone()]);
@@ -1075,7 +1091,7 @@ impl ParadexCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if !is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
         }
@@ -1119,16 +1135,16 @@ impl ParadexCore {
             let mut name: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("trades".to_string(), Value::Null.clone());
-                    m.insert("order_book".to_string(), Value::Null.clone());
-                    m.insert("markets_summary".to_string(), Value::Null.clone());
-                    m.insert("orders".to_string(), Value::Null.clone());
-                    m.insert("funding_data".to_string(), Value::Null.clone());
+                    m.insert("trades".to_string(), Value::Str("handle_trade".to_string()).clone());
+                    m.insert("order_book".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                    m.insert("markets_summary".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                    m.insert("orders".to_string(), Value::Str("handle_order".to_string()).clone());
+                    m.insert("funding_data".to_string(), Value::Str("handle_funding_rate".to_string()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods.clone(), name.clone(), &[]);
             if !is_equal(&method, &Value::Null) {
-                method.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }
 }

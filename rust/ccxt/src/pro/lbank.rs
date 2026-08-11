@@ -286,6 +286,26 @@ impl crate::exchange_generated::ExchangeBase for LbankCore {
         })
     }
 }
+impl LbankCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "check_contract_market" => { self.check_contract_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_error_message" => { self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for LbankCore {
     type Target = crate::exchange::Exchange;
@@ -363,11 +383,11 @@ impl LbankCore {
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut previousValue: Value = self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue.clone(), Value::Int(1)]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("requestId".to_string()), newValue.clone());
+        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), newValue.clone());
         self.unlock_id(&[]);
         return newValue;
 
@@ -493,7 +513,7 @@ impl LbankCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         // request
         //    {
@@ -564,7 +584,7 @@ impl LbankCore {
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
             let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
             if is_equal(&stored, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -586,7 +606,7 @@ impl LbankCore {
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
             let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
             if is_equal(&stored, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -668,7 +688,7 @@ impl LbankCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "tick":{
@@ -694,7 +714,7 @@ impl LbankCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut parsedTicker: Value = self.parse_ws_ticker(message.clone(), &[market.clone()]);
-        add_element_to_object(&mut self.tickers.clone(), &symbol, parsedTicker.clone());
+        add_element_to_object(&mut self.tickers, &symbol, parsedTicker.clone());
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
         client.resolve(&[parsedTicker.clone(), messageHash.clone()]);
         messageHash = add(&Value::Str("fetchTicker:".to_string()), &symbol);
@@ -839,7 +859,7 @@ impl LbankCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         // request
         //     {
@@ -873,7 +893,7 @@ impl LbankCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut rawTrade: Value = self.safe_value_k(message.clone(), "trade", &[]);
         let mut rawTrades: Value = self.safe_value_k(message.clone(), "trades", &[Value::List(vec![rawTrade.clone()])]);
@@ -886,7 +906,7 @@ impl LbankCore {
             stored.append(trade.clone());
         }
         }
-        add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+        add_element_to_object(&mut self.trades, &symbol, stored.clone());
         let mut messageHash: Value = add(&Value::Str("trades:".to_string()), &symbol);
         client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
         messageHash = add(&Value::Str("fetchTrades:".to_string()), &symbol);
@@ -1189,9 +1209,9 @@ impl LbankCore {
         })]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(message.clone(), "TS", &[]));
         let mut datetime: Value = self.iso8601(timestamp.clone());
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), data.clone());
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("timestamp".to_string()), timestamp.clone());
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("datetime".to_string()), datetime.clone());
+        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
+        add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), timestamp.clone());
+        add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), datetime.clone());
         let mut currencyId: Value = self.safe_string_k(data.clone(), "assetCode", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut account: Value = self.account();
@@ -1199,7 +1219,7 @@ impl LbankCore {
         add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "freeze", &[]));
         add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "asset", &[]));
         if !is_equal(&code, &Value::Null) {
-            add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            add_element_to_object(&mut self.balance, &code, account.clone());
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         client.resolve(&[self.balance.clone(), Value::Str("balance".to_string())]);
@@ -1288,7 +1308,7 @@ impl LbankCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         // request
         //    {
@@ -1355,7 +1375,7 @@ impl LbankCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut snapshot: Value = self.parse_order_book(orderBook.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string())]);
@@ -1408,22 +1428,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut type_var: Value = self.safe_string2(message.clone(), Value::Str("type".to_string()), Value::Str("action".to_string()), &[]);
         if is_equal(&type_var, &Value::Str("ping".to_string())) {
-            self.spawn(&[Value::Null.clone(), client.clone(), message.clone()]);
+            self.spawn(&[Value::Str("handle_ping".to_string()).clone(), client.clone(), message.clone()]);
             return;
         }
         let mut handlers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("kbar".to_string(), Value::Null.clone());
-                m.insert("depth".to_string(), Value::Null.clone());
-                m.insert("trade".to_string(), Value::Null.clone());
-                m.insert("tick".to_string(), Value::Null.clone());
-                m.insert("orderUpdate".to_string(), Value::Null.clone());
-                m.insert("assetUpdate".to_string(), Value::Null.clone());
+                m.insert("kbar".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("depth".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("trade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("tick".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("orderUpdate".to_string(), Value::Str("handle_orders".to_string()).clone());
+                m.insert("assetUpdate".to_string(), Value::Str("handle_balance".to_string()).clone());
             m
         });
         let mut handler: Value = self.safe_value(handlers.clone(), type_var.clone(), &[]);
         if !is_equal(&handler, &Value::Null) {
-            handler.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
         }
 }
 

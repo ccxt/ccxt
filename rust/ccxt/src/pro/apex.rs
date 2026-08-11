@@ -293,6 +293,30 @@ impl crate::exchange_generated::ExchangeBase for ApexCore {
         })
     }
 }
+impl ApexCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_account" => { self.handle_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ping" => { self.handle_ping(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for ApexCore {
     type Target = crate::exchange::Exchange;
@@ -359,7 +383,7 @@ impl ApexCore {
 }));
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
         m.insert("keepAlive".to_string(), Value::Int(18000));
     m
 }));
@@ -445,7 +469,7 @@ impl ApexCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "topic": "recentlyTrade.H.BTCUSDT",
@@ -480,7 +504,7 @@ impl ApexCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut length: Value = get_array_length(&trades);
         {
@@ -648,7 +672,7 @@ impl ApexCore {
     Value::Null
 }
 
-    pub fn get_ws_public_url(&self) -> Value {
+    pub fn get_ws_public_url(&mut self) -> Value {
         // apex appends a millisecond timestamp to the WS URL for connection-time
         // signing. CCXT's client manager keys clients by URL, so recomputing the
         // timestamp on every watch* call would open a new connection each time.
@@ -657,26 +681,26 @@ impl ApexCore {
         if is_equal(&url, &Value::Null) {
             let mut timeStamp: Value = to_string_val(&self.milliseconds());
             url = add(&add(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string())), &Value::Str("&timestamp=".to_string())), &timeStamp);
-            add_element_to_object(&mut self.options.clone(), &Value::Str("wsPublicUrl".to_string()), url.clone());
+            add_element_to_object(&mut self.options, &Value::Str("wsPublicUrl".to_string()), url.clone());
         }
         return url;
 
     Value::Null
 }
 
-    pub fn get_ws_private_url(&self) -> Value {
+    pub fn get_ws_private_url(&mut self) -> Value {
         let mut url: Value = self.safe_string_k(self.options.clone(), "wsPrivateUrl", &[]);
         if is_equal(&url, &Value::Null) {
             let mut timeStamp: Value = to_string_val(&self.milliseconds());
             url = add(&add(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("private".to_string())), &Value::Str("&timestamp=".to_string())), &timeStamp);
-            add_element_to_object(&mut self.options.clone(), &Value::Str("wsPrivateUrl".to_string()), url.clone());
+            add_element_to_object(&mut self.options, &Value::Str("wsPrivateUrl".to_string()), url.clone());
         }
         return url;
 
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "topic": "orderbook25.H.BTCUSDT",
@@ -721,7 +745,7 @@ impl ApexCore {
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut timestamp: Value = self.safe_integer_product(message.clone(), Value::Str("ts".to_string()), Value::Float(0.001), &[]);
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if is_true(&isSnapshot) {
@@ -736,7 +760,7 @@ impl ApexCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         }
         let mut messageHash: Value = add(&add(&Value::Str("orderbook".to_string()), &Value::Str(":".to_string())), &symbol);
-        add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
@@ -832,7 +856,7 @@ impl ApexCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         // "topic":"instrumentInfo.H.BTCUSDT",
         //     "type":"snapshot",
         //     "data":{
@@ -885,7 +909,7 @@ impl ApexCore {
         let mut timestamp: Value = self.safe_integer_product(message.clone(), Value::Str("ts".to_string()), Value::Float(0.001), &[]);
         add_element_to_object(&mut parsed, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut parsed, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
-        add_element_to_object(&mut self.tickers.clone(), &symbol, parsed.clone());
+        add_element_to_object(&mut self.tickers, &symbol, parsed.clone());
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
         client.resolve(&[get_value(&self.tickers, &symbol), messageHash.clone()]);
 }
@@ -969,7 +993,7 @@ impl ApexCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "topic": "candle.5.BTCUSDT",
@@ -1007,7 +1031,7 @@ impl ApexCore {
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
-            add_element_to_object(&mut self.ohlcvs.clone(), &symbol, Value::Map({
+            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -1285,7 +1309,7 @@ impl ApexCore {
         let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".to_string());
         if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
             client.future(&[messageHash.clone()]);
-            self.spawn(&[Value::Null.clone(), client.clone(), messageHash.clone()]);
+            self.spawn(&[Value::Str("load_positions_snapshot".to_string()).clone(), client.clone(), messageHash.clone()]);
         }
 }
 
@@ -1530,30 +1554,30 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
         }
         let mut topic: Value = self.safe_string2(message.clone(), Value::Str("topic".to_string()), Value::Str("op".to_string()), &[Value::Str("".to_string())]);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("ws_zk_accounts_v3".to_string(), Value::Null.clone());
-                m.insert("orderBook".to_string(), Value::Null.clone());
-                m.insert("depth".to_string(), Value::Null.clone());
-                m.insert("candle".to_string(), Value::Null.clone());
-                m.insert("kline".to_string(), Value::Null.clone());
-                m.insert("ticker".to_string(), Value::Null.clone());
-                m.insert("instrumentInfo".to_string(), Value::Null.clone());
-                m.insert("trade".to_string(), Value::Null.clone());
-                m.insert("recentlyTrade".to_string(), Value::Null.clone());
-                m.insert("pong".to_string(), Value::Null.clone());
-                m.insert("auth".to_string(), Value::Null.clone());
-                m.insert("ping".to_string(), Value::Null.clone());
+                m.insert("ws_zk_accounts_v3".to_string(), Value::Str("handle_account".to_string()).clone());
+                m.insert("orderBook".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("depth".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("candle".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("kline".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("instrumentInfo".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("trade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("recentlyTrade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("pong".to_string(), Value::Str("handle_pong".to_string()).clone());
+                m.insert("auth".to_string(), Value::Str("handle_authenticate".to_string()).clone());
+                m.insert("ping".to_string(), Value::Str("handle_ping".to_string()).clone());
             m
         });
         let mut exacMethod: Value = self.safe_value(methods.clone(), topic.clone(), &[]);
         if !is_equal(&exacMethod, &Value::Null) {
-            exacMethod.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&exacMethod, &[client.clone(), message.clone()]);
             return;
         }
         let mut keys: Value = object_keys(&methods);
@@ -1566,7 +1590,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_greater_than_or_equal(&get_index_of(&topic, &get_value(&keys, &i)), &Value::Int(0)) {
                 let mut method: Value = get_value(&methods, &key);
                 let mut method: Value = get_value(&methods, &key);
-                method.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
             }
         }
@@ -1631,7 +1655,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {
-        self.spawn(&[Value::Null.clone(), client.clone(), message.clone()]);
+        self.spawn(&[Value::Str("pong".to_string()).clone(), client.clone(), message.clone()]);
 }
 
     pub fn handle_account(&mut self, mut client: Value, mut message: Value) {

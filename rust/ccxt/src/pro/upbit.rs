@@ -284,6 +284,26 @@ impl crate::exchange_generated::ExchangeBase for UpbitCore {
         })
     }
 }
+impl UpbitCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_order" => { self.handle_my_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for UpbitCore {
     type Target = crate::exchange::Exchange;
@@ -555,7 +575,7 @@ impl UpbitCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         // 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type: "ticker",
         //   "code": "BTC-ETH",
@@ -595,13 +615,13 @@ impl UpbitCore {
         let mut ticker: Value = self.parse_ticker(message.clone(), &[]);
         let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
         if !is_equal(&symbol, &Value::Null) {
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         }
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         // { type: "orderbook",
         //   "code": "BTC-ETH",
         //   "timestamp": 1584486737444,
@@ -633,7 +653,7 @@ impl UpbitCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         // upbit always returns a snapshot of 15 topmost entries
@@ -670,7 +690,7 @@ impl UpbitCore {
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         // { type: "trade",
         //   "code": "KRW-BTC",
         //   "timestamp": 1584508285812,
@@ -694,7 +714,7 @@ impl UpbitCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         stored.append(trade.clone());
         let mut messageHash: Value = add(&Value::Str("trade:".to_string()), &symbol);
@@ -1140,8 +1160,8 @@ impl UpbitCore {
         //
         let mut data: Value = self.safe_list_k(message.clone(), "assets", &[Value::List(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("timestamp".to_string()), timestamp.clone());
-        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance.clone(), &Value::Str("datetime".to_string()), __be_tmp); };
+        add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), timestamp.clone());
+        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_630: bool = true;
@@ -1156,7 +1176,7 @@ impl UpbitCore {
             add_element_to_object(&mut account, &Value::Str("free".to_string()), available.clone());
             add_element_to_object(&mut account, &Value::Str("used".to_string()), frozen.clone());
             if !is_equal(&code, &Value::Null) {
-                add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                add_element_to_object(&mut self.balance, &code, account.clone());
             }
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         }
@@ -1165,21 +1185,21 @@ impl UpbitCore {
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("ticker".to_string(), Value::Null.clone());
-                m.insert("orderbook".to_string(), Value::Null.clone());
-                m.insert("trade".to_string(), Value::Null.clone());
-                m.insert("myOrder".to_string(), Value::Null.clone());
-                m.insert("myAsset".to_string(), Value::Null.clone());
-                m.insert("candle.1s".to_string(), Value::Null.clone());
+                m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("orderbook".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("trade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("myOrder".to_string(), Value::Str("handle_my_order".to_string()).clone());
+                m.insert("myAsset".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("candle.1s".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
             m
         });
         let mut methodName: Value = self.safe_string_k(message.clone(), "type", &[]);
         let mut method: Value = ternary(is_true(&(is_equal(&methodName, &Value::Null))), Value::Null, self.safe_value(methods.clone(), methodName.clone(), &[]));
         if !is_equal(&method, &Value::Null) {
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
 }
 }

@@ -283,6 +283,30 @@ impl crate::exchange_generated::ExchangeBase for AlpacaCore {
         })
     }
 }
+impl AlpacaCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_authenticate" => { self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_crypto_message" => { self.handle_crypto_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trade_update" => { self.handle_trade_update(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trading_message" => { self.handle_trading_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for AlpacaCore {
     type Target = crate::exchange::Exchange;
@@ -410,7 +434,7 @@ impl AlpacaCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //         "T": "q",
@@ -426,7 +450,7 @@ impl AlpacaCore {
         let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
         if !is_equal(&symbol, &Value::Null) {
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         }
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
@@ -518,7 +542,7 @@ impl AlpacaCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "T": "b",
@@ -539,7 +563,7 @@ impl AlpacaCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
-            add_element_to_object(&mut self.ohlcvs.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.ohlcvs, &symbol, stored.clone());
         }
         let mut parsed: Value = self.parse_ohlcv(message.clone(), &[]);
         stored.append(parsed.clone());
@@ -584,7 +608,7 @@ impl AlpacaCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         // snapshot
         //    {
@@ -612,7 +636,7 @@ impl AlpacaCore {
         let mut timestamp: Value = self.parse8601(datetime.clone());
         let mut isSnapshot: Value = self.safe_bool_k(message.clone(), "r", &[Value::Bool(false)]);
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if is_true(&isSnapshot) {
@@ -627,7 +651,7 @@ impl AlpacaCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), datetime.clone());
         }
         let mut messageHash: Value = add(&add(&Value::Str("orderbook".to_string()), &Value::Str(":".to_string())), &symbol);
-        add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
@@ -688,7 +712,7 @@ impl AlpacaCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "T": "t",
@@ -706,7 +730,7 @@ impl AlpacaCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut parsed: Value = self.parse_trade(message.clone(), &[]);
         stored.append(parsed.clone());
@@ -1092,7 +1116,7 @@ impl AlpacaCore {
     Value::Null
 }
 
-    pub fn handle_crypto_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_crypto_message(&mut self, mut client: Value, mut message: Value) {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1: bool = true;
@@ -1115,37 +1139,37 @@ impl AlpacaCore {
             }
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("error".to_string(), Value::Null.clone());
-                    m.insert("b".to_string(), Value::Null.clone());
-                    m.insert("q".to_string(), Value::Null.clone());
-                    m.insert("t".to_string(), Value::Null.clone());
-                    m.insert("o".to_string(), Value::Null.clone());
+                    m.insert("error".to_string(), Value::Str("handle_error_message".to_string()).clone());
+                    m.insert("b".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                    m.insert("q".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                    m.insert("t".to_string(), Value::Str("handle_trades".to_string()).clone());
+                    m.insert("o".to_string(), Value::Str("handle_order_book".to_string()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods.clone(), T.clone(), &[]);
             if !is_equal(&method, &Value::Null) {
-                method.call(&[client.clone(), data.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), data.clone()]);
             }
         }
         }
 }
 
-    pub fn handle_trading_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trading_message(&mut self, mut client: Value, mut message: Value) {
         let mut stream: Value = self.safe_string_k(message.clone(), "stream", &[]);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("authorization".to_string(), Value::Null.clone());
-                m.insert("listening".to_string(), Value::Null.clone());
-                m.insert("trade_updates".to_string(), Value::Null.clone());
+                m.insert("authorization".to_string(), Value::Str("handle_authenticate".to_string()).clone());
+                m.insert("listening".to_string(), Value::Str("handle_subscription".to_string()).clone());
+                m.insert("trade_updates".to_string(), Value::Str("handle_trade_update".to_string()).clone());
             m
         });
         let mut method: Value = self.safe_value(methods.clone(), stream.clone(), &[]);
         if !is_equal(&method, &Value::Null) {
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if is_true(&Value::Bool(is_array(&message))) {
             self.handle_crypto_message(client.clone(), message.clone());
             return;

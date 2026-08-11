@@ -287,6 +287,25 @@ impl crate::exchange_generated::ExchangeBase for CoinbaseinternationalCore {
         })
     }
 }
+impl CoinbaseinternationalCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_funding_rate" => { self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_instrument" => { self.handle_instrument(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for CoinbaseinternationalCore {
     type Target = crate::exchange::Exchange;
@@ -881,7 +900,7 @@ impl CoinbaseinternationalCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         // {
         //     "sequence": 0,
@@ -908,7 +927,7 @@ impl CoinbaseinternationalCore {
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         if is_equal(&self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]), &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit.clone()));
@@ -983,7 +1002,7 @@ impl CoinbaseinternationalCore {
     Value::Null
 }
 
-    pub fn handle_trade(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         //    {
         //       "sequence": 0,
@@ -1003,11 +1022,11 @@ impl CoinbaseinternationalCore {
         if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut tradesArrayCache = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, tradesArrayCache.clone());
+            add_element_to_object(&mut self.trades, &symbol, tradesArrayCache.clone());
         }
         let mut tradesArray: Value = get_value(&self.trades, &symbol);
         tradesArray.append(trade.clone());
-        add_element_to_object(&mut self.trades.clone(), &symbol, tradesArray.clone());
+        add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
         client.resolve(&[tradesArray.clone(), channel.clone()]);
         client.resolve(&[tradesArray.clone(), add(&add(&channel, &Value::Str("::".to_string())), &get_value(&trade, &Value::Str("symbol".to_string())))]);
         return message;
@@ -1094,7 +1113,7 @@ impl CoinbaseinternationalCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         // snapshot
         //    {
@@ -1140,7 +1159,7 @@ impl CoinbaseinternationalCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if is_equal(&type_var, &Value::Str("SNAPSHOT".to_string())) {
@@ -1154,7 +1173,7 @@ impl CoinbaseinternationalCore {
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(message.clone(), "sequence", &[]));
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), datetime.clone());
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), self.parse8601(datetime.clone()));
-        add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(&[orderbook.clone(), add(&add(&channel, &Value::Str("::".to_string())), &symbol)]);
 }
 
@@ -1184,7 +1203,7 @@ impl CoinbaseinternationalCore {
     Value::Null
 }
 
-    pub fn handle_funding_rate(&self, mut client: Value, mut message: Value) {
+    pub fn handle_funding_rate(&mut self, mut client: Value, mut message: Value) {
         //
         // snapshot
         //    {
@@ -1209,7 +1228,7 @@ impl CoinbaseinternationalCore {
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut fundingRate: Value = self.parse_funding_rate(message.clone(), &[]);
-        add_element_to_object(&mut self.fundingRates.clone(), &get_value(&fundingRate, &Value::Str("symbol".to_string())), fundingRate.clone());
+        add_element_to_object(&mut self.fundingRates, &get_value(&fundingRate, &Value::Str("symbol".to_string())), fundingRate.clone());
         client.resolve(&[fundingRate.clone(), add(&add(&channel, &Value::Str("::".to_string())), &get_value(&fundingRate, &Value::Str("symbol".to_string())))]);
 }
 
@@ -1242,20 +1261,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
         }
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("SUBSCRIPTIONS".to_string(), Value::Null.clone());
-                m.insert("INSTRUMENTS".to_string(), Value::Null.clone());
-                m.insert("LEVEL1".to_string(), Value::Null.clone());
-                m.insert("MATCH".to_string(), Value::Null.clone());
-                m.insert("LEVEL2".to_string(), Value::Null.clone());
-                m.insert("FUNDING".to_string(), Value::Null.clone());
-                m.insert("RISK".to_string(), Value::Null.clone());
+                m.insert("SUBSCRIPTIONS".to_string(), Value::Str("handle_subscription_status".to_string()).clone());
+                m.insert("INSTRUMENTS".to_string(), Value::Str("handle_instrument".to_string()).clone());
+                m.insert("LEVEL1".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("MATCH".to_string(), Value::Str("handle_trade".to_string()).clone());
+                m.insert("LEVEL2".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("FUNDING".to_string(), Value::Str("handle_funding_rate".to_string()).clone());
+                m.insert("RISK".to_string(), Value::Str("handle_ticker".to_string()).clone());
             m
         });
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
@@ -1268,7 +1287,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut method: Value = self.safe_value(methods.clone(), channel.clone(), &[]);
         if !is_equal(&method, &Value::Null) {
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
 }
 }

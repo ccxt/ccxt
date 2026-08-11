@@ -300,6 +300,25 @@ impl crate::exchange_generated::ExchangeBase for XtCore {
         })
     }
 }
+impl XtCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_position" => { self.handle_position(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_un_subscription" => { self.handle_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "set_positions_cache" => { self.set_positions_cache(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for XtCore {
     type Target = crate::exchange::Exchange;
@@ -377,7 +396,7 @@ impl XtCore {
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("keepAlive".to_string(), Value::Int(20000));
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
     m
 }));
         m.insert("token".to_string(), Value::Null);
@@ -1162,7 +1181,7 @@ impl XtCore {
     Value::Null
 }
 
-    pub fn handle_funding_rate(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_funding_rate(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         //     {
         //         "topic": "fund_rate",
@@ -1188,7 +1207,7 @@ impl XtCore {
             add_element_to_object(&mut fundingRate, &Value::Str("timestamp".to_string()), timestamp.clone());
             add_element_to_object(&mut fundingRate, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
             let mut symbol: Value = get_value(&fundingRate, &Value::Str("symbol".to_string()));
-            add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+            add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
             let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
             let mut messageHash: Value = add(&event, &Value::Str("::contract".to_string()));
             client.resolve(&[fundingRate.clone(), messageHash.clone()]);
@@ -1207,7 +1226,7 @@ impl XtCore {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".to_string());
             if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
                 client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Null.clone(), client.clone(), messageHash.clone()]);
+                self.spawn(&[Value::Str("load_positions_snapshot".to_string()).clone(), client.clone(), messageHash.clone()]);
             }
         }
 }
@@ -1298,7 +1317,7 @@ impl XtCore {
         client.resolve(&[Value::List(vec![position.clone()]), Value::Str("position::contract".to_string())]);
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         // spot
         //
@@ -1367,7 +1386,7 @@ impl XtCore {
             let mut ticker: Value = self.parse_ticker(data.clone(), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {
-                add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+                add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             }
             let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
             let mut messageHashTail: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
@@ -1379,7 +1398,7 @@ impl XtCore {
     Value::Null
 }
 
-    pub fn handle_tickers(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_tickers(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         // spot
         //
@@ -1461,7 +1480,7 @@ impl XtCore {
             let mut ticker: Value = self.parse_ticker(tickerData.clone(), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {
-                add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+                add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             }
             append_to_array(&mut newTickers, ticker.clone());
         }
@@ -1491,7 +1510,7 @@ impl XtCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         // spot
         //
@@ -1543,7 +1562,7 @@ impl XtCore {
             { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
             let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
             if is_equal(&stored, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1560,7 +1579,7 @@ impl XtCore {
     Value::Null
 }
 
-    pub fn handle_trade(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         // spot
         //
@@ -1604,7 +1623,7 @@ impl XtCore {
             if is_equal(&tradesArray, &Value::Null) {
                 let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 tradesArray = ArrayCache::new(tradesLimit.clone());
-                add_element_to_object(&mut self.trades.clone(), &symbol, tradesArray.clone());
+                add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
             }
             tradesArray.append(trade.clone());
             let mut messageHash: Value = add(&add(&event, &Value::Str("::".to_string())), &tradeType);
@@ -1699,7 +1718,7 @@ impl XtCore {
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
@@ -1707,7 +1726,7 @@ impl XtCore {
                 let mut cacheLength: Value = get_array_length(&get_value(&orderbook, &Value::Str("cache".to_string())));
                 let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("snapshotDelay".to_string()), &[Value::Int(25)]);
                 if is_equal(&cacheLength, &snapshotDelay) {
-                    self.spawn(&[Value::Null.clone(), client.clone(), messageHash.clone(), symbol.clone()]);
+                    self.spawn(&[Value::Str("load_order_book".to_string()).clone(), client.clone(), messageHash.clone(), symbol.clone()]);
                 }
                 append_to_array(&mut get_value(&orderbook, &Value::Str("cache".to_string())), data.clone());
                 return;
@@ -2010,7 +2029,7 @@ impl XtCore {
         add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "f", &[]));
         add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string2(data.clone(), Value::Str("b".to_string()), Value::Str("walletBalance".to_string()), &[]));
         if !is_equal(&code, &Value::Null) {
-            add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            add_element_to_object(&mut self.balance, &code, account.clone());
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         let mut tradeType: Value = ternary(is_true(&(Value::Bool(in_op(&data, &Value::Str("coin".to_string()))))), Value::Str("contract".to_string()), Value::Str("spot".to_string()));
@@ -2081,30 +2100,30 @@ impl XtCore {
             let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("kline".to_string(), Value::Null.clone());
-                    m.insert("depth".to_string(), Value::Null.clone());
-                    m.insert("depth_update".to_string(), Value::Null.clone());
-                    m.insert("ticker".to_string(), Value::Null.clone());
-                    m.insert("agg_ticker".to_string(), Value::Null.clone());
-                    m.insert("tickers".to_string(), Value::Null.clone());
-                    m.insert("agg_tickers".to_string(), Value::Null.clone());
-                    m.insert("balance".to_string(), Value::Null.clone());
-                    m.insert("order".to_string(), Value::Null.clone());
-                    m.insert("position".to_string(), Value::Null.clone());
-                    m.insert("fund_rate".to_string(), Value::Null.clone());
+                    m.insert("kline".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                    m.insert("depth".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                    m.insert("depth_update".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                    m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                    m.insert("agg_ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                    m.insert("tickers".to_string(), Value::Str("handle_tickers".to_string()).clone());
+                    m.insert("agg_tickers".to_string(), Value::Str("handle_tickers".to_string()).clone());
+                    m.insert("balance".to_string(), Value::Str("handle_balance".to_string()).clone());
+                    m.insert("order".to_string(), Value::Str("handle_order".to_string()).clone());
+                    m.insert("position".to_string(), Value::Str("handle_position".to_string()).clone());
+                    m.insert("fund_rate".to_string(), Value::Str("handle_funding_rate".to_string()).clone());
                 m
             });
             let mut method: Value = ternary(is_true(&(is_equal(&topic, &Value::Null))), Value::Null, self.safe_value(methods.clone(), topic.clone(), &[]));
             if is_equal(&topic, &Value::Str("trade".to_string())) {
                 let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
                 if is_true(&(!is_equal(&data, &Value::Null))) && is_true(&(is_true(&(Value::Bool(in_op(&data, &Value::Str("oi".to_string()))))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("orderId".to_string()))))))) {
-                    method = Value::Null.clone();
+                    method = Value::Str("handle_my_trades".to_string()).clone();
                 }  else {
-                    method = Value::Null.clone();
+                    method = Value::Str("handle_trade".to_string()).clone();
                 }
             }
             if !is_equal(&method, &Value::Null) {
-                method.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }  else {
             self.handle_subscription_status(client.clone(), message.clone());

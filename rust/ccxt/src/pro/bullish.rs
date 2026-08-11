@@ -282,6 +282,26 @@ impl crate::exchange_generated::ExchangeBase for BullishCore {
         })
     }
 }
+impl BullishCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_error_message" => { self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for BullishCore {
     type Target = crate::exchange::Exchange;
@@ -348,7 +368,7 @@ impl BullishCore {
 }));
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
         m.insert("keepAlive".to_string(), Value::Int(99000));
     m
 }));
@@ -358,15 +378,15 @@ impl BullishCore {
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&mut self) -> Value {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("requestId".to_string()), requestId.clone());
+        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), requestId.clone());
         return requestId;
 
     Value::Null
 }
 
-    pub fn ping(&self, mut client: Value) -> Value {
+    pub fn ping(&mut self, mut client: Value) -> Value {
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
         let mut id: Value = to_string_val(&self.request_id());
@@ -503,7 +523,7 @@ impl BullishCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "type": "snapshot",
@@ -540,7 +560,7 @@ impl BullishCore {
         if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut tradesArrayCache = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, tradesArrayCache.clone());
+            add_element_to_object(&mut self.trades, &symbol, tradesArrayCache.clone());
         }
         let mut tradesArray: Value = get_value(&self.trades, &symbol);
         {
@@ -550,7 +570,7 @@ impl BullishCore {
             tradesArray.append(get_value(&trades, &i));
         }
         }
-        add_element_to_object(&mut self.trades.clone(), &symbol, tradesArray.clone());
+        add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
         let mut messageHash: Value = add(&Value::Str("trades::".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         client.resolve(&[tradesArray.clone(), messageHash.clone()]);
 }
@@ -581,7 +601,7 @@ impl BullishCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "type": "update",
@@ -647,7 +667,7 @@ impl BullishCore {
             let mut merged: Value = self.extend(rawTicker.clone(), &[data.clone()]);
             parsed = self.parse_ticker(merged.clone(), &[market.clone()]);
         }
-        add_element_to_object(&mut self.tickers.clone(), &symbol, parsed.clone());
+        add_element_to_object(&mut self.tickers, &symbol, parsed.clone());
         let mut messageHash: Value = add(&Value::Str("ticker::".to_string()), &symbol);
         client.resolve(&[get_value(&self.tickers, &symbol), messageHash.clone()]);
 }
@@ -686,7 +706,7 @@ impl BullishCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "type": "snapshot",
@@ -718,7 +738,7 @@ impl BullishCore {
         let mut messageHash: Value = add(&Value::Str("orderbook::".to_string()), &symbol);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut bids: Value = self.separate_bids_or_asks(self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]));
@@ -736,7 +756,7 @@ impl BullishCore {
             add_element_to_object(&mut parsed, &Value::Str("nonce".to_string()), self.safe_integer(sequenceNumberRange.clone(), lastIndex.clone(), &[]));
         }
         orderbook.reset(parsed.clone());
-        add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
@@ -1076,7 +1096,7 @@ impl BullishCore {
     Value::Null
 }
 
-    pub fn handle_balance(&self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
         //
         // snapshot
         //     {
@@ -1123,7 +1143,7 @@ impl BullishCore {
             return;
         }
         if !is_true(&(Value::Bool(in_op(&self.balance, &tradingAccountId)))) {
-            add_element_to_object(&mut self.balance.clone(), &tradingAccountId, Value::Map({
+            add_element_to_object(&mut self.balance, &tradingAccountId, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -1131,7 +1151,7 @@ impl BullishCore {
         let mut messageType: Value = self.safe_string_k(message.clone(), "type", &[]);
         if is_equal(&messageType, &Value::Str("snapshot".to_string())) {
             let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
-            { let __be_tmp = self.parse_balance(data.clone()); add_element_to_object(&mut self.balance.clone(), &tradingAccountId, __be_tmp); };
+            { let __be_tmp = self.parse_balance(data.clone()); add_element_to_object(&mut self.balance, &tradingAccountId, __be_tmp); };
         }  else {
             let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1146,7 +1166,7 @@ impl BullishCore {
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &code, account.clone());
             }
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &Value::Str("info".to_string()), message.clone());
-            { let __be_tmp = self.safe_balance(get_value(&self.balance, &tradingAccountId)); add_element_to_object(&mut self.balance.clone(), &tradingAccountId, __be_tmp); };
+            { let __be_tmp = self.safe_balance(get_value(&self.balance, &tradingAccountId)); add_element_to_object(&mut self.balance, &tradingAccountId, __be_tmp); };
         }
         let mut messageHash: Value = Value::Str("balance".to_string());
         let mut tradingAccountIdHash: Value = add(&Value::Str("::".to_string()), &tradingAccountId);

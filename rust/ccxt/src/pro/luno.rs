@@ -276,6 +276,21 @@ impl crate::exchange_generated::ExchangeBase for LunoCore {
         })
     }
 }
+impl LunoCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for LunoCore {
     type Target = crate::exchange::Exchange;
@@ -382,7 +397,7 @@ impl LunoCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value, mut subscription: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
         //
         //     {
         //         "sequence": "110980825",
@@ -410,7 +425,7 @@ impl LunoCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         {
                         let mut i: Value = Value::Int(0);
@@ -422,7 +437,7 @@ impl LunoCore {
             stored.append(trade.clone());
         }
         }
-        add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+        add_element_to_object(&mut self.trades, &symbol, stored.clone());
         client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
 }
 
@@ -505,7 +520,7 @@ impl LunoCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value, mut subscription: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
         //
         //     {
         //         "sequence": "24352",
@@ -545,12 +560,12 @@ impl LunoCore {
             { let __be_tmp = self.indexed_order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut asks: Value = self.safe_value_k(message.clone(), "asks", &[]);
         if !is_equal(&asks, &Value::Null) {
             let mut snapshot: Value = self.custom_parse_order_book(message.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("volume".to_string()), Value::Str("id".to_string())]);
-            { let __be_tmp = self.indexed_order_book(&[snapshot.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.indexed_order_book(&[snapshot.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }  else {
             let mut ob: Value = get_value(&self.orderbooks, &symbol);
             self.handle_delta(ob.clone(), message.clone());
@@ -684,19 +699,19 @@ impl LunoCore {
         }
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if is_equal(&message, &Value::Str("".to_string())) {
             return;
         }
         let mut subscriptions: Value = object_values(&get_value(&client, &Value::Str("subscriptions".to_string())));
-        let mut handlers: Value = Value::List(vec![Value::Null.clone(), Value::Null.clone()]);
+        let mut handlers: Value = Value::List(vec![Value::Str("handle_order_book".to_string()).clone(), Value::Str("handle_trades".to_string()).clone()]);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_487: bool = true;
             while { if !__for_first_487 { j = add(&j, &Value::Int(1)); } __for_first_487 = false; is_less_than(&j, &get_array_length(&handlers)) } {
             let mut handler: Value = get_value(&handlers, &j);
             let mut handler: Value = get_value(&handlers, &j);
-            handler.call(&[client.clone(), message.clone(), get_value(&subscriptions, &Value::Int(0))]);
+            self.dispatch_ws_handler(&handler, &[client.clone(), message.clone(), get_value(&subscriptions, &Value::Int(0))]);
         }
         }
 }

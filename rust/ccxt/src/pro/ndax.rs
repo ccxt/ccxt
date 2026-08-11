@@ -274,6 +274,24 @@ impl crate::exchange_generated::ExchangeBase for NdaxCore {
         })
     }
 }
+impl NdaxCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_subscription" => { self.handle_order_book_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_subscription_status" => { self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for NdaxCore {
     type Target = crate::exchange::Exchange;
@@ -318,9 +336,9 @@ impl NdaxCore {
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&mut self) -> Value {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("requestId".to_string()), requestId.clone());
+        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), requestId.clone());
         return requestId;
 
     Value::Null
@@ -369,7 +387,7 @@ impl NdaxCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         let mut payload: Value = self.safe_value_k(message.clone(), "o", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -403,7 +421,7 @@ impl NdaxCore {
         let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
         let mut market: Value = self.market(symbol.clone());
         if !is_equal(&symbol, &Value::Null) {
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         }
         let mut name: Value = Value::Str("SubscribeLevel1".to_string());
         let mut messageHash: Value = add(&add(&name, &Value::Str(":".to_string())), &get_value(&market, &Value::Str("id".to_string())));
@@ -463,7 +481,7 @@ impl NdaxCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         let mut payload: Value = self.safe_value_k(message.clone(), "o", &[Value::List(vec![])]);
         //
         // initial snapshot
@@ -502,7 +520,7 @@ impl NdaxCore {
             }
             tradesArray.append(trade.clone());
             if !is_equal(&symbol, &Value::Null) {
-                add_element_to_object(&mut self.trades.clone(), &symbol, tradesArray.clone());
+                add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
             }
             if !is_equal(&symbol, &Value::Null) {
                 add_element_to_object(&mut updates, &symbol, Value::Bool(true));
@@ -580,7 +598,7 @@ impl NdaxCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "m": 1,
@@ -628,7 +646,7 @@ impl NdaxCore {
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
             let mut keys: Value = object_keys(&self.timeframes);
             {
                                 let mut j: Value = Value::Int(0);
@@ -757,7 +775,7 @@ impl NdaxCore {
                 m.insert("name".to_string(), name.clone());
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("marketId".to_string(), get_value(&market, &Value::Str("id".to_string())));
-                m.insert("method".to_string(), Value::Null.clone());
+                m.insert("method".to_string(), Value::Str("handle_order_book_subscription".to_string()).clone());
                 m.insert("limit".to_string(), limit.clone());
                 m.insert("params".to_string(), params.clone());
             m
@@ -769,7 +787,7 @@ impl NdaxCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "m": 3,
@@ -850,11 +868,11 @@ impl NdaxCore {
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         let mut name: Value = Value::Str("SubscribeLevel2".to_string());
         let mut messageHash: Value = add(&add(&name, &Value::Str(":".to_string())), &marketId);
-        add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_order_book_subscription(&self, mut client: Value, mut message: Value, mut subscription: Value) {
+    pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
         //
         //     {
         //         "m": 1,
@@ -885,13 +903,13 @@ impl NdaxCore {
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
         let mut orderbook: Value = self.order_book(&[snapshot.clone(), limit.clone()]);
         if !is_equal(&symbol, &Value::Null) {
-            add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+            add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         }
         let mut messageHash: Value = self.safe_string_k(subscription.clone(), "messageHash", &[]);
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_subscription_status(&self, mut client: Value, mut message: Value) {
+    pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "m": 1,
@@ -906,12 +924,12 @@ impl NdaxCore {
         if !is_equal(&subscription, &Value::Null) {
             let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
             if !is_equal(&method, &Value::Null) {
-                method.call(&[client.clone(), message.clone(), subscription.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription.clone()]);
             }
         }
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "m": 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
@@ -941,20 +959,20 @@ impl NdaxCore {
         add_element_to_object(&mut message, &Value::Str("o".to_string()), json_parse(&payload));
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("SubscribeLevel2".to_string(), Value::Null.clone());
-                m.insert("SubscribeLevel1".to_string(), Value::Null.clone());
-                m.insert("Level2UpdateEvent".to_string(), Value::Null.clone());
-                m.insert("Level1UpdateEvent".to_string(), Value::Null.clone());
-                m.insert("SubscribeTrades".to_string(), Value::Null.clone());
-                m.insert("TradeDataUpdateEvent".to_string(), Value::Null.clone());
-                m.insert("SubscribeTicker".to_string(), Value::Null.clone());
-                m.insert("TickerDataUpdateEvent".to_string(), Value::Null.clone());
+                m.insert("SubscribeLevel2".to_string(), Value::Str("handle_subscription_status".to_string()).clone());
+                m.insert("SubscribeLevel1".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("Level2UpdateEvent".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("Level1UpdateEvent".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("SubscribeTrades".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("TradeDataUpdateEvent".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("SubscribeTicker".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("TickerDataUpdateEvent".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
             m
         });
         let mut event: Value = self.safe_string_k(message.clone(), "n", &[]);
         let mut method: Value = ternary(is_true(&(is_equal(&event, &Value::Null))), Value::Null, self.safe_value(methods.clone(), event.clone(), &[]));
         if !is_equal(&method, &Value::Null) {
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
 }
 }

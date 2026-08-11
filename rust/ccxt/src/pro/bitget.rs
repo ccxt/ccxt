@@ -305,6 +305,34 @@ impl crate::exchange_generated::ExchangeBase for BitgetCore {
         })
     }
 }
+impl BitgetCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_authenticate" => { self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv_un_subscription" => { self.handle_ohlcv_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_un_subscription" => { self.handle_order_book_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker_un_subscription" => { self.handle_ticker_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades_un_subscription" => { self.handle_trades_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for BitgetCore {
     type Target = crate::exchange::Exchange;
@@ -396,7 +424,7 @@ impl BitgetCore {
 }));
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
     m
 }));
         m.insert("exceptions".to_string(), Value::Map({
@@ -586,7 +614,7 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         // default
         //
@@ -646,7 +674,7 @@ impl BitgetCore {
         let mut ticker: Value = self.parse_ws_ticker(message.clone(), &[]);
         let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
         if !is_equal(&symbol, &Value::Null) {
-            add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         }
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
         client.resolve(&[ticker.clone(), messageHash.clone()]);
@@ -860,11 +888,11 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub fn handle_bid_ask(&self, mut client: Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         let mut ticker: Value = self.parse_ws_bid_ask(message.clone(), &[]);
         let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
         if !is_equal(&symbol, &Value::Null) {
-            add_element_to_object(&mut self.bidsasks.clone(), &symbol, ticker.clone());
+            add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
         }
         let mut messageHash: Value = add(&Value::Str("bidask:".to_string()), &symbol);
         client.resolve(&[ticker.clone(), messageHash.clone()]);
@@ -1027,7 +1055,7 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "action": "snapshot",
@@ -1097,7 +1125,7 @@ impl BitgetCore {
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         let mut channel: Value = self.safe_string2(arg.clone(), Value::Str("channel".to_string()), Value::Str("topic".to_string()), &[Value::Str("".to_string())]);
         let mut interval: Value = self.safe_string_k(arg.clone(), "interval", &[]);
         let mut isUta: Value = Value::Null;
@@ -1401,7 +1429,7 @@ impl BitgetCore {
                     m
                 })]);
                 add_element_to_object(&mut ob, &Value::Str("symbol".to_string()), symbol.clone());
-                add_element_to_object(&mut self.orderbooks.clone(), &symbol, ob.clone());
+                add_element_to_object(&mut self.orderbooks, &symbol, ob.clone());
             }
             let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
             let mut asks: Value = self.safe_list2(rawOrderBook.clone(), Value::Str("asks".to_string()), Value::Str("a".to_string()), &[Value::List(vec![])]);
@@ -1438,7 +1466,7 @@ impl BitgetCore {
                 let mut payload: Value = join(&payloadArray, &Value::Str(":".to_string()));
                 let mut calculatedChecksum: Value = self.crc32(&[payload.clone(), Value::Bool(true)]);
                 if !is_equal(&calculatedChecksum, &responseChecksum) {
-                    self.spawn(&[Value::Null.clone(), client.clone(), symbol.clone(), messageHash.clone()]);
+                    self.spawn(&[Value::Str("handle_check_sum_error".to_string()).clone(), client.clone(), symbol.clone(), messageHash.clone()]);
                     return;
                 }
             }
@@ -1462,7 +1490,7 @@ impl BitgetCore {
             }
             let mut parsedOrderbook: Value = self.parse_order_book(rawOrderBook.clone(), symbol.clone(), &[timestamp.clone(), bidsKey.clone(), asksKey.clone()]);
             orderbook.reset(parsedOrderbook.clone());
-            add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+            add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         }
         client.resolve(&[get_value(&self.orderbooks, &symbol), messageHash.clone()]);
 }
@@ -1623,7 +1651,7 @@ impl BitgetCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "action": "snapshot",
@@ -1671,7 +1699,7 @@ impl BitgetCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut length: Value = get_array_length(&data);
@@ -1989,7 +2017,7 @@ impl BitgetCore {
         }
         let mut action: Value = self.safe_string_k(message.clone(), "action", &[]);
         if !is_true(&(Value::Bool(in_op(&self.positions, &instType)))) || is_true(&(is_equal(&action, &Value::Str("snapshot".to_string())))) {
-            add_element_to_object(&mut self.positions.clone(), &instType, ArrayCacheBySymbolBySide::new(Value::Null));
+            add_element_to_object(&mut self.positions, &instType, ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Value = get_value(&self.positions, &instType);
         let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
@@ -3118,7 +3146,7 @@ impl BitgetCore {
                     add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "locked", &[]));
                     add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "balance", &[]));
                     if !is_equal(&code, &Value::Null) {
-                        add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                        add_element_to_object(&mut self.balance, &code, account.clone());
                     }
                 }
                 }
@@ -3139,14 +3167,14 @@ impl BitgetCore {
                 add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(rawBalance.clone(), "equity", &[]));
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(rawBalance.clone(), "frozen", &[]));
                 if !is_equal(&code, &Value::Null) {
-                    add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+                    add_element_to_object(&mut self.balance, &code, account.clone());
                 }
             }
         }
         }
         // REST parseBalance sets info, keep the ws structure at parity,
         // see https://github.com/ccxt/ccxt/issues/21973
-        add_element_to_object(&mut self.balance.clone(), &Value::Str("info".to_string()), message.clone());
+        add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), message.clone());
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         let mut messageHash: Value = add(&Value::Str("balance:".to_string()), &instType);
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
@@ -3460,22 +3488,22 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("ticker".to_string(), Value::Null.clone());
-                m.insert("trade".to_string(), Value::Null.clone());
-                m.insert("publicTrade".to_string(), Value::Null.clone());
-                m.insert("fill".to_string(), Value::Null.clone());
-                m.insert("order".to_string(), Value::Null.clone());
-                m.insert("orders".to_string(), Value::Null.clone());
-                m.insert("ordersAlgo".to_string(), Value::Null.clone());
-                m.insert("orders-algo".to_string(), Value::Null.clone());
-                m.insert("orders-crossed".to_string(), Value::Null.clone());
-                m.insert("orders-isolated".to_string(), Value::Null.clone());
-                m.insert("account".to_string(), Value::Null.clone());
-                m.insert("position".to_string(), Value::Null.clone());
-                m.insert("positions".to_string(), Value::Null.clone());
-                m.insert("account-isolated".to_string(), Value::Null.clone());
-                m.insert("account-crossed".to_string(), Value::Null.clone());
-                m.insert("kline".to_string(), Value::Null.clone());
+                m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("trade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("publicTrade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("fill".to_string(), Value::Str("handle_my_trades".to_string()).clone());
+                m.insert("order".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("orders".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("ordersAlgo".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("orders-algo".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("orders-crossed".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("orders-isolated".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("account".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("position".to_string(), Value::Str("handle_positions".to_string()).clone());
+                m.insert("positions".to_string(), Value::Str("handle_positions".to_string()).clone());
+                m.insert("account-isolated".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("account-crossed".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("kline".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
             m
         });
         let mut arg: Value = self.safe_value_k(message.clone(), "arg", &[Value::Map({
@@ -3485,7 +3513,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut topic: Value = self.safe_value2(arg.clone(), Value::Str("channel".to_string()), Value::Str("topic".to_string()), &[Value::Str("".to_string())]);
         let mut method: Value = self.safe_value(methods.clone(), topic.clone(), &[]);
         if !is_equal(&method, &Value::Null) {
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
         if is_greater_than_or_equal(&get_index_of(&topic, &Value::Str("candle".to_string())), &Value::Int(0)) {
             self.handle_ohlcv(client.clone(), message.clone());
@@ -3514,7 +3542,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn handle_order_book_un_subscription(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book_un_subscription(&mut self, mut client: Value, mut message: Value) {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         //
@@ -3534,7 +3562,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut messageHash: Value = add(&Value::Str("unsubscribe:orderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut subMessageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
         if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
-            remove(&mut self.orderbooks.clone(), &symbol);
+            remove(&mut self.orderbooks, &symbol);
         }
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subMessageHash))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subMessageHash);
@@ -3549,7 +3577,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         client.resolve(&[Value::Bool(true), messageHash.clone()]);
 }
 
-    pub fn handle_trades_un_subscription(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades_un_subscription(&mut self, mut client: Value, mut message: Value) {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
         //
@@ -3565,7 +3593,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut messageHash: Value = add(&Value::Str("unsubscribe:trade:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut subMessageHash: Value = add(&Value::Str("trade:".to_string()), &symbol);
         if is_true(&Value::Bool(in_op(&self.trades, &symbol))) {
-            remove(&mut self.trades.clone(), &symbol);
+            remove(&mut self.trades, &symbol);
         }
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subMessageHash))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subMessageHash);
@@ -3580,7 +3608,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         client.resolve(&[Value::Bool(true), messageHash.clone()]);
 }
 
-    pub fn handle_ticker_un_subscription(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker_un_subscription(&mut self, mut client: Value, mut message: Value) {
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
         //
@@ -3596,7 +3624,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut messageHash: Value = add(&Value::Str("unsubscribe:ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
         let mut subMessageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
         if is_true(&Value::Bool(in_op(&self.tickers, &symbol))) {
-            remove(&mut self.tickers.clone(), &symbol);
+            remove(&mut self.tickers, &symbol);
         }
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &subMessageHash))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subMessageHash);

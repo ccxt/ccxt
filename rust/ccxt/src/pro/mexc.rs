@@ -304,6 +304,33 @@ impl crate::exchange_generated::ExchangeBase for MexcCore {
         })
     }
 }
+impl MexcCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_bookside_delta" => { self.handle_bookside_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_funding_rate" => { self.handle_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order" => { self.handle_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_subscription" => { self.handle_order_book_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_subscription_status" => { self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_tickers" => { self.handle_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_unsubscriptions" => { self.handle_unsubscriptions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for MexcCore {
     type Target = crate::exchange::Exchange;
@@ -393,7 +420,7 @@ impl MexcCore {
 }));
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
         m.insert("keepAlive".to_string(), Value::Int(8000));
     m
 }));
@@ -443,7 +470,7 @@ impl MexcCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         // swap
         //
@@ -527,7 +554,7 @@ impl MexcCore {
         }  else {
             return;
         }
-        add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
@@ -590,7 +617,7 @@ impl MexcCore {
     Value::Null
 }
 
-    pub fn handle_tickers(&self, mut client: Value, mut message: Value) {
+    pub fn handle_tickers(&mut self, mut client: Value, mut message: Value) {
         //
         // swap
         //
@@ -676,7 +703,7 @@ impl MexcCore {
             }
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {
-                add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+                add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             }
             append_to_array(&mut result, ticker.clone());
             let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
@@ -815,7 +842,7 @@ impl MexcCore {
     Value::Null
 }
 
-    pub fn handle_bid_ask(&self, mut client: Value, mut message: Value) {
+    pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
@@ -834,7 +861,7 @@ impl MexcCore {
         if is_equal(&symbol, &Value::Null) {
             return;
         }
-        add_element_to_object(&mut self.bidsasks.clone(), &symbol, parsedTicker.clone());
+        add_element_to_object(&mut self.bidsasks, &symbol, parsedTicker.clone());
         let mut messageHash: Value = add(&Value::Str("bidask:".to_string()), &symbol);
         client.resolve(&[parsedTicker.clone(), messageHash.clone()]);
 }
@@ -1005,7 +1032,7 @@ impl MexcCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         // spot
         //
@@ -1104,7 +1131,7 @@ impl MexcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        add_element_to_object(&mut self.ohlcvs.clone(), &symbol, symbolOhlcvs.clone());
+        add_element_to_object(&mut self.ohlcvs, &symbol, symbolOhlcvs.clone());
         let mut stored: Value = self.safe_value(symbolOhlcvs.clone(), timeframe.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1218,7 +1245,7 @@ impl MexcCore {
     Value::Null
 }
 
-    pub fn handle_order_book_subscription(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value) {
         // spot
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
@@ -1229,7 +1256,7 @@ impl MexcCore {
         { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
 }
 
     pub fn get_cache_index(&self, mut orderbook: Value, mut cache: Value) -> Value {
@@ -1337,7 +1364,7 @@ impl MexcCore {
         let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
         let mut nonce: Value = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]);
@@ -1346,7 +1373,7 @@ impl MexcCore {
             let mut cacheLength: Value = get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".to_string())));
             let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("snapshotDelay".to_string()), &[Value::Int(25)]);
             if is_equal(&cacheLength, &snapshotDelay) {
-                self.spawn(&[Value::Null.clone(), client.clone(), messageHash.clone(), symbol.clone(), limit.clone(), Value::Map({
+                self.spawn(&[Value::Str("load_order_book".to_string()).clone(), client.clone(), messageHash.clone(), symbol.clone(), limit.clone(), Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -1452,7 +1479,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         // protobuf
         // {
         // "channel": "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
@@ -1511,7 +1538,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut d: Value = self.safe_dict_n(message.clone(), Value::List(vec![Value::Str("d".to_string()), Value::Str("publicAggreDeals".to_string())]), &[]);
         let mut trades: Value = self.safe_list2(d.clone(), Value::Str("deals".to_string()), Value::Str("dealsList".to_string()), &[Value::List(vec![d.clone()])]);
@@ -2085,7 +2112,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_balance(&self, mut client: Value, mut message: Value) {
+    pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
         //
         // spot
         //
@@ -2127,7 +2154,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut futuresTimestamp: Value = self.safe_integer2(message.clone(), Value::Str("ts".to_string()), Value::Str("createTime".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer2(data.clone(), Value::Str("time".to_string()), futuresTimestamp.clone(), &[]);
         if !is_true(&(Value::Bool(in_op(&self.balance, &type_var)))) {
-            add_element_to_object(&mut self.balance.clone(), &type_var, Value::Map({
+            add_element_to_object(&mut self.balance, &type_var, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -2143,7 +2170,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&code, &Value::Null) {
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
         }
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance.clone(), &type_var, __be_tmp); };
+        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
         client.resolve(&[get_value(&self.balance, &type_var), messageHash.clone()]);
 }
 
@@ -2212,7 +2239,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_funding_rate(&self, mut client: Value, mut message: Value) {
+    pub fn handle_funding_rate(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -2232,7 +2259,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut fundingRate: Value = self.parse_funding_rate(data.clone(), &[]);
         let mut symbol: Value = get_value(&fundingRate, &Value::Str("symbol".to_string()));
         if !is_equal(&symbol, &Value::Null) {
-            add_element_to_object(&mut self.fundingRates.clone(), &symbol, fundingRate.clone());
+            add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
         }
         let mut messageHash: Value = add(&Value::Str("fundingRate:".to_string()), &symbol);
         client.resolve(&[fundingRate.clone(), messageHash.clone()]);
@@ -2545,16 +2572,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                                 let mut j: Value = Value::Int(0);
                         let mut __for_first_494: bool = true;
                         while { if !__for_first_494 { j = add(&j, &Value::Int(1)); } __for_first_494 = false; is_less_than(&j, &get_array_length(&symbols)) } {
-                        remove(&mut self.tickers.clone(), &get_value(&symbols, &j));
+                        remove(&mut self.tickers, &get_value(&symbols, &j));
                     }
                     }
                 }  else if is_true(&Value::Bool(in_op(&self.tickers, &symbol))) {
-                    remove(&mut self.tickers.clone(), &symbol);
+                    remove(&mut self.tickers, &symbol);
                 }
             }  else if is_greater_than_or_equal(&get_index_of(&messageHash, &Value::Str("bidask".to_string())), &Value::Int(0)) {
                 let mut symbol: Value = replace_str(&messageHash, &Value::Str("unsubscribe:bidask:".to_string()), &Value::Str("".to_string()));
                 if is_true(&Value::Bool(in_op(&self.bidsasks, &symbol))) {
-                    remove(&mut self.bidsasks.clone(), &symbol);
+                    remove(&mut self.bidsasks, &symbol);
                 }
             }  else if is_greater_than_or_equal(&get_index_of(&messageHash, &Value::Str("candles".to_string())), &Value::Int(0)) {
                 let mut splitHashes: Value = split(&messageHash, &Value::Str(":".to_string()));
@@ -2564,22 +2591,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     symbol = add(&symbol, &add(&Value::Str(":".to_string()), &self.safe_string(splitHashes.clone(), Value::Int(3), &[])));
                 }
                 if is_true(&(!is_equal(&symbol, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
-                    remove(&mut self.ohlcvs.clone(), &symbol);
+                    remove(&mut self.ohlcvs, &symbol);
                 }
             }  else if is_greater_than_or_equal(&get_index_of(&messageHash, &Value::Str("orderbook".to_string())), &Value::Int(0)) {
                 let mut symbol: Value = replace_str(&messageHash, &Value::Str("unsubscribe:orderbook:".to_string()), &Value::Str("".to_string()));
                 if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
-                    remove(&mut self.orderbooks.clone(), &symbol);
+                    remove(&mut self.orderbooks, &symbol);
                 }
             }  else if is_greater_than_or_equal(&get_index_of(&messageHash, &Value::Str("trades".to_string())), &Value::Int(0)) {
                 let mut symbol: Value = replace_str(&messageHash, &Value::Str("unsubscribe:trades:".to_string()), &Value::Str("".to_string()));
                 if is_true(&Value::Bool(in_op(&self.trades, &symbol))) {
-                    remove(&mut self.trades.clone(), &symbol);
+                    remove(&mut self.trades, &symbol);
                 }
             }  else if is_greater_than_or_equal(&get_index_of(&messageHash, &Value::Str("fundingRate".to_string())), &Value::Int(0)) {
                 let mut symbol: Value = replace_str(&messageHash, &Value::Str("unsubscribe:fundingRate:".to_string()), &Value::Str("".to_string()));
                 if is_true(&Value::Bool(in_op(&self.fundingRates, &symbol))) {
-                    remove(&mut self.fundingRates.clone(), &symbol);
+                    remove(&mut self.fundingRates, &symbol);
                 }
             }
         }
@@ -2629,7 +2656,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         add_element_to_object(&mut self.options, &Value::Str("listenKey".to_string()), listenKey.clone());
         client.resolve(&[listenKey.clone(), messageHash.clone()]);
         let mut listenKeyRefreshRate: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1200000)]);
-        self.delay(listenKeyRefreshRate.clone(), &[Value::Null.clone(), listenKey.clone(), params.clone()]).await;
+        self.delay(listenKeyRefreshRate.clone(), &[Value::Str("keep_alive_listen_key".to_string()).clone(), listenKey.clone(), params.clone()]).await;
         return listenKey;
 
     Value::Null
@@ -2652,7 +2679,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             self.parent.spot_private_put_user_data_stream(&[__ws_arg_7]).await;
             let mut listenKeyRefreshRate: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1200000)]);
-            self.delay(listenKeyRefreshRate.clone(), &[Value::Null.clone(), listenKey.clone(), params.clone()]).await;
+            self.delay(listenKeyRefreshRate.clone(), &[Value::Str("keep_alive_listen_key".to_string()).clone(), listenKey.clone(), params.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut url: Value = add(&add(&get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("spot".to_string())), &Value::Str("?listenKey=".to_string())), &listenKey);
@@ -2672,7 +2699,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     Value::Null
 }
 
-    pub fn handle_subscription_status(&self, mut client: Value, mut message: Value) {
+    pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "id": 0,
@@ -2688,13 +2715,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut channel: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("public.increase.depth.v3.api".to_string(), Value::Null.clone());
-                    m.insert("public.aggre.depth.v3.api.pb".to_string(), Value::Null.clone());
+                    m.insert("public.increase.depth.v3.api".to_string(), Value::Str("handle_order_book_subscription".to_string()).clone());
+                    m.insert("public.aggre.depth.v3.api.pb".to_string(), Value::Str("handle_order_book_subscription".to_string()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods.clone(), channel.clone(), &[]);
             if !is_equal(&method, &Value::Null) {
-                method.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }
 }
@@ -2768,31 +2795,31 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("public.deals.v3.api".to_string(), Value::Null.clone());
-                m.insert("push.deal".to_string(), Value::Null.clone());
-                m.insert("public.kline.v3.api".to_string(), Value::Null.clone());
-                m.insert("push.kline".to_string(), Value::Null.clone());
-                m.insert("public.bookTicker.v3.api".to_string(), Value::Null.clone());
-                m.insert("public.miniTicker.v3.api".to_string(), Value::Null.clone());
-                m.insert("public.miniTickers.v3.api".to_string(), Value::Null.clone());
-                m.insert("push.ticker".to_string(), Value::Null.clone());
-                m.insert("push.tickers".to_string(), Value::Null.clone());
-                m.insert("public.increase.depth.v3.api".to_string(), Value::Null.clone());
-                m.insert("push.depth".to_string(), Value::Null.clone());
-                m.insert("private.orders.v3.api".to_string(), Value::Null.clone());
-                m.insert("push.personal.order".to_string(), Value::Null.clone());
-                m.insert("private.account.v3.api".to_string(), Value::Null.clone());
-                m.insert("push.personal.asset".to_string(), Value::Null.clone());
-                m.insert("private.deals.v3.api".to_string(), Value::Null.clone());
-                m.insert("push.personal.order.deal".to_string(), Value::Null.clone());
-                m.insert("pong".to_string(), Value::Null.clone());
-                m.insert("push.funding.rate".to_string(), Value::Null.clone());
+                m.insert("public.deals.v3.api".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("push.deal".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("public.kline.v3.api".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("push.kline".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("public.bookTicker.v3.api".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("public.miniTicker.v3.api".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("public.miniTickers.v3.api".to_string(), Value::Str("handle_tickers".to_string()).clone());
+                m.insert("push.ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("push.tickers".to_string(), Value::Str("handle_tickers".to_string()).clone());
+                m.insert("public.increase.depth.v3.api".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("push.depth".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("private.orders.v3.api".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("push.personal.order".to_string(), Value::Str("handle_order".to_string()).clone());
+                m.insert("private.account.v3.api".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("push.personal.asset".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("private.deals.v3.api".to_string(), Value::Str("handle_my_trade".to_string()).clone());
+                m.insert("push.personal.order.deal".to_string(), Value::Str("handle_my_trade".to_string()).clone());
+                m.insert("pong".to_string(), Value::Str("handle_pong".to_string()).clone());
+                m.insert("push.funding.rate".to_string(), Value::Str("handle_funding_rate".to_string()).clone());
             m
         });
         if is_true(&(!is_equal(&channel, &Value::Null))) && is_true(&(Value::Bool(in_op(&methods, &channel)))) {
             let mut method: Value = get_value(&methods, &channel);
             let mut method: Value = get_value(&methods, &channel);
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
 }
 

@@ -673,7 +673,7 @@ class RustTranspilerBuilder {
      * followed by `(`) to `Value::Null`, matching the JS semantics where
      * reading `method['key']` yields `undefined`.
      */
-    rewriteMethodRefsAsNull(content: string): string {
+    rewriteMethodRefsAsNull(content: string, ws = false): string {
         const methods = new Set<string>();
         const fnRe = /\bpub\s+(?:async\s+)?fn\s+([a-z_][a-zA-Z0-9_]*)\s*\(/g;
         let fm: RegExpExecArray | null;
@@ -701,12 +701,26 @@ class RustTranspilerBuilder {
         // lookups that would match are the WS bookkeeping ones (`self.
         // liquidations`, `self.markets`, …) and those aren't named the
         // same as any method.
+        // A bare `self.<method>` (used as a value, not called) is a JS method
+        // reference. Rust has no function pointers here, so we lower it to the
+        // method's snake-case NAME string. In a WS handler-dispatch table
+        // (`{ 'depthUpdate': this.handleOrderBook }` → `{"depthUpdate":
+        // "handle_order_book"}`) the later `method.call(client, message)` is
+        // rewritten to `self.dispatch_ws_handler(&method, …)`, which routes the
+        // name to the real handler. Refs passed to `spawn`/`delay` become inert
+        // name strings (those are no-ops anyway).
         return content.replace(
             /([(,\[=]\s*|\bvec!\[\s*)self\.([a-zA-Z_][a-zA-Z0-9_]*)\b(\s*)([^(\s])/g,
-            (full, pre, ident, ws, nextCh) => {
+            (full, pre, ident, wsGap, nextCh) => {
                 if (nextCh === '(') return full;
                 if (methods.has(toSnakeCase(ident))) {
-                    return `${pre}Value::Null${ws}${nextCh}`;
+                    // WS: lower to the method NAME string so `method.call(...)`
+                    // dispatch resolves it. REST/prediction have no `.call`
+                    // dispatch, so keep the historical `Value::Null` — the ref is
+                    // only ever passed to the no-op spawn/delay there, and this
+                    // keeps their transpile output byte-for-byte unchanged.
+                    const lowered = ws ? `Value::Str("${toSnakeCase(ident)}".to_string())` : 'Value::Null';
+                    return `${pre}${lowered}${wsGap}${nextCh}`;
                 }
                 return full;
             });
@@ -2080,7 +2094,7 @@ class RustTranspilerBuilder {
         return out;
     }
 
-    promoteSelfMutMethods(content: string, extraMutSeeds?: Set<string>): string {
+    promoteSelfMutMethods(content: string, extraMutSeeds?: Set<string>, wsSeeds = false): string {
         // Single pass over the source mapping each fn → its body slice.
         // Iterate until a fixed point: any caller of a known-mut method
         // also becomes mut. Without this, `handle_message(&self, …)`
@@ -2151,11 +2165,25 @@ class RustTranspilerBuilder {
         if (extraMutSeeds) {
             for (const name of extraMutSeeds) mutSet.add(name);
         }
-        // Seed: every fn that directly assigns to `self.<field>`.
+        // Seed: every fn that directly assigns to `self.<field>`, mutates a
+        // field through a `&mut self.<field>` reference (add_element_to_object /
+        // set_value / append_to_array — how WS handlers update their orderbook/
+        // ticker/trade caches), or dispatches to a handler via `.call(&[…])`
+        // (the handle_message method-table pattern, rewritten to the `&mut self`
+        // dispatch_ws_handler). Without the latter two, WS handlers stay `&self`
+        // and their cache writes get cloned away, so `watch` resolves an empty book.
         const directMutRe = /\bself\.[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=]/;
+        const refMutRe = /&mut\s+self\.[a-zA-Z_]/;
+        const dispatchRe = /\.call\(&\[/;
         for (const f of fns) {
             const body = content.slice(f.bodyStart, f.bodyEnd);
-            if (directMutRe.test(body)) mutSet.add(f.name);
+            // The `&mut self.field` / `.call(&[` seeds are WS-only: they promote
+            // handle_* cache handlers (and the dispatch entry points) so their
+            // writes persist. Gated to WS so the REST/prediction transpile — and
+            // its long-green output — is byte-for-byte unchanged.
+            const seeded = directMutRe.test(body)
+                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)));
+            if (seeded) mutSet.add(f.name);
         }
         // Fixed-point: any fn that calls a known-mut method joins the set.
         let changed = true;
@@ -5192,6 +5220,60 @@ ${fallthrough}
     }
 
     /**
+     * Emits a synchronous `dispatch_ws_handler(name, args)` for a WS Core: a
+     * match over the Core's void handler methods (`handle_order_book`,
+     * `handle_ticker`, …). The venue's `handle_message` builds a
+     * `{ event: methodNameString }` table and the transpiler rewrites
+     * `method.call(client, message)` into `self.dispatch_ws_handler(&method, …)`
+     * (see the `.call` rewrite + rewriteMethodRefsAsNull). Only *sync* void
+     * methods get an arm — the JS handlers are synchronous — so the dispatch
+     * itself can stay sync (called from the sync `handle_message`). Unknown /
+     * async names are no-ops. Returns '' when the Core has no such handlers.
+     */
+    emitWsHandlerDispatch(coreName: string, content: string): string {
+        const arms: string[] = [];
+        const seen = new Set<string>();
+        // Void methods only: `pub [async] fn NAME(args) {` with no `-> Ret`
+        // before the brace (a `-> Value` method has the arrow in between).
+        const re = /\bpub\s+(async\s+)?fn\s+([a-z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)\s*\{/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(content)) !== null) {
+            const isAsync = !!(m[1] && m[1].trim());
+            const name = m[2];
+            const argList = m[3];
+            if (isAsync) continue; // sync dispatch only
+            if (['new', 'bind', 'init', 'describe', 'dispatch_ws_handler'].includes(name)) continue;
+            if (!/\bself\b/.test(argList)) continue;
+            if (seen.has(name)) continue;
+            const params = argList.split(',').slice(1).map(s => s.trim()).filter(Boolean);
+            const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (/:\s*Value\b/.test(p) ? 'value' : 'other'));
+            if (kinds.some(k => k === 'other')) continue;
+            seen.add(name);
+            const callArgs = kinds.map((k, i) => k === 'slice'
+                ? `&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`
+                : `args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
+            arms.push(`            "${name}" => { self.${name}(${callArgs.join(', ')}); crate::Value::Null },`);
+        }
+        // Emit the dispatcher if there are handler arms OR the (already
+        // rewritten) content calls it — otherwise a `.call` rewrite with no
+        // sync handlers would reference an undefined method.
+        if (arms.length === 0 && !content.includes('dispatch_ws_handler')) return '';
+        arms.sort();
+        return `impl ${coreName} {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+${arms.join('\n')}
+            _ => crate::Value::Null,
+        }
+    }
+}`;
+    }
+
+    /**
      * Emits `impl DerivedExchange for <CoreName>` with one forwarding
      * method per trait signature that this exchange provides as an
      * inherent method. Methods this exchange doesn't override fall back
@@ -5394,7 +5476,7 @@ ${fallthrough}
         // Normalize `jwt(...)` free-function calls to exactly 3 args.
         content = this.normalizeJwtCalls(content);
         // Method names used as values (uncalled) → Value::Null.
-        content = this.rewriteMethodRefsAsNull(content);
+        content = this.rewriteMethodRefsAsNull(content, ws);
         // Wrap bool exprs flowing into Value-arg positions.
         content = this.wrapBoolValueArgs(content);
         // Try/catch handling: prefer `rewriteTryCatchAsync` (preserves
@@ -5513,7 +5595,16 @@ ${fallthrough}
                 while ((mm = mutRe.exec(parentSrc)) !== null) parentMutSeeds.add(mm[1]);
             } catch (_) { /* REST parent not generated yet */ }
         }
-        content = this.promoteSelfMutMethods(content, parentMutSeeds);
+        content = this.promoteSelfMutMethods(content, parentMutSeeds, ws);
+        if (ws) {
+            // Re-strip `&mut self.<field>.clone()` casts: WS handlers just
+            // promoted to `&mut self` above had their field mutations cloned-away
+            // by the earlier `stripMutSelfFieldClones` (which ran while they were
+            // still `&self`). Now that they're `&mut self`, drop the clone so the
+            // write lands on the real field (the orderbook cache persists, so
+            // `watch` resolves a populated book). REST/prediction unaffected.
+            content = this.stripMutSelfFieldClones(content);
+        }
         // Normalize async receivers: in this codebase every `pub async fn`
         // that touches self takes `&mut self` (they call load_markets / watch
         // / fetch, which cache on self). The regex that stamps this (near the
@@ -5592,6 +5683,16 @@ ${fallthrough}
         content = content.replace(
             /(\w+\.call\(&\[)self,\s*/g,
             '$1',
+        );
+
+        // `<methodRef>.call(&[client, message])` — the WS handler-dispatch
+        // pattern. `<methodRef>` is now a name string (see rewriteMethodRefs);
+        // route it to the real sync handler via the generated per-Core
+        // `dispatch_ws_handler`. Runs after the `self,` strip above so the arg
+        // slice is just the handler's own args.
+        content = content.replace(
+            /\b([a-zA-Z_][a-zA-Z0-9_]*)\.call\(&\[/g,
+            'self.dispatch_ws_handler(&$1, &[',
         );
 
         // `client.future(...).await` / `client.send(...).await` —
@@ -5687,6 +5788,10 @@ ${proImport}${predImport}`;
             // parent, which doesn't define it).
             const definedNames = new Set<string>();
             for (const dm of content.matchAll(/\bpub\s+(?:async\s+)?fn\s+([a-z_][a-z0-9_]*)/g)) definedNames.add(dm[1]);
+            // `dispatch_ws_handler` is generated onto THIS Core (emitWsHandlerDispatch),
+            // not present in `content` as a `pub fn`, so the parent-routing below
+            // must not reroute `self.dispatch_ws_handler(...)` to the parent.
+            definedNames.add('dispatch_ws_handler');
             const hops = this.parentChainHops(parentCore);
             content = content.replace(/\bself\.([a-z_][a-z0-9_]*)\s*\(/g, (m, name) => {
                 if (definedNames.has(name) || baseNames.has(name) || name === 'parent') return m;
@@ -5703,6 +5808,13 @@ ${proImport}${predImport}`;
         // `impl ExchangeBase for <Core>` — supplies the static `call_dynamic`.
         const hasHandleMessage = /\b(?:pub\s+)?(?:async\s+)?fn\s+handle_message\s*\(/.test(content);
         const coreDispatchImpl = this.emitCoreDispatchImpl(coreName, methodSigs, parentCore, isPrediction, hasHandleMessage);
+        // Sync WS handler dispatch (used by the rewritten `method.call(...)` in
+        // handle_message). WS-only — REST/prediction have no `.call` dispatch, so
+        // emitting it there would be dead code (and needless churn).
+        const wsHandlerDispatchRaw = ws ? this.emitWsHandlerDispatch(coreName, content) : '';
+        // Prepend the separating newline only when non-empty, so a REST/prediction
+        // Core (empty) leaves the surrounding layout byte-for-byte unchanged.
+        const wsHandlerDispatch = wsHandlerDispatchRaw ? '\n' + wsHandlerDispatchRaw : '';
         // Prediction Cores reach the four PredictionExchange fields directly via
         // their `exchange: PredictionExchange` field (disjoint sub-field borrows),
         // and supply the `PredictionBase` accessors (review #1).
@@ -5883,7 +5995,7 @@ impl ${coreName} {
 
 ${traitImpl}
 
-${coreDispatchImpl}
+${coreDispatchImpl}${wsHandlerDispatch}
 ${predBaseImpl}
 impl std::ops::Deref for ${coreName} {
     type Target = crate::exchange::Exchange;

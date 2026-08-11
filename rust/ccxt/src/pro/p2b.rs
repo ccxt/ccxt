@@ -282,6 +282,21 @@ impl crate::exchange_generated::ExchangeBase for P2bCore {
         })
     }
 }
+impl P2bCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "on_close" => { self.on_close(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "on_error" => { self.on_error(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for P2bCore {
     type Target = crate::exchange::Exchange;
@@ -355,7 +370,7 @@ impl P2bCore {
 }));
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ping".to_string(), Value::Null.clone());
+        m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
     m
 }));
     m
@@ -629,7 +644,7 @@ impl P2bCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         //    {
         //        "method": "kline.update",
@@ -666,7 +681,7 @@ impl P2bCore {
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
         if !is_equal(&symbol, &Value::Null) {
             if is_equal(&stored, &Value::Null) {
@@ -682,7 +697,7 @@ impl P2bCore {
     Value::Null
 }
 
-    pub fn handle_trade(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         //    {
         //        "method": "deals.update",
@@ -711,7 +726,7 @@ impl P2bCore {
         if is_equal(&tradesArray, &Value::Null) {
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             tradesArray = ArrayCache::new(tradesLimit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, tradesArray.clone());
+            add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
         }
         {
                         let mut i: Value = Value::Int(0);
@@ -730,7 +745,7 @@ impl P2bCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         // state
         //
@@ -784,7 +799,7 @@ impl P2bCore {
             ticker = self.parse_ticker(tickerData.clone(), &[market.clone()]);
         }
         let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
-        add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         let mut messageHash: Value = add(&add(&messageHashStart, &Value::Str("::".to_string())), &symbol);
         client.resolve(&[ticker.clone(), messageHash.clone()]);
         return message;
@@ -792,7 +807,7 @@ impl P2bCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "method": "depth.update",
@@ -830,7 +845,7 @@ impl P2bCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             orderbook = get_value(&self.orderbooks, &symbol);
         }
         if is_true(&isFullUpdate) {
@@ -873,7 +888,7 @@ impl P2bCore {
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
         }
@@ -885,16 +900,16 @@ impl P2bCore {
         let mut method: Value = self.safe_string_k(message.clone(), "method", &[]);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("depth.update".to_string(), Value::Null.clone());
-                m.insert("price.update".to_string(), Value::Null.clone());
-                m.insert("kline.update".to_string(), Value::Null.clone());
-                m.insert("state.update".to_string(), Value::Null.clone());
-                m.insert("deals.update".to_string(), Value::Null.clone());
+                m.insert("depth.update".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("price.update".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("kline.update".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("state.update".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("deals.update".to_string(), Value::Str("handle_trade".to_string()).clone());
             m
         });
         let mut endpoint: Value = self.safe_value(methods.clone(), method.clone(), &[]);
         if !is_equal(&endpoint, &Value::Null) {
-            endpoint.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&endpoint, &[client.clone(), message.clone()]);
         }
 }
 
@@ -935,13 +950,13 @@ impl P2bCore {
     Value::Null
 }
 
-    pub fn on_error(&self, mut client: Value, mut error: Value) {
-        { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options.clone(), &Value::Str("tickerSubs".to_string()), __be_tmp); };
+    pub fn on_error(&mut self, mut client: Value, mut error: Value) {
+        { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options, &Value::Str("tickerSubs".to_string()), __be_tmp); };
         self.parent.on_error(&[client.clone(), error.clone()]);
 }
 
-    pub fn on_close(&self, mut client: Value, mut error: Value) {
-        { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options.clone(), &Value::Str("tickerSubs".to_string()), __be_tmp); };
+    pub fn on_close(&mut self, mut client: Value, mut error: Value) {
+        { let __be_tmp = self.create_safe_dictionary(&[]); add_element_to_object(&mut self.options, &Value::Str("tickerSubs".to_string()), __be_tmp); };
         self.parent.on_close(&[client.clone(), error.clone()]);
 }
 }

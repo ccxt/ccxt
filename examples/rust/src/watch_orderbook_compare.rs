@@ -18,12 +18,12 @@
 //
 // Live network is required (it connects to the real exchanges).
 //
-// STATUS: the WS transport + drive loop are ported and this program connects
-// and subscribes. Per-venue book *resolution* additionally depends on each
-// venue's `handle_message` routing to its `handleOrderBook` handler — a
-// transpiler gap (JS method references are lowered to null, so the internal
-// `method.call(...)` dispatch is inert). Until that lands, the table may stay
-// on "waiting for first updates". See the pro/ws notes in the crate.
+// STATUS: the WS runtime is live end-to-end — bybit streams a fully-resolved
+// order book here (real bid/ask). binance/okx additionally need a REST depth
+// snapshot fetched via `spawn` (currently a no-op — the transpiler lowers the
+// coroutine's JS function arg to null), so their books don't complete yet and
+// those rows may stay on "waiting". Venues whose WS stream carries its own
+// snapshot (like bybit) work today.
 
 use std::collections::BTreeMap;
 use std::panic::AssertUnwindSafe;

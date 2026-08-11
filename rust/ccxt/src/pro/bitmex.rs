@@ -288,6 +288,27 @@ impl crate::exchange_generated::ExchangeBase for BitmexCore {
         })
     }
 }
+impl BitmexCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_liquidation" => { self.handle_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for BitmexCore {
     type Target = crate::exchange::Exchange;
@@ -452,7 +473,7 @@ impl BitmexCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) -> Value {
         //
         //     {
         //         "table": "instrument",
@@ -696,12 +717,12 @@ impl BitmexCore {
                 { let __be_tmp = self.parse_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), &[]); add_element_to_object(&mut self.tickers.clone(), &symbol, __be_tmp); };
+}), &[]); add_element_to_object(&mut self.tickers, &symbol, __be_tmp); };
             }
             let mut updatedTicker: Value = self.parse_ticker(update.clone(), &[]);
             let mut fullParsedTicker: Value = self.deep_extend(get_value(&self.tickers, &symbol), &[updatedTicker.clone()]);
             add_element_to_object(&mut tickers, &symbol, fullParsedTicker.clone());
-            add_element_to_object(&mut self.tickers.clone(), &symbol, fullParsedTicker.clone());
+            add_element_to_object(&mut self.tickers, &symbol, fullParsedTicker.clone());
             let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
             client.resolve(&[fullParsedTicker.clone(), messageHash.clone()]);
             client.resolve(&[fullParsedTicker.clone(), Value::Str("alltickers".to_string())]);
@@ -988,7 +1009,7 @@ impl BitmexCore {
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         // initial snapshot
         //
@@ -1066,7 +1087,7 @@ impl BitmexCore {
             if is_equal(&stored, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 stored = ArrayCache::new(limit.clone());
-                add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+                add_element_to_object(&mut self.trades, &symbol, stored.clone());
             }
             {
                                 let mut j: Value = Value::Int(0);
@@ -1964,7 +1985,7 @@ impl BitmexCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "table": "tradeBin1m",
@@ -2053,7 +2074,7 @@ impl BitmexCore {
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
             let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
             if is_equal(&stored, &Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -2091,7 +2112,7 @@ impl BitmexCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         // first snapshot
         //
@@ -2160,17 +2181,17 @@ impl BitmexCore {
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
             if is_equal(&table, &Value::Str("orderBookL2".to_string())) {
-                { let __be_tmp = self.indexed_order_book(&[]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+                { let __be_tmp = self.indexed_order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             }  else if is_equal(&table, &Value::Str("orderBookL2_25".to_string())) {
                 { let __be_tmp = self.indexed_order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Int(25)]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), Value::Int(25)]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             }  else if is_equal(&table, &Value::Str("orderBook10".to_string())) {
                 { let __be_tmp = self.indexed_order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::Int(10)]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+}), Value::Int(10)]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
@@ -2299,7 +2320,7 @@ impl BitmexCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "info": "Welcome to the BitMEX Realtime API.",
@@ -2338,20 +2359,20 @@ impl BitmexCore {
             let mut table: Value = self.safe_string_k(message.clone(), "table", &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("orderBookL2".to_string(), Value::Null.clone());
-                    m.insert("orderBookL2_25".to_string(), Value::Null.clone());
-                    m.insert("orderBook10".to_string(), Value::Null.clone());
-                    m.insert("instrument".to_string(), Value::Null.clone());
-                    m.insert("trade".to_string(), Value::Null.clone());
-                    m.insert("tradeBin1m".to_string(), Value::Null.clone());
-                    m.insert("tradeBin5m".to_string(), Value::Null.clone());
-                    m.insert("tradeBin1h".to_string(), Value::Null.clone());
-                    m.insert("tradeBin1d".to_string(), Value::Null.clone());
-                    m.insert("order".to_string(), Value::Null.clone());
-                    m.insert("execution".to_string(), Value::Null.clone());
-                    m.insert("margin".to_string(), Value::Null.clone());
-                    m.insert("liquidation".to_string(), Value::Null.clone());
-                    m.insert("position".to_string(), Value::Null.clone());
+                    m.insert("orderBookL2".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                    m.insert("orderBookL2_25".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                    m.insert("orderBook10".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                    m.insert("instrument".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                    m.insert("trade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                    m.insert("tradeBin1m".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                    m.insert("tradeBin5m".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                    m.insert("tradeBin1h".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                    m.insert("tradeBin1d".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                    m.insert("order".to_string(), Value::Str("handle_orders".to_string()).clone());
+                    m.insert("execution".to_string(), Value::Str("handle_my_trades".to_string()).clone());
+                    m.insert("margin".to_string(), Value::Str("handle_balance".to_string()).clone());
+                    m.insert("liquidation".to_string(), Value::Str("handle_liquidation".to_string()).clone());
+                    m.insert("position".to_string(), Value::Str("handle_positions".to_string()).clone());
                 m
             });
             let mut method: Value = self.safe_value(methods.clone(), table.clone(), &[]);
@@ -2365,7 +2386,7 @@ impl BitmexCore {
                     self.handle_authentication_message(client.clone(), message.clone());
                 }
             }  else {
-                method.call(&[client.clone(), message.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }
 }

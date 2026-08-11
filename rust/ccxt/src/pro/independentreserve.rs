@@ -275,6 +275,22 @@ impl crate::exchange_generated::ExchangeBase for IndependentreserveCore {
         })
     }
 }
+impl IndependentreserveCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for IndependentreserveCore {
     type Target = crate::exchange::Exchange;
@@ -365,7 +381,7 @@ impl IndependentreserveCore {
     Value::Null
 }
 
-    pub fn handle_trades(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "Channel": "ticker-btc-usd",
@@ -395,11 +411,11 @@ impl IndependentreserveCore {
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+            add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut trade: Value = self.parse_ws_trade(data.clone(), &[]);
         stored.append(trade.clone());
-        add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+        add_element_to_object(&mut self.trades, &symbol, stored.clone());
         client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
 }
 
@@ -477,7 +493,7 @@ impl IndependentreserveCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //    {
         //        "Channel": "orderbook/1/eth/aud",
@@ -528,7 +544,7 @@ impl IndependentreserveCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.orderbooks.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if is_equal(&event, &Value::Str("OrderBookSnapshot".to_string())) {
@@ -573,7 +589,7 @@ impl IndependentreserveCore {
             if !is_equal(&calculatedChecksum, &responseChecksum) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(add(&add(&self.id, &Value::Str(" ".to_string())), &self.orderbook_checksum_message(symbol.clone()))));
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
-                remove(&mut self.orderbooks.clone(), &symbol);
+                remove(&mut self.orderbooks, &symbol);
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
                 return;
             }
@@ -621,20 +637,20 @@ impl IndependentreserveCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut event: Value = self.safe_string_k(message.clone(), "Event", &[]);
         let mut handlers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("Subscriptions".to_string(), Value::Null.clone());
-                m.insert("Heartbeat".to_string(), Value::Null.clone());
-                m.insert("Trade".to_string(), Value::Null.clone());
-                m.insert("OrderBookSnapshot".to_string(), Value::Null.clone());
-                m.insert("OrderBookChange".to_string(), Value::Null.clone());
+                m.insert("Subscriptions".to_string(), Value::Str("handle_subscriptions".to_string()).clone());
+                m.insert("Heartbeat".to_string(), Value::Str("handle_heartbeat".to_string()).clone());
+                m.insert("Trade".to_string(), Value::Str("handle_trades".to_string()).clone());
+                m.insert("OrderBookSnapshot".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("OrderBookChange".to_string(), Value::Str("handle_order_book".to_string()).clone());
             m
         });
         let mut handler: Value = ternary(is_true(&(is_equal(&event, &Value::Null))), Value::Null, self.safe_value(handlers.clone(), event.clone(), &[]));
         if !is_equal(&handler, &Value::Null) {
-            handler.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
             return;
         }
         panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" received an unsupported message: ".to_string())), &self.json(message.clone()))));

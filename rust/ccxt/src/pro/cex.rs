@@ -297,6 +297,36 @@ impl crate::exchange_generated::ExchangeBase for CexCore {
         })
     }
 }
+impl CexCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_init_ohlcv" => { self.handle_init_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trades" => { self.handle_my_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv1m" => { self.handle_ohlcv1m(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_snapshot" => { self.handle_order_book_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book_update" => { self.handle_order_book_update(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_update" => { self.handle_order_update(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders_snapshot" => { self.handle_orders_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trade" => { self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades_inner" => { self.handle_trades_inner(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trades_snapshot" => { self.handle_trades_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_transaction" => { self.handle_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "resolve_data" => { self.resolve_data(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for CexCore {
     type Target = crate::exchange::Exchange;
@@ -370,10 +400,10 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn request_id(&self) -> Value {
+    pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        add_element_to_object(&mut self.options.clone(), &Value::Str("requestId".to_string()), requestId.clone());
+        add_element_to_object(&mut self.options, &Value::Str("requestId".to_string()), requestId.clone());
         self.unlock_id(&[]);
         return to_string_val(&requestId);
 
@@ -534,7 +564,7 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn handle_trades_snapshot(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades_snapshot(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "e": "history",
@@ -587,7 +617,7 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn handle_trade(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "e": "history-update",
@@ -599,7 +629,7 @@ impl CexCore {
         self.handle_trades_inner(client.clone(), message.clone());
 }
 
-    pub fn handle_trades_inner(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trades_inner(&mut self, mut client: Value, mut message: Value) {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut symbol: Value = self.safe_string(get_value(&self.options, &Value::Str("watchTrades".to_string())), Value::Str("symbol".to_string()), &[]);
         if is_equal(&symbol, &Value::Null) {
@@ -607,7 +637,7 @@ impl CexCore {
         }
         if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            add_element_to_object(&mut self.trades.clone(), &symbol, ArrayCache::new(limit.clone()));
+            add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
         }
         let mut stored: Value = get_value(&self.trades, &symbol);
         let mut market: Value = self.market(symbol.clone());
@@ -624,7 +654,7 @@ impl CexCore {
         }
         }
         let mut messageHash: Value = Value::Str("trades".to_string());
-        add_element_to_object(&mut self.trades.clone(), &symbol, stored.clone());
+        add_element_to_object(&mut self.trades, &symbol, stored.clone());
         client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
 }
 
@@ -753,7 +783,7 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "e": "tick",
@@ -775,7 +805,7 @@ impl CexCore {
         if is_equal(&symbol, &Value::Null) {
             return;
         }
-        add_element_to_object(&mut self.tickers.clone(), &symbol, ticker.clone());
+        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
         client.resolve(&[ticker.clone(), messageHash.clone()]);
         client.resolve(&[ticker.clone(), Value::Str("tickers".to_string())]);
@@ -1477,7 +1507,7 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn handle_order_book_snapshot(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book_snapshot(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "e": "order-book-subscribe",
@@ -1521,7 +1551,7 @@ impl CexCore {
         m.insert("incrementalId".to_string(), incrementalId.clone());
     m
 }));
-        add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
@@ -1636,7 +1666,7 @@ impl CexCore {
     Value::Null
 }
 
-    pub fn handle_init_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_init_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "e": "init-ohlcv-data",
@@ -1678,7 +1708,7 @@ impl CexCore {
         }
         }
         if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
-            add_element_to_object(&mut self.ohlcvs.clone(), &symbol, Value::Map({
+            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -2104,7 +2134,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut ok: Value = self.safe_string_k(message.clone(), "ok", &[]);
         if is_equal(&ok, &Value::Str("error".to_string())) {
             self.handle_error_message(client.clone(), message.clone());
@@ -2113,32 +2143,32 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut event: Value = self.safe_string_k(message.clone(), "e", &[]);
         let mut handlers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("auth".to_string(), Value::Null.clone());
-                m.insert("connected".to_string(), Value::Null.clone());
-                m.insert("tick".to_string(), Value::Null.clone());
-                m.insert("ticker".to_string(), Value::Null.clone());
-                m.insert("init-ohlcv-data".to_string(), Value::Null.clone());
-                m.insert("ohlcv24".to_string(), Value::Null.clone());
-                m.insert("ohlcv1m".to_string(), Value::Null.clone());
-                m.insert("ohlcv".to_string(), Value::Null.clone());
-                m.insert("get-balance".to_string(), Value::Null.clone());
-                m.insert("order-book-subscribe".to_string(), Value::Null.clone());
-                m.insert("md_update".to_string(), Value::Null.clone());
-                m.insert("open-orders".to_string(), Value::Null.clone());
-                m.insert("order".to_string(), Value::Null.clone());
-                m.insert("history-update".to_string(), Value::Null.clone());
-                m.insert("history".to_string(), Value::Null.clone());
-                m.insert("tx".to_string(), Value::Null.clone());
-                m.insert("place-order".to_string(), Value::Null.clone());
-                m.insert("cancel-replace-order".to_string(), Value::Null.clone());
-                m.insert("cancel-order".to_string(), Value::Null.clone());
-                m.insert("mass-cancel-place-orders".to_string(), Value::Null.clone());
-                m.insert("get-order".to_string(), Value::Null.clone());
+                m.insert("auth".to_string(), Value::Str("handle_authentication_message".to_string()).clone());
+                m.insert("connected".to_string(), Value::Str("handle_connected".to_string()).clone());
+                m.insert("tick".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("ticker".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("init-ohlcv-data".to_string(), Value::Str("handle_init_ohlcv".to_string()).clone());
+                m.insert("ohlcv24".to_string(), Value::Str("handle_ohlcv24".to_string()).clone());
+                m.insert("ohlcv1m".to_string(), Value::Str("handle_ohlcv1m".to_string()).clone());
+                m.insert("ohlcv".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("get-balance".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("order-book-subscribe".to_string(), Value::Str("handle_order_book_snapshot".to_string()).clone());
+                m.insert("md_update".to_string(), Value::Str("handle_order_book_update".to_string()).clone());
+                m.insert("open-orders".to_string(), Value::Str("resolve_data".to_string()).clone());
+                m.insert("order".to_string(), Value::Str("handle_order_update".to_string()).clone());
+                m.insert("history-update".to_string(), Value::Str("handle_trade".to_string()).clone());
+                m.insert("history".to_string(), Value::Str("handle_trades_snapshot".to_string()).clone());
+                m.insert("tx".to_string(), Value::Str("handle_transaction".to_string()).clone());
+                m.insert("place-order".to_string(), Value::Str("resolve_data".to_string()).clone());
+                m.insert("cancel-replace-order".to_string(), Value::Str("resolve_data".to_string()).clone());
+                m.insert("cancel-order".to_string(), Value::Str("resolve_data".to_string()).clone());
+                m.insert("mass-cancel-place-orders".to_string(), Value::Str("resolve_data".to_string()).clone());
+                m.insert("get-order".to_string(), Value::Str("resolve_data".to_string()).clone());
             m
         });
         let mut handler: Value = self.safe_value(handlers.clone(), event.clone(), &[]);
         if !is_equal(&handler, &Value::Null) {
-            handler.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
         }
 }
 

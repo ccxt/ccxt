@@ -288,6 +288,28 @@ impl crate::exchange_generated::ExchangeBase for OnetradingCore {
         })
     }
 }
+impl OnetradingCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "handle_account_update" => { self.handle_account_update(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance_snapshot" => { self.handle_balance_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trading" => { self.handle_trading(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "update_balance" => { self.update_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for OnetradingCore {
     type Target = crate::exchange::Exchange;
@@ -549,7 +571,7 @@ impl OnetradingCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "ticker_updates": [{
@@ -576,7 +598,7 @@ impl OnetradingCore {
             let mut ticker: Value = get_value(&tickers, &i);
             let mut marketId: Value = self.safe_string_k(ticker.clone(), "instrument", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
-            { let __be_tmp = self.parse_ws_ticker(ticker.clone(), &[]); add_element_to_object(&mut self.tickers.clone(), &symbol, __be_tmp); };
+            { let __be_tmp = self.parse_ws_ticker(ticker.clone(), &[]); add_element_to_object(&mut self.tickers, &symbol, __be_tmp); };
             let mut timestamp: Value = self.parse8601(datetime.clone());
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.tickers) }, &symbol), &Value::Str("timestamp".to_string()), timestamp.clone());
             { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.tickers) }, &symbol), &Value::Str("datetime".to_string()), __be_tmp); };
@@ -730,7 +752,7 @@ impl OnetradingCore {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         //
         //  snapshot
         //     {
@@ -784,7 +806,7 @@ impl OnetradingCore {
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
-        add_element_to_object(&mut self.orderbooks.clone(), &symbol, orderbook.clone());
+        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(&[orderbook.clone(), channel.clone()]);
 }
 
@@ -1480,7 +1502,7 @@ impl OnetradingCore {
         add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(balance.clone(), "new_available", &[]));
         add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "new_locked", &[]));
         if !is_equal(&code, &Value::Null) {
-            add_element_to_object(&mut self.balance.clone(), &code, account.clone());
+            add_element_to_object(&mut self.balance, &code, account.clone());
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
 }
@@ -1603,7 +1625,7 @@ impl OnetradingCore {
     Value::Null
 }
 
-    pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         //
         //  snapshot
         //     {
@@ -1652,7 +1674,7 @@ impl OnetradingCore {
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs.clone(), &symbol, __be_tmp); };
+})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         let mut stored: Value = self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1706,7 +1728,7 @@ impl OnetradingCore {
     Value::Null
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut error: Value = self.safe_value_k(message.clone(), "error", &[]);
         if !is_equal(&error, &Value::Null) {
             self.handle_error_message(client.clone(), message.clone());
@@ -1715,35 +1737,35 @@ impl OnetradingCore {
         let mut type_var: Value = self.safe_value_k(message.clone(), "type", &[]);
         let mut handlers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("ORDER_BOOK_UPDATE".to_string(), Value::Null.clone());
-                m.insert("ORDER_BOOK_SNAPSHOT".to_string(), Value::Null.clone());
-                m.insert("ACTIVE_ORDERS_SNAPSHOT".to_string(), Value::Null.clone());
-                m.insert("INACTIVE_ORDERS_SNAPSHOT".to_string(), Value::Null.clone());
-                m.insert("ACCOUNT_UPDATE".to_string(), Value::Null.clone());
-                m.insert("BALANCES_SNAPSHOT".to_string(), Value::Null.clone());
-                m.insert("SUBSCRIPTIONS".to_string(), Value::Null.clone());
-                m.insert("SUBSCRIPTION_UPDATED".to_string(), Value::Null.clone());
-                m.insert("PRICE_TICK".to_string(), Value::Null.clone());
-                m.insert("PRICE_TICK_HISTORY".to_string(), Value::Null.clone());
-                m.insert("HEARTBEAT".to_string(), Value::Null.clone());
-                m.insert("MARKET_TICKER_UPDATES".to_string(), Value::Null.clone());
-                m.insert("PRICE_POINT_UPDATES".to_string(), Value::Null.clone());
-                m.insert("CANDLESTICK_SNAPSHOT".to_string(), Value::Null.clone());
-                m.insert("CANDLESTICK".to_string(), Value::Null.clone());
-                m.insert("AUTHENTICATED".to_string(), Value::Null.clone());
-                m.insert("FILL".to_string(), Value::Null.clone());
-                m.insert("DONE".to_string(), Value::Null.clone());
-                m.insert("BOOKED".to_string(), Value::Null.clone());
-                m.insert("UPDATE".to_string(), Value::Null.clone());
-                m.insert("TRACKED".to_string(), Value::Null.clone());
-                m.insert("TRIGGERED".to_string(), Value::Null.clone());
-                m.insert("STOP_TRACKED".to_string(), Value::Null.clone());
-                m.insert("STOP_TRIGGERED".to_string(), Value::Null.clone());
+                m.insert("ORDER_BOOK_UPDATE".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("ORDER_BOOK_SNAPSHOT".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("ACTIVE_ORDERS_SNAPSHOT".to_string(), Value::Str("handle_orders".to_string()).clone());
+                m.insert("INACTIVE_ORDERS_SNAPSHOT".to_string(), Value::Str("handle_orders".to_string()).clone());
+                m.insert("ACCOUNT_UPDATE".to_string(), Value::Str("handle_account_update".to_string()).clone());
+                m.insert("BALANCES_SNAPSHOT".to_string(), Value::Str("handle_balance_snapshot".to_string()).clone());
+                m.insert("SUBSCRIPTIONS".to_string(), Value::Str("handle_subscriptions".to_string()).clone());
+                m.insert("SUBSCRIPTION_UPDATED".to_string(), Value::Str("handle_subscriptions".to_string()).clone());
+                m.insert("PRICE_TICK".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("PRICE_TICK_HISTORY".to_string(), Value::Str("handle_subscriptions".to_string()).clone());
+                m.insert("HEARTBEAT".to_string(), Value::Str("handle_heartbeat".to_string()).clone());
+                m.insert("MARKET_TICKER_UPDATES".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("PRICE_POINT_UPDATES".to_string(), Value::Str("handle_price_point_updates".to_string()).clone());
+                m.insert("CANDLESTICK_SNAPSHOT".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("CANDLESTICK".to_string(), Value::Str("handle_ohlcv".to_string()).clone());
+                m.insert("AUTHENTICATED".to_string(), Value::Str("handle_authentication_message".to_string()).clone());
+                m.insert("FILL".to_string(), Value::Str("handle_trading".to_string()).clone());
+                m.insert("DONE".to_string(), Value::Str("handle_trading".to_string()).clone());
+                m.insert("BOOKED".to_string(), Value::Str("handle_trading".to_string()).clone());
+                m.insert("UPDATE".to_string(), Value::Str("handle_trading".to_string()).clone());
+                m.insert("TRACKED".to_string(), Value::Str("handle_trading".to_string()).clone());
+                m.insert("TRIGGERED".to_string(), Value::Str("handle_trading".to_string()).clone());
+                m.insert("STOP_TRACKED".to_string(), Value::Str("handle_trading".to_string()).clone());
+                m.insert("STOP_TRIGGERED".to_string(), Value::Str("handle_trading".to_string()).clone());
             m
         });
         let mut handler: Value = self.safe_value(handlers.clone(), type_var.clone(), &[]);
         if !is_equal(&handler, &Value::Null) {
-            handler.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
         }
 }
 

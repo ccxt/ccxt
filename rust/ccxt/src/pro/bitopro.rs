@@ -276,6 +276,24 @@ impl crate::exchange_generated::ExchangeBase for BitoproCore {
         })
     }
 }
+impl BitoproCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "authenticate" => { self.authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_my_trade" => { self.handle_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_trade" => { self.handle_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for BitoproCore {
     type Target = crate::exchange::Exchange;
@@ -464,7 +482,7 @@ impl BitoproCore {
     Value::Null
 }
 
-    pub fn handle_trade(&self, mut client: Value, mut message: Value) {
+    pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "event": "TRADE",
@@ -503,7 +521,7 @@ impl BitoproCore {
             tradesCache.append(get_value(&trades, &i));
         }
         }
-        add_element_to_object(&mut self.trades.clone(), &symbol, tradesCache.clone());
+        add_element_to_object(&mut self.trades, &symbol, tradesCache.clone());
         client.resolve(&[tradesCache.clone(), messageHash.clone()]);
 }
 
@@ -698,7 +716,7 @@ impl BitoproCore {
     Value::Null
 }
 
-    pub fn handle_ticker(&self, mut client: Value, mut message: Value) {
+    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
         //
         //     {
         //         "event": "TICKER",
@@ -731,7 +749,7 @@ impl BitoproCore {
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         add_element_to_object(&mut result, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut result, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone())); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
-        add_element_to_object(&mut self.tickers.clone(), &symbol, result.clone());
+        add_element_to_object(&mut self.tickers, &symbol, result.clone());
         client.resolve(&[result.clone(), messageHash.clone()]);
 }
 
@@ -856,20 +874,20 @@ impl BitoproCore {
         client.resolve(&[self.balance.clone(), event.clone()]);
 }
 
-    pub fn handle_message(&self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("TRADE".to_string(), Value::Null.clone());
-                m.insert("TICKER".to_string(), Value::Null.clone());
-                m.insert("ORDER_BOOK".to_string(), Value::Null.clone());
-                m.insert("ACCOUNT_BALANCE".to_string(), Value::Null.clone());
-                m.insert("USER_TRADE".to_string(), Value::Null.clone());
+                m.insert("TRADE".to_string(), Value::Str("handle_trade".to_string()).clone());
+                m.insert("TICKER".to_string(), Value::Str("handle_ticker".to_string()).clone());
+                m.insert("ORDER_BOOK".to_string(), Value::Str("handle_order_book".to_string()).clone());
+                m.insert("ACCOUNT_BALANCE".to_string(), Value::Str("handle_balance".to_string()).clone());
+                m.insert("USER_TRADE".to_string(), Value::Str("handle_my_trade".to_string()).clone());
             m
         });
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         let mut method: Value = self.safe_value(methods.clone(), event.clone(), &[]);
         if !is_equal(&method, &Value::Null) {
-            method.call(&[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
 }
 }
