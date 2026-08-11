@@ -402,6 +402,23 @@
                                 "24h_low": 44.93,
                                 "24h_volume": 551.11,
                                 "24h_amount": 24880.5
+                            },
+                            {
+                                "symbol": "PERP_SEI_USDC",
+                                "index_price": 0.04117,
+                                "mark_price": 0.04116,
+                                "sum_unitary_funding": 0.060659,
+                                "est_funding_rate": -0.00010573,
+                                "last_funding_rate": -9.683e-05,
+                                "next_funding_time": 1786032000000,
+                                "open_interest": 219976.0,
+                                "is_pretge": true,
+                                "24h_open": 0.04156,
+                                "24h_close": 0.04091,
+                                "24h_high": 0.04156,
+                                "24h_low": 0.04091,
+                                "24h_volume": 1500,
+                                "24h_amount": 61.375
                             }
                         ]
                     }
