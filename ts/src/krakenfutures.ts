@@ -2355,7 +2355,10 @@ export default class krakenfutures extends Exchange {
             }
         }
         if (limit !== undefined) {
-            request['count'] = limit;
+            // each trade execution emits two rows and the position-size legs are
+            // filtered out below, so ask for twice the limit to compensate,
+            // parseLedger re-applies the limit on the filtered entries
+            request['count'] = limit * 2;
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
