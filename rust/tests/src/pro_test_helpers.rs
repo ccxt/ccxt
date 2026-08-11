@@ -13,7 +13,7 @@ use ccxt::Value;
 /// the order-book test.
 const IGNORED_KEYS: &[&str] = &[
     // book bookkeeping
-    "__bookKind", "__sideKind",
+    "__bookKind", "__sideKind", "__book_id", "__side_id", "_depth", "_isBid",
     // cache bookkeeping
     "__cacheKind", "maxSize",
     "_hashmap", "_data", "_entries",
@@ -41,6 +41,14 @@ fn is_ignored(k: &str) -> bool { IGNORED_KEYS.iter().any(|x| *x == k) }
 /// for order-book side markers (`__sideKind` → `_entries`) and books
 /// (the visible `bids`/`asks` fields, plus timestamp/datetime/nonce).
 pub fn ws_deep_equal(a: &Value, b: &Value) -> bool {
+    // Expand shared book markers to a plain Dict carrying their meta fields
+    // (nonce/timestamp/…) which live in the book store, not the Dict.
+    if let Some(expanded) = ccxt::value::book_fields_as_value(a) {
+        return ws_deep_equal(&expanded, b);
+    }
+    if let Some(expanded) = ccxt::value::book_fields_as_value(b) {
+        return ws_deep_equal(a, &expanded);
+    }
     // Unwrap cache markers: cache equals plain array when its `_data` does.
     if let Some(unwrapped) = unwrap_marker_to_array(a) {
         return ws_deep_equal(&unwrapped, b);

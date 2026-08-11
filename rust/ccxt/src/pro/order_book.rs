@@ -76,15 +76,20 @@ fn build_book(kind: &str, snapshot: Value, depth: Value) -> Value {
     };
     let symbol = crate::get_value(&snapshot, &Value::Str("symbol".to_string()));
 
+    // Scalar meta lives in the shared book store (keyed by `__book_id`) so WS
+    // handlers that mutate a cloned book — okx's seqId nonce — propagate.
+    let book_id = crate::value::alloc_book_id();
+    crate::value::book_meta_set(book_id, "timestamp", timestamp.map(Value::Int).unwrap_or(Value::Null));
+    crate::value::book_meta_set(book_id, "datetime",  datetime.map(Value::Str).unwrap_or(Value::Null));
+    crate::value::book_meta_set(book_id, "nonce",     nonce);
+    crate::value::book_meta_set(book_id, "symbol",    symbol);
+
     let mut m = IndexMap::new();
     m.insert("__bookKind".to_string(), Value::Str(kind.to_string()));
+    m.insert("__book_id".to_string(),  Value::Int(book_id));
     m.insert("_depth".to_string(),     Value::Int(max_depth));
     m.insert("bids".to_string(),       bids);
     m.insert("asks".to_string(),       asks);
-    m.insert("timestamp".to_string(),  timestamp.map(Value::Int).unwrap_or(Value::Null));
-    m.insert("datetime".to_string(),   datetime.map(Value::Str).unwrap_or(Value::Null));
-    m.insert("nonce".to_string(),      nonce);
-    m.insert("symbol".to_string(),     symbol);
     Value::Map(m)
 }
 

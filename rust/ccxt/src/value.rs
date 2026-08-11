@@ -413,6 +413,11 @@ impl Value {
                     obj.insert("_entries".to_string(),
                         serde_json::Value::Array(entries.iter().map(Value::to_json).collect()));
                 }
+                // A shared book keeps scalar meta (nonce/timestamp/…) in the
+                // book store — surface it for serialization.
+                if let Some(Value::Int(id)) = m.get("__book_id") {
+                    for (k, v) in book_meta_snapshot(*id) { obj.insert(k, v.to_json()); }
+                }
                 serde_json::Value::Object(obj)
             }
         }
@@ -609,6 +614,11 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
     }
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => {
+            // A shared order book keeps its scalar meta (nonce/timestamp/…) in
+            // the book store so mutations propagate across clones.
+            if is_book_meta_key(k) {
+                if let Some(id) = book_id_of(m) { return book_meta_get(id, k); }
+            }
             // Snapshot value wins WHEN PRESENT AND NON-NULL. Tests that
             // mutate `exchange.options` (e.g. kucoin broker-id test) need
             // the snapshot view to take precedence; but `to_value`
@@ -655,7 +665,10 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
 /// Set a key/index in a map or array value.
 pub fn set_value(obj: &mut Value, key: &Value, val: Value) {
     match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => { Arc::make_mut(m).insert(k.clone(), val); }
+        (Value::Dict(m), Value::Str(k)) => {
+            if try_book_meta_write(m, k, &val) { return; }
+            Arc::make_mut(m).insert(k.clone(), val);
+        }
         (Value::Arr(a), Value::Int(i)) => {
             let idx = *i as usize;
             let a = Arc::make_mut(a);
@@ -1091,6 +1104,76 @@ fn book_kind(v: &Value) -> Option<String> {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// Shared book scalar-metadata store.
+//
+// Like side entries, an OrderBook's scalar fields must be shared across clones:
+// WS handlers mutate a book pulled out of `self.orderbooks` (a COW clone) and
+// expect the write visible on the next message — okx's per-message seqId nonce
+// check reads the book's `nonce`, written inside `handle_order_book_message` on
+// a clone. These fields live in a store keyed by a stable `__book_id`; bids/asks
+// stay in the Dict (their entries are already shared via `__side_id`).
+static BOOK_META: once_cell::sync::Lazy<std::sync::Mutex<std::collections::HashMap<i64, HashMap<String, Value>>>> =
+    once_cell::sync::Lazy::new(|| std::sync::Mutex::new(std::collections::HashMap::new()));
+static NEXT_BOOK_ID: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1);
+
+/// Scalar book fields that live in the shared meta store (not the Dict).
+fn is_book_meta_key(k: &str) -> bool {
+    matches!(k, "timestamp" | "datetime" | "nonce" | "symbol" | "checksum")
+}
+
+pub(crate) fn alloc_book_id() -> i64 {
+    let id = NEXT_BOOK_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    BOOK_META.lock().unwrap().insert(id, HashMap::new());
+    id
+}
+
+fn book_id_of(m: &HashMap<String, Value>) -> Option<i64> {
+    match m.get("__book_id") { Some(Value::Int(n)) => Some(*n), _ => None }
+}
+
+fn book_meta_get(id: i64, k: &str) -> Value {
+    BOOK_META.lock().unwrap().get(&id).and_then(|m| m.get(k).cloned()).unwrap_or(Value::Null)
+}
+
+pub(crate) fn book_meta_set(id: i64, k: &str, v: Value) {
+    let mut g = BOOK_META.lock().unwrap();
+    g.entry(id).or_default().insert(k.to_string(), v);
+}
+
+fn book_meta_snapshot(id: i64) -> Vec<(String, Value)> {
+    BOOK_META.lock().unwrap().get(&id)
+        .map(|m| m.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+        .unwrap_or_default()
+}
+
+/// If `m` is a shared book and `k` a meta key, write `v` to the book store and
+/// return true (the caller should skip its own Dict insert); else false.
+pub(crate) fn try_book_meta_write(m: &HashMap<String, Value>, k: &str, v: &Value) -> bool {
+    if is_book_meta_key(k) {
+        if let Some(id) = book_id_of(m) { book_meta_set(id, k, v.clone()); return true; }
+    }
+    false
+}
+
+/// Expand a shared book Dict into a plain Dict carrying its meta fields (for
+/// serialization / equality). Strips `__book_id` so the result is inert.
+pub fn book_fields_as_value(v: &Value) -> Option<Value> {
+    match v {
+        Value::Dict(d) if d.contains_key("__book_id") => {
+            let mut out: HashMap<String, Value> = (**d).clone();
+            out.shift_remove("__book_id");
+            if let Some(Value::Int(id)) = d.get("__book_id") {
+                if let Some(meta) = BOOK_META.lock().unwrap().get(id) {
+                    for (k, val) in meta.iter() { out.insert(k.clone(), val.clone()); }
+                }
+            }
+            Some(Value::Dict(Arc::new(out)))
+        }
+        _ => None,
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // Shared side backing store.
 //
 // In JS an `OrderBookSide` is a mutable object; the WS handlers routinely do
@@ -1452,8 +1535,8 @@ pub(crate) fn book_limit(book: &mut Value) {
 pub(crate) fn book_reset(book: &mut Value, snapshot: Value) {
     if book_kind(book).is_none() { return; }
     book_reseed_sides(book, &snapshot);
-    if let Value::Dict(arc) = book {
-        let m = Arc::make_mut(arc);
+    let id = match book { Value::Dict(d) => book_id_of(d), _ => None };
+    if let Some(id) = id {
         let ts = match crate::get_value(&snapshot, &Value::Str("timestamp".to_string())) {
             Value::Int(n)   => Some(n),
             Value::Float(f) => Some(f as i64),
@@ -1461,10 +1544,10 @@ pub(crate) fn book_reset(book: &mut Value, snapshot: Value) {
         };
         let dt = ts.and_then(|n| chrono::DateTime::<chrono::Utc>::from_timestamp_millis(n)
             .map(|t| t.to_rfc3339_opts(chrono::SecondsFormat::Millis, true)));
-        m.insert("timestamp".to_string(), ts.map(Value::Int).unwrap_or(Value::Null));
-        m.insert("datetime".to_string(),  dt.map(Value::Str).unwrap_or(Value::Null));
-        m.insert("nonce".to_string(),     crate::get_value(&snapshot, &Value::Str("nonce".to_string())));
-        m.insert("symbol".to_string(),    crate::get_value(&snapshot, &Value::Str("symbol".to_string())));
+        book_meta_set(id, "timestamp", ts.map(Value::Int).unwrap_or(Value::Null));
+        book_meta_set(id, "datetime",  dt.map(Value::Str).unwrap_or(Value::Null));
+        book_meta_set(id, "nonce",     crate::get_value(&snapshot, &Value::Str("nonce".to_string())));
+        book_meta_set(id, "symbol",    crate::get_value(&snapshot, &Value::Str("symbol".to_string())));
     }
 }
 
@@ -1474,9 +1557,12 @@ pub(crate) fn book_update(book: &mut Value, snapshot: Value) {
     let new_nonce = match crate::get_value(&snapshot, &Value::Str("nonce".to_string())) {
         Value::Int(n) => Some(n), _ => None,
     };
-    let cur_nonce = match book { Value::Dict(d) => match d.get("nonce") {
-        Some(Value::Int(n)) => Some(*n), _ => None,
-    }, _ => None };
+    let cur_nonce = match book {
+        Value::Dict(d) => match book_id_of(d).map(|id| book_meta_get(id, "nonce")) {
+            Some(Value::Int(n)) => Some(n), _ => None,
+        },
+        _ => None,
+    };
     if let (Some(n), Some(cur)) = (new_nonce, cur_nonce) {
         if n <= cur { return; }
     }

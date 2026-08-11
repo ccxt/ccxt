@@ -395,7 +395,10 @@ pub fn get_value_mut<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
 
 pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
     match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => { Arc::make_mut(m).insert(k.clone(), val); }
+        (Value::Dict(m), Value::Str(k)) => {
+            if crate::value::try_book_meta_write(m, k, &val) { return; }
+            Arc::make_mut(m).insert(k.clone(), val);
+        }
         (Value::Dict(m), other) => { Arc::make_mut(m).insert(stringify_simple(other), val); }
         (Value::Arr(a), Value::Int(i)) => {
             let idx = *i as usize;
