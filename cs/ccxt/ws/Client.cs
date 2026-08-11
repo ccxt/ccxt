@@ -5,6 +5,7 @@ namespace ccxt;
 using System;
 using System.Net.WebSockets;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO.Compression;
 using System.Net;
 
@@ -19,6 +20,14 @@ public partial class BaseExchange
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
+        // latest value resolved without a waiter, per message hash
+        public IDictionary<string, object> pendingResults = new ConcurrentDictionary<string, object>();
+        // spans future/resolve/reject so that a resolve landing between the
+        // pending-results check and the futures GetOrAdd cannot park a value
+        // while a consumer waits on an unresolvable future (the cs cousin of
+        // the go lost-wakeup fixed in #29719, the other lanes ride
+        // single-threaded event loops and do not need it)
+        private readonly object futuresSync = new object();
         public bool verbose = false;
         public bool isConnected = false;
         public bool startedConnecting = false;
@@ -77,11 +86,36 @@ public partial class BaseExchange
         public Future future(object messageHash2)
         {
             var messageHash = messageHash2.ToString();
-            var future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
-            if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
+            Future future;
+            object rejection = null;
+            object pending = null;
+            var hasPending = false;
+            lock (futuresSync)
+            {
+                // a value that arrived while no future existed satisfies this
+                // consumer immediately, the spent future intentionally stays
+                // out of the map so the next consumer waits for fresh data
+                if ((this.pendingResults as ConcurrentDictionary<string, object>).TryRemove(messageHash, out pending))
+                {
+                    hasPending = true;
+                    future = new Future();
+                }
+                else
+                {
+                    future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+                    (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out rejection);
+                }
+            }
+            // settle outside the lock, the TaskCompletionSource is not
+            // RunContinuationsAsynchronously so awaiter continuations can run
+            // synchronously on this thread
+            if (hasPending)
+            {
+                future.resolve(pending);
+            }
+            else if (rejection != null)
             {
                 future.reject(rejection);
-                this.rejections.Remove(messageHash);
             }
             return future;
         }
@@ -98,7 +132,22 @@ public partial class BaseExchange
                 Console.WriteLine("resolve received undefined messageHash");
             }
             var messageHash = messageHash2.ToString();
-            if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
+            Future future = null;
+            lock (futuresSync)
+            {
+                if (!(this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future))
+                {
+                    // no consumer future right now, keep the latest value so
+                    // the next future() call is resolved with it instead of
+                    // waiting for data that already arrived. A successful
+                    // resolve after a retained error means the stream
+                    // recovered, the stale error must not fail a later waiter
+                    this.pendingResults[messageHash] = content;
+                    (this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out _);
+                    future = null;
+                }
+            }
+            if (future != null)
             {
                 future.resolve(content);
             }
@@ -109,21 +158,37 @@ public partial class BaseExchange
             if (messageHash2 != null)
             {
                 var messageHash = messageHash2.ToString();
-                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
+                Future future = null;
+                lock (futuresSync)
+                {
+                    if (!(this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out future))
+                    {
+                        (this.rejections as ConcurrentDictionary<string, object>)[messageHash] = content;
+                        future = null;
+                    }
+                    // stale pre-error values must not satisfy post-error consumers
+                    (this.pendingResults as ConcurrentDictionary<string, object>).TryRemove(messageHash, out _);
+                }
+                if (future != null)
                 {
                     future.reject(content);
-                }
-                else
-                {
-                    (this.rejections as ConcurrentDictionary<string, object>).TryAdd(messageHash, content);
                 }
             }
             else
             {
-                foreach (var messageHash in this.futures.Keys)
+                var settled = new List<Future>();
+                lock (futuresSync)
                 {
-                    var future = this.futures[messageHash];
-                    this.futures.Remove(messageHash); // this order matters
+                    foreach (var messageHash in this.futures.Keys)
+                    {
+                        var future = this.futures[messageHash];
+                        this.futures.Remove(messageHash); // this order matters
+                        settled.Add(future);
+                    }
+                    this.pendingResults.Clear();
+                }
+                foreach (var future in settled)
+                {
                     future.reject(content);
                 }
             }

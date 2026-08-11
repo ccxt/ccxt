@@ -1,0 +1,78 @@
+import assert from 'assert';
+import Client from '../../../base/ws/Client.js';
+
+// native ts test, intentionally not transpiled: the php and cs lanes carry
+// their own native siblings (php/pro/test/base/test_client_retention.php,
+// cs/tests/ClientRetentionTest.cs), mirroring the python-native
+// python/ccxt/pro/test/base/test_client_retention.py shipped with
+// https://github.com/ccxt/ccxt/pull/29720
+
+function createClient () {
+    const noop = () => {};
+    return new Client ('ws://localhost:1234', noop, noop, noop, noop, {});
+}
+
+async function testWsClientRetention () {
+
+    // baseline: the waiter-present path is unchanged
+    let client = createClient ();
+    const waited = client.future ('a');
+    client.resolve ('first', 'a');
+    assert (await waited === 'first', 'waiter-present resolve must deliver');
+    assert (!('a' in client.pendingResults), 'waiter-present resolve must not retain');
+
+    // latest-wins: values resolved without a waiter are retained, latest only
+    client = createClient ();
+    client.resolve ('stale', 'b');
+    client.resolve ('fresh', 'b');
+    assert (await client.future ('b') === 'fresh', 'retained value must be the latest');
+
+    // drain-once: the retained value is delivered exactly once, the spent
+    // future stays out of the map, the next consumer waits for fresh data
+    assert (!('b' in client.pendingResults), 'drain must clear the retained value');
+    const second = client.future ('b');
+    assert ('b' in client.futures, 'post-drain future must wait in the map');
+    client.resolve ('third', 'b');
+    assert (await second === 'third', 'post-drain future must receive fresh data');
+
+    // reject-clears-value: stale pre-error values must not satisfy
+    // post-error consumers
+    client = createClient ();
+    client.resolve ('preError', 'c');
+    const error = new Error ('rejected');
+    client.reject (error, 'c');
+    assert (!('c' in client.pendingResults), 'reject must clear the retained value');
+    try {
+        await client.future ('c');
+        assert (false, 'future after reject must throw the retained rejection');
+    } catch (e) {
+        assert (e === error, 'future after reject must throw the retained rejection');
+    }
+
+    // resolve-supersedes-stale-rejection: a recovered stream must not fail
+    // a later waiter with a stale error
+    client = createClient ();
+    client.reject (new Error ('stale'), 'd');
+    client.resolve ('recovered', 'd');
+    assert (!('d' in client.rejections), 'resolve retention must clear the stale rejection');
+    assert (await client.future ('d') === 'recovered', 'recovered stream must deliver the value');
+
+    // broadcast wipe: a broadcast reject fails live waiters and wipes every
+    // retained value
+    client = createClient ();
+    client.resolve ('retained', 'e');
+    const live = client.future ('f');
+    const broadcastError = new Error ('broadcast');
+    client.reject (broadcastError);
+    try {
+        await live;
+        assert (false, 'broadcast reject must fail live waiters');
+    } catch (e) {
+        assert (e === broadcastError, 'broadcast reject must fail live waiters');
+    }
+    assert (Object.keys (client.pendingResults).length === 0, 'broadcast reject must wipe retained values');
+    client.future ('e');
+    assert ('e' in client.futures, 'post-broadcast consumer must wait for fresh data');
+}
+
+export default testWsClientRetention;
