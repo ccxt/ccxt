@@ -6315,9 +6315,9 @@ public class BinanceusApi extends BinanceCore
      * Calls the fapiPublicGetTickerPrice endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetTickerPrice (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  fapiPublicGetTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetTickerPrice", optionalArgs);
     }
@@ -7261,9 +7261,9 @@ public class BinanceusApi extends BinanceCore
      * Calls the fapiPublicV2GetTickerPrice endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicV2GetTickerPrice (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  fapiPublicV2GetTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicV2GetTickerPrice", optionalArgs);
     }
@@ -7976,9 +7976,9 @@ public class BinanceusApi extends BinanceCore
      * Calls the publicGetTickerPrice endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTickerPrice (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  publicGetTickerPrice (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerPrice", optionalArgs);
     }
