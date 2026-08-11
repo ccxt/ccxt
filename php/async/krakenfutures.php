@@ -68,6 +68,7 @@ class krakenfutures extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchIsolatedPositions' => false,
+                'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
@@ -2509,6 +2510,180 @@ class krakenfutures extends Exchange {
         //
         $fills = $this->safe_list($response, 'fills', array());
         return $this->parse_trades($fills, $market, $since, $limit);
+    }
+
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_ledger(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
+         * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+         *
+         * @param {string} [$code] unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest ledger entry
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
+         */
+        Async\await($this->load_markets());
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $request = array();
+        if ($since !== null) {
+            $request['since'] = $since;
+            $sort = $this->safe_string($params, 'sort');
+            if ($sort === null) {
+                $request['sort'] = 'asc';
+            }
+        }
+        if ($limit !== null) {
+            // each trade execution emits two $rows and the position-size legs are
+            // filtered out below, so ask for twice the $limit to compensate,
+            // parseLedger re-applies the $limit on the filtered entries
+            $request['count'] = $limit * 2;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['before'] = $until;
+        }
+        $response = Async\await($this->historyGetAccountLog($this->extend($request, $params)));
+        //
+        //    {
+        //        "accountUid" => "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "logs" => array(
+        //            array(
+        //                "asset" => "usd",
+        //                "booking_uid" => "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        //                "contract" => "pf_dogeusd",
+        //                "date" => "2026-08-11T19:55:24.251Z",
+        //                "execution" => "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        //                "fee" => 0.0035,
+        //                "funding_rate" => 0.000001129880786375,
+        //                "id" => 9,
+        //                "info" => "futures trade",
+        //                "margin_account" => "flex",
+        //                "mark_price" => 0.07091471613,
+        //                "new_balance" => 0,
+        //                "old_balance" => 0.0077,
+        //                "realized_funding" => null,
+        //                "realized_pnl" => -0.0042,
+        //                "trade_price" => 0.070914
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $logs = $this->safe_list($response, 'logs', array());
+        // each execution emits two $rows => a cash leg($asset is a $currency) and
+        // a position-size leg($asset equals the $contract id) - keep the cash legs only
+        $rows = array();
+        for ($i = 0; $i < count($logs); $i++) {
+            $row = $logs[$i];
+            $asset = $this->safe_string($row, 'asset');
+            $contract = $this->safe_string($row, 'contract');
+            if (($asset !== null) && ($asset !== $contract)) {
+                $rows[] = $row;
+            }
+        }
+        return $this->parse_ledger($rows, $currency, $since, $limit);
+    }
+
+    public function parse_ledger_entry_type(mixed $type) {
+        $types = array(
+            'futures trade' => 'trade',
+            'futures liquidation' => 'trade',
+            'futures assignee' => 'trade',
+            'futures assignor' => 'trade',
+            'futures unwind counterparty' => 'trade',
+            'futures unwind bankrupt' => 'trade',
+            'covered liquidation' => 'trade',
+            'settlement' => 'trade',
+            'conversion' => 'trade',
+            'funding rate change' => 'fee',
+            'interest payment' => 'fee',
+            'kfee applied' => 'fee',
+            'tax withheld' => 'fee',
+            'tax refund' => 'rebate',
+            'transfer' => 'transfer',
+            'subaccount transfer' => 'transfer',
+            'cross-exchange transfer' => 'transfer',
+            'admin transfer' => 'transfer',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
+        //
+        //    {
+        //        "asset" => "usd",
+        //        "booking_uid" => "10ca244e-1b73-4467-8c3c-74539c7ae677",
+        //        "contract" => "pf_dogeusd",
+        //        "date" => "2026-08-11T19:55:24.251Z",
+        //        "execution" => "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+        //        "fee" => 0.0035,
+        //        "funding_rate" => 0.000001129880786375,
+        //        "id" => 9,
+        //        "info" => "futures trade",
+        //        "margin_account" => "flex",
+        //        "mark_price" => 0.07091471613,
+        //        "new_balance" => 0,
+        //        "old_balance" => 0.0077,
+        //        "realized_funding" => null,
+        //        "realized_pnl" => -0.0042,
+        //        "trade_price" => 0.070914
+        //    }
+        //
+        $timestamp = $this->parse8601($this->safe_string($item, 'date'));
+        $currencyId = $this->safe_string($item, 'asset');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
+        $before = $this->safe_string($item, 'old_balance');
+        $after = $this->safe_string($item, 'new_balance');
+        $feeCost = $this->safe_string($item, 'fee');
+        $amount = null;
+        $direction = null;
+        if (($before !== null) && ($after !== null)) {
+            $amount = Precise::string_sub($after, $before);
+            if ($feeCost !== null) {
+                // the fee is already deducted from the balance delta, add it
+                // back so that $amount does not include the fee, matching the
+                // unified ledger contract => $after = $before +/- $amount - fee
+                $amount = Precise::string_add($amount, $feeCost);
+            }
+            if (Precise::string_lt($amount, '0')) {
+                $direction = 'out';
+                $amount = Precise::string_abs($amount);
+            } else {
+                $direction = 'in';
+            }
+        }
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
+            'id' => $this->safe_string($item, 'id'),
+            'direction' => $direction,
+            'account' => $this->safe_string($item, 'margin_account'),
+            'referenceId' => $this->safe_string_2($item, 'execution', 'booking_uid'),
+            'referenceAccount' => null,
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'info')),
+            'currency' => $code,
+            'amount' => $this->parse_number($amount),
+            'before' => $this->parse_number($before),
+            'after' => $this->parse_number($after),
+            'status' => 'ok',
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fee' => array(
+                'cost' => $this->parse_number($feeCost),
+                'currency' => $code,
+            ),
+        ), $currency);
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
