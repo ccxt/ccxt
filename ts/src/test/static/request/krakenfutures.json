@@ -3,6 +3,14 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchTradingFees": [
+            {
+                "description": "fetch trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://futures.kraken.com/derivatives/api/v3/feeschedules",
+                "input": []
+            }
+        ],
         "fetchCanceledOrders": [
             {
                 "description": "canceled trigger orders",
