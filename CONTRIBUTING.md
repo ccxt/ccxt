@@ -351,6 +351,7 @@ And structurally:
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
+- an empty container is ambiguous in PHP: `{}` and `[]` are both `array()` there, so `isDictionary` returns `true` for an empty array in PHP while every other language can tell them apart and returns `false` — never branch dict-vs-list logic on a possibly-empty container, and don't assert empty containers in shared tests, see https://github.com/ccxt/ccxt/pull/29704 and https://github.com/ccxt/ccxt/pull/29698
 
 #### Sending Market Ids
 
