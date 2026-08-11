@@ -1070,11 +1070,13 @@ class binance(ccxt.async_support.binance):
         #     }
         #
         marketId = self.safe_string(message, 's')
-        marketsByIdList = self.safe_value(self.markets_by_id, marketId)
-        marketById = self.safe_value(marketsByIdList, 0)
+        # the client url is the authoritative source for the market type — an
+        # ambiguous id like BTCUSDT maps to both the spot and the linear swap
+        # market, and picking the first match drops the message under the wrong
+        # symbol and stalls the orderbook future(delivery/option ids are
+        # unique, so the swap hint resolves those correctly too)
         isSpot = self.is_spot_url(client)
-        fallbackType = 'spot' if isSpot else 'swap'
-        marketType = marketById['type'] if (marketById is not None) else fallbackType
+        marketType = 'spot' if isSpot else 'swap'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         messageHash = 'orderbook::' + symbol
@@ -1498,11 +1500,9 @@ class binance(ccxt.async_support.binance):
             if (price is not None) and (amount is not None):
                 cost = Precise.string_mul(price, amount)
         marketId = self.safe_string(trade, 's')
-        marketsByIdList = self.safe_value(self.markets_by_id, marketId)
-        marketById = self.safe_value(marketsByIdList, 0)
         fallbackType = 'contract' if ('ps' in trade) else 'spot'
-        marketType = marketById['type'] if (marketById is not None) else fallbackType
-        symbol = self.safe_symbol(marketId, None, None, marketType)
+        marketType = market['type'] if (market is not None) else fallbackType
+        symbol = self.safe_symbol(marketId, market, None, marketType)
         side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
         orderId = self.safe_string(trade, 'i')
@@ -1540,11 +1540,10 @@ class binance(ccxt.async_support.binance):
         # the trade streams push raw trade information in real-time
         # each trade has a unique buyer and seller
         marketId = self.safe_string(message, 's')
-        marketsByIdList = self.safe_value(self.markets_by_id, marketId)
-        marketById = self.safe_value(marketsByIdList, 0)
+        # resolve the market from the transport url — an ambiguous id like
+        # BTCUSDT maps to both the spot and the linear swap market
         isSpot = self.is_spot_url(client)
-        fallbackType = 'spot' if isSpot else 'contract'
-        marketType = marketById['type'] if (marketById is not None) else fallbackType
+        marketType = 'spot' if isSpot else 'contract'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         messageHash = 'trade::' + symbol
@@ -1827,11 +1826,10 @@ class binance(ccxt.async_support.binance):
             self.safe_float(kline, 'c'),
             self.safe_float(kline, 'v'),
         ]
-        marketsByIdList = self.safe_value(self.markets_by_id, marketId)
-        marketById = self.safe_value(marketsByIdList, 0)
+        # resolve the market from the transport url — an ambiguous id like
+        # BTCUSDT maps to both the spot and the linear swap market
         isSpot = self.is_spot_url(client)
-        fallbackType = 'spot' if isSpot else 'contract'
-        marketType = marketById['type'] if (marketById is not None) else fallbackType
+        marketType = 'spot' if isSpot else 'contract'
         symbol = self.safe_symbol(marketId, None, None, marketType)
         messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
@@ -4130,10 +4128,8 @@ class binance(ccxt.async_support.binance):
             })
         executionType = self.safe_string(order, 'x')
         marketId = self.safe_string(order, 's')
-        marketsByIdList = self.safe_value(self.markets_by_id, marketId)
-        marketById = self.safe_value(marketsByIdList, 0)
-        fallbackType = 'contract' if ('ps' in order) else 'spot'
-        marketType = marketById['type'] if (marketById is not None) else fallbackType
+        # futures user-data events carry the position side field, spot ones do not
+        marketType = 'contract' if ('ps' in order) else 'spot'
         symbol = self.safe_symbol(marketId, None, None, marketType)
         timestamp = self.safe_integer(order, 'O')
         T = self.safe_integer(order, 'T')
