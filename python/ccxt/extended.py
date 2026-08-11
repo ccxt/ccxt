@@ -2883,7 +2883,7 @@ class extended(Exchange, ImplicitAPI):
         #
         return []
 
-    def cancel_all_orders_after(self, timeout: Int, params={}):
+    def cancel_all_orders_after(self, timeout: Int, params={}) -> dict:
         """
         dead man's switch, cancel all orders after the given timeout
 
@@ -2897,7 +2897,11 @@ class extended(Exchange, ImplicitAPI):
         request = {
             'countdownTime': self.parse_to_int(timeout / 1000) if (timeout > 0) else 0,
         }
-        return self.v1PrivatePostUserDeadmanswitch(self.extend(request, params))
+        response = self.v1PrivatePostUserDeadmanswitch(self.extend(request, params))
+        #
+        # the endpoint answers with an empty string body
+        #
+        return {'info': response}
 
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
