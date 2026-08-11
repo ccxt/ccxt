@@ -5233,18 +5233,25 @@ ${fallthrough}
     emitWsHandlerDispatch(coreName: string, content: string): string {
         const arms: string[] = [];
         const seen = new Set<string>();
-        // Void methods only: `pub [async] fn NAME(args) {` with no `-> Ret`
-        // before the brace (a `-> Value` method has the arrow in between).
-        const re = /\bpub\s+(async\s+)?fn\s+([a-z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)\s*\{/g;
+        // Every *sync* method: `pub fn NAME(args) [-> Ret] {`. A handler-dispatch
+        // table can reference any of them (some venues' handlers return `()`,
+        // others return `Value`), so include both — void gets wrapped, a Value
+        // return is forwarded, and any other return type is skipped (can't be
+        // coerced to the dispatcher's `Value` result).
+        const re = /\bpub\s+(async\s+)?fn\s+([a-z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)\s*(->\s*[^{]+?)?\s*\{/g;
         let m: RegExpExecArray | null;
         while ((m = re.exec(content)) !== null) {
             const isAsync = !!(m[1] && m[1].trim());
             const name = m[2];
             const argList = m[3];
-            if (isAsync) continue; // sync dispatch only
+            const retType = (m[4] || '').trim();
+            if (isAsync) continue; // sync dispatch only (handle_message is sync)
             if (['new', 'bind', 'init', 'describe', 'dispatch_ws_handler'].includes(name)) continue;
             if (!/\bself\b/.test(argList)) continue;
             if (seen.has(name)) continue;
+            const isVoid = retType === '';
+            const isValue = /->\s*(crate::)?Value\s*$/.test(retType);
+            if (!isVoid && !isValue) continue; // e.g. `-> bool` — not dispatchable
             const params = argList.split(',').slice(1).map(s => s.trim()).filter(Boolean);
             const kinds = params.map(p => /:\s*&\[/.test(p) ? 'slice' : (/:\s*Value\b/.test(p) ? 'value' : 'other'));
             if (kinds.some(k => k === 'other')) continue;
@@ -5252,7 +5259,10 @@ ${fallthrough}
             const callArgs = kinds.map((k, i) => k === 'slice'
                 ? `&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`
                 : `args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
-            arms.push(`            "${name}" => { self.${name}(${callArgs.join(', ')}); crate::Value::Null },`);
+            const call = `self.${name}(${callArgs.join(', ')})`;
+            arms.push(isVoid
+                ? `            "${name}" => { ${call}; crate::Value::Null },`
+                : `            "${name}" => ${call},`);
         }
         // Emit the dispatcher if there are handler arms OR the (already
         // rewritten) content calls it — otherwise a `.call` rewrite with no

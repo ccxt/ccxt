@@ -285,6 +285,8 @@ impl MudrexCore {
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "request_id" => self.request_id(),
             "set_broker_headers" => { self.set_broker_headers(); crate::Value::Null },
             _ => crate::Value::Null,
         }

@@ -271,6 +271,18 @@ impl crate::exchange_generated::ExchangeBase for KucoinfuturesCore {
         })
     }
 }
+impl KucoinfuturesCore {
+    /// Synchronous WS handler dispatch — routes a handler-name string (from the
+    /// venue's handle_message dispatch table) to the real handler method.
+    #[allow(dead_code, unreachable_patterns, clippy::all)]
+    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name { crate::Value::Str(s) => s.as_str(), _ => return crate::Value::Null };
+        match __n {
+            "parse_transfer_type" => self.parse_transfer_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            _ => crate::Value::Null,
+        }
+    }
+}
 
 impl std::ops::Deref for KucoinfuturesCore {
     type Target = crate::exchange::Exchange;
