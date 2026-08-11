@@ -6313,11 +6313,11 @@ func (this *XtCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
-			response = (<-this.CallDynamically("privateInverseGetFutureTradeV1PositionListHistory", this.Extend(request, params)))
+			response = (<-this.PrivateInverseGetFutureTradeV1PositionListHistory(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.CallDynamically("privateLinearGetFutureTradeV1PositionListHistory", this.Extend(request, params)))
+			response = (<-this.PrivateLinearGetFutureTradeV1PositionListHistory(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		//
