@@ -93,6 +93,7 @@ interface Exchange {
     privateLinearGetFutureUserV1PositionAdl(params?: {}): Promise<Dict>;
     privateLinearGetFutureUserV1PositionBreakList(params?: {}): Promise<Dict>;
     privateLinearGetFutureUserV1PositionList(params?: {}): Promise<Dict>;
+    privateLinearGetFutureUserV1UserStepRate(params?: {}): Promise<Dict>;
     privateLinearGetFutureUserV1UserCollectionList(params?: {}): Promise<Dict>;
     privateLinearGetFutureUserV1UserListenKey(params?: {}): Promise<Dict>;
     privateLinearPostFutureTradeV1EntrustCancelAllPlan(params?: {}): Promise<Dict>;
@@ -133,6 +134,7 @@ interface Exchange {
     privateInverseGetFutureUserV1PositionAdl(params?: {}): Promise<Dict>;
     privateInverseGetFutureUserV1PositionBreakList(params?: {}): Promise<Dict>;
     privateInverseGetFutureUserV1PositionList(params?: {}): Promise<Dict>;
+    privateInverseGetFutureUserV1UserStepRate(params?: {}): Promise<Dict>;
     privateInverseGetFutureUserV1UserCollectionList(params?: {}): Promise<Dict>;
     privateInverseGetFutureUserV1UserListenKey(params?: {}): Promise<Dict>;
     privateInversePostFutureTradeV1EntrustCancelAllPlan(params?: {}): Promise<Dict>;

@@ -106,8 +106,8 @@ class xt extends xt$1["default"] {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
@@ -265,6 +265,7 @@ class xt extends xt$1["default"] {
                             'future/user/v1/position/adl': { 'cost': 1 },
                             'future/user/v1/position/break-list': { 'cost': 1 },
                             'future/user/v1/position/list': { 'cost': 1 },
+                            'future/user/v1/user/step-rate': { 'cost': 1 },
                             'future/user/v1/user/collection/list': { 'cost': 1 },
                             'future/user/v1/user/listen-key': { 'cost': 1 },
                         },
@@ -311,6 +312,7 @@ class xt extends xt$1["default"] {
                             'future/user/v1/position/adl': { 'cost': 1 },
                             'future/user/v1/position/break-list': { 'cost': 1 },
                             'future/user/v1/position/list': { 'cost': 1 },
+                            'future/user/v1/user/step-rate': { 'cost': 1 },
                             'future/user/v1/user/collection/list': { 'cost': 1 },
                             'future/user/v1/user/listen-key': { 'cost': 1 },
                         },
@@ -4783,6 +4785,103 @@ class xt extends xt$1["default"] {
             'datetime': this.iso8601(timestamp),
             'info': interest,
         }, market);
+    }
+    /**
+     * @method
+     * @name xt#fetchTradingFee
+     * @description fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+     * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    async fetchTradingFee(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['contract']) {
+            throw new errors.NotSupported(this.id + ' fetchTradingFee() supports contract markets only');
+        }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchTradingFee', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.privateInverseGetFutureUserV1UserStepRate(params);
+        }
+        else {
+            response = await this.privateLinearGetFutureUserV1UserStepRate(params);
+        }
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": {
+        //             "specialType": false,
+        //             "vipProType": false,
+        //             "stepRateProName": null,
+        //             "discountLevel": 0,
+        //             "makerFee": "0.0002",
+        //             "takerFee": "0.0006",
+        //             "levelReturnDay": 90,
+        //             "totalTradeVolume": "78.708",
+        //             "walletBalance": "21.95",
+        //             "nextLvTradeVolume": "200000",
+        //             "nextLvMakerFee": "0.00018",
+        //             "nextLvTakerFee": "0.00054",
+        //             "feeSource": "step_rate"
+        //         }
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        return this.parseTradingFee(result, market);
+    }
+    /**
+     * @method
+     * @name xt#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+     * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] 'linear' (default) or 'inverse'
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol
+     */
+    async fetchTradingFees(params = {}) {
+        await this.loadMarkets();
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchTradingFees', undefined, params);
+        const isInverse = (subType === 'inverse');
+        let response = undefined;
+        if (isInverse) {
+            response = await this.privateInverseGetFutureUserV1UserStepRate(params);
+        }
+        else {
+            response = await this.privateLinearGetFutureUserV1UserStepRate(params);
+        }
+        //
+        // same response as fetchTradingFee
+        //
+        const fee = this.safeDict(response, 'result', {});
+        const result = {};
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market(symbol);
+            const matchesSubType = (isInverse) ? market['inverse'] : market['linear'];
+            if (market['contract'] && matchesSubType) {
+                result[symbol] = this.parseTradingFee(fee, market);
+            }
+        }
+        return result;
+    }
+    parseTradingFee(fee, market = undefined) {
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber(fee, 'makerFee'),
+            'taker': this.safeNumber(fee, 'takerFee'),
+            'percentage': undefined,
+            'tierBased': true,
+        };
     }
     /**
      * @method
