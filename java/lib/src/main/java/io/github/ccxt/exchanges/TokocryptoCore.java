@@ -1452,6 +1452,13 @@ public class TokocryptoCore extends TokocryptoApi
                 (this.loadMarkets()).join();
             }
             Object response = (this.binanceGetTicker24hr(parameters)).join();
+            if (!Helpers.isTrue(Helpers.isArray(response)))
+            {
+                // a user-supplied symbol param makes the endpoint answer a single
+                // ticker object, the unified fetchTickers contract returns a
+                // symbol-keyed dict either way
+                return this.parseTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(response)), symbols);
+            }
             return this.parseTickers(response, symbols);
         });
 
