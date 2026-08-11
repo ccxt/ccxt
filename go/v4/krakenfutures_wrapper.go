@@ -111,6 +111,23 @@ func (this *Krakenfutures) FetchTickers(options ...FetchTickersOptions) (Tickers
 
 /**
  * @method
+ * @name krakenfutures#fetchTradingFees
+ * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+ */
+func (this *Krakenfutures) FetchTradingFees(params ...any) (TradingFees, error) {
+	res := <-this.Core.FetchTradingFees(params...)
+	if IsError(res) {
+		return TradingFees{}, CreateReturnError(res)
+	}
+	return NewTradingFees(res), nil
+}
+
+/**
+ * @method
  * @name krakenfutures#fetchOHLCV
  * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1313,9 +1330,6 @@ func (this *Krakenfutures) FetchTime(params ...any) (int64, error) {
 }
 func (this *Krakenfutures) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
-}
-func (this *Krakenfutures) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
 }
 func (this *Krakenfutures) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
