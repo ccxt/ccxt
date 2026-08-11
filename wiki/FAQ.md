@@ -294,7 +294,8 @@ Since the signing algorithms and structs are not supported natively in all langu
 
 ### Python/C#/PHP users:
 
-- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/main/lighter/signers
+- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/8bac9f56b9d0dd0eedaeb53a00ccb4fc9d77082e/lighter/signers
+- If they don't support the os you used, you can clone and build library from their lighter-go: https://github.com/elliottech/lighter-go/tree/25847e7e39603dbb90a0bf60b689b571116b7187
 - The path to the binary needs to be provided as `libraryPath`
 - You need to choose the binary according to your OS/architecture
 
