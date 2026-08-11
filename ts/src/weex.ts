@@ -62,7 +62,7 @@ export default class weex extends Exchange {
                 'createTakeProfitOrder': true,
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
-                'createTriggerOrder': false,
+                'createTriggerOrder': true,
                 'deposit': false,
                 'editOrder': false,
                 'editOrders': false,
@@ -619,7 +619,7 @@ export default class weex extends Exchange {
                     'sandbox': true,
                     'createOrder': {
                         'marginMode': true,
-                        'triggerPrice': false,
+                        'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': true,
@@ -2280,8 +2280,9 @@ export default class weex extends Exchange {
      * @param {string} [params.stopLossPriceType] The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @param {string} [params.takeProfitPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+     * @param {float} [params.triggerPrice] the price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-     * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
+     * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -2331,11 +2332,12 @@ export default class weex extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const [ triggerPrice, stopLossPrice, takeProfitPrice, query ] = this.handleTriggerPricesAndParams (symbol, params);
-        if (triggerPrice !== undefined) {
-            throw new NotSupported (this.id + ' createOrder() does not support the triggerPrice parameter');
-        }
+        const isTrigger = (triggerPrice !== undefined);
         const isStopLoss = (stopLossPrice !== undefined);
         const isTakeProfit = (takeProfitPrice !== undefined);
+        if (isTrigger && (isStopLoss || isTakeProfit)) {
+            throw new BadRequest (this.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
+        }
         let reduceOnly = this.safeBool (query, 'reduceOnly');
         if (isStopLoss || isTakeProfit) {
             reduceOnly = true;
@@ -2361,7 +2363,39 @@ export default class weex extends Exchange {
             clientOrderId = partner + '-' + this.uuid22 ();
         }
         const callerMethodName = this.safeString (params, 'callerMethodName');
-        if (isStopLoss || isTakeProfit) {
+        if (isTrigger) {
+            // entry conditional order, triggers a regular order when the trigger price is reached
+            if (callerMethodName === 'createOrders') {
+                throw new NotSupported (this.id + ' createOrders() does not support trigger orders');
+            }
+            if (timeInForce !== undefined) {
+                throw new BadRequest (this.id + ' createOrder() cannot use the timeInForce parameter with trigger orders');
+            }
+            request['clientAlgoId'] = clientOrderId;
+            params['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            if (isMarketOrder) {
+                params['type'] = 'STOP_MARKET';
+            } else {
+                params['type'] = 'STOP';
+            }
+            // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
+            if (hasStopLoss) {
+                const stopLossTriggerPrice = this.safeNumber (stopLoss, 'triggerPrice');
+                request['presetStopLossPrice'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                const stopLossPriceType = this.safeString (stopLoss, 'triggerPriceType');
+                if (stopLossPriceType !== undefined) {
+                    params['SlWorkingType'] = this.encodeTriggerPriceType (stopLossPriceType);
+                }
+            }
+            if (hasTakeProfit) {
+                const takeProfitTriggerPrice = this.safeNumber (takeProfit, 'triggerPrice');
+                request['presetTakeProfitPrice'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                const takeProfitPriceType = this.safeString (takeProfit, 'triggerPriceType');
+                if (takeProfitPriceType !== undefined) {
+                    params['TpWorkingType'] = this.encodeTriggerPriceType (takeProfitPriceType);
+                }
+            }
+        } else if (isStopLoss || isTakeProfit) {
             if (callerMethodName === 'createOrders') {
                 throw new NotSupported (this.id + ' createOrders() does not support stop loss and take profit orders');
             }
@@ -3138,12 +3172,22 @@ export default class weex extends Exchange {
         const rawStatus = this.safeStringLower (order, 'status');
         const triggerPrice = this.omitZero (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
         const rawType = this.safeStringUpper2 (order, 'type', 'orderType');
+        const isReduceOnly = this.safeBool (order, 'reduceOnly');
         let takeProfitPrice: Str = undefined;
         let stopLossPrice: Str = undefined;
-        if (rawType === 'TAKE_PROFIT_MARKET' || rawType === 'TAKE_PROFIT') {
-            takeProfitPrice = triggerPrice;
-        } else if (rawType === 'STOP_LOSS' || rawType === 'STOP' || rawType === 'STOP_MARKET') {
-            stopLossPrice = triggerPrice;
+        if (isReduceOnly !== false) {
+            // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly false, their trigger price is not a stop loss / take profit price
+            if (rawType === 'TAKE_PROFIT_MARKET' || rawType === 'TAKE_PROFIT') {
+                takeProfitPrice = triggerPrice;
+            } else if (rawType === 'STOP_LOSS' || rawType === 'STOP' || rawType === 'STOP_MARKET') {
+                stopLossPrice = triggerPrice;
+            }
+        }
+        if (takeProfitPrice === undefined) {
+            takeProfitPrice = this.omitZero (this.safeString (order, 'tpTriggerPrice')); // attached take profit of a regular or conditional order
+        }
+        if (stopLossPrice === undefined) {
+            stopLossPrice = this.omitZero (this.safeString (order, 'slTriggerPrice')); // attached stop loss of a regular or conditional order
         }
         return this.safeOrder ({
             'id': this.safeStringN (order, [ 'orderId', 'algoId', 'successOrderId' ]),
@@ -3152,7 +3196,7 @@ export default class weex extends Exchange {
             'type': this.parseOrderType (rawType),
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': undefined,
-            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'reduceOnly': isReduceOnly,
             'side': this.safeStringLower (order, 'side'),
             'amount': this.safeString2 (order, 'origQty', 'quantity'),
             'price': this.safeString (order, 'price'),
