@@ -1666,13 +1666,13 @@ class woo(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
 
-        https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+        https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
         https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
 
         cancel all open orders in a market
-        :param str [symbol]: unified market symbol
+        :param str [symbol]: unified market symbol, cancels orders in all markets when omitted
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.trigger]: whether the order is a trigger/algo order
+        :param boolean [params.trigger]: set to True to cancel only trigger/algo orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1687,7 +1687,8 @@ class woo(Exchange, ImplicitAPI):
         if trigger:
             response = self.v3PrivateDeleteTradeAlgoOrders(params)
         else:
-            response = self.v3PrivateDeleteTradeOrders(self.extend(request, params))
+            # cancels both regular and algo orders
+            response = self.v3PrivateDeleteTradeAllOrders(self.extend(request, params))
         #
         #     {
         #         "success": True,
