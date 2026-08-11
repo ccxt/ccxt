@@ -432,7 +432,7 @@ interface Exchange {
     dapiPublicGetIndexPriceKlines(params?: {}): Promise<List>;
     dapiPublicGetMarkPriceKlines(params?: {}): Promise<List>;
     dapiPublicGetPremiumIndexKlines(params?: {}): Promise<List>;
-    dapiPublicGetTicker24hr(params?: {}): Promise<List>;
+    dapiPublicGetTicker24hr(params?: {}): Promise<Dict | List>;
     dapiPublicGetTickerPrice(params?: {}): Promise<List>;
     dapiPublicGetTickerBookTicker(params?: {}): Promise<List>;
     dapiPublicGetConstituents(params?: {}): Promise<Dict>;
@@ -504,7 +504,7 @@ interface Exchange {
     fapiPublicGetFundingRate(params?: {}): Promise<List>;
     fapiPublicGetFundingInfo(params?: {}): Promise<List>;
     fapiPublicGetPremiumIndex(params?: {}): Promise<List>;
-    fapiPublicGetTicker24hr(params?: {}): Promise<List>;
+    fapiPublicGetTicker24hr(params?: {}): Promise<Dict | List>;
     fapiPublicGetTickerPrice(params?: {}): Promise<Dict>;
     fapiPublicGetTickerBookTicker(params?: {}): Promise<List>;
     fapiPublicGetOpenInterest(params?: {}): Promise<Dict>;
@@ -559,7 +559,7 @@ interface Exchange {
     fapiPrivateGetTradeAsyn(params?: {}): Promise<Dict>;
     fapiPrivateGetTradeAsynId(params?: {}): Promise<Dict>;
     fapiPrivateGetFeeBurn(params?: {}): Promise<Dict>;
-    fapiPrivateGetSymbolConfig(params?: {}): Promise<Dict>;
+    fapiPrivateGetSymbolConfig(params?: {}): Promise<List>;
     fapiPrivateGetAccountConfig(params?: {}): Promise<Dict>;
     fapiPrivateGetConvertOrderStatus(params?: {}): Promise<Dict>;
     fapiPrivateGetAlgoOrder(params?: {}): Promise<Dict>;
@@ -590,7 +590,7 @@ interface Exchange {
     fapiPrivateDeleteAllOpenOrders(params?: {}): Promise<List>;
     fapiPrivateDeleteListenKey(params?: {}): Promise<Dict>;
     fapiPrivateDeleteAlgoOrder(params?: {}): Promise<Dict>;
-    fapiPrivateDeleteAlgoOpenOrders(params?: {}): Promise<List>;
+    fapiPrivateDeleteAlgoOpenOrders(params?: {}): Promise<Dict>;
     fapiPublicV2GetTickerPrice(params?: {}): Promise<List>;
     fapiPrivateV2GetAccount(params?: {}): Promise<Dict>;
     fapiPrivateV2GetBalance(params?: {}): Promise<List>;
@@ -653,7 +653,7 @@ interface Exchange {
     publicGetHistoricalTrades(params?: {}): Promise<List>;
     publicGetKlines(params?: {}): Promise<List>;
     publicGetUiKlines(params?: {}): Promise<List>;
-    publicGetTicker24hr(params?: {}): Promise<List>;
+    publicGetTicker24hr(params?: {}): Promise<Dict | List>;
     publicGetTicker(params?: {}): Promise<List>;
     publicGetTickerTradingDay(params?: {}): Promise<Dict>;
     publicGetTickerPrice(params?: {}): Promise<List>;
@@ -669,7 +669,7 @@ interface Exchange {
     privateGetOrder(params?: {}): Promise<Dict>;
     privateGetOpenOrders(params?: {}): Promise<List>;
     privateGetAllOrders(params?: {}): Promise<List>;
-    privateGetAccount(params?: {}): Promise<List>;
+    privateGetAccount(params?: {}): Promise<Dict>;
     privateGetMyTrades(params?: {}): Promise<List>;
     privateGetRateLimitOrder(params?: {}): Promise<List>;
     privateGetMyPreventedMatches(params?: {}): Promise<List>;

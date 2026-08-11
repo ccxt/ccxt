@@ -14,7 +14,7 @@ interface Exchange {
     publicGetKit (params?: {}): Promise<Dict>;
     publicGetTiers (params?: {}): Promise<Dict>;
     publicGetTicker (params?: {}): Promise<Dict>;
-    publicGetTickers (params?: {}): Promise<Dict>;
+    publicGetTickers (params?: {}): Promise<List>;
     publicGetOrderbook (params?: {}): Promise<Dict>;
     publicGetOrderbooks (params?: {}): Promise<Dict>;
     publicGetTrades (params?: {}): Promise<Dict>;

@@ -5,11 +5,11 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import _hitbtc from '../hitbtc.js';
 
 interface hitbtc {
-    publicGetPublicCurrency (params?: {}): Promise<Dict>;
+    publicGetPublicCurrency (params?: {}): Promise<List>;
     publicGetPublicCurrencyCurrency (params?: {}): Promise<Dict>;
     publicGetPublicSymbol (params?: {}): Promise<Dict>;
     publicGetPublicSymbolSymbol (params?: {}): Promise<Dict>;

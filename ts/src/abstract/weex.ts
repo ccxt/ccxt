@@ -15,7 +15,7 @@ interface Exchange {
     publicGetApiV3Ping (params?: {}): Promise<Dict>;
     publicGetApiV3ApiTradingSymbols (params?: {}): Promise<List>;
     publicGetApiV3MarketTickerPrice (params?: {}): Promise<List>;
-    publicGetApiV3MarketTicker24hr (params?: {}): Promise<Dict | List>;
+    publicGetApiV3MarketTicker24hr (params?: {}): Promise<List>;
     publicGetApiV3MarketTrades (params?: {}): Promise<List>;
     publicGetApiV3MarketKlines (params?: {}): Promise<List>;
     publicGetApiV3MarketDepth (params?: {}): Promise<Dict>;
@@ -57,7 +57,7 @@ interface Exchange {
     contractGetCapiV3MarketPremiumIndex (params?: {}): Promise<List>;
     contractGetCapiV3MarketFundingRate (params?: {}): Promise<List>;
     contractGetCapiV3MarketApiTradingSymbols (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3AccountBalance (params?: {}): Promise<List>;
+    contractPrivateGetCapiV3AccountBalance (params?: {}): Promise<Dict>;
     contractPrivateGetCapiV3AccountCommissionRate (params?: {}): Promise<Dict>;
     contractPrivateGetCapiV3AccountAccountConfig (params?: {}): Promise<Dict>;
     contractPrivateGetCapiV3AccountSymbolConfig (params?: {}): Promise<List>;
@@ -69,9 +69,6 @@ interface Exchange {
     contractPrivateGetCapiV3UserTrades (params?: {}): Promise<List>;
     contractPrivateGetCapiV3OpenAlgoOrders (params?: {}): Promise<List>;
     contractPrivateGetCapiV3AllAlgoOrders (params?: {}): Promise<Dict>;
-    contractPrivateGetCapiV3SimBalance (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3SimPositionAllPosition (params?: {}): Promise<List>;
-    contractPrivateGetCapiV3SimOrderHistory (params?: {}): Promise<List>;
     contractPrivatePostCapiV3AccountIncome (params?: {}): Promise<Dict>;
     contractPrivatePostCapiV3AccountMarginType (params?: {}): Promise<Dict>;
     contractPrivatePostCapiV3AccountLeverage (params?: {}): Promise<Dict>;
@@ -83,7 +80,6 @@ interface Exchange {
     contractPrivatePostCapiV3AlgoOrder (params?: {}): Promise<Dict>;
     contractPrivatePostCapiV3PlaceTpSlOrder (params?: {}): Promise<List>;
     contractPrivatePostCapiV3ModifyTpSlOrder (params?: {}): Promise<Dict>;
-    contractPrivatePostCapiV3SimOrder (params?: {}): Promise<Dict>;
     contractPrivateDeleteCapiV3Order (params?: {}): Promise<Dict>;
     contractPrivateDeleteCapiV3BatchOrders (params?: {}): Promise<Dict>;
     contractPrivateDeleteCapiV3AllOpenOrders (params?: {}): Promise<List>;

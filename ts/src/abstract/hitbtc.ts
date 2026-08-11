@@ -5,11 +5,11 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetPublicCurrency (params?: {}): Promise<Dict>;
+    publicGetPublicCurrency (params?: {}): Promise<List>;
     publicGetPublicCurrencyCurrency (params?: {}): Promise<Dict>;
     publicGetPublicSymbol (params?: {}): Promise<Dict>;
     publicGetPublicSymbolSymbol (params?: {}): Promise<Dict>;

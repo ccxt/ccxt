@@ -19,7 +19,7 @@ interface Exchange {
     publicGetTrades (params?: {}): Promise<Dict>;
     publicGetCandlesHistory (params?: {}): Promise<Dict>;
     publicGetRequiredAmount (params?: {}): Promise<Dict>;
-    publicGetPaymentsProvidersCryptoList (params?: {}): Promise<Dict | List>;
+    publicGetPaymentsProvidersCryptoList (params?: {}): Promise<Dict>;
     privatePostUserInfo (params?: {}): Promise<Dict>;
     privatePostOrderCreate (params?: {}): Promise<Dict>;
     privatePostOrderCancel (params?: {}): Promise<Dict>;
