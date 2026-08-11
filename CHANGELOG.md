@@ -1,3 +1,15 @@
+<a id="v4.5.73"></a>
+# [v4.5.73](https://github.com/ccxt/ccxt/releases/tag/v4.5.73) - 2026-08-11
+
+## What's Changed
+* fix(binance): watchOrderBook market resolving by [@carlosmiei](https://github.com/carlosmiei) in [#29762](https://github.com/ccxt/ccxt/pull/29762)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.72...v4.5.73
+
+[Changes][v4.5.73]
+
+
 <a id="v4.5.72"></a>
 # [v4.5.72](https://github.com/ccxt/ccxt/releases/tag/v4.5.72) - 2026-08-11
 
@@ -14223,6 +14235,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.73]: https://github.com/ccxt/ccxt/compare/v4.5.72...v4.5.73
 [v4.5.72]: https://github.com/ccxt/ccxt/compare/v4.5.71...v4.5.72
 [v4.5.71]: https://github.com/ccxt/ccxt/compare/v4.5.70...v4.5.71
 [v4.5.70]: https://github.com/ccxt/ccxt/compare/v4.5.69...v4.5.70
