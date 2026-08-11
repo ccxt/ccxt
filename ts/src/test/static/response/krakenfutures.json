@@ -189,7 +189,7 @@
                         "referenceAccount": null,
                         "type": "trade",
                         "currency": "USD",
-                        "amount": 0.0077,
+                        "amount": 0.0042,
                         "before": 0.0077,
                         "after": 0,
                         "status": "ok",
