@@ -143,6 +143,7 @@ public class Tests
                 WsCacheTests();
                 WsOrderBookTests();
                 await WsClientRetentionTests();
+                await WsClientKeepAliveLivenessTests();
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -182,6 +183,12 @@ public class Tests
     {
         await baseTestInstance.testWsClientRetention();
         Helper.Green(" [C#] WebSocketClient retention tests passed");
+    }
+
+    static async Task WsClientKeepAliveLivenessTests()
+    {
+        await baseTestInstance.testWsClientKeepAliveLiveness();
+        Helper.Green(" [C#] WebSocketClient keepalive liveness tests passed");
     }
 
     static void WsOrderBookTests()

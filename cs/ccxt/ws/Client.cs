@@ -264,7 +264,11 @@ public partial class BaseExchange
                     var convertedKeepAlive = Convert.ToInt64(this.keepAlive);
                     if (lastPongConverted + convertedKeepAlive * this.maxPingPongMisses < now)
                     {
-                        this.onError(this, new Exception("Connection to" + this.url + " lost, did not receive pong within " + this.keepAlive + " seconds"));
+                        // sibling wording (ts/py/php/go), the previous message printed the raw
+                        // millisecond keepAlive labeled as "seconds" and named half the real
+                        // window (the kill threshold is keepAlive * maxPingPongMisses), and
+                        // raised a bare Exception the error-class handling cannot categorize
+                        this.onError(this, new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time"));
                         break;
                     }
                     else
@@ -410,8 +414,16 @@ public partial class BaseExchange
         //    }
         // }
 
-        private void TryHandleMessage(string message)
+        public void TryHandleMessage(string message)
         {
+            // any inbound frame proves the connection alive: .NET ClientWebSocket
+            // neither surfaces incoming pong frames to user code nor exposes an API
+            // to send unsolicited pings, so protocol-level pong tracking is
+            // impossible here — without this, lastPong freezes at the ping loop's
+            // first iteration and every protocol-ping exchange (hitbtc, derive,
+            // lyra, ...) is deterministically disconnected at exactly
+            // keepAlive * maxPingPongMisses while perfectly healthy
+            this.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             object deserializedMessages = message;
             if (isValidJson(message))
             {
