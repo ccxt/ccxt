@@ -28,4 +28,5 @@ function test_is_dictionary() {
     assert($exchange->is_dictionary('str') === false);
     assert($exchange->is_dictionary(5) === false);
     assert($exchange->is_dictionary(true) === false);
+    assert($exchange->is_dictionary(array()) === true);
 }
