@@ -283,6 +283,67 @@ func (this *Woofipro) FetchTickers(options ...FetchTickersOptions) (Tickers, err
 
 /**
  * @method
+ * @name woofipro#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Woofipro) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+
+	opts := FetchOpenInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterest(symbol, params)
+	if IsError(res) {
+		return OpenInterest{}, CreateReturnError(res)
+	}
+	return NewOpenInterest(res), nil
+}
+
+/**
+ * @method
+ * @name woofipro#fetchOpenInterests
+ * @description retrieves the open interest for a list of contract trading pairs
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] a list of unified CCXT market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Woofipro) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
+
+	opts := FetchOpenInterestsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterests(symbols, params)
+	if IsError(res) {
+		return OpenInterests{}, CreateReturnError(res)
+	}
+	return NewOpenInterests(res), nil
+}
+
+/**
+ * @method
  * @name woofipro#fetchFundingRateHistory
  * @description fetches historical funding rate prices
  * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
@@ -1553,14 +1614,8 @@ func (this *Woofipro) FetchMarkPrices(options ...FetchMarkPricesOptions) (Ticker
 func (this *Woofipro) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 	return this.exchangeTyped.FetchMyLiquidations(options...)
 }
-func (this *Woofipro) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
-}
 func (this *Woofipro) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Woofipro) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
 }
 func (this *Woofipro) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
 	return this.exchangeTyped.FetchOption(symbol, options...)
