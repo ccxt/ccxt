@@ -273,7 +273,7 @@ interface binance {
     sapiGetEquityMarketExchangeInfo (params?: {}): Promise<Dict>;
     sapiGetEquityMarketTokenizedAssets (params?: {}): Promise<Dict>;
     sapiGetEquityMarketQuote (params?: {}): Promise<Dict>;
-    sapiGetEquityOrderOpenOrders (params?: {}): Promise<Dict>;
+    sapiGetEquityOrderOpenOrders (params?: {}): Promise<List>;
     sapiGetEquityOrderHistory (params?: {}): Promise<Dict>;
     sapiGetEquityOrderDetail (params?: {}): Promise<Dict>;
     sapiGetEquityTradeHistory (params?: {}): Promise<Dict>;

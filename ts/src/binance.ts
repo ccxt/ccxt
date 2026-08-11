@@ -552,7 +552,7 @@ export default class binance extends Exchange {
                         'equity/market/tokenized-assets': { 'cost': 0.1 } as Endpoint<Dict>,
                         'equity/market/quote': { 'cost': 0.1 } as Endpoint<Dict>,
                         // tokenized equities private
-                        'equity/order/open-orders': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/order/open-orders': { 'cost': 0.1 } as Endpoint<List>,
                         'equity/order/history': { 'cost': 0.1 } as Endpoint<Dict>,
                         'equity/order/detail': { 'cost': 0.1 } as Endpoint<Dict>,
                         'equity/trade/history': { 'cost': 0.1 } as Endpoint<Dict>,
